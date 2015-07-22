@@ -1,0 +1,264 @@
+
+[source]
+----
+import com.mulesoft.tcat.Server
+import com.mulesoft.common.remoting.RemoteContext
+import com.mulesoft.common.server.ServerHealthEvent
+import com.mulesoft.tcat.osutil.ReferenceProcessor
+import org.mule.galaxy.impl.jcr.JcrItem
+import org.mule.galaxy.ee.common.dto.ChartDefinition
+import org.mule.galaxy.util.SecurityUtils
+import org.mule.galaxy.impl.jcr.JcrUtil
+ 
+import org.springmodules.jcr.JcrCallback
+import org.springframework.remoting.RemoteAccessException
+import java.io.File
+import java.io.FileWriter
+import java.util.HashMap
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorCompletionService
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicLong
+import java.text.SimpleDateFormat
+ 
+// The below variables are for the user to configure, to set what is to
+// be monitored on which server group.
+def groupId = "401e81bf-b792-49fd-9006-eff59cd29387"
+def objectNames = [ "Catalina:type=GlobalRequestProcessor,name=http-8080",
+                    "Catalina:type=ThreadPool,name=http-8080"
+                  ]
+def attributeNames = [ "requestCount", "currentThreadsBusy" ]
+def trackDeltas = [ false, false ]
+def period = 10
+def csvSaveDir = "\${catalina.base}/logs"
+ 
+// Resolve any system property references in csvSaveDir.
+csvSaveDir = ReferenceProcessor.resolveRefs(csvSaveDir, [:], true, false, System.getProperty("os.name"))
+ 
+// You probably shouldn't change variables below.
+ 
+def c = applicationContext
+// Copy into a local var, referenced in closure.
+def logger = log
+def sf = c.getBean("sessionFactory")
+def r = c.getBean("registry")
+def serverManager = c.getBean("serverManager")
+def statisticsService = c.getBean("v1/statisticsService")
+def chartService = c.getBean("chartService")
+def servers = r.getItemByPath("/Provisioning/Servers").items
+if (!servers) {
+    if (logger.debugEnabled) {
+        logger.debug "No servers found, nothing to ping"
+    }
+    return
+}
+// Randomize the order to have a better throughput with servers 'down' in the list
+Collections.shuffle(servers)
+ 
+// Calculate thread pool size.
+def numProcs = Runtime.runtime.availableProcessors()
+def numServers = servers.size()
+def tpSize = numServers
+if (numServers > numProcs) {
+    // Make it one thread for every 4 servers to collect data from.
+    tpSize = numServers / 4
+    // But don't let the thread pool size exceed 2 threads per processor.
+    if (tpSize > numProcs * 2) {
+        tpSize = numProcs * 2
+    }
+}
+ 
+def class CSVSaveThreadFactory implements ThreadFactory {
+    def AtomicLong threadCount = new AtomicLong(0)
+    // Be a good citizen, introduce ourselves and bind to a parent.
+    def ThreadGroup threadGroup = new ThreadGroup(Thread.currentThread().threadGroup, "pool-csvsave")
+ 
+    def Thread newThread(Runnable r) {
+        // Name worker threads.
+        def threadName = "csvsave-worker-${threadCount.getAndIncrement()}"
+        return new Thread(threadGroup, r, threadName)
+    }
+}
+ 
+def ExecutorService exec = Executors.newFixedThreadPool(tpSize,  new CSVSaveThreadFactory())
+def ExecutorCompletionService compService = new ExecutorCompletionService(exec)
+def int submittedTasksCount = 0
+def int timeout = 10 // Maximum time (seconds) allowed for metric collection.
+ 
+def saveData = { List<ChartDefinition> charts, JcrItem server ->
+    if (charts == []) {
+        println "No metric data to store."
+        return
+    }
+    def csvFile = new File(new File(csvSaveDir),
+        server.name.replace(' ', '-') + "-" + period + "s-period-jmx.csv")
+    def csvFileExists = false;
+    if (csvFile.exists()) csvFileExists = true;
+    FileWriter writer = null;
+    try {
+        writer = new FileWriter(csvFile, true)
+    } catch (IOException e3) {
+        e3.printStackTrace()
+        return
+    }
+    if (!csvFileExists) {
+        // Initialize the CSV file.
+        def header = "\"Time\","
+        def fieldCount = -1
+        objectNames.each { objectName ->
+            fieldCount++
+            if (fieldCount > 0) header = header + ","
+            header = header + "\"" + objectName + " " + attributeNames[fieldCount]
+            if (trackDeltas[fieldCount]) header = header + " delta"
+            header = header + "\""
+        }
+        try {
+            writer.append(header + "\r")
+        } catch (IOException e4) {
+            e4.printStackTrace()
+            return
+        }
+    }
+    def date = new Date()
+    def dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    def dataLine = "\"" + dateFormat.format(date) + "\","
+    def valueCount = -1
+    charts.each { chart ->
+        valueCount++
+        if (valueCount > 0) dataLine = dataLine + ","
+        dataLine = dataLine + "\"" + chart.lastData + "\""
+    }
+    try {
+        writer.append(dataLine + "\r")
+        writer.close()
+    } catch (IOException e5) {
+        e5.printStackTrace()
+        return
+    }
+}
+ 
+def csvSave = { JcrItem server ->
+    def Callable task = {
+        def jcrTransactionCallback = { session ->
+            RemoteContext.setServerId(server.id)
+            def executor = Executors.newSingleThreadExecutor()
+            try {
+                // Give 'timeout' maximum seconds for metric collection
+                // call to succeed.
+                def serverId = server.id
+ 
+                def Callable getStatCallable = {
+                    SecurityUtils.doPrivileged({
+                        JcrUtil.doInTransaction(sf, { session2 ->
+ 
+                            // Collect metric values for this server.
+                            RemoteContext.setServerId(serverId);
+                            def charts = chartService.getPortletCharts("csvsave")
+                            def chartsForThisServer = []
+                            for (int i = 0; i < objectNames.size(); i++) {
+                                def objectName = objectNames[i]
+                                def attributeName = attributeNames[i]
+                                def trackDelta = trackDeltas[i]
+                                def jmxCollectorInfoId = groupId + "|" + period + "|" + serverId + "|" + objectName + "|" + attributeName + "|" + trackDelta
+                                charts.each { chart ->
+                                    if (chart.name == jmxCollectorInfoId) {
+                                        chartsForThisServer.add(chart)
+                                    }
+                                }
+                            }
+                            saveData(chartsForThisServer, server)
+ 
+                        } as JcrCallback)
+                    })
+                } as Callable
+ 
+                try {
+                    executor.submit(getStatCallable).get(timeout, TimeUnit.SECONDS)
+                } catch (ExecutionException e) {
+                    throw e?.cause?.cause // Extracts real exception thrown from ExecutionException then InvokerInvocationException
+                }
+                // The collection completed successfully.
+            } catch (RemoteAccessException e) {
+                if (logger.debugEnabled) {
+                    logger.debug("Unreachable server ${server.name}: ${e.message}")
+                }
+                println "Unreachable server ${server.name}: ${e.message}"
+                saveData(Collections.emptyList())
+                return null
+            } catch (TimeoutException e) {
+                if (logger.debugEnabled) {
+                    logger.debug("Unreachable server after ${timeout} seconds ${server.name}: ${e.message}")
+                }
+                println "TimeoutException, server ${server.name}"
+                saveData(Collections.emptyList())
+                return null
+            } catch (Exception e) {
+                println "Failed to collect metric from server ${server.name} ${e.message}"
+                logger.error("Failed to collect metric from server ${server.name}", e)
+            } finally {
+                executor.shutdownNow()
+            }
+        } as JcrCallback
+ 
+        SecurityUtils.doPrivileged({
+            JcrUtil.doInTransaction(sf, jcrTransactionCallback)
+        })
+ 
+        return null
+         
+    } as Callable
+ 
+    compService.submit task
+    submittedTasksCount++
+ 
+    if (logger.debugEnabled) {
+        logger.debug "Submitted tasks: $submittedTasksCount"
+    }
+}
+ 
+try {
+    // Invoke metric value collection and storage, each server in a thread.
+    servers.each { server ->
+         
+        // If the server is unreachable by the console, we'll store
+        // a value meaning that we didn't get any data for that sample.
+        if (!serverManager.isServerUp(server.id)) {
+            saveData(Collections.emptyList(), server)
+            return null
+        }
+ 
+        if (logger.debugEnabled) {
+            logger.debug "Saving CSV stats for server ${server.name}"
+        }
+        csvSave(server)
+    }
+ 
+    // Time out each thread and
+    def int tasksLeft = submittedTasksCount
+    submittedTasksCount.times {
+        // Ensure all submitted tasks complete.
+        def result = compService.take().get()
+        tasksLeft--
+        if (logger.debugEnabled) {
+            logger.debug "Done with server ${result}. ${tasksLeft} task(s) remaining"
+        }
+    }
+} finally {
+    if (logger.debugEnabled) {
+        logger.debug "Shutting down thread pool"
+    }
+    exec.shutdown()
+    if (!exec.awaitTermination(5, TimeUnit.SECONDS)) {
+        exec.shutdownNow()
+    }
+    if (logger.debugEnabled) {
+        logger.debug "Thread pool shutdown complete"
+    }
+}
+"Success!"
+----

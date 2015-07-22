@@ -1,0 +1,156 @@
+= Authorizing your Connector with OAuth 1.0a
+
+*Open Authorization* (OAuth) is an open standard for authorization that enables websites or applications (*consumers*) to access *protected resources* from a Web *service provider* via an API, without requiring users to disclose their service provider credentials to the consumers. In other words, OAuth allows users to share their private resources (e.g. photos, videos, contact lists) stored on one website with another website without having to share their credentials, typically username and password.
+
+For a detailed explanation of how OAuth 1 works go to http://oauth.net/core/1.0/[OAuth 1 specification].
+
+Accessing protected resources from within Mule ESB requires a great amount of development effort to handle all the requirements of OAuth 1. Therefore, Mule DevKit facilitates the development of extensions that interact with APIs using OAuth 1.0a for authentication. +
+ +
+
+== Pre-requisites
+
+In order to use OAuth support, ensure that you have the following dependency in your `pom.xml` file.
+
+[source]
+----
+<dependency>
+       <groupId>oauth.signpost</groupId>
+       <artifactId>signpost-core</artifactId>
+       <version>1.2.1.1</version>
+  </dependency>
+----
+
+== The `@OAuth` Annotation
+
+If a Cloud Connector or Custom Module is to take advantage of the OAuth facilites the DevKit provides, the class level annotation `@OAuth` needs to be present. Some parameters are required; others are optional and take default values that are suitable for most of the scenarios.
+
+This annotation triggers DevKit to create message processors called *authorize* and *unauthorize*. Using the unauthorize processor kills the active OAuth session.
+
+The following table describes all the ((@OAuth)) parameters.
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Parameter + |Description + |Required/Optional + |Default Value
+|messageSigner + |signature method to be used in +
+the OAuth 1.0a flow; this method is included in the `auth_signature_method` parameter. + |OPTIONAL |HMAC_SHA1 +
+|signingStrategy + |defines where the OAuth 1.0a parameters should be included + |OPTIONAL + |AUTHORIZATION_HEADER +
+|requestTokenUrl + |URL defined by the service provider used to obtain an un-authorized request Token + |REQUIRED | 
+|accessTokenUrl + |URL defined by the service provider to obtain an Access Token + |REQUIRED | 
+|authorizationUrl |URL defined by the service provider to redirected the resource owner to grant authorization to the consumer |REQUIRED | 
+|verifierRegex |s Java regular expression used to extract the verifer from the service provider response after the resource owner authorizes the consumer |OPTIONAL |oauth_verifier=([^&]+)
+|callbackPath |where the service provider only accepts a known redirect URL, assign this parameter to the path inside your domain (denoted by the `fullDomain` environment variable) that will be registered with service provider as a redirect URL. If left empty (meaning the service provider accepts any URL as redirect URL), a random path will be used. |OPTIONAL |_random path _
+|===
+
+== Adding OAuth 1.0a Support
+
+. From the service provider's API documentation, obtain the following values:
+* `requestTokenUrl`
+* `accessTokenUrl`
+* `authorizationUrl`
+. Add the `@OAuth` class level annotation as per the following: +
++
+
+[source]
+----
+@Module(name = "linkedin")
+@OAuth(requestTokenUrl = "https://api.linkedin.com/uas/oauth/requestToken",
+        accessTokenUrl = "https://api.linkedin.com/uas/oauth/accessToken",
+        authorizationUrl = "https://api.linkedin.com/uas/oauth/authorize")
+public class LinkedInConnector {
+----
+
+. Create two String instance fields to hold your Consumer Key and Consumer Secret, then annotate them with `@OAuthConsumerKey` and `@OAuthConsumerecret` respectively. Also annotate them with `@Configurable` so that anyone using it can pass in their own credentials. Ensure these instance variables have public `getters` and `setters`. +
++
+
+[source]
+----
+@Module(name = "linkedin")
+@OAuth(requestTokenUrl = "https://api.linkedin.com/uas/oauth/requestToken",
+        accessTokenUrl = "https://api.linkedin.com/uas/oauth/accessToken",
+        authorizationUrl = "https://api.linkedin.com/uas/oauth/authorize")
+public class LinkedInConnector {
+        @Configurable
+        @OAuthConsumerKey
+        private String apiKey;
+        @Configurable
+        @OAuthConsumerSecret
+        private String apiSecret;
+----
+
+. In the methods that access protected resources (annotated with `@Processor`), add two `java.lang.String` parameters, then annotate them with `@OAuthAccessToken` and `@OAuthAccessTokenSecret` respectively. +
++
+
+[source]
+----
+@Processor
+        public Person getProfileForCurrentUser(@OAuthAccessToken String accessToken,
+                                               @OAuthAccessTokenSecret String accessTokenSecret,
+                                               @Optional List<ProfileField> profileFields) {
+----
+
+
+When a method that contains parameters annotated with `@OAuthAccessToken` and `@OAuthAccessTokenSecret` is invoked, the following activities occur:
+
+* The first time a protected resource is accessed, the user is redirected to the authorization URL of the service provider to grant or deny access for the consumer to the protected resource.
+* During subsequent access requests, Mule includes the *access token* and *token secret* (contained within the parameters annotated with `@OAuthAccessToken` and `@OAuthAccessTokenSecret`) in the request to the service provider. Refer to http://oauth.net/core/1.0/[OAuth 1.0a specification] for more details.
+
+== Authorizing the Cloud Connector
+
+Before a consumer can execute any operation that requires authorization, the resource owner must grant access to the cloud connector to access the protected resource. When it receives an authorization request, Mule redirects the resource owner's browser to the service provider authorization page. Any subsequent attempts to access a protected resource fills the parameters annotated with `@OAuthAccessToken` and `@OAuthAccessTokenSecret`. Mule includes the access token and token secret in the request to the service provider. See example below.
+
+[source]
+----
+<linkedin:config apiKey="${api.key}" apiSecret="${api.secret}"/>
+ 
+        <flow name="authorize">
+            <http:inbound-endpoint host="localhost" port="8080" path="/authorize"/>
+            <linkedin:authorize/>
+        </flow>
+----
+
+== Configuring Mule
+
+First, configure the extension by passing the *consumer key* and *consumer secret* for your application as supplied by the service provider. The code sample below illustrates an example of such configuration.
+
+[source]
+----
+<linkedin:config apiKey="${api.key}" apiSecret="${api.secret}"/>
+ 
+        <flow name="sampleFlow">
+            <linkedin:get-profile-for-current-user />
+        </flow>
+----
+
+Then, configure is a simple flow that accesses a protected resource. If the cloud connector has not been authorized by OAuth, the consumer operation throws a `NotAuthorizedException`.
+
+== Customizing the Callback
+
+When the user grants access to the protected resource, the service provider makes an *HTTP callback*. The callback passes an authorization code that Mule uses later to obtain the access token.
+
+Because Mule dynamically creates an HTTP inbound endpoint to handle the callback (and Mule passes endpoint's URL to the service provider), you do not need to complete any specific configuration to make an HTTP callback. By default, Mule uses a host and port (determined by the `fullDomain` environment variable and the `http.port`) to construct a URL to send to the service provider. Where you need to use non-default values for host and port, add the following configuration:
+
+[source]
+----
+<linkedin:config apiKey="${api.key}" apiSecret="${api.secret}">
+       <linkedin:oauth-callback-config domain="SOME_DOMAIN" remotePort="SOME_PORT" />
+   </linkedin:config>
+----
+
+=== Adding Secure Socket Layer (SSL)
+
+When Mule automatically launches an HTTP inbound endpoint to handle the OAuth callback, it uses the HTTP connector by default. Where the service provider requires *HTTPS*, you can configure Mule to pass your own connector (see example below).
+
+[source]
+----
+<https:connector name="httpsConnector">
+    <https:tls-key-store path="keystore.jks" keyPassword="mule2012" storePassword="mule2012"/>
+</https:connector>
+ 
+<linkedin:config apiKey="${api.key}" apiSecret="${api.secret}">
+    <linkedin:oauth-callback-config domain="localhost" localPort="${http.port}"           
+                                        remotePort="${http.port}" async="true"
+                                        connector-ref="httpsConnector"/>
+</linkedin:config>
+----
+
+Consult Mule ESB's link:/docs/display/33X/HTTPS+Transport+Reference[*HTTPS Transport*] documentation for more detail on how to configure an HTTPS connector.

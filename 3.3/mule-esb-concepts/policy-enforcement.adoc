@@ -1,0 +1,103 @@
+= Policy Enforcement
+
+Mule provides capabilities to add audit, logging, and security enforcement at the ESB layer.
+
+== Examples
+
+The following are examples of how to set and enforce policy in a Mule application.
+
+=== Event Tracking
+
+You can inspect all messages using a Wire Tap pattern. To inspect messages that travel on a point-to-point channel, insert a Recipient List into the channel that publishes each incoming message to the main channel and a secondary channel.
+
+The Wire Tap is a fixed Recipient List with two output channels. It consumes messages off the input channel and publishes the unmodified message to both output channels. To insert the Wire Tap into a channel, create an additional channel and change the destination receiver to consume from the second channel. Because the analysis logic is located inside a second component, a generic Wire Tap can fit into any channel without any danger of modifying the primary channel behavior. This improves reuse and reduces the risk of instrumenting an existing solution.
+
+=== The Notifications API
+
+Mule's API includes the concept of notifications. ServerNotification is an event triggered by something happening in the server itself such as the server starting or a flow being registered. It is the parent of a host of concrete notifications you can use in your Mule-aware Java applications:
+
+* ServerNotification
+* ComponentMessageNotification
+* ConnectionNotification
+* CustomNotification
+* EndpointMessageNotification
+* ExceptionNotification
+* FlowConstructNotification
+* ManagementNotification
+* MessageProcessorNotification
+* ModelNotification
+* MuleContextNotification
+* RegistryNotification
+* RemoteDispatcherNotification
+* RoutingNotification
+* SecurityNotification
+* ServiceNotification
+* TransactionNotification
+
+=== Logging
+
+Examining the Mule log is a way to understand what is happening as messages move through a Mule application. Mule's logging configuration is stored in ./conf/log4j.properties. Edit this file to change the verbosity of the log output.
+
+The following code demonstrates how to log messages:
+
+[source]
+----
+<flow name="FlowWithLoggers">
+  <http:inbound-endpoint address="http://localhost:8383/flowlog" />
+  <log-component />
+  <base64-encoder-transformer/>
+  <log-component />
+  <vm:outbound-endpoint path="next.in.line" />
+</flow>
+----
+
+For more details, use a scripted logging component like the following:
+
+[source]
+----
+<scripting:script name="Logger" engine="groovy">
+  <scripting:text>log.info(message); log.info(payload); message</scripting:text>
+</scripting:script>
+----
+
+=== Security Enforcement
+
+Security is an important part of policy. There are three elements of enforcing security in a Mule application--encryption/decryption transformers, security filters, and Mule's own security manager.
+
+==== Encryption Transformers
+
+When writing Java code that requires encryption, you use Mule's Java encryption transformers. Mule provides an abstract class called AbstractEncryptionTransformer that will transform an array of bytes or string into an encrypted array of bytes once implemented. There are two concrete classes called DecryptionTransformer and EncryptionTransformer that will transform an encrypted array of bytes or string into a decrypted array of bytes, or will transform an array of bytes or string into an encrypted array of bytes.
+
+==== Security Filters
+
+Mule incorporates an abstract class for security filters, AbstractEndpointSecurityFilter, that you can implement to increase security of your Mule application. To implement this abstract class, authenticate inbound and outbound events, ensuring no anonymous or null users gain access, then throw the corresponding UnauthorisedException with a message.
+
+==== Configuring Security
+
+Mule ESB allows you to authenticate requests via endpoints using transport-specific or generic authentication methods. It also allows you to control method-level authorization on your components. The Security Manager is responsible for authenticating requests based on one or more security providers. All security is pluggable via the
+
+http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/security/package-summary.html[Mule security API]
+
+, so you can easily plug in custom implementations.
+
+For information on the elements you can configure for the Security Manager, see link:/docs/display/33X/Security+Manager+Configuration+Reference[Security Manager Configuration Reference]. The following sections provide links to information on configuring different types of security managers.
+
+==== Spring Security
+
+Spring Security is the next version of Acegi and provides a number of authentication and authorization providers such as JAAS, LDAP, CAS (Yale Central Authentication service), and DAO. The following topics will help you get started securing your flows using Spring Security:
+
+* link:/docs/display/33X/Configuring+the+Spring+Security+Manager[Configuring the Spring Security Manager]
+* link:/docs/display/33X/Component+Authorization+Using+Spring+Security[Component Authorization Using Spring Security]
+* link:/docs/display/33X/Setting+up+LDAP+Provider+for+Spring+Security[Setting up LDAP Provider for Spring Security]
+
+==== WS-Security
+
+WS-Security is a standard protocol for applying security to Web services. It contains specifications on how integrity and confidentiality in a SOAP message can be enforced via XML signatures and binary security tokens such as X.509 certificates and Kerberos tickets as well as encryption headers. It ensures end-to-end security by working in the application layer as opposed to the transport layer.
+
+==== Other Security Technologies
+
+Mule also supports the following security technologies:
+
+* link:/docs/display/33X/Encryption+Strategies[Encryption Strategies] - Secure your messages by encrypting them.
+* link:/docs/display/33X/PGP+Security[PGP Security] - Secure your messages by encrypting them with PGP.
+* link:/docs/display/33X/Jaas+Security[Jaas Security]

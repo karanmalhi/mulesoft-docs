@@ -1,0 +1,70 @@
+= Streaming Data Processing with DataMapper
+
+Especially useful when working with large datasets, Anypoint DataMapper supports streaming data input and output. For example, when reading information from a very large input file, you can use streaming you avoid having DataMapper load the whole file into memory. Instead, DataMapper works as a pipeline: it sequentially reads the file and store the data in a cache, performs data mapping, sends the output to the next transformer, empties the cache, then begins again. Using this procedure, DataMapper can parse a 500 MB CSV file using only about 75 MB of RAM, resulting in significant improvements in performance and resources utilization.
+
+* Anypoint DataMapper streaming supports CSV and fixed width input and output formats.
+* You can configure the size of the stream cache to optimize for performance.
+
+== Assumptions
+
+This document assumes the reader is familiar with the Anypoint DataMapper Transformer. If you are not, start from the beginning:  link:/documentation/display/current/Datamapper+User+Guide+and+Reference[DataMapper User Guide and Reference]. For a listing of all available tools in DataMapper, consult link:/documentation/display/current/DataMapper+Visual+Reference[DataMapper Visual Reference].
+
+ View DataMapper Documentation Table of Contents
+
+* link:/documentation/display/current/DataMapper+Concepts[DataMapper Concepts]
+* link:/documentation/display/current/DataMapper+Visual+Reference[DataMapper Visual Reference]
+* link:/documentation/display/current/Defining+DataMapper+Input+and+Output+Metadata[Defining DataMapper Input and Output Metadata]
+** link:/documentation/display/current/Defining+Metadata+Using+Edit+Fields[Defining Metadata Using Edit Fields]
+** link:/documentation/display/current/POJO+Class+Bindings+and+Factory+Classes[POJO Class Bindings and Factory Classes]
+* link:/documentation/display/current/Building+a+Mapping+Flow+in+the+Graphical+Mapping+Editor[Building a Mapping Flow in the Graphical Mapping Editor]
+** link:/documentation/display/current/Mapping+Flow+Input+and+Output+Properties[Mapping Flow Input and Output Properties]
+** link:/documentation/display/current/DataMapper+Input+Error+Policy+for+Bad+Input+Data[DataMapper Input Error Policy for Bad Input Data]
+** link:/documentation/display/current/Using+DataMapper+Lookup+Tables[Using DataMapper Lookup Tables]
+** link:/documentation/display/current/Streaming+Data+Processing+with+DataMapper[Streaming Data Processing with DataMapper]
+* link:/documentation/display/current/Updating+Metadata+in+an+Existing+Mapping[Updating Metadata in an Existing Mapping]
+* link:/documentation/display/current/Mapping+Elements+Inside+Lists[Mapping Elements Inside Lists]
+* link:/documentation/display/current/Previewing+DataMapper+Results+on+Sample+Data[Previewing DataMapper Results on Sample Data]
+* link:/documentation/display/current/DataMapper+Examples[DataMapper Examples]
+* link:/documentation/display/current/DataMapper+Supplemental+Topics[DataMapper Supplemental Topics]
+** link:/documentation/display/current/Choosing+MEL+or+CTL2+as+Scripting+Engine[Choosing MEL or CTL2 as Scripting Engine]
+** link:/documentation/display/current/DataMapper+Fixed+Width+Input+Format[DataMapper Fixed Width Input Format]
+** link:/documentation/display/current/DataMapper+Flat-to-Structured+and+Structured-to-Flat+Mapping[DataMapper Flat-to-Structured and Structured-to-Flat Mapping]
+
+== Setting Streaming in DataMapper
+
+To set the Streaming parameter in your data mapping flow, follow these steps:
+
+. In the DataMapper view, click the *Properties* icon (highlighted below).
++
+image:/documentation/download/attachments/123699461/1.png?version=1&modificationDate=1423075007474[image]
+
+. DataMapper displays the general configuration dialog, shown below. Click *Streaming*.
++
+image:/documentation/download/attachments/123699461/2.png?version=1&modificationDate=1423075225271[image]
+
+.  In the *Pipe Size* input field, enter the desired size of the cache. The default is 2048. Bear in mind that:
+* When working with files, the value of *Pipe Size* is expressed in bytes
+* When working with collections, the value is expressed in number of collection elements
+
+=== Handling Exceptions
+
+If an exception occurs in the mapping, DataMapper stops the streaming engine as soon as possible. To avoid undesired consequences in case of failure (such as inserting only part of a row into a database) use link:/documentation/display/current/Transactions+Configuration+Reference[Transactions].
+
+== Example
+
+This example illustrates the use of the Streaming feature in Anypoint DataMapper.
+
+An link:/documentation/display/current/HTTP+Connector[HTTP Connector] receives a CSV file, then passes it to DataMapper. DataMapper maps the input data from CSV to POJO. A link:/documentation/display/current/Database+Connector[Database Connector] inserts the data into an external database.  In this scenario, DataMapper and the Database connector work in parallel as a pipeline, further improving application performance.
+
+image:/documentation/download/attachments/123699461/3.jpg?version=1&modificationDate=1423075797603[image]
+
+The image below displays the DataMapper view as configured for this example.
+
+image:/documentation/download/attachments/123699461/4.jpg?version=1&modificationDate=1423076682886[image]
+
+Finally, the output connector receives the list of maps, then incorporates each item as a value in the SQL query for the external database.
+
+[source]
+----
+INSERT INTO Persons (name, city, email, phone) VALUES (#[payload.name], #[payload.city], #[payload.email], #[payload.phone])
+----

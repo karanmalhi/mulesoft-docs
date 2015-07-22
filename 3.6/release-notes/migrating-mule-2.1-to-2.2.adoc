@@ -1,0 +1,245 @@
+= Migrating Mule 2.1 to 2.2
+:keywords: release notes, esb
+
+This page describes the major configuration and code changes in Mule 2.2 to help Mule 2.1 users understand what has changed between releases. If you are migrating from an earlier 1.x version of Mule ESB, please read link:/documentation/display/current/Migrating+Mule+1.x+to+2.0[Migrating Mule 1.x to 2.0] and link:/documentation/display/current/Migrating+Mule+2.0+to+2.1[Migrating Mule 2.0 to 2.1] respectively.
+
+== Spring Security 2.0
+
+In Mule 2.2, Acegi security has been deprecated and support for Spring Security 2.0 has been added. You should migrate your configurations to use Spring Security 2.0 as described http://www.mulesoft.org/display/MULE2USER/Upgrading+from+Acegi+to+Spring+Security[here] (login required).
+
+== Endpoint Configuration
+
+The `@remoteSync` attributes on endpoints has been removed. This also removes the confusion around how endpoint synchronicity is configured and behaves. As of Mule 2.1 the synchronicity of an endpoint had to be specifically defined on every endpoint (otherwise the default for the Mule instance is used). Now the following rules apply when configuring endpoints:
+
+. If the endpoint is asynchronous a result is never returned
+. If the endpoint is transacted a response cannot be read from a back channel (i.e. JMSReplyTo)
+. If the endpoint is synchronous, it will always return a result even if the result is null, a
++
+http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/NullPayload.html[NullPayload]
++
+will be returned. This behaviour tries to open a back channel to receive a result, this is the equivalent to @remoteSync=true. The new @responseTimeout configuration option on the endpoint allows Mule to timeout if nothing has been received via a back channel.
+
+[NOTE]
+====
+*Back channel* +
+
+A back channel is a communication channel that allows a a call over an endpoint to return data. In client sockets, this would be the input stream on the socket, for JMS, the JMSReplyTo feature provides a channel for the remote server to send a result back. Transports such as file and FTP do not have a back channel.
+====
+
+== JMS Temporary Destinations
+
+When a JMS outbound endpoint is synchronous and not transacted, Mule will attempt to open a back channel to receive a result. If a replyTo destination is not set, it will attempt to use a _temporary destination_. This behavior can be turned off using the new `@disableTemporaryReplyToDestinations` flag on the JMS connector or endpoint.
+
+== Including Custom Header Properties
+
+Previously, if you wanted custom header properties to be included in an outbound HTTP endpoint, you had to add them to an http.custom.headers property map on the outbound endpoint. Now, you simply set them as properties. The old approach is still supported.
+
+== Single Endpoint for Filtering Routers
+
+The outbound filtering router now accepts only one endpoint. To use multiple endpoints, use a different outbound router and specify filters on the individual endpoints.
+
+== Deprecated MessageBuilder API
+
+The MessageBuilder API, including ReflectionMessageBuilder and ScriptMessageBuilder, has been deprecated. Use a component with bindings instead. For more information, see http://www.mulesoft.org/display/MULE2USER/Component+Bindings[Component Bindings].
+
+== MuleMessage API
+
+Some new methods were added to the http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/MuleMessage.html[MuleMessage] and http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/transport/MessageAdapter.html[MessageAdapter] APIs for allowing users to set properties on a specified scope.
+
+There have been two new methods added:
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Method |Description
+|`Set getPropertyNames(PropertyScope scope)` |Gets all property names in a given scope (Inbound, Invocation, Outbound, or Session)
+|`Object getProperty(String name, PropertyScope scope)` |Gets a property from the message with a given scope
+|===
+
+== Expressions
+
+There have been several changes to expressions. You can now use an asterisk to indicate optional properties (see http://www.mulesoft.org/display/MULE2USER/Expressions+Configuration+Reference[Expressions Configuration Reference]). Additionally, there have been several API changes as described in this section.
+
+=== Expression API Packages Changes
+
+The Expression API has been refactored to reflect the correct package structure. The following changes were made:
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Old |New
+|`org.mule.util.expression.ExpressionEvaluatorManager` |This class now has an interface at `org.mule.api.expression.ExpressionManager` and an implementation located at `org.mule.expression.DefaultExpressionManager`
+|`org.mule.util.expression.ExpressionEvaluator` |`org.mule.api.ExpressionEvaluator`
+|`org.mule.util.expression.ExpressionRuntimeException` |`org.mule.api.expression.ExpressionRuntimeException`
+|All other `org.mule.util.expression.*` |`org.mule.expression.*`
+|===
+
+=== Expression Evaluator API
+
+The API for the http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/expression/ExpressionEvaluator.html[ExpressionEvaluator] has changed slightly to make it strongly typed. The `message` is now a http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/MuleMessage.html[MuleMessage], not a `java.lang.Object`.
+
+[source,java]
+----
+Object evaluate(String expression, MuleMessage message);
+----
+
+=== Expression Manager
+
+The `ExpressionManager` (was `ExpressionEvaluatorManager`) is no longer a singleton object. To obtain a reference to the manager, you get it from the `MuleContext` using the `getExpressionManager()` method. Objects that need the `MuleContext`can implement http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/context/MuleContextAware.html[org.mule.api.context.MuleContextAware].
+
+== Nested Router Classes Names Changed
+
+The Nested Router classes have been renamed to Component Binding. There were several class changes associated with this name change. For example, the `NestedRouterTestCase.java` classes were renamed to `ComponentBindingTestCase.java`, `NestedCollectionTestCase.java` was renamed to `BindingCollectionTestCase.java`, the `nested` package was renamed to `binding`, and more. For a complete list, see http://fisheye.codehaus.org/changelog/mule/?cs=13410.
+
+== Other API Changes
+
+The following defines other minor API refactorings. Changes in this section are minor and only include package or name changes.
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Old |New
+|`org.mule.api.MuleEvent#getProperty(String name, boolean exhaustive)` |`org.mule.api.MuleEvent#getProperty(String name)`
+|`org.mule.api.MuleEvent#getProperty(String name, Object defaultValue, boolean exhaustive)` |`org.mule.api.MuleEvent#getProperty(String name, Object defaultValue)`
+|`org.mule.api.retry.RetryNotifier#sucess()` |`org.mule.api.retry.RetryNotifier#onSuccess()`
+|`org.mule.api.retry.RetryNotifier#failed()` |`org.mule.api.retry.RetryNotifier#onFailure()`
+|`N/A` |`org.mule.api.transaction.Transaction#getId()`
+|`org.mule.routing.outbound.CorrelationAggregator` |`org.mule.routing.outbound.AbstractCorrelationAggregator`
+|`org.mule.transport.jdbc.sqlstrategy.SQLStrategy` |`org.mule.transport.jdbc.sqlstrategy.SqlStatementStrategy`
+|`org.mule.transport.jdbc.sqlstrategy.SelectSQLStrategy` |`org.mule.transport.jdbc.sqlstrategy.SelectSqlStatementStrategy`
+|`org.mule.transport.jdbc.sqlstrategy.SimpleUpdateSQLStrategy` |`org.mule.transport.jdbc.sqlstrategy.SimpleUpdateSqlStatementStrategy`
+|`org.mule.transport.jdbc.sqlstrategy.SQLStrategyFactory` |`org.mule.transport.jdbc.sqlstrategy.DefaultSqlStatementStrategyFactory`
+|`org.mule.transport.servlet.HttpRequestToByteArray` |`org.mule.transport.servlet.transformers.HttpRequestToByteArray`
+|`org.mule.transport.servlet.HttpRequestToInputStream` |`org.mule.transport.servlet.transformers.HttpRequestToInputStream`
+|`org.mule.transport.servlet.HttpRequestToParameter` |`org.mule.transport.servlet.transformers.HttpRequestToParameter`
+|===
+
+== Transport Behavior
+
+Some transport such as FTP and File, which do not support a back channel, were returning the current message as the response when called synchronously. This gives the impression that a result was received from a remote call, which is incorrect. The behavior has now been changed in Mule 2.2 so that synchronous FTP and File endpoints will return null ( http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/NullPayload.html[NullPayload] ).
+
+== Testing
+
+A new test component type has been introduced into the *test* namespace.
+
+[source,xml]
+----
+<test:web-service-component/>
+----
+
+This is a component that can be used for testing web services. This component has the same properties as the *test:component* but it also implements three other service interfaces: http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/component/simple/EchoService.html[org.mule.api.component.simple.EchoService], http://www.mulesoft.org/docs/site/current/apidocs/org/mule/tck/testmodels/services/DateService.html[org.mule.tck.testmodels.services.DateService] and http://www.mulesoft.org/docs/site/current/apidocs/org/mule/tck/testmodels/services/PeopleService.html[org.mule.tck.testmodels.services.PeopleService]. The other service interfaces that are implemented are http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/lifecycle/Callable.html[org.mule.api.lifecycle.Callable]. When using this with WS endpoints such as CXF, be sure to set the *serviceClass* property of the endpoint to the type of service you are using.
+
+=== Define the 'serviceClass' Property for CXF
+
+Due to a change in the `<test:component>`, which also applies to the `<test:web-service-component>`, you now need to set the service class on the CXF inbound endpoint when using these components. The service class can be one of the following:
+
+* http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/component/simple/EchoService.html[org.mule.api.component.simple.EchoService]
+* http://www.mulesoft.org/docs/site/current/apidocs/org/mule/tck/testmodels/services/DateService.html[org.mule.tck.testmodels.services.DateService]
+* http://www.mulesoft.org/docs/site/current/apidocs/org/mule/tck/testmodels/services/PeopleService.html[org.mule.tck.testmodels.services.PeopleService]
+* http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/lifecycle/Callable.html[org.mule.api.lifecycle.Callable]
+
+For example, to expose the `PeopleService` for testing, use:
+[source,xml]
+----
+<service name="PeopleService">
+    <inbound>
+        <cxf:inbound-endpoint address="http://localhost:62109/mule/services/people"
+                       serviceClass="org.mule.tck.testmodels.services.PeopleService"/>
+    </inbound>
+    <test:web-service-component/>
+</service>
+----
+
+== Schema Changes
+
+The table below lists the schema changes that have been made since 2.1 and describes how to migrate this change in your application.
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|Old Tag |New Tag |Notes
+|`@remoteSync` |Deleted |The `@remoteSync` attribute on `<endpoint>`, `<inbound-endpoint>` and `<outbound-endpoint>` has been removed. See the endpoint configuration section above for more information.
+|`@remoteSyncTimeout` |`@responseTimeout` |This attribute has been renamed on `<endpoint>`, `<inbound-endpoint>` and `<outbound-endpoint>` elements.
+|`@defaultRemoteSync` |Deleted |This has been removed from the `<mule-configuration>` element as it is no longer needed.
+|`@defaultSynchronousEventTimeout` |`@defaultResponseTimeout` |Configured on the `<mule-configuration>` element, this has been renamed to reflect its purpose.
+|(added in 2.2) |`@disableTemporaryReplyToDestinations` |Configured on the `<jms:connector>`, `<jms:endpoint`, or `<jms:outbound-endpoint` elements, it toggles support for creating temporary destinations when using synchronous, non-transacted outbound endpoints.
+|(added in 2.2) |`<test:web-service-component>` a|
+Useful for testing web services since it implements 3 additional services over the `<test:component>`, namely, http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/component/simple/EchoService.html[org.mule.api.component.simple.EchoService]
+, http://www.mulesoft.org/docs/site/current/apidocs/org/mule/tck/testmodels/services/DateService.html[org.mule.tck.testmodels.services.DateService] and http://www.mulesoft.org/docs/site/current/apidocs/org/mule/tck/testmodels/services/PeopleService.html[org.mule.tck.testmodels.services.PeopleService].
+
+|<selective-consumer> @transformer-refs |(Removed in 2.2) |This property is no longer required. If the message needs to be transformed before filtering, the transformations should be defined on the inbound endpoint.
+|(new in 2.2) |<expression-splitter-router> @disableRoundRobin |If filters are being used on endpoints then round robin behaviour is probably not desirable. This flag switches round robin behaviour off, it is on by default.
+|(new in 2.2) |<expression-splitter-router> @deterministic |If 'disableRoundRobin' is false and this option is true (the default) then the first message part if routed to the first endpoint, the second part to the second endpoint, etc, with the nth part going to +
+ the (n modulo number of endpoints) endpoint. If false then the messages will be distributed equally amongst all endpoints.
+|(new in 2.2) |<expression-splitter-router> @failIfNoMatch |If 'disableRoundRobin' is true, there may be situations where the current split message does not match any endpoints. this flag controls whether an exception should be thrown when a match is not found.
+|(http:)http-client-response-to-object-transformer |(http:)http-response-to-message-transformer | 
+|(http:)object-to-http-client-request-transformer |(http:)object-to-http-request-transformer | 
+|(xml:)object-to-xml-transformer @acceptUmoMessage |(xml:)object-to-xml-transformer @acceptMuleMessage | 
+|custom-transaction @action (optional) |custom-transaction @action (required) |This attribute is now required in 2.2
+|`disableReplyToHandler` |`useRemoteQueueDefinitions` |(Mule WMQ transport) This property has been renamed because it disables Mule JMSReplyTo handling, which is useful when using remote queue definitions.
+|(new in 2.2) |<sqlStatementStrategyFactory> @ref |A child element of the JDBC connector element that allows you to override the default SqlStatementStrategyFactory. It determines the execution strategy based on the SQL provided.
+|optional `expression` attribute in `<jms:selector/>` elements |The `expression` attribute is now required. | 
+|optional `action` attribute in transactions |The `action` attribute is now required. | 
+|(new in 2.2.1) |`namespace` attribute in CXF inbound and global endpoints |Optionally specify the service namespace.
+|(new in 2.2.1) |`enableMuleSoapHeaders` attribute in CXF inbound, outbound, and global endpoints |Optionally specify whether to write Mule SOAP headers, which pass along the correlation and ReplyTo information.
+|(new in 2.2.2) |`shutdownTimeout` attribute of the global `<configuration>` element |The time in milliseconds to wait for any in-progress messages to finish processing before Mule shuts down. After this threshold has been reached, Mule starts interrupting threads, and messages can be lost.
+|(new in 2.2.2) |`registry` option on the `evaluator` attribute of the `<expression-filter>` element |Allows you to filter on an object in the registry that meets the specified criteria, e.g., `<expression-filter evaluator="registry" expression="foo=1"/>` filters messages whose foo object equals 1.
+|(new in 2.2.2) |`durableName` attribute on JMS inbound endpoints |Allows you to specify the name for the durable topic subscription.
+|(new in 2.2.2) |`payload` attribute for CXF endpoints |Specifies whether the whole SOAP Envelope or just the body contents should be sent when in proxy mode.
+|(new in 2.2.2) |`request-wildcard-filter` element |This filter can be used to restrict the HTTP request by applying wildcard expressions to the URL.
+|`returnClass` attribute is substitutableClass |`returnClass` attribute is string |As of 2.2.2, this attribute is a string. Note that if you need to specify an array type, you postfix the class name with "[]".
+|===
+
+== CXF Endpoint Handling
+
+By default, Mule now applies transformers, security, and filters on CXF endpoints to the raw XML message instead of to the payload that is received from CXF. To change this behavior, set the `applyTransformersToProtocol`, `applySecurityToProtocol`, and `applyFiltersToProtocol` attributes to false as needed. For example:
+[source,xml]
+----
+<cxf:inbound-endpoint address="http://localhost/service" applyTransformersToProtocol="false"/>
+----
+== Maven OSGi Libraries
+
+Significant work was done to clean up the use of OSGi rebundled dependencies in Mule. Mule now uses it's own custom OSGi plugin which preserves the original groupId, artifactId, POM, and sources for an artifact. This plugin just changes two things: it adds an OSGi bundle manifest and it also changes the version so that it includes a "-osgi" at the end.
+
+If you found yourself excluding a lot of dependencies with Mule 2.0/2.1 because they conflicted with the normal groupIds/artifactIds, you should not have to do this any more.
+
+== Mule Enterprise Edition Changes
+
+_Enterprise Edition_
+
+This section describes changes that apply to Mule Enterprise Edition only.
+
+=== New Schema Namespace Conventions
+
+The Mule Enterprise Edition schema namespace conventions have been revised to simplify the upgrade path from the Community Edition to the Enterprise Edition:
+
+* Use www.mulesource.*org* instead of www.mulesource.*com*
+* The URI has the `/ee` sub-tree
+* Schema filename has the `-ee` suffix
+
+For example:
+
+----
+
+http://www.mulesource.org/schema/mule/ee/jdbc/2.2 http://www.mulesource.org/schema/mule/ee/jdbc/2.2/mule-jdbc-ee.xsd
+----
+
+=== Changes to Retry Strategies
+
+The retry stategies schema has been merged with other new elements into a more generic Mule EE core schema:
+
+----
+
+http://www.mulesource.org/schema/mule/ee/core/2.2 http://www.mulesource.org/schema/mule/ee/core/2.2/mule-ee.xsd
+----
+
+Retry schema elements have been renamed for better grouping when using the MULE IDE's auto-completion feature:
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Old Name |New Name
+|simple-policy |retry-simple-policy
+|forever-policy |retry-forever-policy
+|custom-policy |retry-custom-policy
+|connect-notifier |retry-connect-notifier
+|custom-notifier |retry-custom-notifier
+|(new in 2.2 EE) |multi-transaction
+|===
+
+Additionally, the three policy elements now accept the `asynchronous` attribute, which specifies whether the retry policy should run in a separate, non-blocking thread.

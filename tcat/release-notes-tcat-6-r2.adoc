@@ -1,0 +1,98 @@
+= Tcat Server 6 R2 Release Notes
+
+This page describes the changes in Tcat Server 6 and includes the known and fixed issues in this release.
+
+== Tcat Server 6 Release 2 Patch 2
+
+Tcat Server 6 R2 P2 fixes several bugs, adds minor features, and also bundles the official release binaries of Tomcat version 6.0.29.
+
+=== Change Summary
+
+* Alerts for server groups - Many alerts can now be applied to a group of servers instead of a single server. For example, you can receive an alert if any server in a group is down, instead of only a single server for each alert definition.
+* Server Metrics on the main dashboard - You can now create a dashboard portlet which tracks server metrics. Track individual server metrics such as request traffic or track metrics for a group with JMX statistics!
+* Solaris Restarts - Reliably restart Solaris 10 Tomcat instances from the Tcat console with the click of a button.
+* Server profile improvements
+
+== Tcat Server 6 Release 2 Patch 1
+
+Tcat Server 6 R2 P1 fixes several bugs, but also bundles the official release binaries of Tomcat version 6.0.26.
+
+=== Change Summary
+
+* *Restarts*
+** Spaces in path environment variables (JRE_HOME, JAVA_HOME, CATALINA_HOME, CATALINA_BASE) cause startup issues on Windows
+** Fixed several edge case scenarios with restarts
+* *Configuration Management*
+* Deleting a server profile that is currently in use makes the console malfunction
+* Fixed a bug that caused the console's environment variable list to show duplicate entries
+** External changes to JAVA_OPTS did not take effect on Windows
+* *Deployments*
+** Deployment to a server group containing more than one server failed on non-Windows OSs
+** Updating the same version of an artifact with new content via the REST API is now supported (improved Maven support)
+* *REST API*
+* Group server count now returns the correct value
+* When obtaining a server's metadata by its ID, the href attribute now shows the correct value
+** New example command line script named "tcat6console" for controlling the Tcat Console via REST, written in Perl
+* *Diagnostics*
+** Cancelling the action of killing a thread now behaves as intended
+
+=== Fixed Issues
+
+[width="99",cols="25,25,25,25",options="header"]
+|===
+|Issue Type |Key |Summary |Fix Version
+|Bug |TCAT-551 |Default JRE path in tcat6.bat malfunctions when installation relocated via installer |6 R2 P1
+|Bug |TCAT-545 |Deleting a used server profile makes the console malfunction |6 R2 P1
+|Bug |TCAT-517 |Deployment to a server group fails if the server group contains more than one server |6 R2 P1
+|Bug |TCAT-561 |Tcat6 Restarts fail with incorrect JAVA_HOME error |6 R2 P1
+|Bug |TCAT-525 |Console-edited JAVA_OPTS environment variable value not taking effect upon server restart on Windows |6 R2 P1
+|Bug |TCAT-524 |Duplicate environment variables |6 R2 P1
+|Bug |TCAT-548 |REST API get server by ID gives href with /server/id in it twice |6 R2 P1
+|Bug |TCAT-549 |Updating an artifact version via the REST API does not work |6 R2 P1
+|Bug |TCAT-422 |Upload New Application button is not able to upload a new version of an existing application |6 R2 P1
+|Bug |TCAT-553 |Performing a Custom Installation give the msg: Could not replace server variables |6 R2 P1
+|Bug |TCAT-554 |Receiving error msg when trying to start Tcat using tcat6 command |6 R2 P1
+|Bug |TCAT-521 |Cancelling a thread kill causes dumping of stack trace in the UI |6 R2 P1
+|Bug |TCAT-555 |tcat6 stop/restart outputting msg stating JAVA_HOME not found (tcat6 start works OK) |6 R2 P1
+|Bug |TCAT-547 |JSSE_HOME not set, causing LDAPS authentication / security failures |6 R2 P1
+|Bug |TCAT-546 |REST API get group always says serverCount = 0 |6 R2 P1
+|Improvement |TCAT-369 |Change Servers - Type column name |6 R2 P1
+|===
+
+== Tcat Server 6 Release 2
+
+=== New Features
+
+Tcat Server 6 R2 includes several new features, including the following:
+
+* **Fine-grained server commands**: the new Tcat6 command-line script allows you to start, stop, restart, and get status for a server on Windows or Linux. For more information, see link:/docs/display/TCAT/Installation#Installation-startstopwinlin[Starting and Stopping on Windows and Linux].
+* *Remote Server Restart*: You can now restart any Tomcat instance you manage with Tcat Server. For more information, see link:/docs/display/TCAT/Working+with+Servers[Working with Servers].
+* *Reliable Tomcat restarts*: Tcat Server goes above and beyond Tomcat's functionality and ensures that when you restart Tomcat, the server stops completely before the restart occurs, preventing cases where the original Tomcat JVM would still be running and create a conflicting Tomcat JVM. This functionality is inherent in all the Tcat Server stop and restart commands described above.
+* *Remote File Management*: For any server you manage with Tcat Server, the new Files tab allows you to view the files on that server, edit and redeploy any of its text-based (non-binary) files, and then restart the server. For more information, see link:/docs/display/TCAT/Monitoring+a+Server#MonitoringaServer-filemgmt[Working with the Server Configuration Files].
+* *Environment Variable Control*: You can now manually set environment variables on a Tcat Server instance, local or remote, through the Tcat Server console. For more information, see link:/docs/display/TCAT/Monitoring+a+Server#MonitoringaServer-envvars[Working with Environment Variables].
+* *Server Profiles*: You can now use server profiles to set environment variables and configuration files on multiple Tomcat instances simultaneously, providing a central point of storage for this data and easy centralized updates of the remote servers. For more information, see link:/docs/display/TCAT/Working+with+Server+Profiles[Working with Server Profiles].
+* *REST API*: The REST API provides programmatic access to Tcat Server functionality, including registering new servers, managing servers and groups, restarting servers, managing files on remote servers, and creating and managing packages. For more information, see link:/docs/display/TCAT/Using+the+REST+API[Using the REST API].
+* *Expanded Platform Testing*: Tcat Server 6 R2 has been tested on the following operating systems:
+** Windows: XP, Server 2K3, Vista, Server 2K8, 7
+** Linux: RHEL 4 & 5, CentOS 4 & 5, Fedora 6 through 12, Ubuntu 9.x, SUSE 10 & 11, openSUSE 10 & 11
+** Mac OS X: 10.5.8 and 10.6
+
+=== Known Issues
+
+* (Since R2) When installing Tcat Server on Windows, the Start menu items are always installed in the group "Tcat Server 6" regardless of what Start menu group name you enter in the installer. Therefore, if you install multiple instances of Tcat Server on the same machine, you will only be able to use these Start menu items to start and stop the last instance installed. To work around this issue, use the `tcat6 start` command from the `bin` directory at the command prompt to start your other instances.
+* (Since R2) When the Logs tab is selected on a Mac OSX system no files are displayed. Currently, there is no workaround to this issue.
+* If you are connected to a network via VPN, Tcat Server does not auto-detect unregistered servers. To work around this issue, disconnect from VPN before starting Tcat Server, or add the servers manually as described in "Working with Servers" in the Tcat Server User's Guide.
+* When servers are registered, they are registered with a specific IP address. If you are testing on a laptop with a wireless connection and you move from one location to another, your IP address might change, and the servers will no longer be able to communicate with Tcat Server. In this case, you must unregister and reregister the servers with the current IP address.
+* If you are running Internet Explorer 7 on Windows 2008, you can log in to Tcat Server but the main screen does not appear. To work around this, choose File > Add this site to... > Trusted Sites.
+* If you navigate to another tab while a package is being deployed, the deployment is interrupted. To work around this issue, wait for a package to be deployed before navigating elsewhere.
+* If you increase the font size on Mozilla Firefox, the monitoring and diagnostic screens disappear. To work around this issue, leave the font size set to the default.
+* When viewing the details of an application, the Session Search link on the Sessions sub-tab currently does not function properly.
+* If you download the installer more than once, Firefox appends parentheses to the file name, which causes problems when you try to run the installer. If you must download the installer again, delete the original file first so that Firefox leaves the original name intact.
+
+=== Fixed Issues
+
+Unknown macro: \{excel}
+
+link:/docs/display/TCAT/Maven+Publishing+Plug-in[<< Previous: *Maven Publishing Plug-in*]
+
+link:/docs/display/TCAT/Home[Next: *Home* >>]

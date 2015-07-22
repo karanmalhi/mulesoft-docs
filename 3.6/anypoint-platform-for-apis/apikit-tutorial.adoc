@@ -1,0 +1,380 @@
+= APIkit Tutorial
+
+The tutorial outlined in this document demonstrates the functionality of APIkit, and how you can use it to build REST APIs. After setting yourself up to meet a few dev-environment prerequisites, you can step through the quick tutorial to build yourself a working API.
+
+== Assumptions
+
+This document assumes you are familiar with some of the design decisions and requirements for creating a REST API. It assumes you are familiar with link:/documentation/display/current/First+30+Minutes+with+Mule[Anypoint Studio] and that you have a basic understanding of https://en.wikipedia.org/wiki/Representational_state_transfer[REST] as a Web service paradigm. Further, it assumes that you have read link:/documentation/display/current/APIkit+Basic+Anatomy[APIkit Basic Anatomy] which offers an overview of its functionality.
+
+== Prerequisites
+
+This tutorial uses the specialized *Gateway Runtime*, which you can download and install follwoing instructions below. Nevertheless, you can also use any regular Mule runtime (as long as it's version *3.5.0* or later) and perform the same steps identically.
+
+[NOTE]
+====
+If the version of Studio you are using is older than **Anypoint Studio May 2014**, please http://www.mulesoft.com/platform/mule-studio[download and install the latest GA version] to continue.
+
+Also note that, if you're using the Gateway Runtime, certain Studio components will not be available for use in your flows. This is because the functionality of this runtime is limited to API platform specific capabilities.
+====
+
+=== Download and install the Gateway Runtime
+
+To install the Gateway Runtime, follow the steps below:
+
+. In Studio, Select *Help > Install New Software* +
+
++
+image:/documentation/download/thumbnails/122752391/install+new+software.jpg?version=1&modificationDate=1411587948688[image] +
+
+
+. In the field labeled *Work with*, copy the following update site address to the field and press Return. Note: The URL also works as `http://`... +
+
++
+----
+
+https://studio.mulesoft.org.s3.amazonaws.com/r3/api-gateway
+----
+
+
++
+image:/documentation/download/attachments/122752391/install+new+software2.jpg?version=1&modificationDate=1411587986543[image]
+
+. A table below displays the different available elements in that update site, select the *API Gateway Runtime* to download it, then click next
+. Follow through the rest of the wizard, accepting the terms and conditions. The gateway runtime will be downloaded and installed, Studio will need to restart when done.
+
+== Tutorial 
+
+[cols=",",]
+|===
+|*Tutorial Description* |This tutorial helps you to create a simple REST API using Anypoint Studio with APIkit and a provided RAML file. The REST API exposes simple information about the contents of vending machines located in various locations.
+|*End Result* |At the end of this tutorial, you'll have a fully-functional API which you can run in Anypoint Studio, and with which you can interact via the Web console.
+|*Learning Outcome* |This tutorial helps you understand the underlying, 5-step process for creating an interface-first REST API with APIkit.
+|===
+
+=== Use Cases
+
+A vending machine provider, SnackVendor, needs to track the contents of all the vending machines they have deployed in various locations throughout the state of California. To better manage their resources, they only want to send drivers out to replenish the stock of the vending machines that are running low on content. Within the context of this scenario, they have two use cases to manage with an API, centering on two different users:
+
+. As a vending machine, I want to be able to update the central database every time I sell an item.
+. As a Stock Specialist, I want to be able to find out if a machine is low on stock.
+
+The API that SnackVendor builds must meet the needs of both users: it must enable vending machines to update a central database, and it must also allow Stock Specialists to determine if a machine is running low on supplies.
+
+=== Macro Procedures
+
+. Create a new Studio project, importing the RAML file into Studio which defines the API's interface.
+. Generate the main flow, backend flows, and exception strategy mappings that form the foundation of your API project in Studio.
+. Configure a few details in the Mule flows.
+. Run the project in Studio.
+. Access the console, then submit test calls to the API.
+
+=== Micro Procedures
+
+Before diving into the procedures listed above, it's worth pausing to take a look at the http://raml.org[RAML] file. While required for this quick tutorial, it is not the purpose of this tutorial to describe how to use RESTful API Modeling Language (RAML) to build an API interface. Though the micro procedures included in this tutorial do not describe how to define an API using RAML, it is worth briefly examining the contents of the RAML file so as to understand the structure from which Anypoint Studio generates flows.
+
+There are two main parts that form the whole of an API definition in RAML:
+
+* the *Root* section of the API definition contains API metadata and definitions of reusable definitions
+* the *Body* section defines the resource-action pairings (i.e. resources and methods) the API exposes to consumers
+
+The table below briefly describes the elements within the Root and Body of the example link:/documentation/download/attachments/122752391/api.raml?version=5&modificationDate=1427723083931[api.raml] file. This table does not describe _all_ elements of a RAML API definition, but does list several in use within the example. Access the full https://github.com/raml-org/raml-spec[RAML spec] for more details.
+
+[cols="3*a",options="header"]
+|===
+| Elements
+| Description
+| Example
+
+3+^| *ROOT*
+| `title` +
+ `baseUri` +
+ `version` +
+ `mediaType` +
+ `documentation  `
+| Offers information about the API (i.e. metadata), including the name and version of the API, its location (baseUri), media type, and documentation that describes the API in plain language.
+|[source,ruby]
+----
+title: Remote Vending API
+version: v1.0
+baseUri: http://remote-vending/api
+mediaType: application/json
+----
+3+^| *BODY*
+
+| `resource`
+| Defines the entity which houses the information to be retrieved, added, updated or deleted. Preceded by a forward slash "/".
+.2+^.^|
+[source,ruby]
+----
+/sales:
+  type: collection
+  post:
+    body:
+      example: \|
+        {
+            "machineId" : "ZX4102",
+            "trayId" : "A1",
+            "dateAndTime" : "2013-10-22 16:17:00",
+            "exchange" : {
+                "value" : "450",
+                "in" : "500",
+                "out" : "50"
+            }
+        }
+----
+
+| `action`
+| Nested within a resource, the action defines the method through which the information can be accessed or manipulated. In other words, it identifies the GET, POST, PUT or DELETE method that acts upon the resource.
+
+| `schemas`
+| Describes criteria against which requests to the API will be validated. Schemas are resource-action pairing specific (i.e. each schemas definition describes the expected input or output for a particular kind of call – GET, POST – to a particular resource).
+|
+[source,ruby]
+----
+schemas:
+  - postsale: \|
+      {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type" : "object",
+        "properties" : {
+          "machineId" : "string",
+          "trayId" : "string",
+          "dateAndTime" : "string",
+          "exchange" : {
+            "type" : "object",
+            "properties" : {
+              "value" : "integer",
+              "in" : "integer",
+              "out" : "integer"
+            }
+----
+
+| `resourceTypes`
+| Defines a "template" definition of a resource that can be referenced by any specific resource definition in the API. Referencing a type within a resource definition obviates the need for repetitively defining every detail of every resource.
+|[source,ruby]
+----
+resourceTypes:
+  - collection:
+      type: base
+      post:
+        body:
+          schema: post-<<resourcePathName \| !singularize>>  # e.g. post-sale
+        responses:
+          201:
+            description: Created!
+            headers:
+              Location:
+                description: uri of new resource
+                type: string
+                required: true
+----
+
+| `traits`
+| Defines a "template" definition of an action (i.e. method) that can be referenced by any specific action definition in the API. Referencing a trait within an action definition obviates the need for repetitively defining every detail of every action.
+| [source,xml]
+----
+traits:
+  - filterable:
+      queryParameters:
+        stockLevel:
+          displayName: Stock Level
+          description: Percentage of trays with stock items in them.
+          type: string
+          required: false
+          example: stockLevel=20
+----
+
+|===
+
+
+==== Creating a New Project
+
+. Download the example link:/documentation/download/attachments/122752391/api.raml?version=5&modificationDate=1427723083931[api.raml] file to your local drive.
++
+[NOTE]
+While necessary to create an APIkit API, it is not the purpose of this tutorial to describe how to use *RESTful API Modeling Language (RAML)* to build an API interface. Access http://raml.org[RAML.org] and the detailed https://github.com/raml-org/raml-spec[RAML spec] to learn how to use RAML to build an API interface.
+. Under the *File* menu, select *New* > *Mule Project*.
+. In the *New Mule Project* wizard, enter a *Name* for your project, then alter the *Server Runtime*, if you wish. (APIkit projects function with both on premises and CloudHub runtimes, as well as the Gateway runtime)
++
+[NOTE]
+If you're using the Gateway Runtime, certain studio components will not be available. This is because the functionality of this runtime is limited to API platform specific capabilities.
+. Check *Add APIkit components*. In the *RAML file* field, enter the filepath of the `api.raml` file on your local drive. +
+
++
+image:/documentation/download/attachments/122752391/new+project.jpg?version=1&modificationDate=1411589388524[image] +
+
+. Click *Finish*. Studio launches the new project for you and opens a new flow on a fresh canvas. Notice that Studio creates a new hierarchy of folders labeled, `src/main/api`, into which it inserts the RAML file you imported.
++
+image:/documentation/download/attachments/122752391/apikitt-pe.png?version=1&modificationDate=1399312638082[image]
+
+==== Generating Flows
+
+When you click *Finish* to open your new project, magic happens! Studio uses the imported RAML file to automatically generate the following items, each of which are described in more detail below.
+
+* a *Main flow* with an HTTP endpoint, an APIkit Router, and an exception strategy reference
+* skeletal *Backend flows*, one** ** for each resource-action pairing in the RAML file
+* several global *exception strategy mappings*
+
+Studio generated a simple, standard *Main flow* with an HTTP endpoint, an APIkit Router, and reference to the APIkit exception strategy mappings. 
+
+===== Studio Visual Editor [TAB]
+
+image:/documentation/download/attachments/122752391/apikitmainflow.png?version=1&modificationDate=1399311841169[image]
+
+[NOTE]
+Note that APIkit also supports Jetty endpoints. If you wish to use Jetty, manually replace the HTTP endpoint with a Jetty endpoint.
+
+===== XML Editor [TAB]
+
+[source,xml]
+----
+
+<flow name="main">
+        <http:inbound-endpoint address="http://localhost:${http.port}/api" />
+        <apikit:router config-ref="apiConfig" />
+        <exception-strategy ref="apiKitGlobalExceptionMapping" />
+</flow>
+----
+
+[NOTE]
+Note that APIkit also supports Jetty endpoints. If you wish to use Jetty, manually replace the HTTP endpoint with a Jetty endpoint.
+
+==== Backend Flows
+
+Studio generated *Backend flows* for each resource-action pairing in the RAML file, each pre-populated with one or more message processors.
+
+* Notice that the name of each flow corresponds to the resource-action pairing. For example, the flow named `get:/machines:apiConfig` maps to the resource `/machines` and its nested `get:` action.
+* Further, notice that each flow contains message processors which perform "mock" activities based upon the content of the *example* *response* included with each resource-action pairing in the RAML file. 
+
+When initially generated, the message processors in each backend flow are configured to accept requests and mock the expected action upon a resource. For example, the message processors in the auto-generated `get:/machines:apiConfig` flow simply set a property on the message, then set the payload of a message to display a hard-coded list of vending machines (according the example in the RAML file) to the caller. 
+
+===== Studio Visual Editor [TAB]
+
+image:/documentation/download/attachments/122752391/backend.png?version=1&modificationDate=1382556704802[image]
+
+===== Studio XML Editor [TAB]
+
+[source,xml]
+----
+    <flow name="get:/sales:api-config">
+        <set-payload value="{&#xA;    &quot;count&quot; : 2,&#xA;    &quot;sales&quot; : [&#xA;      {&#xA;        &quot;dateAndTime&quot; : &quot;2013-10-22 16:17:00&quot;,&#xA;        &quot;value&quot; : 450,&#xA;        &quot;machineId&quot; : &quot;ZX4102&quot;,&#xA;        &quot;productId&quot; : &quot;Cad-CB1012&quot;&#xA;      },&#xA;      {&#xA;        &quot;dateAndTime&quot; : &quot;2013-10-22 16:17:00&quot;,&#xA;        &quot;value&quot; : 150,&#xA;        &quot;machineId&quot; : &quot;ZX5322&quot;,&#xA;        &quot;productId&quot; : &quot;CC-LB1&quot;&#xA;      }&#xA;    ],&#xA;    &quot;totalValue&quot; : 600&#xA;}" doc:name="Set Payload"/>
+    </flow>
+    <flow name="get:/machines:api-config">
+        <set-payload value="{&#xA;    &quot;count&quot; : 3,&#xA;    &quot;machines&quot; : [&#xA;      {&#xA;        &quot;id&quot; : &quot;ZX4102&quot;,&#xA;        &quot;location&quot; : &quot;Starbuck's, 442 Geary Street, San Francisco, CA 94102&quot;&#xA;      },&#xA;      {&#xA;        &quot;id&quot; : &quot;ZX5322&quot;,&#xA;        &quot;location&quot; : &quot;Starbuck's, 462 Powell Street, San Francisco, CA 94102&quot;&#xA;      },&#xA;      {&#xA;        &quot;id&quot; : &quot;ZX6792&quot;,&#xA;        &quot;location&quot; : &quot;Cafe La Taza, 470 Post Street, San Francisco, CA 94102&quot;&#xA;      }&#xA;    ]&#xA;}" doc:name="Set Payload"/>
+    </flow>
+    <flow name="get:/machines/{machine}:api-config">
+        <set-payload value="{&#xA;    &quot;id&quot; : &quot;ZX4102&quot;,&#xA;    &quot;location&quot; : &quot;Starbuck's, 442 Geary Street, San Francisco, CA 94102&quot;,&#xA;    &quot;sales&quot; : [&#xA;      {&#xA;        &quot;dateAndTime&quot; : &quot;2013-10-22 16:17:00&quot;,&#xA;        &quot;value&quot; : 450,&#xA;        &quot;machineId&quot; : &quot;ZX4102&quot;,&#xA;        &quot;productId&quot; : &quot;Cad-CB1012&quot;&#xA;      },&#xA;      {&#xA;        &quot;dateAndTime&quot; : &quot;2013-10-22 16:17:00&quot;,&#xA;        &quot;value&quot; : 150,&#xA;        &quot;machineId&quot; : &quot;ZX5322&quot;,&#xA;        &quot;productId&quot; : &quot;CC-LB1&quot;&#xA;      }&#xA;    ],&#xA;    &quot;floatsToBeReplenished&quot; : [20, 40, 20, 80, 20, 40, 40],&#xA;    &quot;stockToBeReplenished&quot; : 54&#xA;}" doc:name="Set Payload"/>
+    </flow>
+    <flow name="post:/sales:application/json:api-config">
+        <set-payload value="#[NullPayload.getInstance()]" doc:name="Set Payload"/>
+    </flow>
+----
+
+==== Generated Exception Strategies
+Studio generated several global *exception strategy mappings* that the Main flow references to send error responses in HTTP-status-code-friendly format. Defined at a global level within the project's XML config, this standard set of exception strategy mappings ensure that anytime a backend flow throws an exception, the API responds to the caller with an HTTP-status code and corresponding plain-language message. Read more about link:/documentation/display/current/APIkit+Beyond+the+Basics#APIkitBeyondtheBasics-ExceptionStrategies[exception strategies for APIkit].
+
+===== XML Editor [TAB]
+[source,xml]
+----
+<apikit:mapping-exception-strategy name="api-apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+----
+
+==== Configuring Details
+
+. In the main flow, double-click the *APIkit Router* to open its properties editor in the console. In the APIkit Router properties, notice that you have the option of using a drop-down menu to adjust the *Router configuration*. Because you used Studio to auto-generate a skeletal structure of the backend flows that will support the requests sent to your API, you need not use this feature to customize the mapping between resource, action and backend flow; Studio has defined the mapping for you automatically. Read more details on link:/documentation/display/current/APIkit+Beyond+the+Basics#APIkitBeyondtheBasics-CustomMapping[custom mapping].
+. In the main flow, double-click the *HTTP connector* to open its properties editor in the console, then click the *Advanced* tab. Notice that Studio has populated the *Address* field with a default value. Change the default value of Address to match the baseUri in the RAML file: ` http://localhost:8081/remote-vending/api `
++
+
+image:/documentation/download/attachments/122752391/apikitt-http.png?version=1&modificationDate=1399313253161[image]
++
+[source,xml]
+----
+<http:inbound-endpoint address="http://localhost:8081/remote-vending/api" doc:name="HTTP" exchange-pattern="request-response"/>
+----
+
+. *Save* your APIkit project.
++
+[NOTE]
+In the "real world", you would adjust the contents of each Backend flow to perform the activities necessary to actually retrieve, update, add or delete information from the resource. For example, a Backend flow might call a database to acquire data about the contents of a vending machine. However, in this tutorial, in the interest of time, it is easier to simply use the generated, mock activities a Backend flow might perform in order to demonstrate functionality.
+
+==== Running the Project and Testing with the Console
+
+. Right-click the project name in the *Project Explorer*, then select *Run As* > *Mule Application*. Studio deploys the project. 
+. The *APIkit Console* launches below the canvas, displaying the resource-action pairs exposed by the API (see below).  +
++
+image:/documentation/download/attachments/122752391/APIkitconsole-tutorial.png?version=1&modificationDate=1399313810052[image] +
+
++
+. Click *DOCUMENTATION* to view human-written details describing the API. The main *Introduction* title and sentence beneath it map to the contents of `documentation` in the root section of the RAML file. +
+
++
+image:/documentation/download/attachments/122752391/apikitconsole-documentation.png?version=1&modificationDate=1399314316472[image] +
+
++
+. Click *API REFERENCE* to return to the main console screen, then click `/machines` to expand the section. Click to expand `GET: /machines`, then click the tab labeled *Try It*. Click the *GET* button to send a test call to GET a list of machines. +
++
+image:/documentation/download/attachments/122752391/apikitt-get.png?version=1&modificationDate=1399315172992[image] +
+
++
+. The API returns the appropriate response: a list of machines (which is the payload set on the message by the `get:/machines:apiConfig` flow which, in turn, used the example content defined in the resource-action pairing in the RAML file). +
++
+image:/documentation/download/attachments/122752391/apikit-response.png?version=1&modificationDate=1399315376763[image]
+
+=== Use Cases Covered in the Tutorial
+
+As outlined above, the API in this tutorial addresses two use cases for SnackVendor. The table below lists those use cases, the corresponding API resource-action pairing that users can call, and the backend flows that perform the actions.
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|User |Use Case |API Interface |Backend Flow
+|Vending Machine |As a vending machine, I want to be able to update the central database every time I sell an item. a|
+*resource:* `/sales`
+
+*action:* `post`
+
+ a|
+*flow name:* `post:/sales:apiConfig`
+
+|Stock Specialist |As a Stock Specialist, I want to be able to find out if machine is low on stock and requires replenishment. a|
+*nested resource:* `/{machine}`
+
+*action:* `get`
+
+ |*flow name:* `get:/machines/{machine}:apiConfig`
+|===
+
+== See Also
+
+* Read the https://github.com/raml-org/raml-spec[RAML spec] to learn how to build your API interface using an exceptionally lightweight modeling language.
+* Read about http://raml.org/projects.html[RAML tooling] that facilitates the creation of an API interface.
+* For fun, consider adjusting some of the content of the RAML file to add more resource-action pairings. +
+* Learn more about link:/documentation/display/current/APIkit+Beyond+the+Basics[manually mapping resources to actions to flows] in your APIkit project.
+* Learn more about link:/documentation/display/current/APIkit+Beyond+the+Basics[exception strategy mapping], and how you can tweak mappings for fine-grained control of error messages.
+* Learn more about condensing your API Definition by link:/documentation/display/current/APIkit+Beyond+the+Basics[referencing external files].
+* Learn more about link:/documentation/display/current/APIkit+Beyond+the+Basics[building an API] starting with the backend flows.

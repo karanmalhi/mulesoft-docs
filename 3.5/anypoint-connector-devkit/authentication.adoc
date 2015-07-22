@@ -1,0 +1,67 @@
+= Authentication
+
+Your API probably enforces some kind of authentication in order for applications to talk to it on behalf of a user. Anypoint(TM) DevKit supports the following authentication schemes:
+
+* link:/docs/display/35X/Basic+Auth[BasicAuth]
+* link:/docs/display/35X/OAuth+V1[OAuth V1]
+* link:/docs/display/35X/OAuth+V2[OAuth V2]
+
+On the client side, many Mule applications need to manage multiple connections to the same target - for example, a developer of an application interacting with an e-commerce site on behalf of thousands of users would need to efficiently manage the many connections that might be live at any given moment.
+
+In DevKit, connection management and authentication support are closely related. While a general purpose connection management framework is available for most protocols, OAuth authentication handles connection management differently. If you are not familiar with OAuth, refer to http://www.cubrid.org/blog/dev-platform/dancing-with-oauth-understanding-how-authorization-works/[Dancing with OAuth: Understanding How Authentication Works], a widely-cited and accessible overview of how the different flavors of OAuth work.
+
+image::/docs/download/attachments/122751288/5-package.png?version=1&modificationDate=1421450994928[image]
+
+== Assumptions
+
+This document assumes you have already link:/docs/display/35X/Creating+an+Anypoint+Connector+Project[created a connector project] with at least some link:/docs/display/35X/Barn+Connector[basic] functionality, and are now ready to implement authentication on your connector. At this point you may have already attempted to link:/documentation/display/EARLYACCESS/Installing+and+Testing+Your+Connector#InstallingandTestingYourConnector-BuildingandInstallingtheConnector[install your connector in Studio to test it].
+
+== Basic Authentication
+
+Anypoint DevKit makes it easy to add Basic Authentication functionality to connectors, by applying annotations at the `@Connector` class level. This framework provides the following benefits, with minimal effort on the part of the connector developer:
+
+* transparent multitenancy - a Mule application can open many connections to a single target, using different credentials to connect on behalf of many users simultaneously.
+
+* connection pooling - automated management of a pool of instances of the connector class, to manage connection resources effectively.
+
+* the ability to automatically invalidate connection on exceptions, and to reconnect as needed.
+
+See link:/docs/display/35X/Basic+Auth[Basic Authentication] for details on how to implement basic authentication in your connector.
+
+== OAuth V1
+
+Anypoint DevKit makes the implementation of the OAuth V1 on your connector rather straightforward. By simply implementing OAuth 1 in your `@Connector` class, DevKit will manage all of the requests to the target service.
+
+For details on implementing OAuth 1 in your connector, see link:/docs/display/35X/OAuth+V1[Implementing OAuth V1 Authentication].
+
+== OAuth V2
+
+DevKit support for OAuth V2 includes its own form of connection management support. Implement OAuth2 in your `@Connector` class, and DevKit will transparently manage multiple connections, including maintaining access tokens for multiple connection to the target service.
+
+For details on implementing OAuth 2 in your connector, see link:/docs/display/35X/OAuth+V2[Implementing OAuth 2.0 Authentication].
+
+== Connection Management with Other Authentication Schemes
+
+Anypoint DevKit makes the connection management framework available, providing credentials management for multiple simultaneous connections, pooling connection instances to allow for efficient connection re-use, and providing automated handling for invalidating lost connections and reconnecting when needed.
+
+The page link:/docs/display/35X/Basic+Auth[Basic Authentication] describes how to apply connection management to your connector using annotations to `@Connector` class methods. The example describing using the annotations with basic username/password authentication, but the same methods apply for other methods as well.
+
+You can also apply connection management to connectors that use no authentication at all. For details on implementing connection management in a connector with no authentication, see the link:/docs/display/35X/Creating+a+Connector+for+a+SOAP+Service+Via+CXF+Client[Connector to SOAP Service via CXF Client Example].
+
+== Supporting Multiple Authentication Models in One Connector
+
+Since version 3.3.1, Anypoint DevKit allows you to support multiple authentication models in the same connector JAR as extensions of a common base class. The  https://github.com/mulesoft/salesforce-connector/[Salesforce connector] illustrates how to structure the connector code to support this feature. An abstract base class implements most functionality, such as connector operations; and child classes of the base class implement the authentication logic and connection management if applicable.
+
+Supporting both OAuth and simple authentication in the same connector JAR means having two config elements in the same XML namespace. To enable this, you can use the parameter `configElementName` of the `@Connector` annotation. For example, the Salesforce OAuth2 connector class sets the `configElementName` to `config-with-oauth`, rather than the default value, `config`. As a result, in XML, use either `sfdc:config-with-oauth` or `sfdc:config` to pick the needed version of the connector.
+
+Implementing such a connector is an advanced technique; if you decide to do this, start by implementing one method, such as OAuth, then refactor to seperate all authentication-independent functionality in the `@Connector` class into an abstract class. Then, re-implement the authentication-specific functions in a child class, and implement a new child class supporting the second authentication method.
+
+== Go Further
+
+* *NEXT*: Dig into the details of implementing a specific authentication method:
+
+** link:/docs/display/35X/Basic+Auth[Basic Authentication]
+** link:/docs/display/35X/OAuth+V1[OAuth V1 Authentication]
+** link:/docs/display/35X/OAuth+V2[OAuth V2 Authentication]
+
+* Return to link:/docs/display/35X/Anypoint+Connector+Development[Anypoint Connector Development]

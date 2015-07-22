@@ -1,0 +1,54 @@
+= Fine Grain Classloader Control
+
+Mule artifacts use a particular type of classloaders that provide a way to change the link:/documentation/display/current/Classloader+Control+in+Mule[default classloading behaviour.] By default, these fine grain classloaders behave using a parent first schema, but they can be configured  to define how specific classes and packages have to managed during the classloading process.
+
+Each classloader is configured passing a list of classes or packages fully-qualified names.
+
+Each class/package can be declared in one of two available modes:
+
+== Override
+
+Overriding a class/package means that this entry will be attempted to load from the current fine grain classloader before attempting to load from the parent classloader. Basically the override mode applies a child-first classloading schema for the given resources.
+
+For example, an override that includes a class (com.example.MyProvider) and a package (com.sun.jersey) would be specified as follows:
+
+`loader.override=com.example.MyProvider, com.sun.jersey`
+
+Note that overriding a package means that all of its subpackages will be also overridden. For example com.sun.jersey will also include com.sun.jersey.impl.
+
+== Blocking
+
+Blocking a class/package means that this entry will be attempted to be loaded from the current fine grain classloader only, and it will never attempted to be loaded from the parent classloader.
+
+Blocking is configured similarly to class/package override, the only difference is that names must be prefixed with a - (dash/minus sign).
+
+Here, is an example of a blocking specification:
+
+`loader.override=-com.example.AnotherProvider`
+
+Note that if a class/package is blocked and its not found in the current fine grain classloader, then a ClassNotFoundException will be thrown, even if Mule does have such a class on a system level.
+
+== Configuring the Fine Grain Classloader
+
+This type of classloader is available in different types of Mule artifacts, the configuration usually implies adding a property value in some artifact configuration file. Following section describes how to configure fine grain classloading for each type of artifact.
+
+*Mule Application*: add the following property in the application's mule-deploy.properties file like this:
+
+`loader.override=<comma-separated list of classes or packages>`
+
+*Application Plugin*: add the following property in the plugin's plugin.properties file like this:
+
+`loader.override=<comma-separated list of classes or packages>`
+
+*Mule Plugin*: add the following property in the plugin's mule-plugin.properties file like this:
+
+`loader.overrides=<comma-separated list of classes or packages>`
+
+== Classloader Override/Blocking Diagram
+
+Here's a diagram that illustrates how class loading is handled for class overrides and blocking. When you view the diagram note that every class loader has a parent class loader. Unless loader override is configured, a classloader first delegates the search for a class to its parent classloader before attempting to find the class itself (the classloader is the child of its parent classloader).
+
+image:/documentation/download/attachments/125305363/chart.png?version=1&modificationDate=1427815677958[image]
+
+[WARNING]
+Note that when using an override for a package (and no blocking) every class from that package will be attempted to be loaded from the application classloader. If a class is not found, then the application's parent classloader will be used instead.

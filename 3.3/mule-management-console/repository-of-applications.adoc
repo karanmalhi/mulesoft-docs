@@ -1,0 +1,280 @@
+REST API Reference: Repository of Applications
+
+====== About This Document
+
+This document, as well as the rest of the documents that make up the link:/docs/display/33X/REST+API+Reference[Mule Management Console REST API Reference Guide], are a technical reference only. This document does not provide contextual information such as instructions, use cases or scenarios. To understand this document, you should be familiar with http://www.mulesoft.org/documentation/display/MULE3USER/Home[MULE ESB], the Application Repository and the link:/docs/display/33X/REST+API+Reference[REST API]. 
+
+ Index of operations
+
+[width="99%",cols="20%,16%,16%,16%,16%,16%",]
+|===
+|*Assumptions:* a|
+[width="100%",cols="50%,50%",]
+|===
+|Host |localhost
+|===
+
+ a|
+[width="100%",cols="50%,50%",]
+|===
+|Port |8080
+|===
+
+ a|
+[width="100%",cols="50%,50%",]
+|===
+|Deployed app |mmc.war
+|===
+
+ a|
+[width="100%",cols="50%,50%",]
+|===
+|User/Password |admin/admin
+|===
+
+ | 
+|===
+
+For a detailed description of the format used in this document, consult link:/docs/display/33X/REST+API+Reference[Content Organization and Conventions].
+
+*/api/repository*
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*POST*
+
+ a|
+
+===== UPLOAD
+
+ a|
+link:#RepositoryofApplications-top[To top ↑]
+
+|===
+
+Uploads a new Mule Application into the repository.
+
+===== MULTIPART_FORM_DATA
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|name |String |The name of the application to be uploaded. If not provided, "Unnamed Application" will be used instead |—
+|file |String |Actual file to be uploaded. It must be a .zip file |—
+|version |Array |(Optional) Application version. If not provided, MMC will set a timestamp with the following format will: yyyyMMdd-HH:mm |—
+|===
+
+===== Using CURL on Windows
+
+----
+ curl --basic -u admin:admin -F file=@my-zipped-app.zip -F name=test-app -F version=2.0 --header "Content-Type: multipart/form-data" http://localhost:8080/mmc/api/repository
+----
+
+===== Using CURL on Linux
+
+----
+ curl --basic -u admin:admin -F file=@my-zipped-app.zip -F name=test-app -F version=2.0 --header 'Content-Type: multipart/form-data' http://localhost:8080/mmc/api/repository
+----
+
+===== JSON
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|versionId |String |The ID of the version |—
+|applicationId |String |The ID of the application. Several versions can have the same application ID |—
+|===
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |The operation was successful
+|*400* |Unauthorized user
+|*404* |Error registering the application: Item not found
+|*409* |Application name and version already exists
+|*500* |Specify a valid file to upload/ Error while uploading application
+|*501* |The file specified must be a zip file
+|*502* |Policy error while uploading application
+|===
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*GET*
+
+ a|
+
+===== LIST ALL
+
+ a|
+link:#RepositoryofApplications-top[To top ↑]
+
+|===
+
+Lists available applications persisted by MMC.
+
+===== SYNTAX
+
+===== Using CURL
+
+----
+ curl --basic -u admin:admin http://localhost:8080/mmc/api/repository
+----
+
+===== JSON
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|total |Integer |Amount of available applications |—
+|data |Array |List of available applications |—
+|name |String |Application name |data
+|id |String |Application ID. Notice that one application can have several versions |data
+|href |String |Full link to the resource |data
+|versions |Array |List of available versions of the same application (an application is distinguished by its name) |data
+|name |String |Version name. By default a timestamp, but can be something else, like "1.0a" |versions
+|id |String |Application version ID |versions
+|parentPath |String |Path to the generic application on the repository |versions
+|===
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |The operation was successful
+|*500* |Error while retrieving applications info/ Wrong user and password/ Unauthorized user
+|*501* |Application was not found
+|===
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===
+
+*/api/repository/\{applicationId}*
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*GET*
+
+ a|
+
+===== LIST
+
+ a|
+link:#RepositoryofApplications-top[To top ↑]
+
+|===
+
+Lists all application versions with the same specified application ID.
+
+===== SYNTAX
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|applicationId |String |ID of the application on the repository. Do not confuse with version ID. An application can be composed of one or more versions; each version will have its own ID |—
+|===
+
+===== Using CURL on Windows
+
+----
+------------------------------------------- curl --basic -u admin:admin http://localhost:8080/mmc/api/repository/local$43d80f90-b30b-4988-a83b-8172b649b11c
+----
+-------------------------------------------
+
+===== Using CURL on Linux
+
+----
+--------------------------------------------- curl --basic -u admin:admin 'http://localhost:8080/mmc/api/repository/local$43d80f90-b30b-4988-a83b-8172b649b11c'
+----
+---------------------------------------------
+
+===== JSON
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|total |Integer |Amount of available versions of the application |—
+|data |Array |List of available versions of the application |—
+|name |String |Version of the application |data
+|id |String |ID of the version |data
+|parentPath |String |Path of the application within the repository |data
+|===
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |The operation was successful
+|*500* |Error while retrieving applications info/ Wrong user and password/ Unauthorized user
+|*501* |Application was not found
+|*502* |Invalid Application ID. Check that the entered ID is not a version ID
+|===
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*DELETE*
+
+ a|
+
+===== REMOVE
+
+ a|
+link:#RepositoryofApplications-top[To top ↑]
+
+|===
+
+Removes an application and all its corresponding versions from the repository.
+
+===== SYNTAX
+
+*Mule 3.3.0, 3.3.1*
+
+*Mule 3.3.2 and later*
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|applicationId |String |Id of the application to be removed from the repository. Do not confuse with version ID. Invoke link:#RepositoryofApplications-listAll[LIST ALL] to obtain it. |—
+|versionId |String |Id of the application version. Invoke link:#RepositoryofApplications-listAll[LIST ALL] to obtain it. |—
+|===
+
+===== Using CURL on Windows
+
+[source]
+----
+curl --basic -u admin:admin -X DELETE http://localhost:8080/mmc/api/repository/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469
+----
+
+
+===== Using CURL on Linux
+
+[source]
+----
+curl --basic -u admin:admin -X DELETE 'http://localhost:8080/mmc/api/repository/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469'
+----
+
+
+===== JSON
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |The operation was successful
+|*500* |Error while removing the repository application
+|*501* |Application was not found
+|*502* |Policy error while removing application
+|===
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===

@@ -1,0 +1,121 @@
+= Manage Your API
+
+_*API Version Owner*_
+
+[NOTE]
+====
+This page is part of the Anypoint Platform for APIs walkthrough. If you landed here by mistake and you're not sure where to start, go to the link:/documentation/display/current/Anypoint+Platform+for+APIs+Walkthrough[walkthough introduction] to learn more.
+
+Looking for a user guide managing APIs in the Anypoint Platform? See link:/documentation/display/current/Managing+Your+API[Managing Your API].
+====
+
+== Before You Begin
+
+This step in the walkthrough assumes that you have API Version Owner permissions for the T-Shirt Ordering Service API, and that this API has been deployed (or has a proxy that has been deployed) to an API Gateway.
+
+== Setting Your Endpoint
+
+=== If You Deployed a Proxy
+
+If you downloaded and deployed a proxy application, your endpoint should be automatically updated on your API Version details page to reflect the inbound endpoint of your proxy. Confirm that this is the case by navigating to your API Version details page and viewing your URL. Before you deployed your proxy, your URL was `http://tshirt-service.cloudhub.io?wsdl` if you were following the steps for an existing SOAP-based web service, or probably http://0.0.0.0:8081 if you followed the steps for a RAML-based API that you built out with APIkit.
+
+Now that you have downloaded and deployed the proxy for that endpoint to an API Gateway, the Anypoint Platform recognizes the proxy URL as a stand-in for your original URL and updates it automatically on this screen. If you deployed your proxy to a cloud gateway, your endpoint should match the domain you selected on deployment. If you deployed to an on-premises gateway, your endpoint is likely http://0.0.0.0:8081. The Anypoint Platform agent is tracking your endpoint using this URI, but the URI that you expose to developers may vary according to your use case. +
+
+[NOTE]
+====
+Note that if you are running an on-premises API Gateway on your local laptop, other developers will not be able to use this endpoint from their machines. It is recommended that you deploy to a gateway that can be accessed securely by third parties and provide the IP address of that gateway as an entry point for your API in all your documentation. For example, in all documentation for your API, replace http://0.0.0.0:8081/api with the IP address of the server, such as http://133.45.65.2/api.
+
+Another option is to link:/documentation/display/current/Setting+Your+API+URL#SettingYourAPIURL-ConfiguringaLoadBalancer[configure a load balancer] on your API Gateway, then supply developers with the load balancer endpoint in your documentation. +
+
+For a quick solution, you can also download and use a localhost tunnel such as ngrok from http://ngrok.com[ngrok.com]. Please assess whether this is appropriate for your use case and will not violate your company's security policies. If you do use ngrok, please be sure to turn off ngrok when you are finished with the walkthrough.
+====
+
+
+=== If You Deployed an API Directly to the Gateway
+
+If you deployed an APIkit project directly to your API Gateway, then you will have to set your API URL manually (unless you included link:/documentation/display/current/API+Auto-Discovery[auto-discovery code], which we don't cover in this walkthrough.)
+
+Click *Set API URL*, then select *HTTP* *URL* for the API Defined By field. Enter the URL of the inbound HTTP endpoint in your APIkit project. Commit your endpoint by clicking *Save*, then wait ten seconds for the agent to automatically pick up your deployed endpoint and associate it with your API on the platform. If this doesn't happen after about ten seconds, check link:/documentation/display/current/Setting+Your+API+URL#SettingYourAPIURL-TroubleshootingEndpointTracking[these troubleshooting tips].
+
+== Creating SLA Tiers
+
+Now that you have a tracked endpoint for your API, you can manage it with any number of policies and SLA tiers. Let's add a few SLA tiers and then a policy to enforce them. Click the *SLA Tiers* tab, then click the *Add SLA Tier* button.
+
+Fill out the fields of the tier creation window as follows, then click *Submit*.
+
+image:/documentation/download/attachments/122752479/FreeSLAtier.png?version=1&modificationDate=1405725277119[image]
+
+[cols=",",options="header",]
+|===
+|Field |Value
+|*Name* |Free
+|*Throughput requests* |3
+|*Throughput time period* |Minute
+|*Approval* |Automatic
+|===
+
+This creates a tier that developers can sign up for and be automatically approved. When that application calls this API and passes its client id and client secret, the Anypoint Platform allows it three requests per minute, then rejects additional calls.
+
+You can create a second tier for a different level of access. Click *Add SLA Tier* again, then fill out the fields again, as follows:
+
+image:/documentation/download/attachments/122752479/PremiumSLAtier.png?version=1&modificationDate=1405725347125[image]
+
+[cols=",",options="header",]
+|===
+|Field |Value
+|*Name* |Premium
+|*Throughput requests* |5
+|*Throughput time period* |Minute
+|*Approval* |Manual
+|===
+
+This second tier requires the API Version Owner to manually approve access requests. When an application developer selects this tier for their application, the Anypoint Platform sends an email to the API Version Owner. As an API Version Owner, you can manage the applications that have requested access to your API version on the Applications tab.
+
+== Applying a Policy
+
+Now that you've created two SLA tiers, you need to apply an SLA-based policy to enforce those tiers. Click the *Policies* tab to review your options. There are two policies that you can apply to enforce your SLA tiers: Throttling - SLA-based and Rate Limiting - SLA-based. The difference between them is in how requests that exceed SLA limits are handled. Throttled APIs queue extra requests for later processing, while rate-limited APIs discard them.
+
+Let's apply a Rate Limiting - SLA-based policy. Click the arrow to the left of the policy name to expand it and view more information. To apply the policy to your API version, click *APPLY*. The Anypoint Platform gives you an opportunity to adjust the mechanism by which your API collects the client id and client secret of registered applications. By default, the policy is configured to collect these values as query parameters.
+
+image:/documentation/download/attachments/122752479/RateLimitingSLAbased.png?version=1&modificationDate=1405728206801[image]
+
+Leave the defaults in place and click *Apply policy*. Congratulations, your API version is now enforcing its SLA tiers. In order to access your API, developers now have to register their applications on one of your SLA tiers, which they can do by clicking *Request API Access* on your API Portal.
+
+== Adjusting Your RAML to Reflect Your Policy
+
+[NOTE]
+This section only applies if your T-Shirt Ordering Service API has a RAML definition. If you skipped the design phase and skipped straight to proxying an alerady built API, you can disregard this section. However, be sure to carefully document your policy on your API Portal so that developers know what to expect when they make calls to your API.
+
+Your API Console does not automatically reflect the policies that you have applied to your API, or the URL that you defined as your inbound endpoint – the API Console is reading straight from your RAML definition. Go to *Edit API definition* to make some adjustments to your RAML.
+
+First, change the baseURI in your RAML to reflect the URL that developers should use in their apps when calling your API. If you proxied your API, be sure to direct developers to the proxy, not to the underlying implementation.
+
+In order to have your console mimic the behavior of your policy, you need to add some additional logic to the RAML definition.
+
+Add a section called "traits:" in the root, like this, to define some query parameters that the API should expect:
+[source,ruby]
+----
+traits:
+  - rate-limited:
+      queryParameters:
+       client_id:
+        type: string
+      client_secret:
+        type: string
+----
+
+Next, reference this trait in each of your methods to specify that each of the methods require these query parameters. After each method in your RAML file, add **is: [rate-limited]**. For example:
+
+[source,ruby]
+----
+/products:
+  get:
+    is: [rate-limited]
+    description: Gets a list of all the inventory products.
+----
+
+== Next
+
+If you haven't already done so, link:/documentation/display/current/Walkthrough+Engage[publish an API Portal] so that other users can find your API, read its documentation, and request access to it.
+
+If you already published your portal, go back and edit it to include additional information about your endpoint, your SLA tiers, and your policy.

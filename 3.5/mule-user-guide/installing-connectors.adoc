@@ -1,0 +1,177 @@
+= Installing Connectors
+
+This page explains how to install connectors, uninstall connectors, and work with connector dependencies in both Anypoint(TM) Studio and Maven.
+
+[NOTE]
+====
+Note that the information on this page applies to operation-based connectors only. All endpoint-based connectors are bundled automatically with Anypoint Studio and cannot be installed or updated individually via an update site.
+
+If you don't use Studio, you can specify endpoint-based connectors as required transports when you generate a project using the [Maven mule-project-archetype].
+====
+
+== Installing Connectors
+
+Beyond those included with the out-of-the-box version of Anypoint Studio, there are many more *Anypoint(TM) Connectors* you can download and use in your Mule applications to connect to third-party APIs. If you want to add your catalog of connectors, you can download many more from the *Connector Update Site*. If you don't use Anypoint Studio, you can install the appropriate Maven dependencies into your `pom.xml` file.
+
+[tabs]
+------
+[tab,title="Anypoint Studio"]
+....
+. Under the `Help` menu in *Anypoint Studio*, select `Install New Software`.
++
+image:/docs/download/thumbnails/122750871/Studio_InstallNewSoftware.png?version=1&modificationDate=1421450069456[image]
+
+. In the *Work with*: field in the *Install* wizard, use the drop-down menu to select `Anypoint Connectors Update Site`.
++
+image:/docs/download/attachments/122750871/InstallConnectors.png?version=1&modificationDate=1421450062073[image]
+
+. Expand the node(s) for *Community*, *Premium*, and/or *Standard* to view the connectors available for download.
+
+. Check the box next to one or more connectors to select those you wish to use, then click *Next*.
++
+image:/docs/download/attachments/122750871/SelectLDAPconnector.png?version=1&modificationDate=1421450061750[image]
+
+. Review your selections in the *Install Details* screen of the wizard, then click *Next*.
+
+. Select *I accept the terms of the license agreements* in the *Review Licenses* screen, then click *Finish*.
+
+. Click *Restart Now* to complete the installation.
++
+image:/docs/download/attachments/122750871/Software_Updates.png?version=1&modificationDate=1421450064521[image]
+
+. Studio restarts, displaying the new connectors in the palette.
+....
+[tab,title="Maven"]
+....
+Refer to the connector-specific instructions linked from the [connector site] for installation instructions and copy-pasteable code that you can add to your `pom.xml` file to install the connector as a Maven dependency (recommended).
+....
+------
+
+== Uninstalling Connectors
+
+[tabs]
+------
+[tab,title="Anypoint Studio"]
+....
+
+. Under the *Anypoint Studio* menu, select *About Anypoint Studio*.
++
+image:/docs/download/thumbnails/122750871/AboutAnypointStudio.png?version=1&modificationDate=1421450063122[image]
+
+. In the *About Anypoint Studio* window, click *Installation Details* to display a list of the connectors you have installed on your instance of Anypoint Studio.
++
+image:/docs/download/attachments/122750871/AboutAnypointStudioMay2014-ed.png?version=1&modificationDate=1421450060747[image]
+
+. In the *Installed Software* tab, select the line item you wish to uninstall, then click *Uninstall*
++
+image:/docs/download/attachments/122750871/InstalledSoftware.png?version=1&modificationDate=1421450063818[image]
++
+[TIP]
+To uninstall more than one item, click to select the first line item, then hold down the `CRTL` key (PC) or `command` key (Mac) as you click other line items.
+
+. Click *Finish* to uninstall the item(s) you selected.
++
+image:/docs/download/attachments/122750871/uninstalldetails.png?version=1&modificationDate=1421450063441[image]
+....
+[tab,title="Maven"]
+....
+To uninstall a connector, remove the Maven dependency for that connector from your `pom.xml` file.
+....
+------
+
+== Dependencies
+
+[tabs]
+------
+[tab,title="Anypoint Studio"]
+....
+*Automatic Dependency Management*
+
+In an Anypoint Studio project that does _not_ include Maven support, when you add a connector to your flow, Studio automatically adds all of its dependencies (including `.jar` files) to your project's [classpath]. Mule manages each connector's dependencies as an Eclipse user library. Because Studio adds a connector's dependencies to your project's classpath, you can reference connector classes within other projects in your Anypoint Studio instance.
+
+In an Anypoint Studio project that is built with Maven support, when you add a connector to your flow, Studio automatically adds the dependency (and the inclusion element to the maven-mule-plugin, if needed) to your pom file. Then, it refreshes your project dependencies based on the new contents of your pom file, and the connector (and its transitive dependencies) will appear referenced in your project's "Referenced Libraries" section as a set of references to `.jar` files in your local m2 repository.
+
+Refer to [Deploying Mule Applications] for more information on managing your user libraries in Studio.
+
+*Manually Adding Connector Dependencies*
+
+Complete the following procedures to manually add connector dependencies to your project's classpath in Studio.
+
+. In the *Package Explorer* pane, right-click on your project's name, then select *Build Path > Add Libraries*.
+
+. In the *Add Libraries* wizard, select *Anypoint Connector Dependencies*, then click *Next*.
++
+image:/docs/download/attachments/122750871/AddLibrary1.png?version=1&modificationDate=1421450061098[image]
+
+. Check the boxes associated with the connector dependencies you wish to add to your project's classpath.
++
+image:/docs/download/attachments/122750871/AddLibrary2.png?version=1&modificationDate=1421450061425[image]
+
+. Click *Finish* to add the dependencies.
+....
+[tab,title="Maven"]
+....
+If you are installing a connector as a Maven dependency, ensure that you complete the following three steps for each connector:
+
+. To make any connector module available to a Mavenized Mule application, first add the following repositories to you `pom.xml` file:
++
+[source]
+----
+<repositories>
+    <repository>
+        <id>mulesoft-releases</id>
+        <name>MuleSoft Repository</name>
+        <url>https://repository.mulesoft.org/releases/</url>
+        <layout>default</layout>
+    </repository>
+    <repository>
+        <id>mulesoft-snapshots</id>
+        <name>MuleSoft Snapshot Repository</name>
+        <url>https://repository.mulesoft.org/snapshots/</url>
+        <layout>default</layout>
+    </repository>
+</repositories>
+----
+
+. Then add the module as a dependency to your project, replacing `insert-artifcactID-here` with the artifactID of the specfic module you are adding and replacing RELEASE with the version of this module.
++
+[source]
+----
+<dependency>
+    <groupId>org.mule.modules</groupId>
+    <artifactId>insert-artifactId-here</artifactId>
+    <version>RELEASE</version>
+</dependency>
+----
+
+. If you plan to use this module inside a Mule application, you need to add it to the packaging process. As such, the final zip file which will contain your flows and Java code will also contain this module and its dependencies. Add a special inclusion to the configuration of the Mule-Maven plugin for this module, replacing `insert-artifactID-here` with the artifactID of the specific module you are adding.
++
+[source]
+----
+<plugin>
+    <groupId>org.mule.tools</groupId>
+    <artifactId>maven-mule-plugin</artifactId>
+    <extensions>true</extensions>
+    <configuration>
+        <excludeMuleDependencies>false</excludeMuleDependencies>
+        <inclusions>
+            <inclusion>
+                <groupId>org.mule.modules</groupId>
+                <artifactId>insert-artifactId-here</artifactId>
+            </inclusion>
+        </inclusions>
+    </configuration>
+</plugin>
+----
+....
+------
+
+== See Also
+
+* Read more about using [Anypoint Connector]
+
+* Review full connector-specific documentation, including video demonstrations and complete code samples, on the [connectors site].
+
+* Learn how to build your own Mule extension with [Anypont Connector DevKit].
+
+* Learn how to [work with multiple versions of connectors].

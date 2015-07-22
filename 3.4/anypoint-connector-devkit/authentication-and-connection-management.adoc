@@ -1,0 +1,53 @@
+= Authentication and Connection Management
+
+Most Web services require some form of authentication when connecting and sending requests. On the client side, many Mule applications need to manage multiple connections to the same target – for example, a developer of an application interacting with an e-commerce site on behalf of thousands of users would need to efficiently manage the many connections that might be live at any given moment.
+
+Connection management and authentication support are closely related functionality in Anypoint Connector DevKit.  While a general purpose connection management framework is available for most protocols, OAuth authentication handles connection management differently. If you are not familiar with OAuth, http://www.cubrid.org/blog/dev-platform/dancing-with-oauth-understanding-how-authorization-works/[Dancing with OAuth: Understanding How Authentication Works] is a widely-cited and accessible overview of how the flavors of OAuth work.  
+
+image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="5-package.png"]
+
+== Assumptions
+
+This document assumes you have link:/docs/display/34X/Creating+a+Connector+Project[created a connector project], link:/docs/display/34X/Installing+and+Testing+Your+Connector[installed and tested] it in Mule Studio, and are ready to implement authentication on your connector. 
+
+== OAuth 2 Authentication
+
+The DevKit's support for OAuth 2 incorporates its own form of connection management support. Implement OAuth2 in your @Connector class, and DevKit will transparently manage multiple connections, including maintaining access tokens for multiple connections to the target service. 
+
+See link:/docs/display/34X/Implementing+OAuth+2.0+Authentication[Implementing OAuth 2.0 Authentication] for details on how to implement OAuth 2 authentication in your connector.
+
+== OAuth 1.0a Authentication
+
+OAuth 1 support in DevKit is limited to implementing single-tenant connectors. If you must use OAuth 1.0a authentication, your options are:
+
+* Implement some framework of your own for managing multiple sets of OAuth 1 credentials and build a connector without using DevKit;
+* Deploy and run multiple instances of your application, each managing credentials for a single account.
+
+See link:/docs/display/34X/Implementing+OAuth+1.0+Authentication[Implementing OAuth 1.0 Authentication] for details on how to implement OAuth 1 authentication in your connector.
+
+If you have a requirement to use OAuth 1 authentication in a connector and you need multi-tenancy as well, contact MuleSoft for guidance.
+
+== Connection Management with Other Authentication Schemes
+
+DevKit makes available the connection management framework. It provides management of credentials for multiple simultaneous connections, pooling connection instances to allow for efficient connection re-use, and automated handling for invalidating lost connections and reconnecting when needed.
+
+link:/docs/display/34X/Implementing+Connection+Management[Implementing Connection Management] describes applying the connection management to your connector by applying annotations to @Connector class methods. The example describes using the annotations with basic username/password authentication, but the same methods apply for other methods as well. 
+
+Connection management can also be applied in connectors that use no authentication at all. The link:/docs/display/34X/Connector+to+SOAP+Service+via+CXF+Client+Example[Connector to SOAP Service via CXF Client Example] illustrates implementing connection management in a connector with no authentication.
+
+== Supporting Multiple Authentication Models in One Connector
+
+As of version 3.3.1, Anypoint Connector DevKit allows you to support multiple authenticaiton models in the same connector JAR, as extensions of a common base class. The https://github.com/mulesoft/salesforce-connector/blob/master/src/main/java/org/mule/modules/salesforce/SalesforceOAuthConnector.java[Salesforce connector] illustrates how to structure the connector code to support this feature. An abstract base class implements most functionality, such as the connector operations; child classes of the base class implement the authentication logic and connection management if applicable.
+
+Supporting both OAuth and simple authentication in the same connector JAR means having two config elements in the same XML namespace. You can use the parameter `configElementName` of the `@Connector` annotation. For example, the Salesforce OAuth2 connector class sets the `configElementName` to `config-with-oauth`, rather than the default value, `config`. As a result, in XML, you use either` sfdc:config-with-oauth` or `sfdc:config`, to pick the needed version of the connector.
+
+Implementing such a connector is an advanced technique; if you decide to do this, start by implementing one method, such as OAuth, then refactor to separate all authentication-independent functionality in the @Connector class into an abstract class, re-implement the authentication-specific functions in a child class, then implement a new child class supporting the other authentication method.
+
+== See Also
+
+* Dig into the details of implementing a specific authentication method: +
+** link:/docs/display/34X/Implementing+Connection+Management[Implementing Connection Management]
+** link:/docs/display/34X/Implementing+OAuth+2.0+Authentication[Implementing OAuth 2.0 Authentication]
+** link:/docs/display/34X/Implementing+OAuth+1.0+Authentication[Implementing OAuth 1.0 Authentication]
+* Read an overview of link:/docs/display/34X/Authentication+Methods[authentication methods].
+* Return to the link:/docs/display/34X/DevKit+Shortcut+to+Success[DevKit Shortcut to Success].

@@ -1,0 +1,147 @@
+= Monitoring a Server
+
+* link:#MonitoringaServer-ViewingandEditingtheServerSummary[Viewing and Editing the Server Summary]
+* link:#MonitoringaServer-WorkingwithServerEnvironmentVariables[Working with Server Environment Variables]
+* link:#MonitoringaServer-WorkingwithServerConfigurationFiles[Working with Server Configuration Files]
+* link:#MonitoringaServer-ViewingDeployedApplications[Viewing Deployed Applications]
+* link:#MonitoringaServer-ViewingtheLogFiles[Viewing the Log Files]
+* link:#MonitoringaServer-ViewingThreads[Viewing Threads]
+* link:#MonitoringaServer-ViewingSystemInformation[Viewing System Information]
+* link:#MonitoringaServer-ViewingtheConnectors[Viewing the Connectors]
+
+This page describes how system administrators can use MuleSoft Tcat Server to monitor the health of a server, see which applications are up and which are down, and determine memory usage. To view server details, click the server name on the Servers tab. The Server Details screen displays the information on several different tabs, which are described in the sections below.
+
+At any time when viewing the server details, you can click *Restart Server* at the top of the window to restart that server. If you no longer want to monitor the server, click *Unregister Server*.
+
+== Viewing and Editing the Server Summary
+
+The Summary tab provides an overview of the server, including its status (displays a green light if it's running or a red light if it's stopped), the groups it belongs to, the packages that have been deployed to it, and its environment variables (see below).
+
+To edit the summary details, click *Edit Server Info*, make your changes, and then click *Save*. To add the server to a group, select it from the drop-down list and click *Add*. To remove the server from a group, click the red X next to the group name.
+
+== Working with Server Environment Variables
+
+By default, just the variables that have been set for the server via Tcat Server are displayed on the server's Summary tab. To display all environment variables on the server, click the *more* link. The full list of variables appears in a scrolling list below.
+
+To manage the environment variables on the server, click *Edit Server Info*, and then do one or more of the following:
+
+* To add an environment variable, type the variable's name and its value, and then click *Add*. As you type, matching variable names appear, allowing you to select one from the list.
+* To change an existing variable, click in its name or value box and edit it as needed.
+* To delete a variable, click the red X next to its value.
+
+When you have finished making changes, click *Save*. To revert your changes, click *Cancel*.
+
+If you change an environment variable, click *Restart Server* to restart the server and have your changes take effect.
+
+[WARNING]
+If you make changes to your variables via Tcat Server, we recommend that you do *not* make further changes to the variables outside of Tcat Server. Otherwise, the variables will be out of sync, because they are pulled into Tcat Server from the JVM when Tomcat is started and are combined with any that you have set in the Tcat Server console. Therefore, if you must make changes outside of Tcat Server, also restart Tomcat manually outside of Tcat Server. The variables are then updated in the JVM and are pulled into Tcat Server, and any that you set explicitly in the Tcat Server console will take precedence over those set externally.
+
+== Working with Server Configuration Files
+
+The Files tab displays the files and folders on the server. You can view and edit any text-based (non-binary) file, redeploy it, and then restart the server.
+
+To view a file, simply click its name. If you want to edit the file, click *Edit*, make your changes in the editor that appears, and then click *Save* at the bottom of the window. If you make a mistake, you can click *Reset* to reset the editor window to the original text in the file. To cancel your changes without saving and close the editor window, click *Cancel*.
+
+To add a new file to the server, do the following:
+
+. On the Files tab, click *New File*.
+. Enter the name you want to display for this file.
+. Specify the file (you can click *Browse* to select it from your file system) and click *Upload*.
+
+To upload a new version of a file, click its name to view it, click *Upload New File*, specify the updated version of the file, and click *Upload*.
+
+To delete a file, click its name to view it, and then click *Delete*.
+
+== Viewing Deployed Applications
+
+The Applications tab displays a list of the applications that have been deployed to this server. The Status column displays whether each application is currently running or stopped. You can stop or restart an application just by clicking its status to toggle it between *running* and *down*.
+
+You can sort the list of applications by clicking any of the column headings. For example, you can click the Status column heading so that all stopped applications are grouped together at the top of the table.
+
+To link:/docs/display/TCAT/Monitoring+Applications[view more details about an application], click the application name.
+
+Following is a description of the columns:
+
+[width="99a",cols="50a,50a",options="header"]
+|===
+|Column |Description
+|Name |The name of the application folder.
+|Status |Whether the application is running or down (stopped).
+|Description |The description of the application as specified in the WAR file.
+|Req. |The total number of requests processed by each application.
+|Sess. |The total number of sessions for each application. A session is a connection between the application and a specific client, such as a user accessing the application through a web browser. Each session can process multiple requests. A session closes when the client terminates the session or when the session times out.
+|S.ATTR |The total number of session attributes. Session attributes store information about the client.
+|C.ATTR |The total number of ServletContext attributes set by this application. ServletContext attributes are shared by all servlets in the same application.
+|Sess. Timeout |The interval at which a session is automatically closed if there has been no activity within that time period.
+|JSP |Clicking the icon displays a list of all the JSPs in that application. You can then click a specific JSP to view its code. You can also compile one or more JSPs.
+|JDBC USAGE |Displays the maximum connection usage to JDBC resources by each application. You can click the bar in this column to see the JDBC resources for that application.
+|CLSTRED.? |Whether the application is distributable and deployed in a cluster.
+|SER.? |Whether all session attributes implement `java.io.Serializable`.
+|===
+
+== Viewing the Log Files
+
+The Logs tab displays the logs generated by Tomcat for each of the applications and for the Tomcat instance itself. Note that all logs are rolled over at midnight daily.
+
+The table displays the log type (e.g., JDK or Log4J), file name, file size, last-modified timestamp, and the class used to create the log. Click a log file name to view its contents, or click the download icon to save the file locally. When viewing the log file contents, you can use the zoom buttons to make the font larger or smaller, you can adjust the line wrapping, and you can clear the log file. The log is updated as it is being written; to pause it, click *Pause Tailing*. To resume watching it in real time, click *Resume Tailing*. To return to the list of logs, click *Back to log files list*.
+
+For details on the logs generated by Tcat Server, see link:/docs/display/TCAT/Working+with+Logs[Working with Logs].
+
+== Viewing Threads
+
+The Threads tab allows you to view the threads that are running in the JVM. The information displayed depends on whether the server's JVM has the JMX agent installed or is based on the thread class. The thread class view displays less-detailed information, so if you need more details, you should consider installing a JMX agent. To enable the JMX agent with Tomcat, add the -Dcom.sun.management.jmxremote option to your CATALINA_OPTS setting as described in link:/docs/display/TCAT/Installation[Installation].
+
+=== JVM Agent Information
+
+[width="99a",cols="50a,50a",options="header"]
+|===
+|Column |Description
+|ID |A unique identifier for this thread. This value is assigned by the JVM whenever the application creates a thread.
+|NAME |The thread name. This value is assigned by the application.
+|EXEC. POINT |The point in the code where the thread was executed. The class name and line number are displayed if available.
+|STATE |The current http://java.sun.com/j2se/1.5.0/docs/api/java/lang/Thread.State.html[state of the thread].
+|IN.NATIVE |Whether this thread is executing in native code.
+|SUSP. |Whether this thread is suspended (that is, `Thread.suspend()` was called on the thread).
+|WC |The http://java.sun.com/j2se/1.5.0/docs/api/java/lang/management/ThreadInfo.html#getWaitedCount()[waited count]. This is the number of times the thread has been waiting.
+|BC |The http://java.sun.com/j2se/1.5.0/docs/api/java/lang/management/ThreadInfo.html#getBlockedCount()[blocked count]. This is the number of times the thread has been blocked from entering a monitor. Typically, this happens when the thread has to wait when trying to enter a `synchronized()` block.
+|===
+
+=== Thread Class Information
+
+[width="99a",cols="50a,50a",options="header"]
+|===
+|Column |Description
+|NAME |The thread name. This value is assigned by the application.
+|P |The priority of this thread. The higher the number, the higher its priority over other threads, and the more time it will get from the CPU.
+|APP |The application to which this thread belongs.
+|CLASS LOADER |The context class loader for this thread. Click the class to see the classpath the thread can access.
+|GROUP |The thread group to which this thread belongs.
+|THREAD CLASS |The class implementation that generated this thread.
+|RUNNABLE CLASS |The class that is executed by this thread.
+|D |Whether the thread is a daemon.
+|I |Whether the thread has been interrupted.
+|===
+
+== Viewing System Information
+
+The System Information tab displays information about the computer on which Tcat Server is installed.
+
+The memory utilization bar shows you at a glance how much memory is being used on the server. To release memory that's being taken up by objects that are no longer in use by the applications, click *Force Garbage Collection*. This link runs `System.gc()`, which advises the JVM to perform the garbage collection. Alternatively, you can click "Advise GC" (also runs `System.gc()`) or "Advise Finalization" (which runs `System.runFinalization()` to suggest running finalization methods on objects) on the Memory Utilization page. These options should only be invoked in a development or test environment, because they can cause a short pause in application execution and can possibly make the JVM freeze.
+
+To view more specific information about memory utilization, click *Memory Utilization* in the vertical menu bar on the right side of the screen. The screen now displays memory usage for different caches and spaces and allows you to display a chart for each.
+
+The rest of this tab displays information about the operating system and Tomcat container installed on this server. To display more specific information about the operating system, including available RAM and historical usage charts, click *OS Information* in the vertical menu bar on the right side of the screen.
+
+To view system properties, such as the Java home directory and Tomcat's base and home directories (catalina.base and catalina.home), click *System Properties* in the vertical menu bar.
+
+Lastly, if your JVM is controlled by a Java Service Wrapper, you can click *Wrapper Control* to view information about the wrapper, including its Java PID, whether debug is enabled, and the values of all its properties.
+
+== Viewing the Connectors
+
+The Status tab allows you to view the status of the connectors used to connect client requests to the applications. The connectors are divided into groups based on the port and protocol they use. Each group displays information such as the total number of available and busy threads in that group. It also displays information for each individual connector, including the remote IP address, current stage, and the URL of the request.
+
+The Connectors tab displays charts that show traffic volume information for all available connectors. The feed is live, and the charts are automatically updated every 30 seconds. You can toggle the visibility of a connector group by clicking that group's header panel.
+
+link:/docs/display/TCAT/Deploying+Applications[<< Previous: *Deploying Applications*]
+
+link:/docs/display/TCAT/Monitoring+Applications[Next: *Monitoring Applications* >>]

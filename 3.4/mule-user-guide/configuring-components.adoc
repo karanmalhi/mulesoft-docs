@@ -1,0 +1,111 @@
+= Configuring Components
+
+[width="100%",cols=","]
+|===
+|[link:/docs/display/34X/Configuring+Components#ConfiguringComponents-SimpleComponents[Simple Components]] |[link:/docs/display/34X/Configuring+Components#ConfiguringComponents-JavaComponents[Java Components]] |[link:/docs/display/34X/Configuring+Components#ConfiguringComponents-OtherComponents[Other Components]] |[link:/docs/display/34X/Configuring+Components#ConfiguringComponents-CustomizingBehaviorwithInterceptors[Customizing Behavior with Interceptors]] |[link:/docs/display/34X/Configuring+Components#ConfiguringComponents-Lifecycle[Lifecycle]]
+|===
+
+Components contain the business logic for working with the message passed through Mule ESB. A component can be any type of object, including a link:/docs/display/34X/Using+Spring+Beans+as+Flow+Components[Spring bean], link:/docs/display/34X/Configuring+Java+Components[POJO], link:/docs/display/34X/Scripting+Module+Reference[script], link:/docs/display/34X/Using+Web+Services[web service]. or REST call.
+
+Because they are highly specific to your implementation, you will typically [create your own custom components], or simply use an existing POJO. Mule also ships with some standard components you can use or extend as needed. This page describes how to configure the different types of components.
+
+For detailed information on the elements you configure for components, see link:/docs/display/34X/Component+Configuration+Reference[Component Configuration Reference]
+
+== Simple Components
+
+There are several simple components included with Mule that are useful for testing or bypassing component execution.
+
+[width="100%",cols=",",options="header"]
+|===
+|Configuration Element |Description
+|*<log-component/>* |Logs component invocations, outputting the received message as a string. This component does not return a response.
+|*<echo-component/>* |Extends the log component to log and echo the incoming message. The message is transformed before being returned, so transformations on inbound endpoints will be applied.
+|*<null-component/>* |Throws an exception when invoked. This is useful for testing use cases that use a forward consumer inbound router.
+|*<test:component/>* |Configures the `MuleFunctionalTestComponent`, which allows more complex testing scenarios to be created. For more information, see link:/docs/display/34X/Functional+Testing[Functional Testing].
+|===
+
+== Java Components
+
+Java components specify a Java class to be used as the component or configure a reference to an implementation in a container such as Spring. They also configure the way in which Mule should manage the Java component's life-cycle, invoke it, and (if pooled) manage the pool of instances.
+
+Java components can be configured quickly and easily by simply specifying the component implementation class name on the `<component>` or `<pooled-component>` element. The `<pooled-component>` element allows you to establish a pooling profile for the flow (see link:/docs/display/34X/Tuning+Performance[Tuning Performance]). In both cases, the `PrototypeObjectFactory` will be used by default and a new object instance will be created for each request of (for pooled components) for each new object in the pool.
+
+[source]
+----
+<component class="org.my.ComponentImpl"/>
+...
+<pooled-component class="org.my.ComponentImpl"/>
+----
+
+Alternatively, you can explicitly specify object factories, such as the `SingletonObjectFactory` that creates a single instance of the object:
+
+[source]
+----
+<component>
+     <singleton-object class="org.my.ComponentImpl"/>
+</component>
+----
+
+The explicit syntax is required instead of the shortcut `<component class>` syntax if you add interceptor to the component. For further configuration options and information on the default settings that are applied, see link:/docs/display/34X/Configuring+Java+Components[Configuring Java Components].
+
+== Other Components
+
+These are several other components available that allow you to use different technologies such as link:/docs/display/34X/Using+Web+Services[web services] for your components. These components are often included as part of link:/docs/display/34X/Transports+Reference[transport] or link:/docs/display/34X/Modules+Reference[modules].
+
+[width="100%",cols=",",options="header"]
+|===
+|Configuration |Description
+|*<http:rest-service-component/>* |Proxies a remote call to a link:/docs/display/34X/REST+Component+Reference[REST-style web service].
+|*<cxf:wrapper-component/>* |Proxies a remote call to a web service using link:/docs/display/34X/Building+Web+Services+with+CXF[CXF].
+|*<script:component/>* |Configures a JSR-223 link:/docs/display/34X/Scripting+Module+Reference[script] for the component.
+|===
+
+== Customizing Behavior with Interceptors
+
+Mule interceptors are useful for attaching behaviors to multiple components. The interceptor pattern is often referred to as practical AOP (Aspect Oriented Programming), as it allows the developer to intercept processing on an object and potentially alter the processing and outcome. For complete information, see link:/docs/display/34X/Using+Interceptors[Using Interceptors].
+
+== Lifecycle
+
+Components have a lifecycle like any other object in the Mule registry. Lifecycle can be configured by adding one or more lifecycle interfaces to your component. Since Mule 3.0 http://en.wikipedia.org/wiki/JSR_250[JSR-250] annotations can be used to configure intialise and destroy methods. The following list describes in order the lifecycle phrases for component objects.
+
+=== Lifecycle examples
+
+==== Full lifecycle:
+
+[source]
+----
+org.my.ComponentImpl implements org.my.Component, org.mule.api.lifecycle.Lifecycle
+{
+    public void initialise() throws InitialisationException { }
+ 
+    public void start() throws MuleException { }
+ 
+    public void stop() throws MuleException { }
+ 
+    public void dispose() { }
+}
+----
+
+==== Initialise-only lifecycle:
+
+[source]
+----
+org.my.ComponentImpl implements org.my.Component, org.mule.api.lifecycle.Initialisable
+{
+    public void initialise() throws InitialisationException { }
+}
+----
+
+==== Initialise/Dispose lifecycle using http://en.wikipedia.org/wiki/JSR_250[JSR-250] annotations
+
+[source]
+----
+org.my.ComponentImpl implements org.my.Component
+{
+    @PostConstruct
+    public void init() { }
+ 
+    @PreDestroy
+    public void destroy() { }
+}
+----

@@ -1,0 +1,58 @@
+= Configuring the Management Console to Use an External Database
+
+By default, the Mule Management Console for Mule ESB uses its own internal Derby database. However, rather than the embedded Derby database you can configure the console to use an external Oracle database.
+
+This page provides step-by-step instructions to configure the management console with a standalone Oracle database.
+
+[WARNING]
+*[Mule 3.2]* This information applies to management console data only. Mule also stores business event data in a default database. You also have the option to have that data stored in an Oracle database. See link:/documentation-3.2/display/32X/Configuring+a+Database+for+Business+Event+Data+Persistence[Configuring a Database for Business Event Data Persistence] for instructions on how to configure an Oracle database for business event data storage and persistence.
+
+== Oracle Database Set Up
+
+Before beginning, you should have an Oracle database already installed on your system. These instructions assume the following:
+
+* An Oracle 10g XE database is already installed. The instructions below use the placeholder host name `oracledb.foobar.com`, with the port 1521.
+* You should have a username and password set up for a user granted all permissions on this database. The instructions below use placeholders for the username `mmc` and the password `Mule123`. You will be editing an XML file and replacing all occurrences of this placeholder username/password with your actual username/password combination.
+
+Given the above set up and placeholders, the JDBC URL for accessing the Oracle database looks like the following:
+
+[source]
+----
+jdbc:oracle:thin:mmc/Mule123@oracledb.foobar.com:1521:XE
+----
+
+== Step-by-Step Configuration Instructions
+
+These instructions require that you download the MMC-ORACLE.zip file, which is attached to this page. Click link:/documentation-3.2/download/attachments/37061407/MMC-ORACLE.zip?version=1&modificationDate=1302647705150[mmc:here] to access this zip file This ZIP file contains a set of XML, SQL, properties, and JAR files that you use for this configuration.
+
+* Unzip the `MMC-ORACLE.zip` file to a separate folder.
+* Run the `mmc-oracle.sql` script file that was included in the ZIP file. This script creates a number of database tables, indexes, and triggers, and you should verify that it runs successfully.
+* Unpack the `mmc.war` file to your filesystem.
+* Open the `install-directory\apps\mmc\webapps\mmc\WEB-INF\classes\META-INF` folder and delete these files: `jackrabbit-repo-ee.*`.
+* Edit the `jackrabbit-repo-ee.xml` supplied in the ZIP file so that it has the correct JDBC URL, user name, and password. Make the following edits to the file:
+** Replace `jdbc:oracle:thin:mmc/Mule123@oracledb.foobar.com:1521:XE` with your Oracle URL.
+** Replace `mmc` in the line `<param name="user" value="mmc"/>` with your user name.
+** Replace `Mule123` in the line `<param name="password" value="Mule123"/>` with your password.
+** Repeat the above steps for every `FileSystem` and `PersistenceManager` entry in `jackrabbit-repo-ee.xml`.
+* Copy the updated `jackrabbit-repo-ee.xml` file to the `install-directory\apps\mmc\webapps\mmc\WEB-INF\classes\META-INF` folder.
+* Edit the `galaxy-applicationContext.xml` supplied in the ZIP file. Replace the `url` property value of the `internalDataSource` bean with your database URL.
+
+[source]
+----
+    <bean name="internalDataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">        <property name="driverClass" value="org.apache.derby.jdbc.EmbeddedDriver"/>        <property name="url" value="jdbc:derby:${mmc.data}/db;create=true"/>    </bean>
+----
+
+* Copy the edited `galaxy-applicationContext.xml` file to `install-directory\apps\mmc\webapps\mmc\WEB-INF\classes\META-INF` and overwrite the existing `galaxy-applicationContext.xml` file.
+* Copy the `scheduler-ee.properties` file supplied in the ZIP file to `install-directory\apps\mmc\webapps\mmc\WEB-INF\classes\META-INF` and overwrite the existing one, assuming one already exists.
+* Edit the `datasource-ee.properties` file supplied in the ZIP file. Replace the `datasource.username`, `datasource.password`, and `datasource.url` properties with your actual username, password, and URL. (Note that a colon (:) in the URL must be escaped with a back slash().)
+
+[source]
+----
+datasource.username=mmcdatasource.password=Mule123datasource.url=jdbc\:oracle\:thin\:mmc/Mule123@172.16.10.46\:1521\:XE
+----
+
+* Copy the edited `datasource-ee.properties` file to `install-directory\apps\mmc\webapps\mmc\WEB-INF\classes\META-INF`, overwrite the old file if it exists.
+* Copy the `ojdbc14.jar` and `quartz-oracle-1.6.6.jar` files supplied from the ZIP file to `install-directory\apps\mmc\webapps\mmc\WEB-INF\lib`.
+* Repackage the `mmc.war` file and deploy it.
+
+Once deployment completes, you can run the Management Console and use your standalone Oracle database.

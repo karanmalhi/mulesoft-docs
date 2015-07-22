@@ -1,0 +1,137 @@
+= Required JavaDoc
+
+In order to generate the documentation properly we defined a minimum set of JavaDoc comments and tags. Remember to provide as much details as possible in the documentation to help users better understand how to use your Mule extension.
+
+== Documenting `@Module` and `@Connector` Annotated Classes
+
+Each class annotated with `@Module` or `@Connector` must have a class level JavaDoc comment with a high level overview of the extensions. It is also required to include the `@author` tag.
+
+Example from https://github.com/mulesoft/zuora-connector[Zuora Connector]:
+
+[source]
+----
+/**
+ * Zuora is the leader in online recurring billing and payment solutions for SaaS and subscription businesses.
+ * <p/>
+ * This connector provides full access to the Z-Commerce platform API.
+ *
+ * @author MuleSoft, Inc.
+ */
+@Connector(name = "zuora")
+public class ZuoraModule {
+----
+
+== Documenting `@Configurable` Annotated Fields
+
+Each field annotated with `@Configurable` is required to have a JavaDoc comment briefly explaining what this attribute is used for.
+
+Example from the https://github.com/mulesoft/magento-connector[Magento Connector]:
+
+[source]
+----
+/**
+     * The user name to access Magento Web Services
+     */
+    @Configurable
+    private String username;
+ 
+    /**
+     * The password to access Magento Web Services
+     */
+    @Configurable
+    private String password;
+ 
+    /**
+     * The address to access Magento Web Services
+     */
+    @Configurable
+    private String address;
+----
+
+== Documenting `@Processor` and `@Source` Methods
+
+Each method annotated with `@Processor` and `@Source` must have a JavaDoc comment. It is also required each parameter of these methods to have a description. In addition, if the method has a return type different than `void` then it should have the `@return` JavaDoc tag with a description.
+
+The DevKit has introduced a custom tag `@sample.xml` to provide examples on how to use each method from Mule. The example pointed by this tag will receive special treatment when the documentation is generated using the DevKit's custom doclet.
+
+Example from the https://github.com/mulesoft/mongo-connector[Mongo Connector]:
+
+[source]
+----
+/**
+     * Creates a new collection. If the collection already exists, a MongoException
+     * will be thrown.
+     * <p/>
+     * {@sample.xml ../../../doc/mongo-connector.xml.sample mongo:create-collection}
+     *
+     * @param collection the name of the collection to create
+     * @param capped if the collection will be capped
+     * @param maxObjects the maximum number of documents the new collection is able
+     *            to contain
+     * @param size the maximum size of the new collection
+     */
+    @Processor
+    public void createCollection(String collection,
+                                 @Optional @Default(CAPPED_DEFAULT_VALUE) boolean capped,
+                                 @Optional Integer maxObjects,
+                                 @Optional Integer size)
+    {
+        client.createCollection(collection, capped, maxObjects, size);
+    }
+----
+
+Note how the `@sample.xml` is used: inside curly braces put his tag, a relative path from src/main/java to the file where the examples are, and a logic name for the example. For the logic name of the example we recommend to use the notation `myconnector:my-method-name` or `myconnector:myMethodName`.
+
+The examples file pointed by the `@sample.xml` tag must have the following structure:
+
+----
+<!-- BEGIN_INCLUDE(myconnector:method-a) -->
+// example here
+<!-- END_INCLUDE(myconnector:method-a) -->
+<!-- BEGIN_INCLUDE(myconnector:method-b) -->
+// example here
+<!-- END_INCLUDE(myconnector:method-b) -->
+...
+...
+----
+
+For example the SalesForce Connector examples file looks like:
+
+[width="99",cols="99a",options="header"]
+|===
+^|*examples file*
+|
+----
+<!-- BEGIN_INCLUDE(sfdc:create) -->
+<sfdc:create type="Account">
+    <sfdc:objects>
+        <sfdc:object>
+            <Name>MuleSoft</Name>
+            <BillingStreet>30 Maiden Lane</BillingStreet>
+            <BillingCity>San Francisco</BillingCity>
+            <BillingState>CA</BillingState>
+            <BillingPostalCode>94108</BillingPostalCode>
+            <BillingCountry>US</BillingCountry>
+        </sfdc:object>
+    </sfdc:objects>
+</sfdc:create>
+<!-- END_INCLUDE(sfdc:create) -->
+<!-- BEGIN_INCLUDE(sfdc:upsert) -->
+<sfdc:upsert type="Account" externalIdFieldName="InternalAccountCode">
+    <sfdc:objects>
+        <sfdc:object>
+            <InternalAccountCode>A01596</InternalAccountCode>
+            <Name>MuleSoft</Name>
+            <BillingStreet>30 Maiden Lane</BillingStreet>
+            <BillingCity>San Francisco</BillingCity>
+            <BillingState>CA</BillingState>
+            <BillingPostalCode>94108</BillingPostalCode>
+            <BillingCountry>US</BillingCountry>
+        </sfdc:object>
+    </sfdc:objects>
+</sfdc:upsert>
+<!-- END_INCLUDE(sfdc:upsert) -->
+...
+...
+----
+|===

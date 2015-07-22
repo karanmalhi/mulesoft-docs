@@ -1,0 +1,950 @@
+= REST API Reference: Deployments
+
+====== About This Document
+
+This document, as well as the rest of the documents that make up the link:/docs/display/34X/REST+API+Reference[Mule Management Console REST API Reference Guide], are a technical reference only. This document does not provide contextual information such as instructions, use cases or scenarios. To understand this document, you should be familiar with http://www.mulesoft.org/documentation/display/MULE3USER/Home[MULE ESB], link:/docs/display/34X/Deployments[Deployments], and the link:/docs/display/34X/Using+the+Management+Console+API[REST API.]
+
+[width="100%",cols="5",]
+|===
+|*Assumptions:*
+a|
+[width=",",cols=",",]
+!===
+!Host !localhost
+!===
+
+a|
+[width=",",cols=",",]
+!===
+!Port !8080
+!===
+
+a|
+[width=",",cols=",",]
+!===
+!Deployed app !mmc.war
+!===
+
+a|
+[width=",",cols=",",]
+!===
+!User/Password !admin/admin
+!===
+|===
+
+For a detailed description of the format used in this document, consult link:/docs/display/34X/REST+API+Reference[Content Organization and Conventions].
+
+*/api/deployments*
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*POST*
+
+ a|
+
+===== CREATE
+
+ | 
+|===
+
+Creates a new Deployment.
+
+[tabs]
+------
+[tab,title="Request"]
+....
+
+===== JSON
+
+[source]
+----
+{
+  "name":"Example",
+  "servers":
+    [
+      "local$26f2fea8-3b7c-45a7-84a8-d1509e73fca4"
+    ],
+  "applications":
+    [
+      "local$75e22cd7-ce94-422a-9987-aa0403713e3e"
+    ]
+}
+----
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|name |String |Name of the deployment to be created. Must be unique |—
+|servers |Array a|
+[cols=",",options="header",]
+!===
+!<= 3.4.0 !>= 3.4.1
+!List of server IDs !List of server or group IDs
+!===
+|—
+|clusters |Array |List of cluster IDs |—
+|applications |Array |Version IDs of applications to be part of the deployment |—
+|===
+
+[NOTE]
+You cannot create a deployment using the server names and application names. Instead, use the server or version ID.
+
+===== Using CURL on Windows
+
+----
+ curl --basic -u admin:admin -d  "{\"name\" : \"ExampleDeployment\" , \"servers\": [ \"local$26f2fea8-3b7c-45a7-84a8-d1509e73fca4\" ], \"applications\": [ \"local$32bb47d3-d180-4bb9-8906-2378dad9ae21\" ]}" --header "Content-Type: application/json" http://localhost:8080/mmc/api/deployments
+----
+
+===== Using CURL on Linux
+
+----
+ curl --basic -u admin:admin -d '{"name" : "ExampleDeployment" , "servers": [ "local$26f2fea8-3b7c-45a7-84a8-d1509e73fca4" ], "applications": [ "local$32bb47d3-d180-4bb9-8906-2378dad9ae21" ]}' --header 'Content-Type: application/json' http://localhost:8080/mmc-console-3.3.2/api/deployments
+----
+
+....
+[tab,title="Response"]
+....
+
+===== JSON 
+
+[source]
+----
+{
+  "applications":
+    [
+      "local$1b8ee6e2-043c-403c-b404-af3aa74d6f92"
+    ],
+  "clusterIds": [],
+  "clusterNames": [],
+  "href": "http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36",
+  "id": "local$97e3c184-09ed-423e-a5a5-9b94713a9e36",
+  "lastModified": "Mon, 5 Sep 2011 12:19:15.138 GMT",
+  "name": "Example",
+  "reconciled": false,
+  "servers":
+    [
+      "local$3a99adfe-e942-4b52-b082-1a351de01420"
+    ],
+  "status": "UNDEPLOYED"
+}
+----
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|applications |Array |List of valid application version IDs to be assigned to the new deployment |—
+|clusterIds |String |List of cluster IDs used as deployment target |—
+|clusterNames |String |List of cluster names used as deployment target |—
+|href |String |Full link to the resource |—
+|id |String |ID of the deployment |—
+|lastModified |String |Creation time-date |—
+|name |String |Name of the deployment to be created |—
+|reconciled |Boolean |Default value is false. A deployment is unreconciled when at least one server is down and/or at least one app has not been deployed on at least one server |—
+|servers |String |List of servers IDs used as deployment target |—
+|status |String |Deployed, Undeployed. When a Deployment is created, default value is Undeployed |—
+|===
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |The request has been fulfilled and resulted in a new Deployment being created/ Deployment created with some errors
+|*400* |Policies do not allow adding that deployment/Missing Deployment Name/Missing target/Missing application/Malformed new deployment request
+|*401* |Invalid name
+|*402* |Irrecoverable errors when creating the Deployment
+|*404* |Fatal Error: Deployment created but incorrectly persisted
+|*409* |A deployment with that name already exists
+|*500* |Fatal Error
+|===
+
+....
+[tab,title="MMC version"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===
+
+....
+------
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*GET*
+
+ a|
+
+===== LIST ALL
+
+ | 
+|===
+
+Lists all available Deployments.
+
+[tabs]
+------
+[tab,title="Request"]
+....
+
+===== Syntax
+
+GET http://localhost:8080/mmc/api/deployments[?server={serverId}|?cluster={clusterId}]
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|server |String |(Optional) ID of the server from which the deployments are listed. Mutually exclusive with the `cluster` key described below. If not specified, results are not filtered |—
+|cluster |String |(Optional) ID of the cluster from which the deployments are listed. Mutually exclusive with the `server` key described above. If not specified, results are not filtered |—
+|===
+
+[NOTE]
+The `cluster` parameter is available from version 3.4.1 and above.
+
+===== Using CURL on Windows
+
+----
+ curl --basic -u admin:admin http://localhost:8080/mmc/api/deploymentscurl --basic -u admin:admin http://localhost:8080/mmc/api/deployments?server=local$3a99adfe-e942-4b52-b082-1a351de01420curl --basic -u admin:admin http://localhost:8080/mmc/api/deployments?cluster=0bf1d75d-3fbb-4489-b4c4-bd0249cb8a34 
+----
+
+===== Using CURL on Linux
+
+----
+ curl --basic -u admin:admin http://localhost:8080/mmc/api/deploymentscurl --basic -u admin:admin 'http://localhost:8080/mmc/api/deployments?server=local$3a99adfe-e942-4b52-b082-1a351de01420'curl --basic -u admin:admin 'http://localhost:8080/mmc/api/deployments?cluster=0bf1d75d-3fbb-4489-b4c4-bd0249cb8a34'
+----
+
+....
+[tab,title="Response"]
+....
+
+===== JSON
+
+[source]
+----
+{
+  "data":
+    [
+      {
+        "applications":
+          [
+            "local$1b8ee6e2-043c-403c-b404-af3aa74d6f92"
+          ],
+        "clusterIds": [],
+        "clusterNames": [],
+        "href": "http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36",
+        "id": "local$97e3c184-09ed-423e-a5a5-9b94713a9e36",
+        "lastModified": "Mon, 5 Sep 2011 12:19:15.138 GMT",
+        "name": "Example",
+        "reconciled": false,
+        "servers":
+          [
+            "local$3a99adfe-e942-4b52-b082-1a351de01420"
+          ],
+        "status": "UNDEPLOYED"
+      }
+    ],
+  "total": 1
+}
+----
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|total |Integer |Number of available deployments |—
+|data |Array |List containing information about each deployment |—
+|name |String |Name of the deployment |data
+|id |String |ID of the deployment |data
+|lastModified |String |Date indicating the last time the deployment was modified. The date format is: %day, %dayNumber %month %year %hour:%minutes:%seconds.%thousandths %timeZone |data
+|status |String |The current status of the deployment. Possible status values are: DEPLOYED, UNDEPLOYED, IN_PROGRESS, SUCCESSFUL, FAILED, and DELETING |data
+|href |String |Full link to the resource |data
+|servers |Array |Lists the IDs for all the servers assigned to the deployment |data
+|clusters |Array |Lists the IDs for all clusters assigned to the deployment |data
+|clustersNames |String |Lists all names of all clusters assigned to the deployment |data
+|reconciled |Boolean |Boolean value indicating the reconciled status of the deployment |data
+|applications |Array |Lists version IDs for all the applications assigned to the deployment |data
+|===
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |The operation was successful
+|*404* |A server with that ID was not found
+|*500* |Fatal error
+|===
+
+....
+[tab,title="MMC version"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===
+
+....
+------
+
+*/api/deployments/\{deploymentId}*
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*GET*
+
+ a|
+
+===== LIST
+
+ | 
+|===
+
+Lists details for a specific Deployment.
+
+[tabs]
+------
+[tab,title="Request"]
+....
+
+===== SYNTAX
+
+GET http://localhost:8080/mmc/api/deployments/{deploymentId}
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|deploymentId |String |ID of the deployment to be listed. Invoke link:#Deployments-listAll[LIST ALL] to obtain it. |—
+|===
+
+===== Using CURL on Windows
+
+----
+ curl --basic -u admin:admin http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36
+----
+
+===== Using CURL on Linux
+
+----
+-- curl --basic -u admin:admin 'http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36'
+----
+
+....
+[tab,title="Response"]
+....
+
+===== JSON
+
+[source]
+----
+{
+  "data":
+    [
+      {
+        "applications":
+          [
+            "local$1b8ee6e2-043c-403c-b404-af3aa74d6f92"
+          ],
+        "clusterIds": [],
+        "clusterNames": [],
+        "href": "http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36",
+        "id": "local$97e3c184-09ed-423e-a5a5-9b94713a9e36",
+        "lastModified": "Mon, 5 Sep 2011 12:19:15.138 GMT",
+        "name": "Example",
+        "reconciled": false,
+        "servers":
+          [
+            "local$3a99adfe-e942-4b52-b082-1a351de01420"
+          ],
+        "status": "UNDEPLOYED"
+      }
+    ],
+  "total": 1
+}
+----
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|total |Integer |Number of available deployments |—
+|data |Array |List containing information about each deployment |—
+|name |String |Name of the deployment |data
+|id |String |ID of the deployment |data
+|lastModified |String |Date indicating the last time the deployment was modified. The date format is: %day, %dayNumber %month %year %hour:%minutes:%seconds.%thousandths %timeZone |data
+|status |String |The current status of the deployment. Possible status values are: DEPLOYED, UNDEPLOYED, IN_PROGRESS, SUCCESSFUL, FAILED, and DELETING |data
+|href |String |Full link to the resource |data
+|servers |Array |Lists the IDs for all the servers assigned to the deployment |data
+|clusters |Array |List the IDs for all clusters assigned to the deployment |data
+|clustersNames |String |List all the names for all clusters assigned to the deployment |data
+|reconciled |Boolean |Boolean value indicating the reconciled status of the deployment |data
+|applications |Array |Lists version IDs of all applications assigned to the deployment |data
+|===
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |The operation was successful
+|*404* |Unable to retrieve requested deployment/ A deployment with that ID was not found/ Duplicate ID found at database
+|===
+
+....
+[tab,title="MMC version"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===
+
+....
+------
+
+*/api/deployments/\{deploymentId}/add*
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*PUT*
+
+ a|
+
+===== UPDATE BY ADDING
+
+ | 
+|===
+
+Updates a specific Deployment by adding the specified elements if not defined on the deployment. In the case of the Deployment name, it will be overwritten if update is specified. Updating the deployment will trigger the creation of a new Deployment ID, which should be used for redeployments or any other operations referencing this deployment. The new Deployment ID is included in the response.
+
+===== JSON
+
+[tabs]
+------
+[tab,title="Request"]
+....
+
+[source]
+----
+{
+    "applications":
+        [
+            "local$497d0c3a-8b29-4ff9-b22b-0d0ac4fe4eb2"
+        ],
+    "lastModified": "Thu, 18 Apr 2013 13:54:09.443 ART",
+    "name":"Deployment Test"
+}
+----
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|name |String |(Optional) A new name for the deployment |—
+|lastModified |String |(Required) Date of last modification of the deployment. The value is the string currently stored as the date of last modification. To obtain this value, use the `LIST` operation |—
+|servers |Array |(Optional) List of server IDs to be assigned to the specified deployment |—
+|clusters |Array |(Optional) List of cluster IDs to be assigned to the specified deployment |—
+|applications |Array |(Optional) List of application version IDs to be assigned to the specified deployment |—
+|===
+
+===== Using CURL on Windows
+
+----
+ curl --basic -u admin:admin -X PUT -d "\{\"applications\":[\"local$497d0c3a-8b29-4ff9-b22b-0d0ac4fe4eb2\"], \"lastModified\":\"Thu, 18 Apr 2013 13:54:09.443 ART\", \"name\":\"Deployment Test\"\} --header "Content-Type:application/json" http://localhost:8080/mmc/api/deployments/local$731305bb-95ad-433c-8840-8cc9fb8be4fa/add
+----
+
+===== Using CURL on Linux
+
+----
+ curl --basic -u admin:admin -X PUT -d '{"applications":["local$497d0c3a-8b29-4ff9-b22b-0d0ac4fe4eb2"], "lastModified":"Thu, 18 Apr 2013 13:54:09.443 ART", "name":"Deployment Test"}' --header 'Content-Type:application/json' 'http://localhost:8080/mmc/api/deployments/local$731305bb-95ad-433c-8840-8cc9fb8be4fa/add'
+----
+
+....
+[tab,title="Response"]
+....
+
+===== JSON
+
+[source]
+----
+{
+    "name": "Deployment Test",
+    "id": "local$631208b2-4782-43debaf1-51854ede8528",
+    "lastModified": "Thu, 18 Apr 2013 14:14:23.121 ART",
+    "applications":
+        [
+            "local$a7886ed6-280f-4ef2-ae8a-2d2d7ab18c66",
+            "local$497d0c3a-8b29-4ff9-b22b-0d0ac4fe4eb2"
+        ],
+    "href": "http://localhost:8080/mmc/api/deployments/local$631208b2-4782-43de-baf1-51854ede8528",
+    "status": "UNDEPLOYED",
+    "servers":
+        [
+            "local$f3c83778-827b-474c-87d0-cd7f7d3a6450"
+        ],
+    "clusterIds":
+        [
+ 
+        ],
+    "reconciled":false,
+    "clusterNames":
+        [
+ 
+        ]
+}
+----
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |The operation was successful
+|*400* |Policies do not allow updating that deployment
+|*401* |Invalid name
+|*402* |Invalid ID
+|*404* |A deployment with that ID was not found
+|*409* |A deployment with that name already exists
+|*500* |Error updating the deployment/ Deployment created with errors/ Internal error/ Invalid request
+|===
+
+....
+[tab,title="MMC version"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===
+
+....
+------
+
+*/api/deployments/\{deploymentId}/remove*
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*PUT*
+
+ a|
+
+===== UPDATE BY REMOVING
+
+ | 
+|===
+
+Updates a specific Deployment by removing the specified elements if defined on the deployment. Updating the deployment will trigger the creation of a new Deployment ID, which should be used for redeployments or any other operations referencing this deployment. The new Deployment ID is included in the response.
+
+[tabs]
+------
+[tab,title="Request"]
+....
+
+===== JSON
+
+[source]
+----
+{
+    "applications":
+        [
+            "local$497d0c3a-8b29-4ff9-b22b-0d0ac4fe4eb2"
+        ],
+    "lastModified": "Thu, 18 Apr 2013 13:54:09.443 ART",
+    "name":"Deployment Test"
+}
+----
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|name |String |(Optional) Name of the deployment to update by removing | 
+|servers |Array |(Optional) List of server IDs to be assigned to the specified deployment |—
+|lastModified |String |(Required) Date of last modification of the deployment. The value is the string currently stored as the date of last modification. To obtain this value, use the `LIST` operation |—
+|clusters |Array |(Optional) List of cluster IDs to be assigned to the specified deployment |—
+|applications |Array |(Optional) List of application version IDs to be assigned to the specified deployment |—
+|===
+
+===== Using CURL on Windows
+
+----
+ curl --basic -u admin:admin -X PUT -d "{\"applications\":[\"local$497d0c3a-8b29-4ff9-b22b-0d0ac4fe4eb2\"], \"lastModified\":\"Thu, 18 Apr 2013 14:14:23.121 ART\", \"name\":\"Deployment Test\"\} --header "Content-Type:application/json" http://localhost:8080/mmc/api/deployments/local$731305bb-95ad-433c-8840-8cc9fb8be4fa/remove 
+----
+
+===== Using CURL on Linux
+
+----
+ curl --basic -u admin:admin -X PUT -d '{"applications":["local$497d0c3a-8b29-4ff9-b22b-0d0ac4fe4eb2"], "lastModified":"Thu, 18 Apr 2013 14:14:23.121 ART", "name":"Deployment Test"}' --header 'Content-Type:application/json' 'http://localhost:8080/mmc/api/deployments/local$731305bb-95ad-433c-8840-8cc9fb8be4fa/remove'
+----
+
+....
+[tab,title="Response"]
+....
+
+===== JSON
+
+[source]
+----
+{
+    "name": "Deployment Test",
+    "id": "local$44ce4d41-e551-4b36-80af-eb8fcd79a53f",
+    "lastModified": "Thu, 18 Apr 2013 14:48:18.495 ART",
+    "applications":
+        [
+            "local$a7886ed6-280f-4ef2-ae8a-2d2d7ab18c66"
+        ],
+    "href": "http://localhost:8080/mmc/api/deployments/local$44ce4d41-e551-4b36-80af-eb8fcd79a53f",
+    "status": "UNDEPLOYED",
+    "servers":
+        [
+            "local$f3c83778-827b-474c-87d0-cd7f7d3a6450"
+        ],
+    "clusterIds":
+        [
+ 
+        ],
+    "reconciled": false,
+    "clusterNames":
+        [
+ 
+        ]
+}
+----
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |The operation was successful
+|*400* |Policies do not allow updating that deployment
+|*402* |Invalid ID
+|*404* |A deployment with that ID was not found
+|*500* |Error updating the deployment/ Deployment created with errors/ Internal error/ Invalid request
+|===
+
+....
+[tab,title="MMC version"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===
+
+....
+------
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*DELETE*
+
+ a|
+
+===== REMOVE
+
+ | 
+|===
+
+Removes a specific Deployment.
+
+[tabs]
+------
+[tab,title="Request"]
+....
+
+===== SYNTAX
+
+DELETE http://localhost:8080/mmc/api/deployments/{deploymentId}
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|deploymentId |String |Id of the deployment to be removed. Invoke link:#Deployments-listAll[LIST ALL] to obtain it. |—
+|===
+
+===== Using CURL on Windows
+
+----
+ curl --basic -u admin:admin -X DELETE http://localhost:8080/mmc/api/deployments/local$3a99adfe-e942-4b52-b082-1a351de01420
+----
+
+===== Using CURL on Linux
+
+----
+ curl --basic -u admin:admin -X DELETE 'http://localhost:8080/mmc/api/deployments/local$3a99adfe-e942-4b52-b082-1a351de01420'
+----
+
+....
+[tab,title="Response"]
+....
+
+===== JSON
+
+----
+200 OK
+----
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |The deployments were deleted
+|*400* |Error deleting the deployment/ Policies do not allow deleting that deployment
+|*401* |Unauthorized user
+|*404* |A deployment with that ID was not found
+|*500* |Fatal error
+|===
+
+....
+[tab,title="MMC version"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===
+
+....
+------
+
+*/api/deployments/\{deploymentId}/deploy*
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*POST*
+
+ a|
+
+===== PERFORM DEPLOY
+
+ | 
+|===
+
+Deploys the apps specified on the deployment to the specified target.
+
+[tabs]
+------
+[tab,title="Request"]
+....
+
+===== JSON
+
+POST http://localhost:8080/mmc/api/deployments/{deploymentId}/deploy
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|deploymentId |String |ID of the deployment |—
+|===
+
+===== Using CURL on Windows
+
+----
+ curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/deploy
+----
+
+===== Using CURL on Linux
+
+----
+ curl --basic -u admin:admin -X POST 'http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/deploy'
+----
+
+....
+[tab,title="Response"]
+....
+
+===== JSON
+
+----
+200
+----
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |Operation successful
+|*400* |Error deploying the deployment/ Policies do not allow deploying the deployment
+|*404* |A deployment with that ID was not found
+|*500* |Internal error
+|===
+
+....
+[tab,title="MMC version"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===
+
+....
+------
+
+*/api/deployments/\{deploymentId}/redeploy*
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*POST*
+
+ a|
+
+===== PERFORM REDEPLOY
+
+ | 
+|===
+
+Redeploys the apps specified on the deployment to the specified target.
+
+[tabs]
+------
+[tab,title="Request"]
+....
+
+===== JSON
+
+POST http://localhost:8080/mmc/api/deployments/{deploymentId}/redeploy
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|deploymentId |String |ID of the deployment |—
+|===
+
+===== Using CURL on Windows
+
+----
+ curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/redeploy
+----
+
+===== Using CURL on Linux
+
+----
+ curl --basic -u admin:admin -X POST 'http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/redeploy'
+----
+
+....
+[tab,title="Response"]
+....
+
+===== JSON
+
+----
+200
+----
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |Operation successful
+|*400* |Error redeploying the deployment/ Policies do not allow deploying that deployment
+|*404* |A deployment with that ID was not found
+|*500* |Internal error
+|===
+
+....
+[tab,title="MMC version"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===
+
+....
+------
+
+*/api/deployments/\{deploymentId}/undeploy*
+
+[width="100%",cols="34%,33%,33%",]
+|===
+a|
+*POST*
+
+ a|
+
+===== PERFORM UNDEPLOY
+
+ | 
+|===
+
+Undeploys the apps specified on the deployment to the specified target.
+
+[tabs]
+------
+[tab,title="Request"]
+....
+
+===== JSON
+
+POST http://localhost:8080/mmc/api/deployments/{deploymentId}/undeploy
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Key |Type |Summary |Child of
+|deploymentId |String |ID of the deployment |—
+|===
+
+===== Using CURL on Windows
+
+----
+ curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/undeploy
+----
+
+===== Using CURL on Linux
+
+----
+ curl --basic -u admin:admin -X POST 'http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/undeploy'
+----
+
+....
+[tab,title="Response"]
+....
+
+===== JSON
+
+----
+200
+----
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|*200* |Operation successful
+|*400* |Error undeploying the deployment/ Policies do not allow undeploying the deployment
+|*404* |A deployment with that ID was not found
+|*500* |Internal error
+|===
+
+....
+[tab,title="MMC version"]
+....
+
+[width="100%",cols="50%,50%",]
+|===
+|From |3.2.2
+|===
+
+....
+------

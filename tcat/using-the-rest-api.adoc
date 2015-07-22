@@ -1,0 +1,310 @@
+= Using the REST API
+
+* link:#UsingtheRESTAPI-StatusCodesandErrorHandling[Status Codes and Error Handling]
+* link:#UsingtheRESTAPI-WorkingwithServers[Working with Servers]
+* link:#UsingtheRESTAPI-WorkingwithServerGroups[Working with Server Groups]
+* link:#UsingtheRESTAPI-WorkingwithDeployments[Working with Deployments]
+
+[width="99a",cols="50a,50a",grid="none",frame="none"]
+|===
+|
+The REST API for Tcat Server provides a way for you to programmatically access much of Tcat's functionality. It allows you to:
+
+* Register new servers
+* Manage existing servers
+* Manage server groups
+* Restart servers
+* Access and manage files on servers
+* Create and manage deployments
+
+To use the API, you can use any HTTP client. All APIs use JSON as the data format.
+|
+[TIP]
+====
+Already familiar with the API? Jump straight to the operations:
+
+* link:#UsingtheRESTAPI-serverops[Operations for Servers]
+* link:#UsingtheRESTAPI-groupops[Operations for Server Groups]
+* link:#UsingtheRESTAPI-deploymentops[Operations for Deployments]
+====
+|===
+
+If you are using Java we recommend the http://wikis.sun.com/display/Jersey/Main[Jersey client] or http://hc.apache.org/httpclient-3.x/index.html[HttpClient] with http://jackson.codehaus.org[Jackson] for JSON support.
+
+== Status Codes and Error Handling
+
+When you call the REST APIs, the following status codes are returned:
+
+[width="99",cols="50,50",options="header"]
+|===
+|Status Code |Description
+|200 |The operation was successful.
+|201 |The resource (e.g., server, server group, deployment) was created. The Location header will contain the location of the resource.
+|404 |The resource was not found.
+|409 |When creating a resource (e.g., server, server group, deployment), a resource with that name already existed.
+|500 |The operation was unsuccessful. See the HTTP body for details.
+|===
+
+When errors occur (e.g., a 500 status code), the HTTP response will contain a JSON response with an error message. For example:
+
+[source]
+----
+500
+Content-Type: application/json
+Server: Apache-Coyote/1.1
+Date: Sun, 08 Nov 2009 00:12:55 GMT
+
+{
+  message : "Could not connect to remote server."
+}
+----
+
+== Working with Servers
+
+The server API allows you to find, create, update, and delete servers. You can also perform operations related to managing a server such as restarting it or uploading files to it.
+
+All resources/methods that return or accept a type, except where noted, use the server JSON type, which looks like this:
+
+[source]
+----
+{
+  "id" : "1234567890",
+  "href" : "http://localhost:8080/console/api/servers/1234567890",
+  "name" : "DevelopmentServer1",
+  "type" : "Apache Tomcat/6.0.20",
+  "hosts" : [ "http://192.168.1.105:8090", "http://192.168.1.105:8010" ],
+  "environmentVariables" : [
+    {
+      "JAVA_OPTS : "-Xmx1024m -XX:MaxPermSize:1024m",
+    }
+  ],
+  "groups" : [
+    {
+      "name" : "Development",
+      "href" : "http://localhost:8080/console/api/serverGroups/73d89173-290e-4cb3-a61c-e11deb74767d"
+    }
+  ],
+  "deployments" : [
+    {
+      "name" : "Test",
+      "href" : "http://localhost:8080/console/api/deployments/local$fb9dcb67-88de-482a-b0a4-50ff1d65a16a"
+    }
+  ]
+}
+----
+
+=== Server Properties
+
+Following are the properties for servers.
+
+[width="99",cols="50,50",options="header"]
+|===
+|Property |Description
+|id |The unique ID of the server
+|href |The URL where the server is located
+|type |The type of server, e.g., "Apache Tomcat 6.0.20"
+|hosts |A list of the hosts on this server
+|groups |A list of the groups to which this server belongs
+|name |The name of the server
+|deployments |An array of the deployments that are deployed to this server. See below for a description of the properties.
+|environmentVariables |A map of environment variables which will be set on the server.
+|===
+
+=== Deployment Properties
+
+[width="10",cols="50,50"]
+|===
+|name |The name of the deployment
+|href |The URL where the deployment is located
+|===
+
+=== Server Group Properties
+
+[width="10",cols="50,50"]
+|===
+|name |The name of the server group
+|href |The URL where the server group is located
+|===
+
+=== Operations for Servers
+
+Following is a summary of the operations you can perform on servers and the resource you specify for each.
+
+*All Servers*
+
+[width="99a",cols="33a,33a,33a",options="header"]
+|===
+|Operation |Resource |Description
+|link:/docs/display/TCAT/List+All+Servers[GET] |/console/api/servers |Lists all servers on the resource
+|===
+
+*Individual Servers*
+
+[width="99a",cols="33a,33a,33a",options="header"]
+|===
+|Operation |Resource |Description
+|link:/docs/display/TCAT/Get+a+Server[GET] |/console/api/servers/myServerId |Gets a server
+|link:/docs/display/TCAT/Register+a+Server[POST] |/console/api/servers |Registers a new server
+|link:/docs/display/TCAT/Apply+a+Profile+to+a+Server[POST] |/console/api/servers/myServerId?profile=aProfileId |Applies a profile to a server
+|link:/docs/display/TCAT/Restart+a+Server[POST] |/console/api/servers/myServerId/restart |Restarts a server
+|link:/docs/display/TCAT/Update+a+Server[PUT] |/console/api/servers/myServerId |Updates a server
+|link:/docs/display/TCAT/Delete+a+Server[DELETE] |/console/api/servers/myServerId |Deletes a server
+|===
+
+*Files*
+
+[width="99a",cols="33a,33a,33a",options="header"]
+|===
+|Operation |Resource |Description
+|link:/docs/display/TCAT/Get+a+File[GET] |/console/api/servers/myServerId/files/myFile.xml |Gets a file located on the server
+|link:/docs/display/TCAT/Get+File+Metadata[GET] |/console/api/servers/myServerId/files/myFile.xml?metadata=true |Gets the metadata for a file located on the server
+|link:/docs/display/TCAT/Create+or+Update+a+File[POST] |/console/api/servers/myServerId/files/myFile.xml |Updates or creates a file or directory located on the server
+|link:/docs/display/TCAT/Update+a+File[PUT] |/console/api/servers/myServerId/files/myFile.xml |Updates a file located on the server
+|link:/docs/display/TCAT/Delete+a+File[DELETE] |/console/api/servers/myServerId/files/myFile.xml |Deletes a file located on the server
+|===
+
+== Working with Server Groups
+
+As with servers, you can perform operations on all server groups at once or on an individual server group. All resources/methods that return or accept a type, except where noted, use the server group JSON type. Here is an example:
+
+[source]
+----
+{
+  "name" : "renamed",
+  "id" : "c4f7d8ce-21a7-4730-9447-37d8a7f8aab0",
+  "serverCount" : 0,
+  "href" : "http://localhost:8080/console/api/serverGroups/c4f7d8ce-21a7-4730-9447-37d8a7f8aab0"
+}
+----
+
+=== Server Group Properties
+
+Following are the properties for server groups. These properties appear when you retrieve a server group, and you specify the `name` property when taking actions like creating a new server group.
+
+[width="99",cols="50,50",options="header"]
+|===
+|Property |Description
+|name |The name of the group
+|id |The unique ID of the group
+|href |The URL where the server group is located
+|serverCount |The number of servers currently in this group
+|===
+
+=== Operations for Server Groups
+
+Following is a summary of the operations you can perform on one or all server groups and the resource you specify for each.
+
+*All Server Groups*
+
+[width="99a",cols="33a,33a,33a",options="header"]
+|===
+|Operation |Resource |Description
+|link:/docs/display/TCAT/List+All+Server+Groups[GET] |/console/api/serverGroups |Lists all server groups on the resource
+|===
+
+*Individual Server Groups*
+
+[width="99a",cols="33a,33a,33a",options="header"]
+|===
+|Operation |Resource |Description
+|link:/docs/display/TCAT/Create+a+Server+Group[POST] |/console/api/serverGroups |Creates a new server group
+|link:/docs/display/TCAT/Get+a+Server+Group[GET] |/console/api/serverGroups/serverGroupId |Gets a server group
+|link:/docs/display/TCAT/Apply+a+Profile+to+a+Server+Group[POST] |/console/api/serverGroups/serverGroupId?profile=aProfileId |Applies a profile to a server group
+|link:/docs/display/TCAT/Update+a+Server+Group[PUT] |/console/api/serverGroups/serverGroupId |Updates a server group
+|link:/docs/display/TCAT/Delete+a+Server+Group[DELETE] |/console/api/serverGroups/serverGroupId |Deletes a server group
+|===
+
+== Working with Deployments
+
+The deployment API allows you to list and find deployments, create deployments, update deployments, delete deployments, and view deployment history. All resources/methods that return or accept a type, except where noted, use the deployment JSON type, which looks like this:
+
+[source]
+----
+{
+  "id" : "local$8ffe969e-77c1-497d-8d28-4a9bd56d886a",
+  "name" : "Test",
+  "action" : "DEPLOY",
+  "lastModified" : 1257872258783,
+  "status" : "In Process",
+  "href" : "http://localhost:8080/console/api/deployments/local$8ffe969e-77c1-497d-8d28-4a9bd56d886a",
+  "applications": [
+    {
+      "name" : "test.war",
+      "href" : "http://localhost:8080/console/api/registry/Applications/test.war/1.0"
+    }
+  ],
+  "servers": [
+    {
+      "name" : "DevelopmentServer1 ",
+      "href" : "http://localhost:8080/console/api/servers/local$c458777f-122f-4f7a-8451-6cccfdd6c94e"
+    }
+  ]
+}
+----
+
+=== Deployment Properties
+
+Following are the properties for deployments.
+
+[width="99",cols="50,50",options="header"]
+|===
+|Property |Description
+|id |The unique ID of the deployment
+|name |The name of the deployment
+|action |The last action taken on the deployment, one of: DEPLOY, REDEPLOY, UNDEPLOY, or DELETE
+|lastModified |The date the deployment was last changed
+|status |The status of the last action taken
+|href |The URL of the deployment
+|applications |An array of applications
+|servers |An array of server references
+|===
+
+=== Application Properties
+
+Following are the properties for applications.
+
+[width="99",cols="50,50",options="header"]
+|===
+|Property |Description
+|contextPath |The context path where the application is deployed or will be deployed.
+|href |The URL of the application inside the repository. See the link:/docs/display/TCAT/Repository+API[Repository API] for more details.
+|name |The name of the application.
+|===
+
+=== Server Properties
+
+Following are the properties for servers.
+
+[width="99",cols="50,50",options="header"]
+|===
+|Property |Description
+|href |The URL of the server. See the description of `href` in link:#UsingtheRESTAPI-serverProperties[Server Properties] above.
+|name |The name of the server.
+|===
+
+=== Operations for Deployments
+
+Following is a summary of the operations you can perform on deployments and the resource you specify for each.
+
+*All Deployments*
+
+[width="99a",cols="33a,33a,33a",options="header"]
+|===
+|Operation |Resource |Description
+|link:/docs/display/TCAT/List+All+Deployments[GET] |/console/api/deployments |Gets a list of all deployments on the resource.
+|===
+
+*Individual Deployment*
+
+[width="99a",cols="33a,33a,33a",options="header"]
+|===
+|Operation |Resource |Description
+|link:/docs/display/TCAT/Create+a+Deployment[POST] |/console/api/deployments |Creates a new deployment
+|link:/docs/display/TCAT/Get+a+Deployment[GET] |/console/api/deployments/deploymentId |Gets a deployment
+|link:/docs/display/TCAT/Update+a+Deployment[PUT] |/console/api/deployments/deploymentId |Updates a deployment
+|link:/docs/display/TCAT/Get+the+Deployment+History[GET] |/console/api/deployments/deploymentId/history |Gets the history for a deployment
+|link:/docs/display/TCAT/Get+the+Deployment+Version+Details[GET] |/console/api/deployments/deploymentId/deploymentVersionId |Gets the details about a particular version of a deployment
+|link:/docs/display/TCAT/Redeploy+a+Deployment[POST] |/console/api/deployments/deploymentId/redeploy |Redeploys a deployment
+|link:/docs/display/TCAT/Undeploy+a+Deployment[POST] |/console/api/deployments/deploymentId/undeploy |Undeploys a deployment
+|link:/docs/display/TCAT/Delete+a+Deployment[DELETE] |/console/api/deployments/deploymentId |Deletes a deployment
+|===

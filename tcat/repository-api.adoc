@@ -1,0 +1,250 @@
+= Repository API
+
+* link:#RepositoryAPI-RepositoryFeedURLs[Repository Feed URLs]
+* link:#RepositoryAPI-ListAllItemsinaWorkspace[List All Items in a Workspace]
+* link:#RepositoryAPI-CreatingaWorkspace[Creating a Workspace]
+* link:#RepositoryAPI-CreatinganArtifact[Creating an Artifact]
+* link:#RepositoryAPI-CreatingaNewVersionofanArtifact[Creating a New Version of an Artifact]
+* link:#RepositoryAPI-ViewinganArtifact[Viewing an Artifact]
+* link:#RepositoryAPI-DeletinganItem[Deleting an Item]
+* link:#RepositoryAPI-SearchingtheRepository[Searching the Repository]
+
+The Tcat Server repository API allows you to create, update, and delete workspaces and artifacts inside the repository. It is based on the simple but powerful http://ietfreport.isoc.org/idref/draft-ietf-atompub-protocol/[Atom Publishing Protocol] standard. The AtomPub API uses Atom entries and feeds to represent workspaces, artifacts, and artifact versions. These can then be manipulated via the RESTful HTTP-based API.
+
+== Repository Feed URLs
+
+Tcat Server includes the following feeds, which you use with the GET, POST, and DELETE operations to work with the repository as described on the rest of this page:
+
+[width="99a",cols="50a,50a",options="header"]
+|===
+|Feed |URL
+|Root Workspace List and Search |{{http://host/console/api/registry}}
+|Workspace Listing |{{http://host/console/api/registry/<workspacePath>}}
+|Child Workspaces |{{http://host/console/api/registry/<workspacePath>;workspaces}}
+|Artifact Versions |{{http://host/console/api/registry/<workspacePath>/<item>;history}}
+|===
+
+== List All Items in a Workspace
+
+Workspaces can contain other workspaces and artifacts. To list all items in a workspace, do a GET on its URL.
+
+==== Example Request
+
+[source]
+----
+GET /console/api/registry/Applications
+----
+
+==== Example Response
+
+[source]
+----
+200 OK
+Content-Type: application/atom+xml
+Server: Apache-Coyote/1.1
+Date: Sun, 08 Nov 2009 00:12:55 GMT
+ 
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>tag:galaxy.mulesource.com,2008:registry:local$00fbf647-9d48-4982-8831-311d67af1e3f:feed</id>
+  <title type="text">Mule Galaxy Registry/Repository</title>
+  <link href="" />
+  <link href="" rel="self" />
+  <author>
+    <name>Mule Galaxy</name>
+  </author>
+  <updated>2009-12-15T16:30:21.325Z</updated>
+  <entry>
+    <link href="/console/api/registry/Applications/myapp.war" rel="edit" />
+    <id>urn:galaxy:artifact:local$f85ab0f6-a3e0-460b-bbf7-87dc68d6bcc8</id>
+    <title type="text">myapp.war</title>
+    <updated>2009-12-15T16:30:21.202Z</updated>
+    <author>
+      <name>Administrator</name>
+    </author>
+    <item-info xmlns="http://galaxy.mule.org/2.0" created="2009-12-15T16:30:21.199Z" name="myapp.war" type="Artifact" />
+    <metadata xmlns="http://galaxy.mule.org/2.0" />
+    <content type="text" />
+  </entry>
+  <entry>
+    <link href="/console/api/registry/Applications/MyWorkspace" rel="edit" />
+    <id>urn:galaxy:artifact:local$f85ab0f6-a3e0-460b-bbf7-87dc68d6bcc8</id>
+    <title type="text">MyWorkspace</title>
+    <updated>2009-12-15T16:30:21.202Z</updated>
+    <author>
+      <name>Administrator</name>
+    </author>
+    <item-info xmlns="http://galaxy.mule.org/2.0" created="2009-12-15T16:30:21.199Z" name="MyWorkspace" type="Workspace" />
+    <metadata xmlns="http://galaxy.mule.org/2.0" />
+    <content type="text" />
+  </entry>
+</feed>
+----
+
+== Creating a Workspace
+
+To create a workspace, post an Atom entry that represents the workspace to the parent workspace. The following example will create a workspace called "MyWorkspace" inside the "Applications" workspace.
+
+[source]
+----
+POST /console/api/registry/Applications HTTP/1.0
+Authorization: Basic YWRtaW46YWRtaW4=
+Host: localhost:8080
+Content-Type: application/atom+xml;type=entry
+ 
+<entry xmlns="http://www.w3.org/2005/Atom">
+  <title type="text">MyWorkspace</title>
+  <updated>2009-12-15T16:30:20.916Z</updated>
+  <author>
+    <name>Ignored</name>
+  </author>
+  <id>urn:uuid:4574C8E01C5BF290C31260894620921</id>
+  <content type="text"></content>
+  <item-info xmlns="http://galaxy.mule.org/2.0" name="MyWorkspace" type="Workspace" />
+</entry>
+----
+
+== Creating an Artifact
+
+When you create an artifact, you must supply additional HTTP headers that specify the version label of the artifact and the artifact name:
+
+* `X-Artifact-Version`: the version label of the artifact you are POSTing.
+* `Slug`: used to determine the name of the artifact in the repository.
+
+A typical HTTP POST will look like this:
+
+[source]
+----
+POST /console/api/registry/Applications HTTP/1.0
+Authorization: Basic YWRtaW46YWRtaW4=
+Host: localhost:8080
+Content-Type: text/plain
+X-Artifact-Version: 1.0
+Slug: test.war
+ 
+...
+----
+
+Here's an example using `wget`:
+
+[source]
+----
+$ wget --post-file=YOURFILE --http-user=admin --http-password=admin -S \
+--header="X-Artifact-Version: 0.1" \
+--header="Slug: ARTIFACT_NAME"
+http://localhost:8080/console/api/registry/Default%20Workspace
+----
+
+== Creating a New Version of an Artifact
+
+Creating a new version of an artifact is very similar to creating an artifact, except that the artifact URL is used instead of the workspace URL and no Slug header is required.
+
+A typical HTTP POST will look like this:
+
+[source]
+----
+POST /console/api/registry/Applications/test.war HTTP/1.0
+Authorization: Basic YWRtaW46YWRtaW4=
+Host: localhost:8080
+Content-Type: text/plain
+X-Artifact-Version: 2.0
+ 
+... file data ...
+----
+
+== Viewing an Artifact
+
+To download the latest version of an artifact, you can append its path in the repository to the base repository URL:
+
+[source]
+----
+GET /console/api/registry/Applications/test.war
+ 
+200 OK
+Content-Type: application/octet-stream
+Server: Apache-Coyote/1.1
+Date: Sun, 08 Nov 2009 00:12:55 GMT
+ 
+... file data ...
+----
+
+To view a specific version of an artifact, specify a version query parameter with the version label:
+
+[source]
+----
+GET /console/api/registry/Applications/test.war?version=1.1
+ 
+200 OK
+Content-Type: application/octet-stream
+Server: Apache-Coyote/1.1
+Date: Sun, 08 Nov 2009 00:12:55 GMT
+ 
+... file data ...
+----
+
+To view the Atom entry metadata about an artifact, append ";atom" to its URL.
+
+[source]
+----
+GET /console/api/registry/Applications/test.war;atom
+ 
+<entry>
+  <link href="/console/api/registry/registry/Applications/test.war;atom" rel="edit" />
+  <id>urn:galaxy:artifact:local$804e5dde-effc-4d55-8888-7750e7dbe536</id>
+  <title type="text">test.war</title>
+  <updated>2009-12-15T17:05:26.609Z</updated>
+  <author><name>Administrator</name></author>
+  <item-info xmlns="http://galaxy.mule.org/2.0" created="2009-12-15T17:05:26.596Z" name="test.war" type="Artifact" />
+  <metadata xmlns="http://galaxy.mule.org/2.0" />
+  <collection xmlns="http://www.w3.org/2007/app" id="versions" href="/console/api/registry/Applications/test.war;children">
+    <atom:title xmlns:atom="http://www.w3.org/2005/Atom" type="text">Child Items</atom:title>
+  </collection>
+  <content type="text"></content>
+</entry>
+----
+
+== Deleting an Item
+
+To delete an item (workspace, artifact, or artifact version) from the repository, perform a DELETE on the item's URL. For example:
+
+[source]
+----
+DELETE /console/api/registry/Applications/test.war
+ 
+204
+Server: Apache-Coyote/1.1
+Date: Sun, 08 Nov 2009 00:12:55 GMT
+----
+
+== Searching the Repository
+
+You can search the repository by doing a GET on the `/api/registry` URL and providing a search string. Following is an example query that selects all WAR files:
+
+*Query*
+
+[source]
+----
+select where name like ".war"
+----
+
+*URL*
+
+[source]
+----
+http://localhost:8080/console/api/registry?q=select%20where%20name%20like%20%22.war%22
+----
+
+=== URL Encoding
+
+If you are using http://incubator.apache.org/abdera[Abdera] for your client code, you can use the encoding methods in the `org.apache.abdera.i18n.text.UrlEncoding` class to handle your URL encoding:
+
+[source]
+----
+import org.apache.abdera.i18n.text.UrlEncoding;
+import org.apache.abdera.i18n.text.CharUtils.Profile;
+ 
+String encodedQuery = UrlEncoding.encode("select artifact where ...", Profile.PATH.filter());
+----
+
+Note: If you're using Abdera 0.3.0, you must use the `EncodingUtil.sanitize()` method instead.
+
+For a reference on which characters must be URL-encoded, click http://www.blooberry.com/indexdot/html/topics/urlencoding.htm[here]. Simply replace any of these characters in your query with the appropriate encoded character. For instance, if you were encoding "select artifact", you would replace the space with `%20`, as that is the URL-encoded representation of the space character.

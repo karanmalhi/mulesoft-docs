@@ -1,0 +1,139 @@
+= Installing the Production Version of MMC
+
+The Mule Management Console is a Web app designed to run in an application server or container, such as http://www.mulesoft.org/display/tcat/home[Tcat Server] or http://www.mulesoft.com/understanding-apache-tomcat[Apache Tomcat], and usually packaged in a .war file.
+
+This document describes where to download the required files and how to install or deploy these files for different application servers. Please mailto:support@mulesoft.com[contact the MuleSoft Support team] with any questions about downloading and deploying Mule Management Console.
+
+[WARNING]
+====
+*Trial Version vs Production Version*
+
+Please note that if you have downloaded *MuleSoft's bundled runtime download* – ESB with Mule Management Console (MMC) – it *is appropriate for use only as an evaluation tool and is not considered production-ready*. For installation instructions for the trial version, please see link:/docs/display/34X/Installing+the+Trial+Version+of+MMC[Installing the Trial Version of MMC].
+====
+
+== Assumptions
+
+This document assumes that you are have Mule Enterprise 3.4.X already installed. Download it from the http://www.mulesoft.com/support-login[customer portal] if you need to upgrade to this version. If you are using Mule Enterprise 3.3.X, please link:/docs/display/33X/Installing+the+Management+Console[switch to the 3.3.X version] of this documentation.
+
+This document assumes that your enterprise license is current. Please see link:/docs/display/34X/Installing+an+Enterprise+License[Installing an Enterprise License] for information on obtaining and installing an enterprise license. 
+
+This document also assumes that you have a Web application server such as Tcat, Tomcat, or JBoss installed. Please refer to the link:/docs/display/34X/Hardware+and+Software+Requirements[Hardware and Software Requirements] for the latest information about hardware requirements and supported application servers, Java Runtime Environments, and browsers.
+
+== Installation and Deployment Checklist
+
+To install the management console:
+
+. Download the Mule Management Console application (.war file) from the MuleSoft http://www.mulesoft.com/support-login[customer portal]. (Note that the management console agent, formerly a separate download and installation, is now embedded in the Mule Enterprise distribution.)
+. Rename your .war file to `mmc.war`.
++
+Why?
+////
+collapse
+
+The name of the WAR file will vary depending on the version that you download, following the format `<console_name>-<version>.war`. Once you have downloaded this file from the customer portal, change the name to *`mmc.war`* . All instructions below assume that your WAR file has been renamed mmc.war. If your file is named differently, note that the URL that you use to access the console will change accordingly. For example, if your war file is named `mmc-foobar.war`, you would need to use `  http://localhost:8080:mmc-foobar` to access the console.
+////
+
+. If your link:/docs/display/34X/Deployment+Scenarios[Mule ESB instance is packaged as a Web app] (not recommended), please contact support for special instructions. 
+. Adjust the configuration on your web application server so that it gives precedence to MMC's classloader, instead of your Web application server's own native classloader.
+. Deploy your `mmc.war` file to your application server or other container. See specific instructions for each supported app server in the following section.
+
+== Deployment Instructions for Specific Web Application Servers
+
+[WARNING]
+Since the procedure for deploying varies by app server, you should also refer to your app server's documentation for complete information on deploying web apps.
+
+=== Deploying the Management Console .war in Tcat/Tomcat
+
+You can deploy the management console and your Mule applications inside Tcat/Tomcat without any modifications, other than specifying JVM parameters.
+
+See http://www.mulesoft.org/display/tcat/home[Tcat Server Documentation] for instructions on how to deploy Web applications inside of Tcat. 
+
+Alter your JVM parameters in Tomcat as follows.
+
+For Windows:
+
+. Create a file named `setenv.bat` in the `$TOMCAT_HOME\bin` directory.
+. Copy the following string into the file:
++
+`setenv JAVA_OPTS=-Xmx1024m -XX:MaxPermSize=512m`
+
+. Save the file.
+
+For MacOS/Linux:
+
+. Create a file named `setenv.sh` in the `$TOMCAT_HOME/bin` directory.
+. Copy the following lines into the file:
++
+[source]
+----
+#!/bin/sh
+JAVA_OPTS="-Xmx1024m -XX:MaxPermSize=512m"
+----
+
+. Save the file.
+. Make it executable, for example with the command `chmod u+x setenv.sh`.
+
+We recommend running on an IP v4 stack. Tomcat will run by default with IPv6, so in order to specify IPv4 instead, add the following line to the `setenv.sh` file:
+
+[source]
+----
+-Djava.net.preferIPv4Stack=true
+----
+
+Be sure not to run programs on your system that try to bind to the same port using different versions of the IP protocol.
+
+For Tomcat, first deploy the `mmc.war` file by copying it to your Tomcat `/webapps` directory. Tomcat, when started, deploys the Management Console application. After Tomcat deploys the console Web application, you should see a directory called `mmc` inside Tomcat's `webapps` directory.
+
+=== Deploying the Management Console .war in JBoss
+
+Due to JMX conflicts generated by an old MBeanServer implementation, you must configure JBoss to use the Java5 MBeanServer. You do this by providing the `-Djboss.platform.mbeanserver` parameter in the startup command. For example:
+
+[source]
+----
+./run.sh -c all -Djboss.platform.mbeanserver
+----
+
+On Windows, before startup, ensure that the environment variable JAVA_OPTS contains the following:
+
+[source]
+----
+-Djboss.platform.mbeanserver-Djavax.management.builder.initial=org.jboss.mx.server.MBeanServerBuilderImpl
+----
+
+Note, too, that memory-related JVM options are still mandatory. For instance:
+
+[source]
+----
+export JAVA_OPTS="-XX:MaxPermSize=512m -Xmx1G"
+----
+
+You may also try specifying smaller memory parameters depending on your environment, such as:
+
+[source]
+----
+export JAVA_OPTS="-XX:MaxPermSize=300m -Xmx256m"
+----
+
+To successfully deploy the console to JBoss 6, you need to remove the following files from JBoss:
+
+* `common/lib/quartz.jar`
+* `server/<your_profile>/deploy/quartz-ra.rar`, where `<your_profile>` is your server profile.
+
+== Starting the Management Console
+
+To run the Management Console, make sure your container is running and the Management Console Web app has been deployed correctly. Then, enter `http://localhost:8080/mmc` in your browser. If you see the login screen (see below), you have installed everything correctly and are now running the console.
+
+Log in with the username `admin` and the password `admin`.
+
+image:/docs/download/attachments/122751933/MMC_login.png?version=1&modificationDate=1396474077659[image]
+
+[TIP]
+If another app is using port 8080, you can change the port in your container's configuration (such as the `conf/server.xml` file under your Tomcat home directory). If you want to run the Management Console remotely from another computer, enter the correct name (or IP address) of the host computer instead of localhost.
+
+== See Also
+
+* Get familiar with the link:/docs/display/34X/Orientation+to+the+Console[MMC console].
+* Learn the basics of using MMC with the link:/docs/display/34X/MMC+Walkthrough[MMC Walkthrough].
+* Learn more about how to link:/docs/display/34X/Setting+Up+MMC[set up MMC] to meet your needs.
+* Access the link:/docs/display/34X/Troubleshooting+Tips[troubleshooting] guide.
++

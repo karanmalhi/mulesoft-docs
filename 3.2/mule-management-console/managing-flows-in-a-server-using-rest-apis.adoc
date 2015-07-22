@@ -1,0 +1,300 @@
+= *[mmc:Mule 3.2]* Managing Flows in a Server Using REST APIs
+
+The management console provides REST APIs that you can use to programmatically access much of the console's functionality. Among the operations that you can request with the REST APIs are operations related to managing flows in a servee. This includes finding flows in server, as well as starting and stopping a flow's endpoints.
+
+[NOTE]
+See link:/documentation-3.2/display/32X/Using+the+Management+Console+API[Using the Management Console APIs] for an overview of the REST APIs, including a basic example of use, and a summary of returned status codes and error handling codes.
+
+This page provides a brief description of each REST API for managing flows in a server, an HTTP method to invoke the API, and a usage example. The examples show how to invoke the API using http://curl.haxx.se/[cURL], the command line HTTP tool.
+
+Note: The notation \{mmc base} refers to the console base address. The console base address used in the examples is http://localhost:8080/mmc and configured with the default username and password (admin:admin).
+
+The table below summarizes the REST APIs for managing deployments:
+
+[cols=",,,",options="header",]
+|===
+|Task |Resource |Description |HTTP Invocation Method
+|Get Flows |\{mmc base}/api/servers/<serverId>/flows |Lists all flows in a server |GET
+|Get Flow Endpoints |\{mmc base}/api/servers/<serverId>/flows/<flowName>/<application>/endpoints |Lists all endpoints for a flow |GET
+|Start or Stop Endpoints |\{mmc base}/api/servers/<serverId>/flows/<flowName>/<applicationName>/endpoints/<endpointId>/start (or stop) |Starts (or stops) an endpoint for a flow |POST
+|Start or Stop a Flow |\{mmc base}/api/servers/<serverId>/flows/<flowName>/<applicationName>/start (or stop) |Starts or stops a flow |POST
+|===
+
+All examples on this page use the server and data as shown below:
+
+[source]
+----
+{
+    "data": [
+        {
+            "agentUrl": "https://localhost:7777/mmc-support",
+            "agents": [
+                {
+                    "description": "Mule ESB Enterprise Support (0.0.0.0:7777)",
+                    "name": "mmc-support"
+                },
+                {
+                    "description": "Clustering Agent",
+                    "name": "_muleClusterSupportAgent"
+                },
+                {
+                    "description": "JMX Agent",
+                    "name": "jmx-agent"
+                }
+            ],
+            "groups": [],
+            "hostIp": "192.168.1.116",
+            "href": "http://localhost:8585/mmc/api/servers/local$a6064a19-6bd9-477f-be68-5a7b83e8bd7f",
+            "id": "local$a6064a19-6bd9-477f-be68-5a7b83e8bd7f",
+            "muleServerId": "00_mmc-agent",
+            "name": "Mule3.2",
+            "pausedServices": 0,
+            "runningServices": 4,
+            "started": "Thu Sep 01 12:06:33 GMT-03:00 2011",
+            "status": "OK",
+            "stoppedServices": 0,
+            "version": "3.2.0-RC3"
+        }
+    ],
+    "total": 1
+}
+----
+
+== Get Flows
+
+Lists all the flows in a server.
+
+*HTTP Method:*
+
+GET
+
+*URL:*
+
+[source]
+----
+http://{mmc base}/api/servers/{serverId}/flows
+----
+
+*Parameters:*
+
+serverId: The ID of the server from which the flows are listed.
+
+*Example:*
+
+The following example shows how to list the flows for a server with an ID of local$a6064a19-6bd9-477f-be68-5a7b83e8bd7f:
+
+Request:
+
+[source]
+----
+l --basic -u admin:admin http://localhost:8080/mmc/api/servers/'local$a6064a19-6bd9-477f-be68-5a7b83e8bd7f'/flows
+----
+
+JSON Response:
+
+[source]
+----
+{
+    "data": [
+        {
+            "asyncEventsReceived": 0,
+            "auditStatus": "DISABLED",
+            "averageProcessingTime": 0,
+            "executionErrors": 0,
+            "fatalErrors": 0,
+            "favorite": false,
+            "flowId": {
+                "application": "test-app",
+                "definedInApplication": true,
+                "fullName": "EchoFlow [test-app]",
+                "name": "EchoFlow"
+            },
+            "id": "local$a6064a19-6bd9-477f-be68-5a7b83e8bd7f/EchoFlow",
+            "inboundEndpoints": [
+                "http://localhost:65082/services/EchoUMO"
+            ],
+            "maxProcessingTime": 0,
+            "minProcessingTime": 0,
+            "processedEvents": 0,
+            "serverId": "local$a6064a19-6bd9-477f-be68-5a7b83e8bd7f",
+            "status": "RUNNING",
+            "syncEventsReceived": 0,
+            "totalEventsReceived": 0,
+            "totalProcessingTime": 0,
+            "type": "flow"
+        }
+    ],
+    "total": 1
+}
+----
+
+== Get Flow Endpoints
+
+Lists all endpoints on a flow.
+
+*HTTP Method:*
+
+GET
+
+*URL:*
+
+[source]
+----
+http://{mmc base}/api/servers/{serverId}/flows
+----
+
+*Parameters:*
+
+* serverId: The ID of the server.
+* applicationName: The application name of the flow.
+* flowName: The name of the flow.
+
+*Example:*
+
+The following example shows how to list the endpoints in a flow named EchoFlow, whose application name is test-app, in the server whose ID is local$a6064a19-6bd9-477f-be68-5a7b83e8bd7f:
+
+Request:
+
+[source]
+----
+curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/'local$a6064a19-6bd9-477f-be68-5a7b83e8bd7f'/flows/EchoFlow/test-app/endpoints
+----
+
+*JSON Response*
+
+[source]
+----
+{
+    "data": [
+        {
+            "address": "http://localhost:65082/services/EchoUMO",
+            "connector": "connector.http.mule.default",
+            "filtered": false,
+            "id": "endpoint.http.localhost.65082.services.EchoUMO",
+            "routedMessages": 0,
+            "status": "started",
+            "synchronous": true,
+            "tx": false,
+            "type": "http"
+        }
+    ],
+    "total": 1
+}
+----
+
+== Start/Stop Endpoints
+
+Start or Stop an endpoint for a specified flow.
+
+*HTTP Method:*
+
+POST
+
+*URL:*
+
+Start:
+
+[source]
+----
+http://{mmc base}/servers/{serverId}/flows/{flowName}/{applicationName}/endpoints/{endpointId}/start
+----
+
+Stop:
+
+[source]
+----
+http://{mmc base}/servers/{serverId}/flows/{flowName}/{applicationName}/endpoints/{endpointId}/stop
+----
+
+*Parameters:*
+
+* serverId: The ID of the server.
+* applicationName: The application name of the flow.
+* flowName: The name of the flow.
+* endpointId: The name of an endpoint to be started or stopped.
+
+*Example:*
+
+Request:
+
+Start an endpoint:
+
+[source]
+----
+curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/servers/'local$a6064a19-6bd9-477f-be68-5a7b83e8bd7f'/flows/EchoFlow/test-app/endpoints/endpoint.http.localhost.65082.services.EchoUMO/start
+----
+
+Stop an endpoint:
+
+[source]
+----
+4a19-6bd9-477f-be68-5a7b83e8bd7f'/flows/EchoFlow/test-app/endpoints/endpoint.http.localhost.65082.services.EchoUMO/stop
+----
+
+JSON Response:
+
+A list of endpoints that have been started/stopped successfully.
+
+[source]
+----
+["endpoint.http.localhost.65082.services.EchoUMO"]
+----
+
+== Start/Stop a Flow
+
+Starts or stops a flow in a server.
+
+*HTTP Method:*
+
+POST
+
+*URL:*
+
+Start:
+
+[source]
+----
+http://{mmc base}/api/servers/{serverId}/flows/{flowName}/{applicationName}/start
+----
+
+Stop:
+
+[source]
+----
+http://{mmc base}/api/servers/{serverId}/flows/{flowName}/{applicationName}/stop
+----
+
+*Parameters:*
+
+* serverId: The ID of the server.
+* applicationName: The application name of the flow.
+* flowName: The name of the flow.
+
+*Example:*
+
+Request:
+
+Start a flow:
+
+[source]
+----
+curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/servers/'local$a6064a19-6bd9-477f-be68-5a7b83e8bd7f'/flows/EchoFlow/test-app/start
+----
+
+Stop a flow:
+
+[source]
+----
+curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/servers/'local$a6064a19-6bd9-477f-be68-5a7b83e8bd7f'/flows/EchoFlow/test-app/stop
+----
+
+Response:
+
+[source]
+----
+The flow started or stopped succesfully
+----
+
+link:/documentation-3.2/display/32X/Managing+Deployments+Using+REST+APIs[<< Previous: *Managing Deployments Using REST APIs*]
+
+link:/documentation-3.2/display/32X/Managing+Flows+in+a+Cluster+Using+REST+APIs[Next: *Managing Flows in a Cluster Using REST APIs*] >>

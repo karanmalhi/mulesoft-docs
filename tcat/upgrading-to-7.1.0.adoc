@@ -1,0 +1,54 @@
+The upgrade is done in three phases. 
+
+. Backup existing installation
+. Migrate tcat-data to newer schema using migration-util.jar
+. Install Tcat Server and replace its tcat-data with the upgraded tcat-data (Step 2 above)
+
+= Backup existing installation
+
+. Stop Tcat Server
+. Take a complete backup of your existing installation of Tcat Server. This should include everything in your Tcat Server installation directory. 
+
+= Migrate existing tcat-data to newer schema
+
+. Create a directory named *work*
+. Download migration-util-7.1.0.jar from the support portal and put it in the *work* directory
+. Make a copy of the tcat-data directory from the existing Tcat Server backup and put that tcat-data in the *work* directory
+. Download link:/docs/download/attachments/107086085/repository.xml?version=1&modificationDate=1399614907248[repository.xml] and put it in the *tcat-data* directory
+. Download link:/docs/download/attachments/107086085/new-repository.xml?version=1&modificationDate=1399615056133[new-repository.xml] and put it in the *work* directory
+. If you have a large tcat-data, then make sure you have a directory with enough space which could be used as a _temp_ directory. Lets assume that directory is /home/mulesoft/tmp. Also make sure you have atleast 1GB of memory available to be allocated to the heap in the JVM
+. Delete the following directories from tcat-data
+.. tcat-data/repository/index
+.. tcat-data/workspaces/default/index
+. In the *work* directory, make a new directory named _target-data_. This is where the upgraded database will be stored
+. Now run the following command to perform the migration (replace the value of -Djava.io.tmpDir with your temporary directory). _This step will take a few minutes to complete, larger your tcat-data, the more time it will take_:
+
+*java -Xmx1g -Djava.io.tmpdir=/home/mulesoft/tmp -jar migration-util-7.1.0.jar --backup --repo tcat-data --conf tcat-data/repository.xml --backup-repo target-data/*
+
+[NOTE]
+====
+*Error In The End*
+
+_You will see the following error when the migration finishes, simply ignore this error since it is expected._
+
+Import error on line 1 of file /var/folders/3b/wdmt1kyd0kd5gg0_112m7v8m0000gn/T/QRTZ_LOCKS.dat: The statement was aborted because it would have caused a duplicate key value in a unique or primary key constraint or unique index identified by 'SQL140508230804700' defined on 'QRTZ_LOCKS'.
+====
+
+= Install Tcat Server 7.1.0
+
+. Start the installer and accept the defaults. Make sure to choose a different location for installation i.e. do not install over the existing Tcat Server
+. Start Tcat Server
+. *Clear your browsers cache*
+. Open a browser and login to the admin console (http://usernameadmin[username:admin], http://passwordadmin[password:admin])
+. Once you are able to successfully login, close the browser and stop Tcat server (bin/tcat7 stop)
+. Delete the tcat-data directory from the Tcat Server and replace it with the target-data directory
+. Rename target-data to tcat-data
+. Start Tcat Server again (tail the logs to see any errors) and login using your credentials. 
+. If you have large tcat-data, then the server start might take more than an hour because the newly migrated tcat-data's lucene indexes are being generated. 
+
+[NOTE]
+====
+*Error in compiling groovy scripts*
+
+While tailing the logs, you might see errors while compiling groovy scripts. Those are expected as well since some of your groovy scripts may be using an outdated API. Let the Tcat support team know about these scripts and they will work with you to update them or you may even no longer need them anymore.
+====

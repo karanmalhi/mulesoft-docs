@@ -1,0 +1,102 @@
+= Anypoint Connector Development
+
+This document quickly walks your thorough the decisions to make and the steps to take to get an Anypoint(TM) Connector development project started, get the connector working, and enhance it with the functionality you need. You can use this as a roadmap for you connector development effort.
+
+== Prerequisites
+
+This document assumes you are familiar with the link:/docs/display/35X/Anypoint+Connector+DevKit[Anypoint Connector DevKit].
+
+== Outline of the Connector Development Process
+
+The following graphic outlines the general steps for developing a connector. Follow the steps sequentially to build a functioning connector.
+
+image::/docs/download/attachments/122751299/1-package.png?version=1&modificationDate=1421451041557[image]
+
+When you develop a connector using DevKit, your use case drives a series of decisions about authentication, connectivity, and how to call operations on your target and pass data to the external application or other resources. These choices, in turn, drive what you develop. Where a choice presents itself, this document provides information to help you make a decision and provides links to get more details.
+
+== Step 1: Setting Up Your Deployment Environment
+
+. Install http://www.oracle.com/technetwork/java/javase/archive-139210.html[JDK 6 or 7]
+. Install http://maven.apache.org/download.cgi[Maven]
+. Install link:/platform/mule-studio[Anypoint Studio]
+
+Refer to link:/docs/display/35X/Anypoint+Connector+Development#[Setting Up Your Development Environment] for detailed instructions.
+
+== Step 2: Setting Up Your API Access
+
+. Prepare a test environment for your connector. Details vary greatly based on the target system.
+.. *SasS* - For some SaaS applications, the sandbox may be a separate account from the production account, or may answer at a different endpoint.
+.. *On-premise* - For some on-premise systems or Web services, you may simply have a separate standalone installation with dummy data instead of production data.
+. Acquire any existing documentation for your target system, such as API documentation.
+
+Refer to link:/docs/display/35X/Setting+up+your+API+access[Setting Up Your API Access] for detailed instructions.
+
+== Step 3: Creating an Anypoint Connector Project
+
+. Follow the process in [Creating an Anypoint Connector Project] to start a connector development project in your development environment.
+. Add any required Java libraries for your target system, such as client libraries or class libraries provided for the target system.
+
+When finished, you should have a skeleton project, containing a Java class with the most basic functionality for a connector in place.
+
+== Step 4: Authentication
+
+If your API requires authentication, you must understand which authentication methods your API uses and select those that your connector supports. Based on your use case, select an authentication  method from the table below. For more details, read link:/docs/display/35X/Authentication[Authentication], which introduces all of the supported methods.
+
+[width="100%",cols=",",options="header"]
+|===
+|Authentication Method/Documentation Link |Notes
+|link:/docs/display/35X/Basic+Auth[Basic Auth] |The simplest mode of authentication, ofter used with SOAP web services.
+|link:/docs/display/35X/OAuth+V1[OAuth V1] |Popular among RESTful Web services and cloud applications.
+|link:/docs/display/35X/OAuth+V2[OAuth V2] |Popular among RESTful Web services and cloud applications.
+|===
+
+== Step 5: Defining Attributes, Operations, and Data Model
+
+Most of the Java code you write for you connector relates to how you call your API inside the connector's operations and how the connector must pass data between those operations and Mule. This is the area that varies most among connectors, based on your API.
+
+Use the table below to select an approach for building your connector based on the style of your API:
+
+[width="100%",cols=",",options="header"]
+|===
+|API/Example Link |Notes
+|link:/docs/display/35X/Creating+a+Connector+using+a+Java+Client+Library[Java Client Library] |If an official or well-known third party library is available, this is generally the simplest connector style to implement, and is recommended. Most client libraries are actually wrappers for SOAP or RESTful APIs.
+|link:/docs/display/35X/Creating+a+Connector+for+a+SOAP+Service+Via+CXF+Client[SOAP API] |The de facto standard library for building and consuming SOAP Web services, this style handles client logic and Java object mapping to XML.
+|link:/docs/display/35X/Creating+a+Connector+for+a+RESTful+API+using+@RESTCall+Annotations[RESTful API] |Anypoint DevKit provides a built-in client for RESTful APIs. Useful for cleanly designed RESTful APIs.
+|===
+
+For more details, refer to link:/docs/display/35X/Defining+Attributes+Operations+and+Data+Model[Defining Attributes and Operations and Data Model].
+
+== Step 6: Building Unit and Functional Tests
+
+Any production-ready connector must have a suite of unit and functional test; connectors use the standard JUnit framework. In practice, you should build your unit test as you implement your connector's operations. Most successful connector implementations have used a test-driven approach to development.
+
+. Develop on or more Mule flows that use the connector.
+. Create an instance of link:/documentation/display/current/Functional+Testing#FunctionalTesting-FunctionalTestCase[FunctionalTestCase] that runs the test. For DevKit testing, you run Mule inside a JUnit test case. Each test case you build will extend the class link:/documentation/display/current/Functional+Testing#FunctionalTesting-FunctionalTestCase[FunctionalTestCase] (a subclass of JUnit). The test case manages the lifecycle of a Mule runtime instance and calls flow to carry out the test.
+. Programmatically examine the results of the test case to determine success or failure.
+
+Before the connector can be released to the world, you must run a through test suite that covers all operations and exercises each major code path. The Maven-generated project contains one sample test case under the `src/test/java` directory to get your started.
+
+Refer to link:/docs/display/35X/Developing+DevKit+Connector+Tests[Developing DevKit Connector Tests] for details on how to implement connector test cases using JUnit.
+
+== Step 7: Documenting Your Connector
+
+A full-feautred connector should have documentation. DevKit enables the creation of complete reference documentation including code samples.
+
+. Each time you add an operation to the connector (Step 3, above), DevKit adds sample XML code snippets in comments in the source code. These snippets appear in the auto-generated connector documentation.
+. Review the auto-generated documentation to determine if you want to expand upon it, offering more than information that the simple documentation of individual operations.
+
+Refer to link:/docs/display/35X/Creating+Reference+Documentation[Creating a Reference Documentation] for further details.
+
+== Step 8: Packaging and Releasing Your Connector
+
+When your connector is ready for release to a broad audience, take the following additional steps to ensure user success:
+
+. Before releasing a connector, ensure your license agreement is in place.
+. If your connector is intended only for internal use, you can share it as an Eclipse update site.
+. To share you connector with the community, go to http://www.mulesoft.org/connectors[www.mulesoft.org/connectors].
+
+Refer to link:/docs/display/35X/Packaging+Your+Connector+for+Release[Packaging Your Connector for Release] for full details.
+
+== See Also
+
+* *NEXT*: Understand link:/docs/display/35X/Setting+Up+Your+Dev+Environment[Setting Up Your Development Environment].

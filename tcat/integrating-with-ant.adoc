@@ -1,0 +1,166 @@
+= Integrating with Ant
+
+* link:#IntegratingwithAnt-ContinuousWebappBuildandDeployment[Continuous Webapp Build and Deployment]
+
+Apache Ant may integrate with the Tcat Server console via HTTP. Ant has a built in HTTP client, including an HTTP `<get>` Ant task, but Ant does not include HTTP POST nor PUT tasks. You may add tasks to your Ant build environment by downloading the following JARs containing additional Ant tasks. You may either download these individually, or you may download http://www.mulesoft.org/documentation/download/attachments/33164188/tcat-console-webapp-upload.zip[this zip archive] containing all of the below jars and the example Ant build file. Here is a list of the open source components and which jar files are required from each:
+
+http://sourceforge.net/projects/ant-contrib/files/ant-contrib/1.0b3[Ant-Contrib 1.0b3] +
+ant-contrib-1.0b3.jar +
+commons-httpclient-3.0.1.jar
+
+http://code.google.com/p/sardine/downloads/list[Sardine Task] +
+sardine.jar
+
+http://hc.apache.org/downloads.cgi[HttpClient 4.0.3] +
+httpclient-4.0.3.jar +
+httpmime-4.0.3.jar
+
+http://hc.apache.org/downloads.cgi[HttpCore 4.1] +
+httpcore-4.1.jar
+
+http://archive.apache.org/dist/commons/codec/binaries[Jakarta Commons Codec 1.4] +
+commons-codec-1.4.jar
+
+http://archive.apache.org/dist/commons/logging/binaries[Jakarta Commons Logging 1.0.4] +
+commons-logging-1.0.4.jar
+
+== Continuous Webapp Build and Deployment
+
+If you need to automate uploading your webapps into the Tcat Server console repository and deploying them automatically, as part of your Ant build, here are the steps:
+
+. Log into the console via your web browser.
+. Navigate to the top-level Deployments tab.
+. Create a new deployment by clicking the New Deployment button and filling out the form.
+. Upload the first copy of your webapp into your new deployment.
+. Save the deployment. You do not necessarily need to deploy it yet.
+. Obtain your new deployment's object ID by listing the deployments via Tcat's REST API. One way to do this is using the `curl` command (you may already have it installed):
+
+[source]
+----
+$ curl --basic -u admin:youradminpassword http://localhost:8080/console/api/deployments
+----
+
+
+The output will list all of your deployments, including their full URLs. On the end of the URL will be the ID of the deployment.
+ Example: `local$4f1b9bf8-613d-41d4-9423-09ccc33fa20e`
+. Edit the following Ant build file's property values (at the top), and set your Tcat Server console hostname and port number, deployment's ID, username and password, and the dir and filename of your webapp's WAR file:
+
+[source]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="build" name="tcat-deployment-update">
+ 
+  <!-- Properties required for calling the update-tcat-deployment target. -->
+  <property name="tcat.console.host" value="localhost"/>
+  <property name="tcat.console.port" value="8080"/>
+  <property name="tcat.console.user" value="admin"/>
+  <property name="tcat.console.pass" value="admin"/>
+  <property name="tcat.deployment.id" value="local$4f1b9bf8-613d-41d4-9423-09ccc33fa20e"/>
+  <!-- This is the path of the directory where your WAR file resides. -->
+  <property name="war.dist.dir" value="${basedir}/dist"/>
+  <!-- This is just the filename of your WAR file, not containing directories. -->
+  <property name="war.filename" value="mywebapp.war"/>
+  <!-- You might want to use a version control revision number for war.rev.number. -->
+  <property name="war.rev.number" value="2"/>
+ 
+  <!-- Include the ant-contrib tasks. -->
+  <taskdef resource="net/sf/antcontrib/antlib.xml">
+    <classpath>
+      <fileset dir="${basedir}/lib">
+        <include name="ant-contrib-1.0b3.jar"/>
+      </fileset>
+      <fileset dir="${basedir}/lib">
+        <include name="commons-httpclient-3.0.1.jar"/>
+      </fileset>
+      <fileset dir="${basedir}/lib">
+        <include name="commons-logging-1.0.4.jar"/>
+      </fileset>
+      <fileset dir="${basedir}/lib">
+        <include name="commons-codec-1.4.jar"/>
+      </fileset>
+    </classpath>
+  </taskdef>
+ 
+  <!-- Include the sardine task (to use the HTTP PUT method). -->
+  <typedef resource="com/googlecode/sardine/ant/sardinetask.xml">
+    <classpath>
+      <fileset dir="${basedir}/lib">
+        <include name="sardine.jar"/>
+      </fileset>
+      <fileset dir="${basedir}/lib">
+        <include name="httpclient-4.0.3.jar"/>
+      </fileset>
+      <fileset dir="${basedir}/lib">
+        <include name="httpcore-4.1.jar"/>
+      </fileset>
+      <fileset dir="${basedir}/lib">
+        <include name="httpmime-4.0.3.jar"/>
+      </fileset>
+      <fileset dir="${basedir}/lib">
+        <include name="commons-logging-1.0.4.jar"/>
+      </fileset>
+      <fileset dir="${basedir}/lib">
+        <include name="commons-codec-1.4.jar"/>
+      </fileset>
+    </classpath>
+  </typedef>
+ 
+  <target name="build">
+    <!-- Build your webapp, then send it to the Tcat Server console repository. -->
+    <antcall target="tcat-deployment-update"/>
+  </target>
+ 
+  <target name="tcat-deployment-update"
+          description="Uploads the WAR to the Tcat repository + redeploys">
+    <!-- Upload (POST) the war file into the Tcat Server console repository. -->
+    <echo>POST http://${tcat.console.host}:${tcat.console.port}/console/api/registry/Applications/${war.filename} rev ${war.rev.number}</echo>
+    <postMethod url="http://${tcat.console.host}:${tcat.console.port}/console/api/registry/Applications/${war.filename}"
+                doAuthentication="true">
+      <header name="Title" value="${war.filename}"/>
+      <header name="Slug" value="${war.filename}"/>
+      <header name="X-Artifact-Version" value="${war.rev.number}"/>
+      <file path="${war.dist.dir}/${war.filename}"/>
+      <httpClient>
+        <clientParams authenticationPreemptive="true"/>
+        <httpState>
+          <credentials host="${tcat.console.host}"
+                       port="${tcat.console.port}"
+                       username="${tcat.console.user}"
+                       password="${tcat.console.pass}"/>
+        </httpState>
+      </httpClient>
+    </postMethod>
+ 
+    <!-- Retrieve the webapp's deployment metadata from Tcat's console repository. -->
+    <property name="tcat.deployment.file" value="${war.dist.dir}/.deployment.txt"/>
+    <delete file="${tcat.deployment.file}" failonerror="false"/>
+    <get src="http://${tcat.console.host}:${tcat.console.port}/console/api/deployments/${tcat.deployment.id}"
+         dest="${tcat.deployment.file}"
+         username="${tcat.console.user}"
+         password="${tcat.console.pass}"/>
+ 
+    <!-- Update the deployment metadata with the new revision number. -->
+    <replaceregexp file="${tcat.deployment.file}"
+                   match="${war.filename}/[^&quot;/]+"
+                   replace="${war.filename}/${war.rev.number}"
+                   flags="g" byline="true"/>
+ 
+    <!-- PUT the deployment metadata back to the console, and redeploy the webapp. -->
+    <echo>Updating deployment metadata and redeploying ${war.filename}.</echo>
+    <sardine username="${tcat.console.user}"
+             password="${tcat.console.pass}">
+      <put url="http://${tcat.console.host}:${tcat.console.port}/console/api/deployments/${tcat.deployment.id}"
+           contentType="application/json">
+        <fileset dir="${war.dist.dir}">
+          <include name=".deployment.txt"/>
+        </fileset>
+      </put>
+    </sardine>
+  </target>
+ 
+</project>
+----
+
+Run Ant and this build file will upload the WAR file as a new revision of the webapp you uploaded via your web browser, update the deployment metadata so that the deployment uses the new revision, and then save the deployment metadata into the console. This causes the console to trigger a redeployment.
+
+After using the ant script to update your applications, you can schedule a script to listen for these updates and automatically redeploy their packages. For an example, see http://www.mulesoft.org/documentation/display/TCAT/Scripting+Examples#ScriptingExamples-AutomaticallyRedeployingAfteranArtifactUpdate[Automatically Redeploying After an Artifact Update].

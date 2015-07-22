@@ -1,0 +1,45 @@
+= Configuring the Management Console to Use an External Database
+
+By default, the Mule Management Console for Mule ESB uses its own internal Derby database. However, rather than the embedded Derby database you can configure the console to use an external Oracle database.
+
+This page provides step-by-step instructions to configure the management console with a standalone Oracle database.
+
+[WARNING]
+*[Mule 3.2]* This information applies to 3.2.x management console data only.
+
+== Oracle Database Set Up
+
+Before beginning, you should have an Oracle database already installed on your system. These instructions assume the following:
+
+* An Oracle 10g XE database is already installed on the host `oracledb.foobar.com`, port 1521.
+* The username `mmc` with the password `Mule123` has been set up on this database and all permissions have been granted to this user.
+
+Given the above set up, the JDBC URL for accessing the Oracle database looks like the following:
+
+[source]
+----
+jdbc:oracle:thin:mmc/Mule123@oracledb.foobar.com:1521:XE
+----
+
+== Step-by-Step Configuration Instructions
+
+1. Run the mmc-oracle.sql script, make sure all databases, indexes and triggers are created successfully. +
+2. Unpack the mmc.war to your filesystem. +
+3. Delete jackrabbit-repo-ee.* from WEB-INF/classes/META-INF. +
+4. Edit the supplied jackrabbit-repo-ee.xml so that it has correct JDBC URL, user name, and password:
+
+* Replace "jdbc:oracle:thin:mmc/Mule123@oracledb.foobar.com:1521:XE" with yiour Oracle URL;
+* Replace "mmc" in <param name="user" value="mmc"/> with your user name;
+* Replace "Mule123" in <param name="password" value="Mule123"/> with your password;
+* Repeat this step for every FileSystem and PersistenceManager entry in jackrabbit-repo-ee.xml +
+5. Copy the updated jackrabbit-repo-ee.xml to WEB-INF/classes/META-INF +
+6. Edit the supplied galaxy-applicationContext.xml, replace the 'url' property value of the 'internalDataSource' +
+ bean with your database url. +
+7. Copy the galaxy-applicationContext.xml to WEB-INF/classes/META-INF, overwriting the existing one. +
+8.  Copy the scheduler-ee.properties file to WEB-INF/classes/META-INF, overwrite the old one, if exists. +
+9. Edit the datasource-ee.properties file, replace the datasource.username, datasource.password and +
+datasource.url properties (Note: The colon ( : ) in the URL must be escaped with back slash.) +
+10. Copy the datasource-ee.properties to WEB-INF/classes/META-INF, overwrite the old one, if exists. +
+11. Copy the ojdbc14.jar and quartz-oracle-1.6.6.jar to WEB-INF/lib +
+12. Repackage the mmc.war and deploy. +
+13. Enjoy!

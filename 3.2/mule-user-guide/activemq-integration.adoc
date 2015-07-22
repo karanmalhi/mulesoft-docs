@@ -1,0 +1,85 @@
+= ActiveMQ Integration
+
+== Introduction
+
+http://activemq.apache.org/[Apcahe ActiveMQ] is a popular open source messaging provider which is easy to integrate with Mule. ActiveMQ supports the JMS 1.1 and J2EE 1.4 specifications and is released under the Apache 2.0 License.
+
+== Usage
+
+To configure ActiveMQ connector with most common settings, use `<jms:activemq-connector>` or `<jms:activemq-xa-connector>` (for XA transaction support) element in your Mule configuration, e.g.:
+
+[source]
+----
+<?xml version="1.0" encoding="UTF-8" ?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:mule="http://www.mulesoft.org/schema/mule/core"
+      xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+    xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.1/mule.xsd
+        http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/3.1/mule-jms.xsd">
+
+  <jms:activemq-connector name="jmsConnector"
+                          brokerURL="tcp://localhost:61616"/>
+  <jms:activemq-xa-connector name="jmsXAConnector"
+                             brokerURL="tcp://localhost:61616"/>
+
+...
+----
+
+Also copy the desired https://repository.apache.org/content/repositories/releases/org/apache/activemq/activemq-all/[ActiveMQ jar file] to Mule lib directory (`$MULE_HOME/lib/user`) or your application lib directory.
+
+Mule will initialize the ActiveMQ connector with default instance of ActiveMQ connection factory and establish a TCP connection to the remote standalone broker running on local host and listening on port 61616.
+
+Use http://activemq.apache.org/failover-transport-reference.html[failover://protocol] to connect to the cluster of brokers, and pass additional ActiveMQ options as URI parameters, e.g.:
+
+[source]
+----
+<jms:activemq-xa-connector name="jmsFailoverConnector"
+     brokerURL="failover:(tcp://primary:61616,tcp://secondary:61616)?randomize=false"/>
+----
+
+To create an embedded instance of ActiveMQ broker, i.e. broker running on the same Java VM as Mule, use vm://protocol, e.g.:
+
+[source]
+----
+<jms:activemq-connector name="jmsConnector" brokerURL="vm://localhost"/>
+----
+
+You may also use additional connector attributes (See "Configuration Reference" for more details)
+
+Sometimes it might be necessary to explicitly configure an instance of ActiveMQ connection factory, for example, to set redelivery policy, or other ActiveMQ-specific features that are not exposed through Mule connector parameters. To create custom ActiveMQ connection factory instance, first configure it using Spring, e.g.:
+
+[source]
+----
+<bean name="connectionFactory"
+     class="org.apache.activemq.ActiveMQConnectionFactory">
+<!-- to support XA transactions, use org.apache.activemq.ActiveMQXAConnectionFactory instead -->
+    <property name="brokerURL"
+              value=”tcp://activemqserver:61616"/>
+
+    <property name="redeliveryPolicy">
+        <bean class="org.apache.activemq.RedeliveryPolicy">
+            <property name="initialRedeliveryDelay"
+                      value=”20000"/>
+            <property name="redeliveryDelay"
+                      value="20000"/>
+            <property name="maximumRedeliveries"
+                      value="10"/>
+       </bean>
+    </property>
+</bean>
+----
+
+then reference this bean in `<jms:activemq-connector>`, e.g.:
+
+[source]
+----
+<jms:activemq-connector name="jmsConnector" connectionFactory-ref="connectionFactory"/>
+----
+
+== Configuration Reference
+
+xslt: Read http://svn.codehaus.org/mule/branches/mule-3.1.x/transports/jms/src/main/resources/META-INF/mule-jms.xsd error because of: java.io.IOException: Server returned HTTP response code: 401 for URL: http://svn.codehaus.org/mule/branches/mule-3.1.x/transports/jms/src/main/resources/META-INF/mule-jms.xsd
+
+xslt: Read http://svn.codehaus.org/mule/branches/mule-3.1.x/transports/jms/src/main/resources/META-INF/mule-jms.xsd error because of: java.io.IOException: Server returned HTTP response code: 401 for URL: http://svn.codehaus.org/mule/branches/mule-3.1.x/transports/jms/src/main/resources/META-INF/mule-jms.xsd

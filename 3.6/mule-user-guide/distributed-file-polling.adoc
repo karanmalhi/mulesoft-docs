@@ -1,0 +1,22 @@
+= Distributed File Polling
+
+*_Enterprise Edition_*
+
+Some endpoints, such as the link:/documentation/display/current/File+Connector[File Endpoint] or link:/documentation/display/current/FTP+Connector[FTP Endpoint], regularly poll directories and read certain files as they are created in the directories polled. These files may reside on a remote file system, including file systems of nodes belonging to a link:/documentation/display/current/Mule+High+Availability+HA+Clusters[Mule High Availability (HA) Cluster].
+
+Up to Mule 3.3.x, all file poll requests sent to a cluster were channeled through a single node in that cluster. This ensured file consistency by avoiding the possibility of file system sync issues, but had the disadvantage of introducing a bottleneck, reducing the performance of the cluster.
+
+Mule 3.4 introduces file polling for clusters' distributed file systems, which makes it possible to poll files in all cluster nodes. Enabled by default, this feature is used by the following endpoints:
+
+* link:/documentation/display/current/File+Connector[File Endpoint]
+* link:/documentation/display/current/FTP+Connector[FTP Endpoint]
+* link:/documentation/display/current/SFTP+Connector[SFTP Endpoint]
+
+=== Requirement
+
+To use distributed file polling, the flow's link:/documentation/display/current/Flow+Processing+Strategies[Processing Strategy] must be synchronous. If the processing strategy is asynchronous, Mule will automatically disable distributed file polling, and revert to the old behavior.
+
+[TIP]
+====
+You can create and configure clusters with the graphical interface available in the link:/documentation/display/33X/Mule+Management+Console[Mule Management Console], or manually by link:/documentation/display/current/Creating+or+Disbanding+a+Cluster#CreatingorDisbandingaCluster-CreatingaClusterManually[editing the cluster configuration file.] For additional configuration options, including cluster network parameters, see link:/documentation/display/current/Creating+and+Managing+a+Cluster+Manually[Creating and Managing a Cluster Manually].
+====

@@ -1,0 +1,188 @@
+= Creating DevKit Connector Documentation
+
+Mule builds on http://en.wikipedia.org/wiki/Javadoc[Javadoc] to automate and simplify the creation of reference documentation for your connector, adding a custom Javadoc doclet and some DevKit-specific Java annotations. This document describes how to generate documentation and what to include.
+
+image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="8-package.png"]
+
+== Assumptions
+
+This document assumes that you are familiar with a Java IDE (Eclipse or IntelliJ) and have some familiarity with the Maven build manager for Java, specifically with Javadoc. It also assumes that you have already developed and tested your connectors.
+
+== Generating Documentation
+
+Maven generates documentation with each new connector. You can also automate this step with the command below.  
+
+[source]
+----
+mvn javadoc:javadoc
+----
+
+Find the generated documentation in the `target/apidocs` directory in your Maven project. Open the file `index.html` to show the fully generated documentation.
+
+image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="image2013-9-25 15:44:39.png"]
+
+The documentation always includes the following:
+
+* Mule XML configuration documentation
+* Reference documentation for calling connector methods directly from Java
+* A (boilerplate) guide to installing the connector in Mule
+
+As you build out your connector, review the generated documentation to ensure that the contents are sane and correct. If you find the generated documentation insufficient, you can always include more detail in the Javadoc comments in your code.
+
+== Mandatory Documentation
+
+ The following sections describe the required annotations that DevKit will enforce. 
+
+[WARNING]
+DevKit will not build your project if any required annotations are missing.
+
+=== Required Connector Metadata: @Connector and @Author
+
+Each class annotated with `@Connector` must have a class-level Javadoc comment with a high-level overview of the extensions. The `@Connector` class also requires an `@Author` annotation.
+
+View an example of the annotations from the http://www.mulesoft.org/connectors/zuora-cloud-connector[Zuora Connector].
+
+[source]
+----
+/**
+* Zuora is the leader in online recurring billing and payment solutions for SaaS and subscription businesses.
+* <p/>
+* This connector provides full access to the Z-Commerce platform API.   
+* * @author MuleSoft, Inc.
+*/
+@Connector(name = "zuora")
+public class ZuoraModule
+{
+...
+----
+
+=== Documenting @Configurable Attributes
+
+Each field annotated with `@Configurable` must have a Javadoc comment that briefly explains the attribute.
+
+View an example of the annotations from the http://www.mulesoft.org/connectors/magento-cloud-connector[Magento Connector].
+
+[source]
+----
+/**
+ * The user name to access Magento Web Services
+ */
+@Configurable
+private String username;
+ 
+/**
+ * The password to access Magento Web Services
+ */
+@Configurable
+private String password;
+ 
+/**
+ * The address to access Magento Web Services
+ */
+@Configurable
+private String address;
+----
+
+=== Documenting @Processor Methods and Parameters: @param and @return
+
+Each method annotated with @Processor or @Source (for streaming APIs) must have a Javadoc comment that includes the following:
+
+* A description of the use of the method
+* A pointer to an XML code sample for the element in Mule (described below)
+* For each parameter of the method, a Javadoc @param annotation, with a description of the parameter
+
+If the method has a return type other than `void`, a Javadoc `@return` annotation includes a description of the return value.
+
+The example below of a completed `@Processor` method declaration is taken from the http://www.mulesoft.org/connectors/mongodb-connector[MongoDB Connector].
+
+[source]
+----
+/**
+* Creates a new collection. If the collection already exists, a MongoException
+* will be thrown.
+*
+* {@sample.xml ../../../doc/mongo-connector.xml.sample mongo:create-collection}
+*
+* @param collection the name of the collection to create
+* @param capped if the collection will be capped
+* @param maxObjects the maximum number of documents the new collection is able
+* to contain
+* @param size the maximum size of the new collection
+*/
+@Processor public void createCollection(String collection,
+@Optional
+@Default(CAPPED_DEFAULT_VALUE) boolean capped,
+@Optional Integer maxObjects,
+@Optional Integer size)
+{ client.createCollection(collection, capped, maxObjects, size); }
+----
+
+=== Required XML Code Samples: @sample.xml
+
+The `@sample.xml` annotation points to an XML snippet that demonstrates how to use this method in Mule's XML. This example is then featured in the generated DevKit documentation.
+
+DevKit also does sanity checks on the XML code referenced by the `@sample.xml` annotation, ensuring that the XML example parses successfully against the generated schema for your connector.
+
+Syntax for the annotation is shown in the example below.
+
+[source]
+----
+{@sample.xml xml-location tag-name}
+----
+
+The parameters passed to `@sample.xml `are as follows:
+
+* `xml-location`: The relative path from `src/main/java` to the example file. The Maven archetype creates this file in your project at `doc/project-name.xml.sample`; the relative path is generally  `../../../` ` `
+* `tag-name`: A name for the example in the `.xml.sample` file, in the format `myconnector:my-method-name` or `myconnector:myMethodName`.
+
+The examples file specified by the `@sample.xml` tag must adhere to the structure displayed by the example below.
+
+[source]
+----
+<!-- BEGIN_INCLUDE(myconnector:method-a) -->
+// example here
+<!-- END_INCLUDE(myconnector:method-a) -->
+<!-- BEGIN_INCLUDE(myconnector:method-b) -->
+// example here
+<!-- END_INCLUDE(myconnector:method-b) -->
+...
+...
+----
+
+Here is an example from the http://www.mulesoft.org/connectors/salesforce-cloud-connector[Salesforce.com Connector].
+
+[source]
+----
+<!-- BEGIN_INCLUDE(sfdc:create) -->
+<sfdc:create type="Account">
+    <sfdc:objects>
+        <sfdc:object>
+        <Name>MuleSoft</Name>
+        <BillingStreet>30 Maiden Lane</BillingStreet>
+        <BillingCity>San Francisco</BillingCity>
+        <BillingState>CA</BillingState>
+        <BillingPostalCode>94108</BillingPostalCode>
+        <BillingCountry>US</BillingCountry>
+        </sfdc:object>
+    </sfdc:objects>
+</sfdc:create>
+<!-- END_INCLUDE(sfdc:create) -->
+<!-- BEGIN_INCLUDE(sfdc:upsert) -->
+<sfdc:upsert type="Account" externalIdFieldName="InternalAccountCode">
+    <sfdc:objects>
+        <sfdc:object>
+        <InternalAccountCode>A01596</InternalAccountCode>
+        <Name>MuleSoft</Name>
+        <BillingStreet>30 Maiden Lane</BillingStreet>
+        <BillingCity>San Francisco</BillingCity>
+        <BillingState>CA</BillingState>
+        <BillingPostalCode>94108</BillingPostalCode>
+        <BillingCountry>US</BillingCountry>
+    </sfdc:object>
+</sfdc:objects>
+</sfdc:upsert> <!-- END_INCLUDE(sfdc:upsert) -->
+----
+
+== See Also
+
+* Once you add all required operations to your connector, develop tests, and finish documenting them, move on to link:/docs/display/34X/Packaging+Your+Connector+for+Release[packaging and releasing your connector].

@@ -1,0 +1,143 @@
+= Anypoint Connector Concepts
+
+An **Anypoint** *Connector* is an element that enables a Mule application to connect to another application or Web service over a network, using a specific protocol. This section describes the architecture of an Anypoint Connector, the support DevKit provides for interfacing the connector with Mule, and the client functionality that developers must build themselves.
+
+== Assumptions
+
+This page assumes general knowledge of Mule ESB, as provided in link:/docs/display/34X/Mule+Fundamentals[Mule Fundamentals]. As DevKit uses Java annotations extensively to integrate your Java connector code with Mule, this document assumes you are familiar with http://en.wikipedia.org/wiki/Java_annotation[Java's annotations mechanism]. Further, it assumes you have general familiarity with the role of Anypoint Connectors and DevKit, as described in link:/docs/display/34X/Anypoint+Connector+DevKit[Anypoint Connector DevKit].
+
+== Anypoint Connector
+
+A connector enables Mule to communicate with an external target application or other resource, bridging whatever API the target presents to the interfaces provided by Mule. In other words, a connector plugs into the open end of an API so _your_ app can exchange data with another app.
+
+*What it is* – The implementation of a connector defines the following:
+
+* the operations exposed by the connector
+* the data model (POJOs and/or key-value maps) used to pass data to and from the connector's operations
+* the connector's XML element and configurable attributes used in Mule ESB 
+* the exceptions used to communicate state to Mule
+* the property dialog in Studio within which a user configures the connector 
+
+*What it does* – When connecting with a target, a connector must perform the following:
+
+* establish basic connectivity to endpoints exposed by the target
+* authenticate against the target to gain access to its operations
+* invoke API operations  (for example, by making calls to a SOAP or REST interface), passing parameters and handling responses and exceptions
+* transform data formats from the application's API into POJOs or key-value Maps for consumption in Mule
+
+*How to build it* – The purpose of DevKit is to make it as easy as possible to build, test, then release connectors, so that all connectors present a uniform experience in Mule. Using DevKit, most of your development effort goes into writing Mule-independent client code for accessing your target; a relatively simple Java class wraps the client code and interfaces it with Mule based on annotations you apply. 
+
+DevKit also provides out-of-the-box support for the following activities:
+
+* integrating with the Mule life-cycle for connector objects, automatically calling initialize, start, stop and dispose methods on connector objects as needed
+* connection pooling, re-using connections to a resource wherever possible
+* instance pooling, minimizing the creation and destruction of connector objects
+* managing authentication for targets that use OAuth or other common authentication methods
+
+== Architecture of an Anypoint Connector
+
+Connectors present two faces to the world: one to Mule, the other to the target. The following diagram illustrates the structure of a connector, and its two major functional elements: **@Connector Class** and *Client Classes*
+
+_image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="architecture.png"]_
+
+=== Mule-Facing Functionality
+
+The Mule-facing side of a connector consists of the following:
+
+* *a main Java class*, referred to as the @Connector class, which is annotated with the DevKit @Connector Java annotation
+* *connector attributes* that are configurable in Mule, which are defined as properties on the @Connector class, and annotated with @Configurable
+* *methods that expose operations* available on the connector, which are annotated with @Processor, and generally called @Processor methods.
+
+Additional annotations define authentication-related functionality and connection management, and to control the layout of the Studio dialogues for the connector. The data model and exceptions either raised or propagated are also Mule-facing classes.
+
+DevKit generates a skeleton @Connector class for you when you create your project with Maven. You can then add @Configurable attributes, @Processor methods, and authentication logic to build out your connector. During the build process, the annotation processor extends your code with the required functionality to integrate with Mule.
+
+=== Target-Facing Functionality
+
+The structure of the target-facing (i.e. client-facing) side of the connector depends on the technology used to access the target system. There will be one class that the @Connector class uses to access client functionality; this is generally called the client class. 
+
+The client class in turn generally depends on other classes to actually implement calls to the target. Depending on your target, some of these classes may be generated or provided for you. For example, if you have a Java client library, or are working with a WSDL file for a SOAP service, most of the client code is implemented there. In other cases, you have to write this code yourself.
+
+=== Data Model Entity Classes and Exceptions
+
+The data model for the connector consists of the objects passed into and out of the exposed operations. While many Web services accept and return XML or JSON data, a proper Mule connector must translate the data format the client uses into Java objects – either POJOs or key-value maps which represent the data objects sent to, and returned from, the target. (Returning raw XML or JSON responses to Mule is one marker for an immature, improperly implemented connector.)
+
+The connector also raises exceptions to Mule to represent different errors that may occur: connection and authentication failures, logical errors such as bad arguments passed to an operation, and so on. 
+
+== Implementing an Anypoint Connector in Java
+
+When building a connector for any given target, you must make a few choices.
+
+. choose an authentication mechanism
+. choose a means of accessing the target's API 
+. choose whether to base the data model on POJOs or paps
+
+Your choices are generally dictated by the target. For example, an application may only offer access to clients via a SOAP-based Web service access with basic authentication, or may provide a Java client library but offer no other means of access.
+
+However, in some cases, you may have multiple options available for accessing the target. For example, an application may have a Java client library for convenient access to a subset of methods, and offer a feature-complete RESTful API. In general, if a client library is available, it is the simplest solution, but you can choose whichever is the best fit for your use case.
+
+=== Authentication Mechanisms
+
+DevKit can integrate with most authentication mechanisms. Most Web services support either basic authentication or some version of OAuth, each of which is support by DevKit out of the box. DevKit also supports other authentication protocols, such as SAML.
+
+Some APIs offer multiple authentication methods. For example, Twitter's API allows you to choose between basic authentication methods and several styles of OAuth authentication. Depending upon your requirements and your particular situation, you may be able to implement more than one authentication style in your connector. 
+
+Implementing authentication functionality requires the use of annotations at the @Connector class level, and may also require code in the client class (for example, to add authentication-related HTTP headers to Web Service calls).  The table below outlines the authentication methods that DevKit supports.
+
+[columns=",",options="header",]
+|===
+|Authentication method |Full Documentation |Notes
+|*OAuth 1* |link:/docs/display/34X/Implementing+OAuth+1.0+Authentication[Implementing OAuth 1.0 Authentication] .2+|More common with RESTful Web services and cloud applications.
+
+|*OAuth 2 or other OAuth variants* |link:/docs/display/34X/Implementing+OAuth+2.0+Authentication[Implementing OAuth 2.0 Authentication] 
+
+|*Basic Authentication*
+*(username/password)* |link:/docs/display/34X/Implementing+Connection+Management[Implementing Connection Management] |More common with SOAP Web services.
+
+|*Other authentication protocols* +
+*(e.g. SAML, NTLM,  Kerberos, LDAP)* |link:/docs/display/34X/Implementing+Connection+Management[Implementing Connection Management] |Similar to basic authentication, (relies on the same annotations). You may have to implement some supplemental logic.
+|===
+
+For more details on these protocols see link:/docs/display/34X/Authentication+Methods[Authentication Methods]. 
+
+=== Targets
+
+You can use DevKit to build a connector for virtually any type of target. However, the great majority of applications expose (at least) one of the following: a Java client library, a SOAP-based RPC API or a RESTful API.
+
+DevKit supports widely-used client options and techniques for these common targets, as detailed in the table below. 
+
+[columns=",",options="header",]
+|===
+|Target |Approach |Notes |Full Documentation
+|*Java Client Library* |Use the client library |If available, this is generally the simplest approach to calling the remote service. |link:/docs/display/34X/Connector+to+Java+Client+Library+Example[Connector to Java Client Library Example]
+
+|*SOAP API* |Use Apache CXF |The _de facto_ standard for building and consuming SOAP Web services.
+|link:/docs/display/34X/Connector+to+SOAP+Service+via+CXF+Client+Example[Connector to SOAP Service via CXF Client Example]
+
+.2+|*RESTful API* |Jersey Client |Flexible access to any RESTful API. |link:/docs/display/34X/Connector+to+RESTful+Service+with+Jersey+Client+Example[Connector to RESTful Service with Jersey Client Example]
+
+|DevKit RESTCall Annotations |DevKit's built-in client for simple RESTful APIs. |link:/docs/display/34X/Connector+to+RESTful+API+with+RESTCall+Annotations+Example[Connector to RESTful API with RESTCall Annotations Example]
+|===
+Note that for both SOAP and RESTful APIs, there are other client libraries one can choose. For example, http://cxf.apache.org/[Apache CXF] offers support for RESTful Web services. Such approaches can be made to work, but are generally not recommended.
+
+In some unusual cases, you may need to work against some lower-level protocol. Some examples include:
+
+* some non-standard Web services may require the use of the low-level http://http//hc.apache.org/httpcomponents-client-ga/[Apache HTTP client]
+* a legacy mainframe environment might require an older protocol
+* a connected device might offer access through some emerging "Internet of Things" protocol
+
+In such situations, you can write your own Java client library to access the resource, then build the @Connector class to wrap that client library, as described in link:/docs/display/34X/Connector+to+Java+Client+Library+Example[Connector to Java Client Library Example]. 
+
+=== More Data
+
+As described above, Mule uses a data model to exchange data with the target, and that data model is exposed to Mule as Java objects. A connector exposes these objects to Mule in a form that can be handled by metadata-aware operators such as link:/docs/display/34X/Datamapper+User+Guide+and+Reference[DataMapper]. 
+
+* Most applications expose a *static data model* through their operations.  For example, a calendar application may expose a fixed structure to represent a scheduled appointment. For these applications, the simplest representation of application objects is as a plain old Java object (POJO).
+* Some complex applications, such as Salesforce, define a *dynamic data model*. A particular Salesforce deployment may have customized definitions for objects such as `Customer`, which have extra, defined attributes. A connector for such an application should return object data to Mule as key-value maps that can store arbitrary attributes, and should be able to extract metadata from the application.
+
+You can configure your connector to support Mule link:/docs/display/34X/Mule+DataSense[DataSense], which also includes **query support **for applications which support a query language, such as Salesforce. Query support requires additional implementation effort to map the query syntax used by the application to the query user interface available in Studio. 
+
+== See Also
+
+* **NEXT:** link:/docs/display/34X/Setting+Up+a+DevKit+Development+Environment[Set up your DevKit development environment].
+* Read the link:/docs/display/34X/DevKit+Shortcut+to+Success[DevKit Shortcut to Success] for a quick walkthrough of the development cycle for a connector. 

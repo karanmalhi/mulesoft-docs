@@ -1,0 +1,818 @@
+= Annotation Reference
+
+This document lists MuleSoft elements that start with an at sign (@). For more information on annotations, see http://docs.oracle.com/javase/7/docs/api/index.html?java/lang/annotation/Annotation.html[java.lang.annotation.Annotation].
+
+[width="100%",cols=",",options="header"]
+|===
+|Annotation |Description
+|`@Category` a|Anypoint Studio and the doclet use the @Category annotation to organize message processors. You can use @Category annotation at class definition level (Connector or Module) to select under which category you want your extension to be listed in:
+
+[source]
+----
+@Connector(name = "ldap", schemaVersion = "3.5", 
+  friendlyName="LDAP", minMuleVersion="3.5",
+  description="The LDAP connector connects to a  
+    LDAP server and performs LDAP operations")
+@Category(name = "org.mule.tooling.category.core",  
+  description = "Components")
+  public class LDAPConnector
+    {
+      ...
+    }
+----
+
+Notes:
+
+* You can only add the connector to one of the existing Studio categories (this means you cannot define your own category)
+* The values for name and description attributes of @Category can only have these values:
+
+** Endpoints: org.mule.tooling.category.endpoints
+** Scopes: org.mule.tooling.category.scopes
+** Components: org.mule.tooling.category.core
+** Transformers: org.mule.tooling.category.transformers
+** Filters: org.mule.tooling.category.filters
+** Flow Control: org.mule.tooling.category.flowControl
+** Error Handling: org.mule.tooling.ui.modules.core.exceptions
+** Cloud Connectors (DEFAULT): org.mule.tooling.category.cloudconnector
+** Miscellaneous: org.mule.tooling.ui.modules.core.miscellaneous
+** Security: org.mule.tooling.category.security
+
+You can use the following to specify the permitted categories:
+
+[source]
+----
+import org.mule.api.annotations.Category;
+  
+@Category(name = "org.mule.tooling.category.endpoints", description = "Endpoints")
+@Category(name = "org.mule.tooling.category.scopes", description = "Scopes")
+@Category(name = "org.mule.tooling.category.core", description = "Components")
+@Category(name = "org.mule.tooling.category.transformers", description = "Transformers")
+@Category(name = "org.mule.tooling.category.filters", description = "Filters")
+@Category(name = "org.mule.tooling.category.flowControl", description = "Flow Control")
+@Category(name = "org.mule.tooling.ui.modules.core.exceptions", description = "Error Handling")
+@Category(name = "org.mule.tooling.category.cloudconnector", description = "Cloud Connectors")
+@Category(name = "org.mule.tooling.ui.modules.core.miscellaneous", description = "Miscellaneous")
+@Category(name = "org.mule.tooling.category.security", description = "Security")
+----
+|`@Configurable` a|Marks a field inside a `@Connector` as being configurable. The `@Configurable` annotation signals the generator to create a property configurable for each instance of your connector through XML syntax or a connector configuration dialog box. In addition to the `@Configurable` annotation, you need at least one public get and set function.
+
+[source]
+----
+@Configurable
+ private String url;
+  
+ public String getUrl() {
+      return url;
+ }
+  
+ public void setUrl(String url) {
+      this.url = url;
+ }
+----
+|`@Connector` a|Defines a class that exports its functionality as a Mule connector.
+
+This class-level annotation identifies a Java class as a Cloud Connector.
+
+`@Connector` restrictions:
+
+* Cannot be an interface
+* Must be `public`
+* Cannot have a typed parameter (no generics)
+
+[source]
+----
+@Connector(name = "hello", schemaVersion = "1.0", friendlyName = "Hello", minMuleVersion = "3.5")
+public class HelloConnector {
+  ...
+}
+----
+|`@Expr` a|Binds a parameter in a `@Processor` method to an expression.
+
+Binding a parameter to an expression works similar to `@Payload` in the sense that the user of the module won't be able to alter the expression or the value of the parameter from the XML. A binding is hardcoded and the user cannot change it.
+
+The following example maps the `myFlowVarXXX` parameter to the result of the expression `flowVars['xxx']`:
+
+[source]
+----
+@Processor       
+ public String myProcessor(@Expr("flowVars['xxx']") 
+   String myFlowVarXXX) {
+     ...
+   }
+----
+|`@ExpressionLanguage` a|efines a class that exports its functionality as a Mule Expression Language.
+
+`@ExpressionLanguage` restrictions on which types are valid:
+
+* Cannot be an interface
+* Must be `public`
+* Cannot have a typed parameter (no generics)
+
+[source]
+----
+@ExpressionLanguage(name = "expr")
+public class ExprExpressionLanguage {
+    @ExpressionEvaluator
+    public Object evaluate() {
+}
+----
+|@ExpressionEnricher a|Marks a method inside an `@ExpressionLanguage` as the responsible for enriching mule messages based on an expression.
+
+The following example shows how to use the `@ExpressionEnricher` annotation to set the payload (which is expected to be a map) in the `enrich()` method using the “map-payload” expression language:
+
+[source]
+----
+@ExpressionLanguage(name = "map-payload")
+public class MapPayloadExpressionLanguage {
+  
+    @ExpressionEnricher
+    public void enrich() {
+}
+----
+|`@Filter` a|Marks a method inside a `@Connector` as a callable from within a Mule flow that filters a message. Each parameter on this method is featured as an attribute on the Mule XML invocation.
+
+By adding this annotation to a method inside `@Connector`, a filter is created which may be used from within a Mule flow to filter messages based on implementation of this method.
+
+[source]
+----
+@Filter
+    public boolean shouldFilter() throws Exception {
+...
+   }
+----
+|`@Ignore` a|Ignores a filed inside a complex object.
+
+[source]
+----
+public class MyComplexType
+{
+    private String color;
+      
+    @Ignore
+    private String description;
+}
+  
+@Processor
+public void receiveAComplexType(MyComplexType myComplexType) { ... }
+----
+|`@Mime` a|Defines a class that exports its functionality as a Mule module.
+
+The class level annotation `@Module` indicates that a Java class needs to be processed by the DevKit Annotation Processing Tool and considered as a Mule Module.
+
+@`Module` cannot be applied to:
+
+* Interfaces
+* Final classes
+* Parameterized classes
+* Non-public classes
+
+[source]
+----
+@Module(name="animal-search", schemaVersion="3.5.1")
+public class AnimalSearchModule { ... }
+----
+|`@Ognl` |(Object graph navigation language). *Note*: @ognl is deprecated in Mule version 3.6 and is being removed in version 4.0.
+|`@Paged` a|Marks a method inside a `@Connector` as an operation that returns a paged result set. Methods annotated with this interface must also be annotated with `@Processor` and must return an instance of `@ProviderAwarePagingDelegate`.
+
+[source]
+----
+@Processor
+@Paged
+public ProviderAwarePagingDelegate paginationTestOperation (String ble, PagingConfiguration pagingConfiguration) throws WrongParameterConfiguredException { ... }
+----
+|`@Processor` a|Marks a method as an operation in a connector. An `@Processor` method generates a general purpose message processor
+
+[source]
+----
+@Processor
+    public String putInBarn(String animal) {
+        return animal + " has been placed in the barn";
+    }
+----
+|`@Source` a|Marks a method inside a `@Connector` as a callable from within a Mule flow and capable of generating Mule events.
+
+This annotation marks a method inside a http://mulesoft.github.io/mule-devkit/reference/org/mule/devkit/annotations/Module.html[Module] as callable from within a Mule flow and capable of generating Mule events. Each marked method has an `org.mule.api.source.MessageSource` generated. The method must receive a http://mulesoft.github.io/mule-devkit/reference/org/mule/devkit/annotations/SourceCallback.html[SourceCallback] as one of its arguments. It does not matter which parameter it is as long it is there.
+
+[source]
+----
+@Source
+   public void subscribeTopic(String topic, 
+     final SourceCallback callback) {
+       getBayeuxClient().subscribe(topic, 
+         new ClientSessionChannel.MessageListener() {
+         @Override
+           public void onMessage(ClientSessionChannel channel, 
+             Message message) {
+               try {
+                 callback.process(message.getData());
+               } catch (Exception e) {
+                 LOGGER.error(e);
+               }
+             }
+         });
+     }
+----
+|`@Transformer` a|Marks a method as a Transformer of data-types or as data formats in the context of the connector.
+
+This annotation identifies a method that becomes a Mule transformer.
+
+[source]
+----
+@Transformer(sourceTypes = { Object[].class })
+public static List transformArrayToList(@Payload Object[] payload)
+----
+|`@TransformerResolver` a|Finds transformers that match a criteria in the registry. Implementations of this interface use some or all of the information passed in to discover a matching transformer.
+
+Register implementations of this interface with the registry before an implementation can be picked up. Typically this is done using `registry-bootstrap.properties`.
+
+[source]
+----
+@TransformerResolver
+public static org.mule.api.transformer.Transformer  
+  transformerResolver(DataType source, DataType result, 
+  MuleContext muleContext) throws Exception {
+    if(source.getType().equals(Book.class) && 
+      result.getType().equals(String.class)) {
+        BookToString bookToString = new BookToString();  
+        muleContext.getRegistry().
+          applyProcessorsAndLifecycle(bookToString);
+        return bookToString;
+   }
+      return null;
+}
+----
+|===
+
+== Argument Passing Annotations
+
+[width="100%",cols=",",options="header"]
+|===
+|Annotation |Description
+|`@Payload` a|Marks arguments to receive the payload.
+
+[source]
+----
+@Processor
+public String setPayload(@Payload String payload) { ... }
+----
+|`@InboundHeaders` a|Passes inbound headers.
+
+[source]
+----
+@Processor
+public String getInboundHeaders(@InboundHeaders("myHeader") String myHeader) { ... }
+----
+|`@InvocationHeaders` a|Passes invocation headers. This can be single header, a comma-seperated list of header names, an astrick "*" to donate all headers, or a comma-seperated list of wildcard expressions. By default, if a named header is not present, an exception is thrown. However, if the header name is defined with the "?" post fix, it is marked as optional.
+
+[source]
+----
+@Processor
+public String getInvocationHeaders(@InvocationHeaders("myHeader") 
+  String myHeader) { ... }
+----
+|`@OutboundHeaders` a|Used to pass outbound headers.
+
+[source]
+----
+@Processor
+public void outboundHeaders(@OutboundHeaders 
+  Map<String, Object> outboundHeaders) { ... }
+----
+|`@SessionHeaders` a|Marks a method parameter that passes in one or more received headers.
+
+This annotation value can define a single header, a comma-seperated list of header names, an asterisk * to denote all headers, or a comma-seperated list of wildcard expressions such as `MULE_*, X-*`. By default, if a named header is not present on the current message, an exception is thrown. However, if the header name is defined with the "?" post fix, it's marked as optional.
+
+When defining multiple header names or using wildcards, this parameter can be a Map or List. If a Map is used, the header name and value are passed. If List is used, just the header values are used.
+
+If a single header name is defined, the header type can be used as the parameter type, though List or Map can be used too.
+
+The Inbound headers collection is immutable, so the headers Map or List passed in are also immutable. Attempting to write to the Map or List results in an UnsupportedOperationException.
+|===
+
+== Connection Management
+
+For more information, see link:/docs/display/35X/Basic+Auth[Basic Authentication]
+
+[width="100%",cols=",",options="header"]
+|===
+|Annotation |Description
+|`@Connect` a|Marks a method inside a @Connector scope as responsible for creating a connection.
+
+This method can have several parameters and can contain annotations such as @ConnectionKey or @Password. The @Connect annotation guarantees that the method is called before calling any message processor.
+
+Restrictions:
+
+* The parameters cannot be of primitive type such as int, bool, short, etc.
+* The method's return type must be void.
+
+Example:
+
+[source]
+----
+@Connect
+public void connect(@ConnectionKey String username, String password) throws ConnectionException { ... }
+----
+|`@ConnectionIdentifier` a|Marks a method inside a @Connector as responsible for identifying the connection.
+
+The connector's connection manager calls the method annotated with @ConnectionIdentifier for debugging purposes.
+
+This annotation must be used on a non-static method without arguments and must return a String that contains the connection identifier representation.
+
+[source]
+----
+@ConnectionIdentifier
+  public String connectionId() {
+    return "001";
+  }
+----
+|`@Disconnect` a|Marks a method inside a @Connector as responsible for disposing the connection. Called by the connector's connection manager.
+
+This method is invoked as part of the maintenance of the Connection Pool. The pool is configured with a max idle time value.
+
+When a connection lies in the pool without use for more than the configured time, then the method annotated with @Disconnect is invoked and subsequently the @Connect method. Also, when the @InvalidateConnectionOn annotation is used on a method to catch Exceptions, then the @Disconnect method likewise is invoked with the subsequent reconnect.
+
+[source]
+----
+@Disconnect
+public void disconnect() { ... }
+----
+|`@InvalidateConnectionOn` a|Used a method to catch Exceptions - deprecated use @ReconnectOn instead.
+
+[source]
+----
+@Processor
+    @InvalidateConnectionOn(exception=AnimalException.class)
+    public Animal getAnimal (String id ) { ... }
+----
+|`@ReconnectOn` a|Used to invalidate connections. You can attach this annotation to any method annotated with @Processor. If the Processor or Source throws an exception that matches any of the exceptions specified in the @ReconnectOn annotation, the connection is invalidated.
+
+[source]
+----
+Processor
+@ReconnectOn(exceptions = {InvalidSessionFault.class, PasswordChangedException.class})
+public void myOperation(@Optional String source,
+                        @Optional Object destination) throws InvalidSessionFault, PasswordChangedException, InvalidParameterException
+{  ... }
+----
+|`@ValidateConnection` a|Validates a connection prior to each invocation of the operations exposed by the @Processor annotation.
+
+[source]
+----
+@ValidateConnection
+    public boolean isConnected() { ... }
+----
+|===
+
+== DataSense
+
+For information, see link:/docs/display/35X/DataSense[DataSense], link:/docs/display/35X/Adding+DataSense[Adding DataSense], and link:/docs/display/35X/Adding+DataSense+Query+Language[Adding DataSense Query Language]
+
+[width="100%",cols=",",options="header"]
+|===
+|Annotation |Description
+|`@MetaDataCategory` a|Describes a grouping DataSense concrete class, which returns the types and description of any of those types.
+
+Use to annotate a class that groups methods used for providing metadata about a connector using DataSense.
+
+[source]
+----
+@MetaDataCategory
+public class MyCategory {
+----
+|`@MetaDataKeyParam` a|Marks a parameter inside `@Processor` as the key for a metadata lookup.
+
+[source]
+----
+public Object create(@MetaDataKeyParam String entityType, @Default("#[payload]") Object entityData) {...} 
+----
+|`@MetaDataKeyRetriever` a|Use to annotate a method that is responsible to return a service's entities names.
+
+Given the functionality of this annotation, the return type of this Java method must be a `List<MetaDataKey>`.
+
+The entities returned from this method are from a query after a detailed description obtained using `@MetaDataRetriever`.
+
+Use this annotation inside a `@Connector` context or inside an `@MetaDataCategory`.
+
+[source]
+----
+@MetaDataKeyRetriever
+    public List<MetaDataKey> getMetaDataKeys() throws Exception {
+----
+|`@MetaDataOutputRetriever` a|Marks a method as a describer for `@MetaData` for output scenarios, for a given `@MetaDataKey`.
+
+[source]
+----
+@MetaDataOutputRetriever
+    public MetaData getMetaDataOutputRestImplCategory(MetaDataKey key) throws Exception {
+        checkProperConnectorInjection();
+        return new DefaultMetaData(resolveOutputMetaDataModel(key));
+----
+|`@MetaDataRetriever` a|The method annotated with `@MetaDataRetriever` describes the metadata for the received metadata key parameter.
+
+Uses the list of metadata keys retrieved by `@MetaDataKeyRetriever` to retrieve the entity composition of each entity Type.
+
+[source]
+----
+@MetaDataRetriever
+public MetaData getMetadata(MetaDataKey key) {  }
+----
+|`@MetaDataScope` a|
+
+[source]
+----
+@MetaDataScope(DefaultCategory.class)
+@Connector(name = "my-connector", minMuleVersion = "3.5")
+public class MyConnector {
+...
+}
+----
+|`@NoMetaData` |Marks a `@Processor` to avoid discovering metadata with `@MetaDataRetriever` and `@MetaDataKeyRetriever` mechanism.
+|`@Query` a|Supports easy query building by DataSense Query Language (DSQL). Define `@Query` within an `@Connector` scope.
+
+[source]
+----
+@Processor
+public void setQuery(@Query DsglQuery query) {
+...
+}
+----
+|`@QueryPart` |Used in advanced `@Query` scenarios.
+|`@QueryTranslator` a|Translates a DSQL query into a native one.
+
+[source]
+----
+@QueryTranslator
+public String toNativeQuery(DsqlQuery query){
+    SimpleSyntaxVisitor visitor = new SimpleSyntaxVisitor();
+    query.accept(visitor);
+    return visitor.dsqlQuery();
+}
+----
+|===
+
+== Display
+
+[width="100%",cols=",",options="header"]
+|===
+|Annotation |Description
+|`@FriendlyName` a|Gives a short name to an annotated element. If a value is not specified, the name is inferred from the annotated element's name.
+
+[source]
+----
+@FriendlyName("Consumer Key")
+private String consumerKey;
+ 
+ 
+// Alternate: Declare in a method’s arguments:
+  public abstract String getByTypeAndName(
+    @RestQueryParam("name") @FriendlyName("name") String uname)
+            throws IOException;
+----
+|`@Password` a|Identifies a field or method parameter as being a password, or more generally as a variable which contains data that cannot be displayed as plain text.
+
+[source]
+----
+@Connect
+public void connect(@ConnectionKey String username, 
+  @Password String password)
+        throws ConnectionException
+----
+|`@Path` a|Identifies a field or method parameter as being a path to a file. This displays a window at Studio to choose a file from the filesystem.
+
+[source]
+----
+@Configurable
+    @Path
+    String path;
+----
+|`@Placement` a|Defines the placement of a configurable attribute in the Anypoint Studio configuration.
+
+[source]
+----
+@Configurable
+@Placement(group = "Basic Settings", order = 1)
+private String consumerKey;
+----
+|`@Summary` a|Adds display information to a field or parameter.
+
+[source]
+----
+@Processor
+@Summary("This processor puts an animal in the barn")
+public String putInBarn(String animal)
+----
+|`@Text` a|Identifies a parameter as being large text input. This marker generates a child element instead of an attribute for the schema generation, but it also uses a text area instead of text field in the Anypoint Studio dialog generation.
+|===
+
+== LifeCycle
+
+You can use these annotations to mark a method for when `org.mule.lifecycle` events occur.
+
+[width="100%",cols=",",options="header"]
+|===
+|Annotation |Description
+|`@Start` a|Mark a method to be started during a method's `org.mule.lifecycle`. Startable phase.
+
+[source]
+----
+@Start
+public void start() {
+    this.sessionId = serviceProvider.login(username, password);
+}
+----
+|`@Stop` a|Mark a method to be stopped during a method's `org.mule.lifecycle`. Stoppable phase.
+
+[source]
+----
+@Start
+public void stop() {
+    if ( this.sessionId != null ) {
+        serviceProvider.logout(sessionId);
+    }
+}
+----
+|`@Initialise` a|Mark a method to be initialized during a method's `org.mule.lifecycle`. Initialisable phase.
+
+[source]
+----
+@Initialise
+public void initialize() {
+    if ( this.sessionId != null ) {
+        serviceProvider.initialise(sessionId);
+    }
+}
+----
+|`@Dispose` a|Mark a method to be disposed during a method's `org.mule.lifecycle`. Disposable phase.
+
+[source]
+----
+@Dispose
+public void dispose()  {
+    if ( this.sessionId != null ) {
+        serviceProvider.dispose(sessionId);
+    }
+}
+----
+|===
+
+== OAuth
+
+For more information, see link:/docs/display/35X/OAuth+V1[OAuth V1] or link:/docs/display/35X/OAuth+V2[OAuth V2].
+
+[width="100%",cols=",",options="header"]
+|===
+|Annotation |Description
+|`@OAuth` a|Annotates connectors that uses the OAuth 1.0a protocol for authentication.
+
+[source]
+----
+@Connector(name = "myconnector", friendlyName = "MyConnector")
+@OAuth(requestTokenUrl = "https://api.me.com/uas/oauth/requestToken",
+accessTokenUrl = "https://api.me.com/uas/oauth/accessToken",
+authorizationUrl = "https://api.me.com/uas/oauth/authorize")
+public class MyConnector { ... }
+----
+|`@OAuth2` a|Annotates connectors that uses the OAuth 2 protocol for authentication.
+
+[source]
+----
+@Connector(name = "oauth2connector")
+@OAuth2(authorizationUrl = "http://someUrl", accessTokenUrl = "http://someOtherUrl")
+public class MyConnector { ... }
+----
+|`@OAuthAccessToken` a|Holds an access token. When an `@Processor` method is invoked, an OAuth access token is set in case the Resource Owner already authorized the Consumer; otherwise the method isn't invoked and the Resource Owner is redirected to the authorization URL.
+
+[source]
+----
+@Processor
+public Object accessProtectedResource(@OAuthAccessToken String accessToken, ...)
+{ ... }
+----
+
+Or:
+
+[source]
+----
+@OAuthAccessToken private String accessToken;
+----
+|`@OAuthAccessTokenIdentifier` a|Marks a method as responsible for identifying the users of an access token. The method is called by a connector's access token manager. This identification is used as a key to store access tokens.
+
+[source]
+----
+@OAuthAccessTokenIdentifier
+public String getUserId() {
+return api.getUserId(myAccessToken);
+}
+----
+|`@OAuthAccessTokenSecret` a|Holds an access token secret.
+
+[source]
+----
+@OAuthAccessTokenSecret private String accessTokenSecret;
+----
+|@`OAuthAuthorizationParameter` a|Appends an authorization parameter to authorize a URL.
+
+[source]
+----
+@OAuthAccessTokenSecret private String accessTokenSecret;
+----
+|`@OAuthAuthorizationParameter` a|Appends an authorization parameter to authorize a URL.
+
+[source]
+----
+@OAuthAuthorizationParameter(name = "xxx", type = xxx, description = "xxx")
+----
+|`@OAuthCallbackParameter` a|Identifies the module attribute that represent each parameter on the service OAuth response.
+
+[source]
+----
+@OAuthCallbackParameter(expression = "#[json:instance_url]")
+private String instanceId;
+----
+|`@OAuthConsumerKey` a|Holds an OAuth consumer key. This field must contain the OAuth Consumer Key as provided by the Service Provider and described in the OAuth specification.
+
+[source]
+----
+@Configurable @OAuthConsumerKey private String consumerKey; 
+----
+|`@OAuthConsumerSecret` a|Holds an OAuth consumer secret. This field must contain the OAuth Consumer Key as provided by the Service Provider and described in the OAuth specification.
+
+[source]
+----
+@Configurable @OAuthConsumerSecret private String consumerSecret; 
+----
+|`@OAuthInvalidateAccessTokenOn` a|Marks a method which automatically refreshes the tokens.
+
+*Note*: This annotation is deprecated. Use `@ReconnectOn` instead.
+
+[source]
+----
+@Processor
+@OAuthInvalidateAccessTokenOn(exception = RuntimeException.class)
+public void processor() { ... }
+----
+|`@OAuthPostAuthorization` a|Marks a method inside OAuth as the responsible for setting up the connector _after_ OAuth completes.
+
+[source]
+----
+@OAuthPostAuthorization
+    public void postAuthorize() throws ConnectionException, MalformedURLException, AsyncApiException { ... }
+----
+|`@OAuthProtected` a|Marks a method inside a Connector as requiring an OAuth access token. Such a method fails to execute while the connector is not authorized. Therefore, forcing the OAuth to happen first.
+
+[source]
+----
+@OAuthProtected
+@Processor
+    public void logInfo() {
+        logger.info(String.format("OAuthAccessToken=%s", getAccessToken()));
+        logger.info(String.format("OAuthAccessTokenSecret=%s", getAccessTokenSecret()));
+    }
+----
+|`@OAuthScope` a|Indicates that access to the Protected Resources must be restricted in scope. A field annotated with `@OAuthScope` must be present and contain a String indicating the desired scope.
+
+[source]
+----
+@Configurable
+    @OAuthScope
+    @Optional
+    @Default("")
+    private String scope; 
+----
+|===
+
+== Parameters
+
+[width="100%",cols=",",options="header"]
+|===
+|Annotation |Description
+|`@ConnectionKey` a|Marks a parameter inside the connect method as part of the key for the connector lookup. This only can be used as part of the `@Connect` method.
+
+[source]
+----
+@Connect(strategy=ConnectStrategy.SINGLE_INSTANCE)
+    public void connect(@ConnectionKey String username, @Password String password)
+        throws ConnectionException { … }
+----
+|`@Default` a|Specifies a default value to a `@Configurable` field or a `@Processer` or `@Source` parameter.
+
+[source]
+----
+@Configurable
+@Default("mule")
+private String type;
+----
+
+Or:
+
+[source]
+----
+@Processor
+public abstract String listAnimals(@Default("mule") String type) throws IOException;
+----
+|`@Email` |Specifies a default email pattern.
+|`@ExceptionPayload` a|Specifies the payload for an exception.
+
+[source]
+----
+@Processor
+    public Object returnExceptionPayload(@ExceptionPayload Object payload) {
+        return payload;
+    }
+----
+|`@MetaDataStaticKey` a|Defines the specific MetaData type of the annotated value. When applied to a Processor it affects (by default) just the Output, otherwise it affects the field parameter.
+
+[source]
+----
+@Processor
+    @MetaDataStaticKey(type = "CLIENT")
+    public Map<String, Object> getClient(String id) {
+        return createClientObject();
+    }
+----
+|`@Optional` a|Marks a `@Configurable` field or a `@Processor` or `@Source` parameters as optional.
+
+[source]
+----
+@Configurable
+@Optional
+String path;
+----
+|`@RefOnly` a|Marks a `@Configurable` field or a `@Processor` or `@Source` parameters as being passed by reference only.
+|===
+
+== Rest
+
+[width="100%",cols=",",options="header"]
+|===
+|Annotation |Description
+|`@BinaryParam` |Specifies if a payload is a binary type.
+|`@RestCall` a|Indicates that upon invocation, the processor makes a RESTful request.
+
+[source]
+----
+@Processor
+@RestCall(uri = "{url}/list", method = org.mule.api.annotations.rest.HttpMethod.GET)
+    public abstract String showAll() throws IOException; 
+----
+|`@RestExceptionOn` a|Throws an exception on specified criteria
+
+[source]
+----
+@Processor
+@RestCall(uri = "{url}/animals", method = HttpMethod.GET, exceptions = {@RestExceptionOn(expression="#[message.inboundProperties['http.status'] != 200]", exception = AnimalNotFoundException.class)})
+    public abstract List<Animal> listAnimals(@RestQueryParam("type") String type) throws IOException; 
+----
+|`@RestHeaderParam` a|Allows you to insert custom headers in the call.
+
+[source]
+----
+@Processor
+@RestCall(uri = "{url}/create", method = org.mule.api.annotations.rest.HttpMethod.POST)
+  public abstract String create( @RestHeaderParam("age") 
+    int age)
+throws IOException; 
+----
+|`@RestHtppClient` a|An annotation to mark the HttpClient module uses. This way, you avoid creating multiple clients and have the opportunity to perform your own calls or to configure the HttpClient to fulfull special needs:
+
+[source]
+----
+@RestHttpClient
+HttpClient client = new HttpClient();
+----
+|`@RestPostParam` a|Allows you to set parameters in the body of POST method calls.
+
+[source]
+----
+@Processor
+    @RestCall(uri = "{url}/form", method = HttpMethod.POST)
+    public abstract String addAnimal(@RestPostParam("type") String type) throws IOException; 
+----
+|`@RestQueryParam` a|Specifies URI query parameters, which are appended to the path of the URI after a ? or & symbol.
+
+[source]
+----
+@Processor
+    @RestCall(uri = "{url}/listName", method = org.mule.api.annotations.rest.HttpMethod.GET)
+    public abstract String getByType(
+            @RestQueryParam("type") String type)
+            throws IOException; 
+----
+|`@RestTimeout` a|Specifies a timeout for the rest call. This annotation can be attached to a `@RestCall` to optionally specify a timeout in milliseconds for the rest call. If the rest call exceeds the specified time, a RuntimeException is going to be thrown, unless an exception is specified for the timeout.
+
+[source]
+----
+@Processor
+  @RestTimeout(timeout = 1, exception = TimeoutException.class)
+  @RestCall(uri = "{url}/list/timeout", method = HttpMethod.GET)
+  public abstract String listAnimalsTimeout() throws IOException; 
+----
+|`@RestUriParam` a|Allows you to insert URI parameters.
+
+[source]
+----
+@Processor
+    @RestCall(uri = "{url}/create/{type}", method = org.mule.api.annotations.rest.HttpMethod.POST)
+    public abstract String create(@RestUriParam("type") String type)  throws IOException; 
+----
+|===

@@ -1,0 +1,97 @@
+= Upgrading from MMC 3.4.1 (only) for MS-SQL Server to MMC 3.6.0 for MS-SQL Server
+
+== Overview
+
+MMC version 3.4.1 for MS-SQL Server allows you to link:/documentation/display/current/Persisting+MMC+Data+to+MS+SQL+Server[persist MMC data to MS SQL Server] instead of on MMC's default internal databases. Users of this version of MMC should upgrade to MMC 3.6.0, which includes support for MS-SQL Server.
+
+Upgrading to MMC 3.6.0 requires that you run a migration script on MS-SQL Server. Optionally, you can also run an additional script to drop indexes not used in MMC 3.6.0. This page describes the procedure for running both scripts.
+
+[NOTE]
+Before running MMC 3.6.0, you will also need to perform the steps described in link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+an+External+Database[Upgrading to MMC 3.6.0 with an External Database]. Additionally, if your current MMC installation uses LDAP for user authentication, you must complete the steps described in link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+LDAP[Upgrading to MMC 3.6.0 with LDAP].
+
+== Downloading the Migration SQL Scripts
+
+There are two migration SQL scripts for MS-SQL Server:
+
+* The link:/documentation/download/attachments/122751942/sqlServerCustomersMigrate_341_to_342.sql?version=1&modificationDate=1388775317007[migration script], `sqlServerCustomersMigrate_341_to_342.sql`, required for all installations
+* The link:/documentation/download/attachments/122751942/sqlServerCustomersOptionalIndexDrop_341_to_342.sql?version=1&modificationDate=1388775386990[index drop script], `sqlServerCustomersOptionalIndexDrop_341_to_342.sql`, which is optional
+
+Click the links in the list above to download each script.
+
+ See the migration script for copy-paste
+
+[source]
+----
+USE [MMC_PERSISTENCY]
+GO
+CREATE TABLE [dbo].[OPENJPA_SEQUENCE_TABLE](
+    [ID] [tinyint] NOT NULL,
+    [SEQUENCE_VALUE] [bigint] NULL,
+PRIMARY KEY CLUSTERED
+(
+    [ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+INSERT INTO [dbo].[OPENJPA_SEQUENCE_TABLE]
+SELECT 0, SEQUENCE_VALUE FROM [dbo].[OPENJPA_SEQUENCES_TABLE] WHERE ID = 'EVENTS'
+GO
+/* VERIFY SEQUENCE_VALUE IN OPENJPA_SEQUENCE_TABLE IS THE SAME AS SEQUENCE_VALUE IN OPENJPA_SEQUENCES_VALUE */
+/* THEN DROP OLD TABLE */
+DROP TABLE [dbo].[OPENJPA_SEQUENCES_TABLE]
+GO
+----
+
+ See the optional drop indexes script for copy-paste
+
+[source]
+----
+USE [MMC_PERSISTENCY]
+DROP INDEX [EVENT_PROPERTIES].[e_properties_value]
+GO
+DROP INDEX [EVENTS].[e_flow_name]
+GO
+DROP INDEX [EVENTS].[e_message_id]
+GO
+DROP INDEX [EVENTS].[e_server_id]
+GO
+DROP INDEX [EVENTS].[e_server_name]
+GO
+DROP INDEX [EVENTS].[e_timestamp]
+GO
+DROP INDEX [EVENTS].[e_type]
+GO
+DROP INDEX [EVENTS].[events_name]
+GO
+DROP INDEX [TRANSACTION_SUMMARIES].[t_s_processing_time]
+GO
+DROP INDEX [TRANSACTION_SUMMARIES].[t_s_status_ordinal]
+GO
+----
+
+== Running the Scripts on MS-SQL Server
+
+Before running the scripts, follow these steps:
+
+* Ensure that no instance of MMC is connected to the MS-SQL Server – in other words, make sure that you have stopped your MMC 3.4.1, and that MMC 3.6.0 is not started, or not connected to the database on the MS-SQL Server
+* In the MMC tracking (Business Events) database, back up the current value of the `SEQUENCE_TABLE` field (located in the only row of `OPENJPA_SEQUENCES_TABLE`)
+* Both scripts use the database `MMC_PERSISTENCY`. If your database for MMC data has a different name, modify the name in the scripts by following these steps: +
+. Locate the statement `USE [MMC_PERSISTENCY]`.
+. Replace `MMC_PERSISTENCY` with the name of your database.
+
+After completing the above steps, run the migration script `sqlServerCustomersMigrate_341_to_342.sql` up to the following statement:
+
+[source]
+----
+SELECT 0, SEQUENCE_VALUE FROM [dbo].[OPENJPA_SEQUENCES_TABLE] WHERE ID = 'EVENTS'
+----
+
+After running the above statement, verify that `SEQUENCE_VALUE` in `OPENJPA_SEQUENCE_TABLE` is the same as `SEQUENCE_VALUE` in `OPENJPA_SEQUENCES_TABLE`. After this, run the rest of the script.
+
+[NOTE]
+If you have run MMC 3.6.0 connected to MS-SQL Server before running the migration script, and `OPENJPA_SEQUENCE_TABLE` already exists, you can run the migration script if you skip the table creation statements and run from the `INSERT INTO` statement.
+
+== See Also
+
+* Read an overview of http://www.mulesoft.org/documentation/display/current/Configuring+MMC+for+External+Databases+-+Quick+Reference[configuring MMC for external databases], which includes links to detailed instructions for each supported database server.
+* Read the configuration details for link:/documentation/display/current/Persisting+MMC+Data+to+MS+SQL+Server[Persisting MMC Data to MS SQL Server].

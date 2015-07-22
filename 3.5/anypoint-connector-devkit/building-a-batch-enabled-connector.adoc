@@ -1,0 +1,188 @@
+= Building a Batch Enabled Connector
+
+One of Mule's abilities is to process messages in link:/docs/display/35X/Batch+Processing[batches]. This functionality, which is provided by the `<batch:commit>` block, is particularly useful when you need to collect a subset of records for bulk upsert to an external source or service. However, unless the connector in question supports bulk operations, it cannot be used inside a batch block.
+
+Some of the benefits of using Batch include:
+
+* the parallel processing of records
+* handling of large quantities of incoming data from an API into a legacy system
+* the synchronisation of data sets between business applications
+
+Some of the already existing connectors, such as link:/docs/display/35X/Salesforce+Connector[Salesforce] and http://www.mulesoft.com/cloud-connectors/netsuite-integration-connector[NetSuite], have been supporting batch operations for years. However, with the introduction of the new batch module, developers no longer need to parse the response of the connector to determine which of the records failed. Instead, this is handled automatically by `<batch:commit>`.
+
+This document explains how you can leverage your own connector to take advantage of this feature introduced in the link:/docs/display/35X/Batch+Processing[Batch Processing] documentation.
+
+image:/docs/download/attachments/122751304/6-package.png?version=1&modificationDate=1421451054162[image]
+
+== Assumptions
+
+In this document it is assumed that you are familiar with how link:/docs/display/35X/Batch+Processing[Batch Processing] works. It is further assumed that you have already link:/docs/display/35X/Creating+an+Anypoint+Connector+Project[created a connector project] and link:/docs/display/35X/Defining+Attributes+Operations+and+Data+Model[defined the operations] to be used.
+
+== How It Works
+
+The implementation of this feature for new connectors is pretty straightforward. It consists of applying slight modifications to the connector such that all bulk operations return a BulkOperationResult. BulkOperationResult allows the Batch module to understand all types of bulk operations results.
+
+[source]
+----
+/**
+ * This class is used to provide item level information about a bulk operation. This
+ * master entity represents the bulk operation as a whole, while the detail entity
+ * {@link BulkItem} represents the operation status for each individual data piece.
+ * The {@link #items} list defines a contract in which the ordering of those items
+ * needs to match the ordering of the original objects. For example, if the bulk
+ * operation consisted of 10 person objects in which number X corresponded to the
+ * person 'John Doe', then the Xth item in the {@link #items} list must reference to
+ * the result of procesing the same 'John Doe'
+ */
+public final class BulkOperationResult<T> implements Serializable
+{
+    /**
+     * The operation id
+     */
+    public Serializable getId();
+     
+    /**
+     * Whether or not the operation was successful. Should be <code>true</code> if
+     * and only if all the child {@link BulkItem} entities were also successful
+     */
+    public boolean isSuccessful();
+     
+    /**
+     * An ordered list of {@link BulkItem}, one per each item in the original
+     * operation, no matter if the record was successful or not
+     */
+    public List<BulkItem<T>> getItems();
+     
+    /**
+     * A custom property stored under the given key
+     *
+     * @param key the key of the custom property
+     * @return a {@link Serializable} value
+     */
+    public Serializable getCustomProperty(String key);
+}
+----
+
+Basically, the above class is a Master-Detail relationship in which:
+
+* BulkOperationResult represents the operation as a whole, playing the role of the master.
+* BulkItem represents the result for each individual record, playing the role of the detail.
+* Both classes are immutable.
+* There’s an ordering relationship between the master and the detail. The first item in the BulkItem list has to correspond to the first record in the original bulk. The second has to correspond to the second one, and so forth.
+
+[source]
+----
+/**
+ * This class represents an individual data piece in the context of a bulk operation
+ */
+public final class BulkItem<T> implements Serializable
+{
+    /**
+     * The item id
+     */
+    public Serializable getId();
+ 
+    /**
+     * Wether or not it was successful. Notice that this should be <code>false</code>
+     * if {@link #exception} is not <code>null</code>, however there might not be an
+     * exception but the item could still not be successful for other reasons.
+     */
+    public boolean isSuccessful();
+ 
+    /**
+     * Message to add context on this item. Could be an error description, a warning
+     * or simply some info related to the operation
+     */
+    public String getMessage();
+ 
+    /**
+     * An optional status code
+     */
+    public String getStatusCode();
+     
+    /**
+     * An exception if the item was failed
+     */
+    public Exception getException();
+ 
+    /**
+     * The actual data this entity represents
+     */
+    public T getPayload();
+ 
+    /**
+     * A custom property stored under the given key
+     *
+     * @param key the key of the custom property
+     * @return a {@link Serializable} value
+     */
+    public Serializable getCustomProperty(String key);
+}
+----
+
+== Backwards Compatibility
+
+When considering existing connectors, you need to take a few extra steps to ensure they remain backward compatible with any Mule applications in which they are being used. Typically, these Mule applications would be handling the output of bulk operations themselves. As a result, these connectors would need to incorporate a transformer.
+
+Each connector needs to translate its own bulk operation representation to a BulkOperationResult object. This translation will differ from one connector to the other, given the different API implementations.
+
+[source]
+----
+public List<BatchResult> batchContacts(String batchId, List<NestedProcessor> operations) throws Exception;
+----
+
+In the above snippet, you can notice that the operation will return a list of BatchResult objects. Thus, the transformer has to transform BatchResults objects to BulkOperationResult.
+
+[source]
+----
+@Start
+public void init() {
+ this.muleContext.getRegistry().registerTransformer(new BatchResultToBulkOperationTransformer());
+}
+----
+
+[source]
+----
+public class BatchResultToBulkOperationTransformer extends AbstractDiscoverableTransformer {
+ 
+    public BatchResultToBulkOperationTransformer() {
+        this.registerSourceType(DataTypeFactory.create(List.class, BatchResult.class, null));
+        this.setReturnDataType(DataTypeFactory.create(BulkOperationResult.class));
+    }
+     
+    @Override
+    protected Object doTransform(Object src, String enc) throws TransformerException {
+        List<BatchResult> results = (List<BatchResult>) src;
+         
+        BulkOperationResultBuilder<BaseEntry<?>> builder = BulkOperationResult.<BaseEntry<?>>builder();
+         
+        if (results != null) {
+            for (BatchResult result : results) {
+                BatchStatus status = result.getStatus();
+                int code = status.getCode();
+                 
+                builder.addItem(BulkItem.<BaseEntry<?>>builder()
+                        .setRecordId(result.getId())
+                        .setPayload(result.getEntry())
+                        .setMessage(status.getContent())
+                        .setStatusCode(String.format("%d - %s", code, status.getReason()))
+                        .setSuccessful(code == 200 || code == 201 || code == 204)
+                    );
+            }
+        }
+         
+        return builder.build();
+    }
+----
+
+There are some important things to notice about the above transformer:
+
+* It needs to extend the AbstractDiscoverableTransformer class. This is so that the batch module can dynamically find it at runtime.
+* It defines the source and target data types on its constructor.
+* The doTransform() method does the transformation process.
+* Notice how BulkOperationResult and BulkItem classes provide convenient Builder objects to decouple their inner representations from your connector’s code. +
+
+== See Also
+
+* *NEXT*: Learn how to add link:/docs/display/35X/Developing+DevKit+Connector+Tests[tests] to your connector.
+* Generate the link:/docs/display/35X/Creating+Reference+Documentation[Reference Documentation].

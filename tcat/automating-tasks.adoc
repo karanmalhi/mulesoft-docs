@@ -1,0 +1,108 @@
+= Automating Tasks
+
+* link:#AutomatingTasks-CreatingaScript[Creating a Script]
+* link:#AutomatingTasks-ModifyingaScript[Modifying a Script]
+* link:#AutomatingTasks-SchedulingaScript[Scheduling a Script]
+* link:#AutomatingTasks-CronCommandSyntax[Cron Command Syntax]
+
+The Admin shell allows you to easily build and install your own extensions for Tcat Server by writing scripts. You can then run the scripts on startup or schedule them using a cron-like scheduling mechanism. The scripts are written using the Java-like Groovy scripting language. For more information about Groovy, see http://groovy.codehaus.org/.
+
+By default, Tcat Server includes two scheduled scripts:
+
+* Heartbeat: pings all your servers looking for unregistered Tcat Server instances. You should not need to modify this script.
+* Usage Statistics: sends anonymous information to MuleSoft. For more information, see link:/docs/display/TCAT/Scheduling+the+Usage+Statistics+Script[Scheduling the Usage Statistics Script].
+
+For more examples of scripts, see link:/docs/display/TCAT/Scripting+Examples[Scripting Examples]. For information on controlling logging of scripts, see link:/docs/display/TCAT/Working+with+Logs#WorkingwithLogs-shell[Shell Script Log].
+
+== Creating a Script
+
+To create a script, go to the Administration tab, click *Admin Shell*, and then enter your script. For example, you could enter the following text:
+
+----
+println "Hello"
+----
+
+You can then click *Evaluate* to run the script once. If it works without any errors, you can save the script to you can schedule it to run as a scheduled job. To save the script, enter a unique name for it, and then click *Save*. If you always want this script to run when Tcat Server starts, click *Run on startup*.
+
+To use an existing script as a template for a new script, click the existing script on the right side of the screen, make your modifications, and then click *Save As* and enter a new name for the script.
+
+== Modifying a Script
+
+To edit an existing script, click its name on the right side of the screen, make the modifications, and then click *Save*. At any time, you can click *Reset* to return to the last saved version of the script. +
+To delete a script, click it on the right side of the screen, and then click *Delete*.
+
+== Scheduling a Script
+
+You can use the scheduler to periodically run your script, which is useful for jobs such as replication.
+
+==== To create a scheduled job:
+
+. On the Administration tab, click *Scheduler*, and then click *New*.
+. Select the script to run.
+. Enter a unique name and description for this scheduled job.
+. Enter a link:#AutomatingTasks-cron[cron command] to specify when the script should be run.
+. To allow this script to be run even if the last execution of the script is still running, click *Allow Concurrent Execution*.
+. Click *Save*.
+
+[CAUTION]
+After you click *Save* to save the scheduled job, the script will run on the specified schedule until you delete the job.
+
+==== To delete a scheduled job:
+
+. Click *Scheduler* on the Administration tab.
+. Click the scheduled job you want to delete.
+. Click *Delete*, and then click *OK* to confirm you want to delete this job.
+
+== Cron Command Syntax
+
+You use the following syntax when specifying the cron command:
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Field Name |Mandatory |Allowed Values |Allowed Special Characters
+|Seconds |YES |0-59 |, - * /
+|Minutes |YES |0-59 |, - * /
+|Hours |YES |0-23 |, - * /
+|Day Of Month |YES |0-31 |, - * / L W
+|Month |YES |1-12 or JAN-DEC |, - * / +
+|Day Of Week |YES |1-7 or SUN-SAT |, - * / L #
+|Year |NO |empty, 1970-2099 |, - * /
+|===
+
+Following is a description of the special characters:
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Character |Description
+|, |Separates individual values, such as 0,30 in the minutes position to run the job on the hour and half hour.
+|- |Specifies a range of values, such as MON-FRI in the Day Of Week position to run the job each day of the work week.
+|* |Specifies all values for that position, such as every day of the week when * is specified in the Day Of Week position.
+|? |Skips setting a value for that position. Since Day of Week and Day of Month are mutually exclusive, always use ? in one of these fields and specify * or a specific value for the other.
+|/ |Specifies increments, such as every fifteen seconds starting on the first second of each minute when 1/15 is specified in the Seconds position.
+|L |Specifies the last day of the month or week, depending on the position.
+|W |Specifies the weekday nearest the specified day, such as running the job on the weekday closest to the third of the month when 3W is specified in the Day of Month position.
+|# |Specifies a day of the week as it occurs in the month, such as running the job the second Friday of every month by specifying 6#2 in the Day of Week position (where 6 is the sixth day of the week, or Friday, and #2 specifies the second occurrence of that day in the month).
+|===
+
+Following are some examples of cron commands:
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Command |Description
+|0 0 12 * * ? |12pm (noon) every day. Note that no year is specified, because the year position is optional.
+|0 15 10 ? * * +
+0 15 10 * * ? +
+0 15 10 * * ? * +
+0 15 10 * * ? ? |Any of these commands runs the job at 10:15am every day
+|0 0/5 14 * * ? |Every 5 minutes starting at 2pm and ending at 2:55pm, every day
+|0 0/5 14,18 * * ? |Fire every 5 minutes starting at 2pm and ending at 2:55pm, AND fire every 5 minutes starting at 6pm and ending at 6:55pm, every day
+|0 0/5 14-16 * * ? |Every 5 minutes starting at 2pm and ending at 4:55pm, every day
+|0 10,44 14 ? 3 WED |2:10pm and 2:44pm every Wednesday in March
+|0 15 10 ? * 6L 2010-2012 |10:15am on the last Friday of every month during the years 2010, 2011, and 2012
+|===
+
+For more information on the cron command and its options, see http://www.opensymphony.com/quartz/wikidocs/CronTriggers%20Tutorial.html
+
+link:/docs/display/TCAT/Working+with+Logs[<< Previous: *Working with Logs*]
+
+link:/docs/display/TCAT/Scripting+Examples[Next: *Scripting Examples* >>]

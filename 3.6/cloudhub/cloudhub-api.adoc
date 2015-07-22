@@ -1,0 +1,87 @@
+= CloudHub API
+:keywords: cloudhub, cloudhub api, manage, api, rest
+
+The CloudHub REST API provides a way for you to programmatically access much of CloudHub's functionality. It allows you to:
+
+* Create applications
+* Change application properties, including the number of workers and environment variables
+* Deploy a new version of your application
+* Delete your application
+* Get statistics about your application
+
+Before getting started with specific operations, be sure you're familiar with link:/documentation/display/current/Applications#Applications-OperationsforApplications[Operations for Applications].
+
+== Data Format
+
+All resources or methods that return or accept a type use the JSON as the data format. As an example, here's data you might receive, in JSON format, in response to a request to get an application:
+
+[source,json]
+----
+{
+  "domain":"hello",
+  "fullDomain":"hello.cloudhub.io",
+  "workers":1,
+  "hasFile":false,
+  "muleVersion", "3.1.2"
+  "properties": {
+    "foo":"bar"
+  },
+  "status":"STARTED",
+  "workerStatuses":[
+     {
+       "id":"",
+       "host":"xxx.xxx.xxx.xxx",
+       "port":8081,
+       "status":"STARTED"
+     }
+   ]
+}
+----
+
+
+== Getting Started and Authenticating with the API
+
+To use the API, you can use any HTTP client. All APIs use JSON as the data format. If you use Java, we recommend you use the http://wikis.sun.com/display/Jersey/Main[Jersey client] or http://hc.apache.org/httpclient-3.x/index.html[HttpClient] with http://jackson.codehaus.org[Jackson] for JSON support.
+
+All APIs require HTTP basic authentication. Your username controls which environment you're accessing and is of the form "user@environment". For example, if your username is joe and you have an environment called "Development", your username is joe@Development.  If you don't specify an environment, it defaults to production.
+
+== Status Codes and Error Handling
+
+When you call the REST APIs, the following status codes are returned:
+
+[cols ="2*"  options="header"]
+|===
+| Status Code
+| Description
+
+| 200
+| The operation was successful.
+
+| 201
+| The resource (such as, application) was created. The Location header contains the location of the resource.
+
+| 404
+| The resource was not found.
+
+| 409
+| When creating a resource (such as, server, server group, or deployment), a resource with that name already exists.
+
+| 500
+| The operation was unsuccessful. See the HTTP body for details.
+|===
+
+When errors occur (for example, a 500 status code), the HTTP response contains a JSON response with an error message. For example:
+
+[source,json]
+----
+500
+Content-Type: application/json
+Server: Apache-Coyote/1.1
+Date: Sun, 08 Nov 2009 00:12:55 GMT
+
+{
+  message : "Some error message."
+}
+----
+[TIP]
+Check out the https://anypoint.mulesoft.com/apiplatform/anypoint-platform/#/portals[API Portal]﻿ of the CloudHub API to see an interactive reference of all the supported resources, methods, required properties and expected responses.

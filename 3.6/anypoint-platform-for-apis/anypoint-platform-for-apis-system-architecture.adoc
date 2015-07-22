@@ -1,0 +1,101 @@
+= Anypoint Platform for APIs System Architecture
+
+
+The Anypoint Platform for APIs offers a secure and flexible architecture that supports cloud-based, on-premises, and hybrid use cases. The following sections describe the different architectures available for users connecting to the Anypoint Platform using an link:#AnypointPlatformforAPIsSystemArchitecture-APIGatewayandAPIManager[API Gateway] or a link:#AnypointPlatformforAPIsSystemArchitecture-CloudHubandAPIManager[CloudHub] account, and provides an overview of Anypoint Platform agent communication and security.
+
+== Architecture Components
+
+Your API System Architecture is the result of the configuration of three basic components:
+
+* Anypoint Platform for APIs: Cloud-based API registry, governance, and engagement tool
+* link:/documentation/display/current/Configuring+an+API+Gateway[API Gateway]: Serves as a proxy between your existing services, exposed as APIs and client applications
+* Anypoint Platform agent: Contained in the API Gateway, the agent enforces security policies created with the Anypoint Platform
+
+There are two possible Anypoint Platform configurations, depending on the location of the API Gateway:
+
+* API Gateway located on-premises
+* API Gateway hosted on CloudHub
+
+These are described in the sections below.
+
+== On-Premises Gateway
+
+The diagram below illustrates the architecture of the Anypoint Platform relative to an on-premises instance of the link:/documentation/display/current/Configuring+an+API+Gateway[API Gateway], which proxies your existing APIs, services, and applications to the Anypoint Platform. (Note that you may instead opt for a cloud-hosted API Gateway – see link:#AnypointPlatformforAPIsSystemArchitecture-CloudGateway[below].) In this pairing, your business logic, flows, orchestrations, execution, and message processing remain on premises, behind your firewall. The Anypoint Platform itself contains only the API endpoint locations, service and application metadata, runtime policy definitions, and metrics. Thus, sensitive information and runtime execution remain on premises, and your APIs continue to be accessible even if access to the Anypoint Platform becomes temporarily unavailable. 
+
+image:/documentation/download/attachments/122752401/3.on-premises.jpg?version=1&modificationDate=1406830534654[image]
+
+Communication between the Anypoint Platform and the API Gateway is handled by the agent, which uses OAuth 2 for authentication (see link:#AnypointPlatformforAPIsSystemArchitecture-agent[Agent Communication] below for details).
+
+== Cloud Gateway
+
+The diagram below illustrates the architecture of Anypoint Platform for APIs relative to a cloud instance of the link:/documentation/display/current/Configuring+an+API+Gateway[API Gateway], which proxies your existing APIs, services, and applications to the Anypoint Platform. (Note that you may instead opt for an on-prem-hosted API Gateway – see link:#AnypointPlatformforAPIsSystemArchitecture-On-PremiseGateway[above].) In this pairing, your business logic, flows, orchestrations, execution, and message processing are proxied on CloudHub instances from wherever they are hosted. The Anypoint Platform itself contains only the service endpoint locations, service and consumer metadata, runtime policy definitions, and metrics. Thus, your proxy application data remains in your secure CloudHub object stores and your APIs continue to be accessible even if access to the Anypoint Platform is temporarily unavailable.
+
+image:/documentation/download/attachments/122752401/2.on-cloud-CROPPED.jpg?version=1&modificationDate=1406563076517[image]
+
+== Agent Communication
+
+In order to communicate with the Anypoint Platform for APIs, the agent in the API Gateway needs to authenticate with the platform. The agent and the Anypoint Platform use OAuth 2 for authentication using the client credentials workflow.
+
+=== OAuth Authentication
+
+When you start your API gateway (or upload an application to one of your CloudHub workers) the agent authenticates via OAuth with the Anypoint Platform API, which checks that the agent's client credentials are valid. The agent then sends a list of all endpoints configured on the API gateway to the Anypoint Platform API. Any matching endpoints registered in the Anypoint Platform are now tracked by your agent.
+
+=== Policy and Client ID Enforcement
+
+To understand how the agent and the API communicate to enforce policies at runtime, let's examine a step-by-step example.
+
+. An API Version Owner registers an API endpoint in the API version page.
+. The API Version Owner starts the API Gateway or redeploys the application to trigger the agent to track the endpoint.
+. The API Version Owner applies a client id enforcement policy and another runtime policy – IP whitelisting, for example. 
+. An app requests access; the API Version Owner approves it.
+. The app makes an API call to the endpoint. 
+. The Anypoint Platform agent, which is tracking that endpoint as a registered endpoint in the Anypoint Platform, polls for updates on the endpoint policies at a user-defined interval, by default every five seconds. +
+. The API returns policy information to the agent.
+. The agent iterates through the list of policies and applies each one to the app's API call. If any one of the policy requirements are not met, the API call is not processed. In this example, the agent first checks that the incoming API call includes a valid client id and client secret by sending these values (if found) to the Anypoint Platform API for verification before moving on to the next policy, the IP whitelisting policy. For this second policy, the API would have already communicated the acceptable set of IPs to the agent, so the agent doesn't need to make another call to the Anypoint Platform API.
+. If the app's service call passes all policy requirements, the agent allows the call through to the API. 
+
+[NOTE]
+To minimize performance impact, policy retrieval is performed as a background task every five seconds. It is not necessary to hit the endpoint for policy retrieval to take place.
+
+=== The Agent Cache
+
+The agent stores policy information in its cache. If another (or the same) app hits the endpoint again within the lifespan of the cache, the agent doesn't ask for policy or contract information again; rather, it uses the information it has stored in the cache. +
+
+The lifetime of the cache is determined by the Anypoint Platform for APIs. If, for example, Anypoint Platform sets the cache lifetime at 30 seconds, the agent will clean the cache after 30 seconds and make a new request for policy information when the endpoint is hit. +
+
+If the agent loses connectivity to the server, the information held in the cache remains valid indefinitely. The following section describes this and other downtime functionality in further detail. +
+
+=== Downtime Functionality
+
+Due to the high availability architecture of the Anypoint Platform, likelihood of downtime is low. However, in the event that the Anypoint Platform Web application and API are not available, your API Gateway (whether on premises or on CloudHub) continues to run. Although you are not able to interact with the Web application or the API, all APIs registered on the Anypoint Platform are still available. Any policy information – including client ID information needed for policy enforcement that has been previously communicated to the agent and thus stored in the cache – remains in effect on any registered APIs. Thus, any time that the agent is unable to communicate directly with the Anypoint Platform, it perpetuates all instructions, restrictions, or permissions most recently retrieved, including client ID data, until it is able to refresh its cache.
+
+The agent would not have the opportunity to store the new policy information if the following events take place: +
+
+. A new policy is applied to an API, or a new policy for an API is created in the Anypoint Platform.
+. The API is never invoked after the policy is applied +
+_and_ 
+. an interruption of service occurs, causing the Anypoint Platform to go offline.
+
+If the above three events take place, the policy is not applied during downtime. During downtime, the API continues to function as it did before the new policy was applied.
+
+== Security and Reliability
+
+The Anypoint Platform for APIs is a fully multitenant application running on top of Amazon Web Services (AWS). The Anypoint Platform runs inside a VPC (cloud VPN). Data, metrics, and metadata cannot be accessed across organizations.
+
+Although the Anypoint Platform can manage and enforce the runtime security of your services, the services themselves remain wherever you have them deployed. Only the configuration of the policies and the metadata about the services is stored in Anypoint Platform; the actual enforcement of the policies and contracts occurs "on location" at the gateway.
+
+All communication between the Anypoint Platform and the agent, whether that agent on premises or on CloudHub, is performed through REST calls; OAuth is used for agent authentication. This counters any attempt to compromise the infrastructure through man-in-the-middle attacks or spoofing of services. The Anypoint Platform agent initiates communication with the Anypoint Platform API, also preventing any type of DNS type attack on your infrastructure.
+
+The runtime components are insulated from external network outages since they store a local cache and can continue to operate even if the Anypoint Platform were to become unavailable. Regardless, MuleSoft maintains an SLA of 99.99% for Anypoint Platform for APIs.
+
+The Anypoint Platform is certified via WhiteHat Sentinel. https://www.whitehatsec.com/sentinel_services/sentinel_services.html[image:/documentation/download/thumbnails/122752401/WhiteHat.png?version=1&modificationDate=1405972531964[image]]
+
+* Anypoint Platform environments are continuously audited by WhiteHat
+* Security issues (if any) are addressed immediately
+* WhiteHat reviews MuleSoft operational processes and certifies them as secure
+
+== See Also
+
+* Read more about the link:/documentation/display/current/Configuring+an+API+Gateway[API Gateway] and how to use it to proxy your existing APIs and services to the Anypoint Platform for APIs.
+* Find out more about https://www.whitehatsec.com/sentinel_services/sentinel_services.html[WhiteHat Sentinel] certification.
+* View the live status and historical uptime for Anypoint Platform on http://trust.mulesoft.com[trust.mulesoft.com].

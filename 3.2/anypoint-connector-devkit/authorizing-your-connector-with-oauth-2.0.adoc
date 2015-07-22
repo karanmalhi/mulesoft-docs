@@ -1,0 +1,138 @@
+= Authorizing your Connector with OAuth 2.0a
+
+OAuth (Open Authorization) is an open standard for authorization that enables websites or applications (Consumers) to access Protected Resources from a web service (Service Provider) via an API, without requiring Users to disclose their Service Provider credentials to the Consumers. In other words, OAuth allows users to share their private resources (e.g. photos, videos, contact lists) stored on one site with another site without having to hand out their credentials, typically username and password.
+
+For a detailed explanation of how OAuth 2 works go to http://oauth.net/2[OAuth 2 specification].
+
+== The `@OAuth2` Annotation
+
+If a Cloud Connector or Module is to take advantage of the OAuth 2 facilites the DevKit provides, the class level annotation `@OAuth2` needs to be present. Some paraemeters are required and other are optional and probably do not need to be used as they take default values that are suitable for most of the scenarios.
+
+The following table describes all the `@OAuth2` parameters:
+
+[cols=",,,",options="header",]
+|===
+|Parameter  + |                     Description                                   + |Required/Optional  + |Default Value
+|accessTokenUrl + |The URL defined by the Service Provider to obtain an Access Token + |REQUIRED | 
+|authorizationUrl |The URL defined by the Service Provider where the Resource Owner will be redirected to grant authorization to the Consumer |REQUIRED | 
+|verifierRegex |A Java regular expression used to extract the verifer from the Service Provider response as a result of the Resource Owner authorizing the Consumer |OPTIONAL |code=([^&]+) +
+|accessTokenRegex |A Java regular expression used to extract the Access Token from the Service Provider response + |OPTIONAL |"access_token":"([^&]+?)" +
+|expirationRegex + |A Java regular expression used to extract the expiration time of the Access Token (in seconds) from the Service Provider response. If the this regular expression is not found in the Service Provider response (whether the regular expression is wrong or the Access Token never expires), the Access Token will be +
+ treated as if it would never expire. |OPTIONAL |"expires_in":([^&]+?),
+|callbackPath |In case the Service Provider only accepts a known redirect URL, assign this parameter to the path inside your domain (denoted by the 'fullDomain' environment variable) that will be registered with Service Provider as a redirect URL. If left empty (meaning the Service Provider accepts any URL as redirect URL), a random path will be used |OPTIONAL |_ random path _
+|===
+
+== Steps to add OAuth 2 support
+
+. Add the `@OAuth2` class level and include at the minimum the `authorizationUrl` and `accessTokenUrl` information:
++
+
+[source]
+----
+@Module(name = "oauth2module")
+@OAuth2(authorizationUrl = "http://someUrl",
+        accessTokenUrl = "http://someOtherUrl")
+public class OAuth2Module {
+----
++
+
+_Note_: the values for `accessTokenUrl` and `authorizationUrl` can be obtained from the Service Provider documentation.
+
+. Create two String instance fields to hold your Consumer Key and Consumer Secret and annotate them with `@OAuthConsumerKey` and `@OAuthConsumerSecret` respectively. Also annotate them with `@Configurable` so that anyone using it can pass in their own credentials.
++
+
+[source]
+----
+@Module(name = "oauth2module")
+@OAuth2(authorizationUrl = "http://someUrl",
+        accessTokenUrl = "http://someOtherUrl")
+public class OAuth2Module {
+        @Configurable
+        @OAuthConsumerKey
+        private String apiKey;
+        @Configurable
+        @OAuthConsumerSecret
+        private String apiSecret;
+----
++
+
+Make sure these instance variables have public getters and setters.
+
+. In the methods annotated with `@Processor` that access Protected Resources add one String parameter and annotate it with `@OAuthAccessToken`:
+
+[source]
+----
+@Processor
+        public Object accessProtectedResource(@OAuthAccessToken String accessToken, ...) {
+----
+
+When a method that contains parameters annotated with `@OAuthAccessToken` is invoked two things can happen:
+
+* The first time a Protected Resource is accessed, the user will be redirected to the authorization url of the Service Provider to grant/deny access for the Consumer to the Protected Resource.
+
+* Subsequent times a Protected Resource is accessed, the parameter annotated with `@OAuthAccessToken` will contain the Access Token so that they can be included in the request to the Service Provider as defined by http://oauth.net/2[OAuth 2 specification].
+
+== Access token expiration
+
+In case the API access token expires and a proper regular expression has been specified using the `expirationRegex` parameter for the `@OAuth2` annotation, the DevKit will automatically detect when the access token expires and will trigger the OAuth 2 flow again.
+
+== Authorizing the connector
+
+Before any op that requires authorization can be executed the Resource Owner must grant access to the connector to access the Protected Resource. Upon calling authorize Mule will redirect the Resource Owner's browser to the Service Provider authorization page. After that, any subsequent attempts to access a Protected Resource will fill the parameters annotated with `@OAuthAccessToken` with the access token and so that they can be included in the request to Service Provider as described by the OAuth 2 specification.
+
+[source]
+----
+<linkedin:config apiKey="${api.key}" apiSecret="${api.secret}"/>
+
+        <flow name="authorize">
+            <http:inbound-endpoint host="localhost" port="8080" path="/authorize"/>
+            <linkedin:authorize/>
+        </flow>
+----
+
+== Mule configuration
+
+This is a sample Mule configuration file:
+
+[source]
+----
+<oauth2module:config apiKey="${api.key}" apiSecret="${api.secret}"/>
+
+        <flow name="sampleFlow">
+            <oauth2module:access-protected-resource />
+        </flow>
+----
+
+First we configure the extension by passing the Consumer Key and Consumer Secret for your application as supplied by the Service Provider.
+
+Then there is a simple flow that accesses a Protected Resource. If the connector has not been authorized by OAuth the op will throw a NotAuthorizedException.
+
+== Customizing the Callback
+
+When the user is redirected to the Service Provider authorization page and grants access to the Protected Resource, the Service Provider will make a HTTP callback passing an authorization code that Mule will use later to obtain the Access Token. There is no need to set up anything to handle the HTTP callback since Mule will dynamically create a HTTP inbound endpoint to handle it and this endpoint's URL will be passed to the Service Provider. By default Mule will construct a URL to send to the Service Provider using a host and port determined by the environment variables `fullDomain` and `http.port`. In case there is a need to use different values for host and port you may add the following configuration:
+
+[source]
+----
+<oauth2module:config apiKey="${api.key}" apiSecret="${api.secret}">
+       <oauth2module:oauth-callback-config domain="SOME_DOMAIN" remotePort="SOME_PORT" />
+   </oauth2module:config>
+----
+
+=== SSL
+
+As mentioned previously Mule will automatically launch an inbound endpoint for handling the OAuth callback. The endpoint will use the HTTP connector by default. In case the Service Provider requires HTTPS you can pass in your own connector by reference.
+
+[source]
+----
+<https:connector name="httpsConnector">
+    <https:tls-key-store path="keystore.jks" keyPassword="mule2012" storePassword="mule2012"/>
+</https:connector>
+
+<oauth2module:config apiKey="${api.key}" apiSecret="${api.secret}">
+    <oauth2module:oauth-callback-config domain="localhost" localPort="${http.port}"
+                                        remotePort="${http.port}" async="true"
+                                        connector-ref="httpsConnector"/>
+</oauth2module:config>
+----
+
+For more information about how to configure an HTTPS connector click http://www.mulesoft.org/documentation/display/MULE3USER/HTTPS+Transport+Reference[here].

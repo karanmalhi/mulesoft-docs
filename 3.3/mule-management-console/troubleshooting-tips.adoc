@@ -1,0 +1,91 @@
+= Troubleshooting the Installation
+
+This page covers various troubleshooting topics, such as help for troubleshooting a problematic installation.
+
+== Unable to Register the Console Agent
+
+When running Mule ESB server and the console in a Tomcat environment you may have a problem registering the Mule server instance with the console agent. This problem occurs when you try to register the server through the console screen. After entering the server name and the URL for the Mule agent, the console displays a message indicating that the console could not register the Mule server you specified, and that the server host system did not send a valid HTTP response. This problem usually occurs if you had previously unregistered the same server instance, but for some reason the unregistration process did not complete properly. There may be other reasons why the Mule server instance may internally be still registered.
+
+When this occurs, you need to do the following to fix the problem:
+
+* Delete the truststore.jks file from the `.mule/mmc-agent-mule3-app-3.x.x` directory. The `.mule/mmc-agent-mule3-app-3.x.x` directory is located beneath the directory from which you previously started the Mule ESB server and registered that Mule instance. For example, if you started Mule ESB from the Mule installation `c:/muleinstalldir/bin` directory, the `.mule/mmc-agent-mule3-app-3.x.x` directory is located in `/bin`. It is not necessary to stop the Mule instance to delete the truststore.jks file.
+
+Tcat users should also note that the above instructions apply only for Tomcat. The location of the truststore.jks file is different for Tcat. If you are using Tcat, you should note that with the Early Access release, Tcat Server Console and Mule Management Console cannot be co-located on the same Tomcat instance.
+
+== Unable to Register Server
+
+Getting this exception when trying to register Mule Server using MMC +
+ `Could not register server <serverName>: sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target`
+
+*Solution*: Try deleting `truststore.jks` from the` .mule/.agent` folder, or delete the `.mule/.agent` folder completely. After deleting `truststore.jks` you will need to restart the Mule server.
+
+== Using a Custom Agent Configuration
+
+You can change the agent configuration from that of the default URL, which is displayed when registering a new server instance. The agent configuration determines the bind port for the server instance. There are reasons for changing the agent URL, such as if you want to start multiple instances of Mule ESB within the same box and connect the console to these different instances or if you want to connect to remote server instances.
+
+The console assumes a default bind port of 7777. When you start Mule from a command line, you can change the port to which the server binds. You specify the new port as a switch or option in the command setting, as follows: -M-Dmule.mmc.bind.port=PORT_NUMBER. Note that you specify the port number option after specifying the configuration file option in the command: -config YOUR_CONFIG_FILE.xml.
+
+In addition, when you change the agent bind port to accommodate multiple Mule instances, you also must start Mule from the `bin` directory in which the particular Mule instance was installed. For example, you might run a second instance of Mule as follows, where this second instance is installed at /opt/second_mule:
+
+[source]
+----
+/opt/second_mule/bin/mule -config hello-config.xml -M-Dmule.mmc.bind.port=7773
+----
+
+You can also add this property in wrapper.conf kept under $MULE_HOME/conf/
+
+wrapper.java.additional.<n>=-Dmule.mmc.bind.port=7781
+
+replace the <n> with the appropriate sequence number.
+
+See link:/docs/display/33X/Running+Multiple+Mule+Instances[running multiple Mule instances] for more complete information.
+
+== Starting Multiple Mule Agent Instances
+
+You can start more than one Mule agent instance, but you have to bind each agent to its own port and start a separate listener for each agent.
+
+For example, if you start two Mule agent instances, one instance uses the default bind port of 7777, as described in the above section. For the second agent instance, you set up the port to which the agent binds as port 7778. You also must specify a listener class for this second agent instance. Add the following code to the `web.xml` file:
+
+[source]
+----
+<context-param>
+<param-name>mule.mmc.bind.port</param-name>
+<param-value>7778</param-value>
+        <description>MMC agent bind port</description>
+</context-param>
+ 
+<listener>
+   <listener-class>com.mulesoft.mmc.agent.web.MmcAwareContextListener</listener-class>
+</listener>
+----
+
+[WARNING]
+If you are using MMC listener-class, remove org.mule.config.builders.MuleXmlBuilderContextListener listener-class, because both listeners will try to start the same mule instance.
+
+Note that the same two properties, the bind port and listener class, are supported for standalone Mule ESB servers and those servers configured via the `web.xml` file.
+
+== Support for Mule Management Console When Used With Tcat
+
+For the management console to work with a Tcat server, you need to modify the value of the variable `PermGenSize` from 128 to 256. You should increase the size of `PermGenSize` to 256 before you deploy the management console WAR file to Tcat. After modifying `PermGenSize`, start Tcat and then deploy the management console WAR file. Both Tcat and the management console should now work together with no problems.
+
+If after changing `PermGenSize` and starting Tcat, you get an `OutOfMemoryError` message when deploying the console WAR file, then you need to take the following steps. These steps walk you through registering the Tcat local agent, deploying the management console WAR file, logging into the console and registering the console agent.
+
+* Install Tcat version 6.2.1 or greater.
+
+Edit the batch file for starting Tcat, `catalina.bat`. You want to move the line referencing `JAVA_OPTS` at the top of the file to line 126 in the file. Then, change the setting for `PermGenSize`within that line from 126m to 256m. When you're done, line 126 should look as follows:
+
+[source]
+----
+set JAVA_OPTS=%JAVA_OPTS% -Dgalaxy.data="%CATALINA_BASE%\galaxy-data" -XX:MaxPermSize=256m
+-XX:+HeapDumpOnOutOfMemoryError -Dcom.sun.management.jmxremote -Djava.net.preferIPv4Stack=true
+----
+
+* Start Tcat.
+* Log into Tcat and register the local Tcat agent. Use this URL for the agent (eg. http://localhost:7777/agent).
+* Create a new package that contains the mmc war file and the Local Tcat Agent.
+* Click the Save and Deploy buttons.
+* Click the Local Tcat Agent Servers link.
+* Click the Applications tab.
+* Click the Go To link.
+* Log into the Mule management console and start a local Mule ESB instance on which the console agent has been deployed.
+* Click the New Server button in the console and register the console agent using its URL (eg. http://localhost:7777/mmc-support).

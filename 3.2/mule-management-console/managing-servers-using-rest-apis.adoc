@@ -1,0 +1,209 @@
+= Managing Servers Using REST APIs
+
+[ link:#ManagingServersUsingRESTAPIs-ManagingServers[Managing Servers] ] [ link:#ManagingServersUsingRESTAPIs-WorkingwithServerGroups[Working with Server Groups] ]
+
+The management console provides REST APIs that you can use to programmatically access much of the console's functionality. Among the operations that you can request with the REST APIs are operations related to managing servers. This includes registering new servers, managing existing servers, starting and restarting servers, as well as managing server groups.
+
+[NOTE]
+See link:/documentation-3.2/display/32X/Using+the+Management+Console+API[Using the Management Console APIs] for an overview of the REST APIs, including a basic example of use, and a summary of returned status codes and error handling codes.
+
+This page summarizes the REST APIs for managing servers, server groups, and files. In addition, it describes the properties that you can specify when you query or update servers, server groups, and files. You'll find tables below that summarize each of the REST APIs. You'll also find links embedded in the API summary tables for more details about each API method.
+
+*Note:* The notation \{mmc base} refers to the console base address.
+
+== Managing Servers
+
+You use the server APIs to find, create, update, and delete servers. In addition, you can perform other operations related to managing a server, such as restarting a server or uploading files to a server. You can perform operations on all servers, individual servers, and server-related files.
+
+The three tables below summarize the operations you can perform on servers and the resource you specify to invoke each operation. The tables are divided into those operations that you can perform on all servers, those that are specific to a single server, and those that operate on files. Click on the link for a specific task to get more details about performing that task using its REST API.
+
+Notice that the same resource may carry out different operations depending on the HTTP command you use to invoke it. For example, the resource /mmc/api/servers lists all servers if you invoke it with the GET command. If you call it with the POST command, the same resource registers a server.
+
+*APIs for All Servers* +
+These API(s) may be performed on all servers.
+
+[cols=",,,",options="header",]
+|===
+|Task |Resource |Description |HTTP Invocation Method
+|link:/documentation-3.2/display/32X/List+All+Servers[List All Servers] |\{mmc base}/api/servers |Lists all servers on the resource |GET
+|===
+
+*APIs for Individual Servers* +
+Use these APIs to perform operations on individual servers. Note that <myServerId> is a placeholder for the URL identifying a specific server.
+
+[cols=",,,",options="header",]
+|===
+|Task |Resource |Description |HTTP Invocation Method
+|link:/documentation-3.2/display/32X/Get+a+Server[Get a Server] + |\{mmc base}/api/servers/<myServerId> |Gets a server identifier |GET
+|link:/documentation-3.2/display/32X/Register+a+Server[Register a Server] + |\{mmc base}/api/servers |Registers a new server |POST
+|link:/documentation-3.2/display/32X/Restart+a+Server[Restart a Server] + |\{mmc base}/api/servers/<myServerId>/restart |Restarts a server |POST
+|link:/documentation-3.2/display/32X/Update+a+Server[Update a Server] + |\{mmc base}/api/servers/<myServerId> |Updates a server |PUT
+|link:/documentation-3.2/display/32X/Delete+a+Server[Delete a Server] + |\{mmc base}/api/servers/<myServerId> |Deletes a server |DELETE
+|===
+
+*APIs for Actions on Files* +
+Use these APIs to perform actions on files that are located on the specified server. Note that <myServerId> is a placeholder for the URL identifying a specific server. Also note that <myFile.xml> is a placeholder for the path to a file.
+
+[cols=",,,",options="header",]
+|==========
+|Task |Resource |Description |HTTP Invocation Method
+|link:/documentation-3.2/display/32X/Get+a+File[Get a File] + |\{mmc base}/api/servers/<myServerId>/files/<myFile.xml> |Gets a file located on the specified server |GET
+|link:/documentation-3.2/display/32X/Get+File+Metadata[Get File Metadata] + |\{mmc base}/api/servers/files/<myServerId>/\\ <myFile.xml>?metadata=true |Gets the metadata for a file located on the specified server |GET
+|link:/documentation-3.2/display/32X/Create+or+Update+a+File[Create or Update a File] + |\{mmc base}/api/servers/files/<myServerId>/\\ <myFile.xml> |Updates or creates a file located on the specified server |POST
+|link:/documentation-3.2/display/32X/Update+a+File[Update a File] + |\{mmc base}/api/servers/files/<myServerId>/ |Updates a file located on the specified server |PUT
+|link:/documentation-3.2/display/32X/Delete+a+File[Delete a File] + |\{mmc base}/api/servers/files/<myServerId>/\\ <myFile.xml> |Deletes a file located on the server |DELETE
+|==========
+
+For example, the following is a request to list all servers.
+
+[source]
+----
+GET http://{mmc base}/api/servers
+----
+
+Here is what the response might look like.
+
+[source]
+----
+200 OK
+Content-Type: application/json
+Server: Apache-Coyote/1.1
+Date: Sun, 08 Nov 2009 00:12:55 GMT
+{
+  "total" : 1,
+  "data" : [
+    {
+      "name" : "Test",
+      "id" : "local$b15ecba1-9f97-4b16-8127-9b137cdbb2e1",
+      "href" : "http://localhost:9003/mmc/api/servers/local$b15ecba1-9f97-4b16-8127-9b137cdbb2e1",
+      "agentUrl" : "https://localhost:7777/mmc-support",
+      "hostIp" : "192.168.0.13",
+      "muleServerId" : "d9505d40-2c5c-11df-b832-a32a5a09ec4e",
+      "started" : "Wed Mar 10 16:51:59 CET 2010",
+      "version" : "2.2.5",
+      "agents": [
+        {
+          "name" : "mmc-support",
+          "description" : "Mule Management Console Support (0.0.0.0:7777)"
+        },
+        {
+          "name" : "jmx-agent",
+          "description" : "JMX Agent"
+         }
+       ],
+      "groups" : [
+        {
+          "name" : "Development",
+          "href" : "http://localhost:8080/mmc/api/serverGroups/73d89173-290e-4cb3-a61c-e11deb74767d"
+        }
+      ],
+      "status": "STOPPED",
+      "runningServices" : 3,
+      "pausedServices" : 0,
+      "stoppedServices": 0
+    }
+  ]
+}
+----
+
+Keep in mind that unless otherwise noted, all resources (methods) that either return or accept a type, use the server JSON type, as shown in the response received from the `/mmc/api/servers` API shown above.
+
+=== Server Properties
+
+To request server operations successfully, you need to know the server properties. This section provides a brief listing of the properties you pass to and from server-specific methods. All method calls require that you set values for at least some of these properties. The response you get back includes the properties and the values they hold at the time of the method call.
+
+In addition to illustrating a JSON type, the previous code example illustrates the values that a response might return for a set of server properties, such as `name,` and `agentUrl`. The JSON object includes all values set at the time of the call for the server properties. The table below shows the server properties.
+
+[cols=",",options="header",]
+|===
+|Property |Description
+|name |The name of the server
+|id |The unique ID of the server
+|href |The URL where the server is located
+|agentUrl |The URL used for communication between the console and the Mule server. This is the complete URL designation.
+|hostIp |The host IP of the Mule server, such as 192.168.0.13
+|muleServerId |The Mule server id
+|started |The date and time when the server was last started
+|status |The status of the server (eg. STOPPED, OK, etc)
+|version |The Mule version in use, for example, 2.2.5
+|agents |A list of agents running on the server. Additional agent properties are shown below.
+|groups |A list of the groups to which this server belongs. Additional group properties are shown below.
+|runningServices |The number of running services
+|pausedServices |The number of paused services
+|stoppedServices |The number of stopped services
+|===
+
+=== Agent Properties
+
+The following table shows the sub-properties of the `agents` property. You can see examples of these properties in the above JSON code sample.
+
+[cols=",",]
+|===
+|name |The name of the agent, such as, `jmx-agent`
+|description |The description of the agent, such as JMX-Agent
+|===
+
+=== Server Group Properties
+
+The table below shows the sub-properties of the `groups` server property. The previous JSON code sample provides examples of the values of these properties.
+
+[cols=",",]
+|===
+|name |The name of the server group
+|href |The URL where the server group is located
+|===
+
+== Working with Server Groups
+
+As with servers, you can perform operations on all server groups at once or on an individual server group. All resources/methods that return or accept a type, except where noted, use the server group JSON type. Here is an example of a server group JSON type returned for a server group-related request:
+
+[source]
+----
+{
+  "name" : "renamed",
+  "id" : "c4f7d8ce-21a7-4730-9447-37d8a7f8aab0",
+  "serverCount" : 0,
+  "href" : "http://localhost:8080/mmc/api/serverGroups/c4f7d8ce-21a7-4730-9447-37d8a7f8aab0"
+}
+----
+
+=== Server Group Properties
+
+The following properties apply to server groups. These properties appear in a response when you retrieve a server group. You specify the server group `name` property when taking actions such as creating a new server group.
+
+[cols=",",options="header",]
+|======
+|Property |Description
+|name |The name of the group
+|id |The unique ID of the group
+|href |The URL where the server group is located
+|serverCount |The number of servers currently in this group
+|======
+
+=== APIs for Server Groups
+
+The tables below summarize the operations you can perform on either an individual server group or on all server groups. The tables indicate the resource you specify for each operation and the HTTP command to invoke the resource.
+
+*All Server Groups*
+
+[cols=",,,",options="header",]
+|============
+|Task |Resource |Description |HTTP Invocation Method
+|link:/documentation-3.2/display/32X/List+All+Server+Groups[List All Server Groups] + |\{mmc base}/api/serverGroups |Lists all server groups on the resource |GET
+|============
+
+*Individual Server Groups* +
+Use these resources to perform operations on individual server groups. Be sure to substitute the identifier of the specific server group for <serverGroupId>.
+
+[cols=",,,",options="header",]
+|============
+|Task |Resource |Description |HTTP Invocation Method
+|link:/documentation-3.2/display/32X/Create+a+Server+Group[Create a Server Group] + |\{mmc base}/api/serverGroups |Creates a new server group |POST
+|link:/documentation-3.2/display/32X/Get+a+Server+Group[Get a Server Group] + |\{mmc base}/api/serverGroups/<serverGroupId> |Gets a server group |GET
+|link:/documentation-3.2/display/32X/Update+a+Server+Group[Update a Server Group] + |\{mmc base}/api/serverGroups/<serverGroupId> |Updates a server group |PUT
+|link:/documentation-3.2/display/32X/Delete+a+Server+Group[Delete a Server Group] + |\{mmc base}/api/serverGroups/<serverGroupId> |Deletes a server group |DELETE
+|============
+
+link:/documentation-3.2/display/32X/Using+the+Management+Console+API[<< Previous: *Using the Management Console API*]
+
+link:/documentation-3.2/display/32X/Managing+Clusters+Using+REST+APIs[Next: *Managing Clusters Using REST APIs*] >>

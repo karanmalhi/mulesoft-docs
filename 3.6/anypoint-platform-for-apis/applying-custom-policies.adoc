@@ -1,0 +1,467 @@
+= Applying Custom Policies
+
+If your APIs need to implement a policy that isn't covered by the default set of policies in the platform, you can create your own custom policy and then apply it to your API.
+
+In order to do this, you'll need to put two files together:
+
+* A *Policy Template* - YAML file that describes the policy and its configurable parameters (link:#ApplyingCustomPolicies-yaml[example])
+* A *Policy Configuration* - XML file with the backend processes that implement the policy (link:#ApplyingCustomPolicies-xml[example])
+
+[NOTE]
+This feature is only supported with API Gateway version 1.3 and later
+
+== Creating a New Policy
+
+Go to the API Administration page, click the menu icon on the top-right and then *Custom policies*.
+
+image:/documentation/download/attachments/122752385/custom+policies+1.jpg?version=1&modificationDate=1412262403510[image]
+
+You will be prompted to give your new policy a name and provide two files that define and implement your policy, described below.
+
+image:/documentation/download/attachments/122752385/custom+policy.jpg?version=1&modificationDate=1412782913911[image]
+
+=== Policy Definition
+
+The policy definition is a YAML file, which assigns values to a set of parameters relative to your new policy. These are the parameters you can define:
+
+[cols=",,",options="header",]
+|===
+|Parameter |Type |Description
+|`name` |string |Policy name
+|`description` |string |A description that will be displayed in the policy's details when applying it
+|`category` |string |Category of the policy
+|`type` |string (optional) |Custom policies must always have type set to "custom"
+|`standalone` |boolean |Specifies if the policy can work on its own or if it relies on other policies being active.
+|`providedCharacteristics` |array |List of characteristics that are fulfilled by applying this policy. These fulfilled characteristics may unblock the use of other policies that require them. Any string input is valid as a characteristic name, and these are case sensitive.
+|`requiredCharacteristics` |array |List of characteristics that must be fulfilled before this policy can be applied. Required characteristics can be fulfilled by applying other policies that provide these. Any string input is valid as a characteristic name as long as at least one other policy provides this characteristic, these are case sensitive.
+|`configuration` |array |Set of configurable properties associated with your policy, details on the parameters for each property below.
+|===
+
+In the Configuration parameter, you list a set of properties, each can contain the following parameters:
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|Parameter |Type |Description
+|`propertyName`
+|string |Property name for internal reference
+|`name` |string |Property name to display in configuration window
+|`description` |string |Property description to display in configuration window
+|`type` |string a|
+Data type:
+
+string, boolean, int, timeunit, ipadress, expression (in MEL)
+
+|`optional` |boolean |True if assigning a value for it is optional.
+|`sensitive` |boolean |True if the information contained by this field is sensitive (typically used for passwords and tokens). When policy information is requested from the server, these sensitive fields will be filtered out.
+|`allowMultiple`
+ |boolean a|
+True if multiple values can be assigned
+
+(only valid if type is ipadress)
+
+|`minimumValue` |int |Only for values of type int
+|`maximumValue` |int |Only for values of type int
+|===
+
+
+=== YAML Syntax examples for each kind of property
+
+
+==== Integer
+
+[source, ruby]
+----
+configuration:
+ - propertyName: aint
+   name: Test Int single between 5 and 10
+   description: Some Description
+   type: int
+   minimumValue: 5
+   maximumValue: 10
+   optional: true
+   sensitive: false
+   allowMultiple: false
+----
+
+==== Timeunit
+
+[source, ruby]
+----
+configuration:
+ - propertyName: atimeunit
+   name: Test Timeunit single
+   description: Some Description
+   type: timeunit
+   optional: true
+   sensitive: false
+   allowMultiple: false
+----
+
+==== Boolean
+
+[source, ruby]
+----
+configuration:
+ - propertyName: aboolean
+   name: Test Boolean single
+   description: Some Description
+   type: boolean
+   optional: true
+   sensitive: false
+   allowMultiple: false
+----
+==== String
+
+[source, ruby]
+----
+configuration:
+ - propertyName: astring
+   name: Test String single
+   description: Some Description
+   type: string
+   optional: true
+   sensitive: false
+   allowMultiple: false
+----
+
+Here's an example of a YAML file that describes the interface of an IP White List policy:
+
+[source, ruby]
+----
+---
+id: ip-whitelist
+name: IP whitelist
+description: Limits all service calls to a defined set of IP addresses.
+category: Security
+type: system
+standalone: true
+requiresConnectivity: false
+providedCharacteristics:
+  - IP filtered
+requiredCharacteristics: []
+configuration:
+  - propertyName: ipExpression
+    name: IP expression
+    description: |
+      Mule Expression for extracting the IP address from this API request.
+      e.g. #[message.inboundProperties['http.headers']['X-Forwarded-For']]
+    type: expression
+    defaultValue:
+    optional: true
+    sensitive: false
+    allowMultiple: false
+  - propertyName: ips
+    name: Whitelist
+    description: Limited list of IP addresses allowed API access
+    type: ipaddress
+    optional: false
+    sensitive: false
+    allowMultiple: true
+----
+
+=== Policy Configuration
+
+The policy configuration is an XML file that defines the actual processes that carry out the implementation of the policy. Structured similarly to a Mule app, but content must be wrapped in the following tags:
+
+[source,xml]
+----
+<policy>
+</policy>
+----
+
+Enclosed within this main element, there are two fundamental structures you can add: `<before></before>` and `<after></after>` tags. Both are optional, but your policy must have at least one of them if you want it to perform any action at all.
+
+Whatever you put between your *before* tags will be executed every time there's an incoming request to your API, as soon as it has reached the inbound endpoint, before executing any of the remaining message processors in your flows.
+
+Whatever you put between your *after* tags will likewise be executed every time there's a request to your API, right before reaching the outbound endpoint in your API, after having executed every other one of the message processors in your flows.
+
+image:/documentation/download/attachments/122752385/basic+flow.png?version=1&modificationDate=1414764586442[image]
+
+Besides the `<before></before>` and `<after></after>` tags, you can also add `<mule:processor-chain></mule:processor-chain>` tags as additional flows where you can perform more procedures. Note that these flows won't be executed on their own, they must be referenced one way or another by either the *before* or the *after* sections of your policy.
+
+[source,xml]
+----
+<policy>
+
+    <before>
+        <!-- elements automatically executed at the start -->
+    </before>
+
+
+    <after>
+        <!-- elements automatically executed at the end -->
+    </after>
+
+
+    <mule:processor-chain name="chain1">
+        <!-- this flow may be called to be executed by the others -->
+    </mule:processor-chain>
+
+
+    <mule:processor-chain name="chain2">
+        <!-- this flow may be called to be executed by the others -->
+    </mule:processor-chain>
+
+</policy>
+----
+
+[TIP]
+====
+*So what elements can you include within these tags to execute processes?*
+
+Refer to the link:/documentation/display/current/Mule+User+Guide[Mule User Guide] for straight forward reference material and detailed descriptions of each of the available building blocks that Mule has to offer.
+
+Or read link:/documentation/display/current/Elements+in+a+Mule+Flow[Elements in a Mule Flow] for an introduction to the topic.
+====
+
+==== Referencing Properties
+
+Anywhere in any of these structures you can reference the dynamic properties of your policy. There's a default set of properties that all policy definitions can access, and additionally you can also reference properties that are defined in your Policy Template YAML file.
+
+To reference a property, simply type its name enclosed in two curly brackets like so:
+[source,xml]
+----
+{{propertyName}}
+----
+
+By default, whenever you're creating a custom policy you have access to the following properties, which will automatically have values based on the API on which the policy is implemented:
+
+[cols=",",options="header",]
+|===
+|Property | 
+|policyId |A unique ID for the current policy
+|endpointUri |The full URI for the inbound endpoint of the API
+|apiId |Unique ID number for the API
+|apiVersionId |Unique ID number for the API version
+|apiName |Name of the API
+|isRamlEndpoint |Boolean that determines if the endpoint is linked to a RAML definition file
+|isWsdlEndpoint |Boolean that determines if the endpoint is linked to a WSDL definition file
+|isHttpEndpoint |Boolean that determines if the endpoint is follows the HTTP protocol
+|===
+
+In addition to these default properties, you are also free to specify new ones in the Policy Template YAML file, these will have values based on what the user configures when he applies the policy on his API. In the case of the example YAML shown previously on this same page, there are two properties that users must provide values for when applying your policy and that you can reference: ipExpression and ips. If these properties aren't referenced anywhere in the Policy Configuration XML file, then it's quite pointless to prompt users to assign values to them.
+
+==== Using Pointcuts
+
+Currently, *it's mandatory that your custom policy contains a pointcut declaration.* Pointcuts control the scope of the policy's application, they use regular expressions to indicate what flows in the application will be affected by the policy.
+
+If you're going to apply your policy to APIs that are deployed through the Anypoint Platform for APIs, then we strongly recommend that you set your pointcut to the default properties `apiName` and `apiVersion`, which guarantees that your policy it will be applied to only the API on which you're activating the policy. This is what your pointcut should look like:
+
+[source,xml]
+----
+<pointcut>
+       <api-platform-gw:api-pointcut apiName="{{ apiName }}" apiVersion="{{ apiVersionName }}"/>
+</pointcut>
+----
+
+[NOTE]
+Setting your pointcut to a broad regular expression such as `regex=”.*”` may have undesirable effects, since when applying this policy to a single API through the platform might actually affect other APIs you're deploying as well.
+
+If you're using your policies in an on-site deployment, then you may want to modify the pointcut to apply your policy to multiple APIs simultaneously.
+
+
+==== Customizing the pointcut
+
+
+In a pointcut you can reference the following kinds of elements:
+
+* endpoints
+* apps
+* resources
+
+If several elements are specified inside a single pointcut, then they will be implemented as if you were using an AND expression +
+
+[source,xml]
+----
+<pointcut>
+   <resource uriTemplateRegex="/items/.*" />
+   <resource methodRegex="GET" />
+</pointcut>
+----
+
+If several elements are specified in separate pointcut parent elements, then they will be implemented as if you were using an OR expression
+
+===== Reference Apps
+
+
+[source,xml]
+----
+<pointcut>
+   <app regex=".*" />
+</pointcut>
+----
+
+===== Reference Endpoints
+[source,xml]
+----
+<pointcut>
+   <endpoint regex=".*" />
+</pointcut>
+----
+
+
+Example using values from properties:
+
+[source,xml]
+----
+<pointcut>
+    <endpoint regex="http://localhost:${http.port}/gateway/.*" />
+</pointcut>
+----
+
+
+This is also valid:
+
+[source,xml]
+----
+<pointcut>
+   <endpoint regex="http\:\/\/localhost:${http.port}\/gateway\/.*" />
+</pointcut>
+----
+
+For the two examples above to work you have to define `http.port` when starting Mule or in your wrapper.conf file, defining something like below:
+
+`wrapper.java.additional.4=-Dhttp.port=8081`
+
+If http.port is defined at application level, you’ll have a parse exception when you apply the policy. +
+
+
+===== Reference Resources
+
+[source,xml]
+----
+<pointcut>
+   <resource methodRegex=".*" />
+</pointcut>
+----
+
+You can reference specific methods (GET, POST, PUT, etc.).
+
+For example: `<resource methodRegex=”P.*” />` will apply to all POST, PUT and PATCH methods. +
+
+Example using defaults
+
+[source,xml]
+----
+<pointcut>
+   <resource uriTemplateRegex=".*" />
+</pointcut>
+----
+
+
+In this example you can specify the path from the basedUri specified on the raml file. +
+
+Example filtering first level of resources:
+
+[source,xml]
+----
+<pointcut>
+    <resource uriTemplateRegex="/items/.*" />
+</pointcut>
+----
+
+[IMPORTANT]
+Although you can use any message processor that is available in Mule to build your custom policy, an important limitation to keep in mind is that you can only use the Java classes that are provided by mule. Unlike what you might want to do when building a Mule application, you can't define and call a custom java class on your custom policy, as you have no way of bundling this custom Java class with your policy.
+
+==== Basic Policy Configuration Skeleton
+
+Below is a basic skeleton structure that you can use as a starting point when building your custom policy:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<policy xmlns="http://www.mulesoft.org/schema/mule/policy"
+        xmlns:mule="http://www.mulesoft.org/schema/mule/core"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:api-platform-gw="http://www.mulesoft.org/schema/mule/api-platform-gw"
+        xsi:schemaLocation="http://www.mulesoft.org/schema/mule/policy http://www.mulesoft.org/schema/mule/policy/current/mule-policy.xsd
+              http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+              http://www.mulesoft.org/schema/mule/api-platform-gw http://www.mulesoft.org/schema/mule/api-platform-gw/current/mule-api-platform-gw.xsd">
+
+    <before>
+        <mule:set-payload value="PRE" />
+    </before>
+
+    <after>
+        <mule:set-payload value="POST" />
+    </after>
+
+    <pointcut>
+       <api-platform-gw:api-pointcut apiName="{{ apiName }}" apiVersion="{{ apiVersionName }}"/>
+    </pointcut>
+
+</policy>
+----
+
+[TIP]
+Note that you don't need to have *both* a before and after tag, you can choose to keep only one of them.
+
+==== Full Example of a Policy Configuration File
+
+Below is an example of a policy configuration file that implements an IP whitelist filter. It matches the YAML example displayed above, both are needed to create this policy. Notice how in this XML file references several variables – enclosed in \{\{ brackets }} –, which are defined in the YAML fle.
+
+The IP whitelist filter policy adds a validation that requires all requests to contain a valid IP Address based on a valid list of IPs  configured.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<policy online="true"
+        xmlns="http://www.mulesoft.org/schema/mule/policy"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:spring="http://www.springframework.org/schema/beans"
+        xmlns:mule="http://www.mulesoft.org/schema/mule/core"
+        xmlns:ip-filter-gw="http://www.mulesoft.org/schema/mule/ip-filter-gw"
+        xsi:schemaLocation="http://www.mulesoft.org/schema/mule/policy http://www.mulesoft.org/schema/mule/policy/current/mule-policy.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/ip-filter-gw http://www.mulesoft.org/schema/mule/ip-filter-gw/current/mule-ip-filter-gw.xsd">
+
+     <!-- This section is for building response messages when the policy fails. -->
+    <mule:processor-chain name="{{policyId}}-build-response">
+        <mule:set-property propertyName="http.status" value="403"/> <!-- Set HTTP status code to 403 -->
+        <mule:set-property propertyName="Content-Type" value="application/json"/>
+        <mule:set-payload value="#[_ipViolationMessage]"/> <!-- Set the payload to the description of the violation -->
+    </mule:processor-chain>
+
+    <!-- This is the element that gets injected at the beginning of every flow. According to the pointcut specified below. -->
+    <before>
+        <ip-filter-gw:filter ipAddress="{{ipExpression}}" onUnaccepted="{{policyId}}-build-response">   <!-- If failed, the mule:processor-chain above is executed -->
+            <ip-filter-gw:whitelist>
+                {{#ips}}
+                <ip-filter-gw:ip>{{.}}</ip-filter-gw:ip>
+                {{/ips}}
+            </ip-filter-gw:whitelist>
+        </ip-filter-gw:filter>
+    </before>
+
+    <!-- Pointcuts specify where this policy takes effect-->
+    <pointcut>
+       <api-platform-gw:api-pointcut apiName="{{ apiName }}" apiVersion="{{ apiVersionName }}"/>
+    </pointcut>
+</policy>
+----
+
+[TIP]
+For more examples, navigate to the directory where you installed the API Gateway, search for the folder `examples>policies` to find a set of example XML files that refer to the default policies available in the platform.
+
+== Using the new Policy
+
+Once your policy is created, you will be able to manage it from your custom policies page:
+
+image:/documentation/download/attachments/122752385/custom+policies+3.jpg?version=1&modificationDate=1412269607632[image]
+
+You can apply it by navigating into the policies tab of one of your APIs, there it will be available alongside the regular default policies.
+
+image:/documentation/download/attachments/122752385/custom+policies+4.jpg?version=1&modificationDate=1412269675982[image]
+
+Notice that the properties you set up in the policy template YAML file, such as description, category, required characteristics and provided characteristics are displayed in this menu. When you click the *Apply* button, you will be prompted with the following menu:
+
+image:/documentation/download/attachments/122752385/myPolicy+setup.png?version=1&modificationDate=1414784394907[image]
+
+Once again, notice that everything in this menu is based on what you defined in the YAML file. The two configurable fields correspond to the two properties that you set up in this field, each displaying the name and description that you assigned to them, and each enforces that the input type matches the one you defined.
+
+== See Also
+
+* Return to the http://www.mulesoft.org/documentation/display/current/Applying+Runtime+Policies[Applying Runtime Policies] page.
+* Read link:/documentation/display/current/Elements+in+a+Mule+Flow[Elements in a Mule Flow] to learn about the elements you can use to construct a policy XML file
+* Reference link:/documentation/display/current/Mule+User+Guide[Mule User Guide] for a detailed reference and description of each element that can be used when building policy XML files

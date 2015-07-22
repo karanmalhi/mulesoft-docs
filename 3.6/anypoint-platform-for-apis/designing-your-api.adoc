@@ -1,0 +1,176 @@
+= Designing Your API
+
+*API Designer* is the Anypoint Platform for APIs custom environment specifically dedicated to designing and writing an API definition in http://raml.org/[RAML]. The API definition that you create here can be consumed by link:/documentation/display/current/Building+Your+API[APIkit] (as well as other RAML interpreting frameworks such as Osprey, JAXRS-Codegen, etc) to build out your API.
+
+The Designer is automatically paired with the API Console, allowing you to watch your API take shape as you write it. Not only that, thanks to the Mocking Service you can even perform live calls to test it out and get a feel for how well its information architecture works even before there's anything running behind it.
+
+image:/documentation/download/attachments/122752386/APIdesignerAreas.png?version=1&modificationDate=1409001016144[image]
+
+== Assumptions
+
+* You have working knowledge of http://raml.org/docs.html[RAML], or have familiarized yourself with it by working through the tutorials available at http://www.raml.org/[raml.org], and you are now ready to design your API.
+* You are familiar with RESTful API practices.
+* You also have an Anypoint Platform for APIs account and that you either are an API Version Owner for the API that you want to design or you are an Organization Administrator.
+
+== Accessing API Designer
+
+You can try the API Designer live in the Anypoint Platform by clicking *Define API* on your API Version Details page.
+
+The code for the API Designer is also available for download on https://github.com/mulesoft/api-designer[Github], together with instructions about how to run it as a standalone in your local machine, or embedding it into another application.
+
+== Benefits of the API Designer
+
+When the time comes to actually write your API, RAML helps you transfer your mental API construct into an actual definition. The Designer helps you focus on writing your API without getting bogged down in code. While you can write RAML in any simple text editor, the Designer provides several advantages:
+
+* Syntax highlighting keeps your API easy to read. 
+* The shelf at the bottom of the Designer serves as a suggestion engine for what should come next in your API's hierarchy.
+* The best part: no syntax errors! The Designer immediately alerts you when you make a mistake.
+* The console on the right displays an easy-to-read summary of the elements you've coded so far, helping you keep a good grasp of the big picture.
+* Once your API is described in the Designer, you can use the Mocking Service to run a live simulation of your API that will return example responses, ideal to test out its use before you develop its back-end complexities +
+
+
+== Using API Designer
+
+[TIP]
+====
+To keep your API definition as concise as possible for your consumers, take advantage of RAML's** `!include`** property to host documentation, schemas, and often-used patterns outside the definition itself. The Designer's parser interprets **`!include`** as if the content of the externally-hosted file were declared in-line.
+
+When entering long form documentation (i.e. an authentication process) the designer accepts standard Markdown syntax.
+====
+
+==== Step 1 – The Root
+
+. Make sure the first line begins with the correct version. At present, the latest version is **RAML 0.8**.
++
+[source,ruby]
+----
+
+#%RAML 0.8
+----
+. Look at the Shelf at the bottom of the Designer. The Shelf is context aware, thus it always displays a list of the elements you're able to enter at that point in the hierarchy of your API. These elements are arranged into categories: Root, Parameters, Security, Resources, Traits and Types. +
+
++
+image:/documentation/download/attachments/122751775/suggestions.png?version=1&modificationDate=1386253675262[image] +
+
+. Add elements from the root category: they contain information that will apply to the rest of your API definition. For example, naming and versioning your API are important. Click the first two options under Root category, *title* and *version*, to automatically add them to your definition.
++
+[source,ruby]
+----
+#%RAML 0.8
+title: My first API
+version: v0.1
+----
+
++
+If you click on an element from the shelf, it will be placed in your code where your cursor is standing. You can also start writing and the rest will be autocompleted. As you select options to appear in your definition, they disappear from the Shelf. 
+. If you have any pre-determined security schemes, enter them at this level. Access the https://github.com/raml-org/raml-spec/blob/master/08_security.md[RAML spec] to learn more about how a RAML API definition includes security settings.
+. Click the shelf to enter the *baseUri*, and update the provided template with your API's URI, required for a valid RAML definition. +
+
++
+[source,ruby]
+----
+#%RAML 0.8
+title: My first API
+version: v0.1
+baseUri: https://api.iheartthem.com/{version}
+mediaType: application/json
+----
+
++
+Traits and resource types are also entered at the root of the API definition since they are repeatedly referenced throughout your API. RAML leverages the patterns in your API: can you think of any to enter right now? Remember, you can always return to the root of your API when you have a few resources and methods sorted out. In fact, we strongly recommend that you write your API and discover patterns as they emerge, rather than trying to predict behavior. Refactoring your API into reusable elements like this avoids wasting efforts in over-engeneering and helps keep your API consistent and concise. 
+
+==== Step 2 – Resources
+
+. Add a new resource. Click *New Resource* directly from the Shelf, two lines will get added into your RAML API definition: the resource itself and the attribute display-name, used by the interactive documentation in the Console. 
+. Customize the name of the resource: change `/newResource` into `/user`. +
+Hit enter to add an indented new line below this title, then hit tab to add an indent. Notice that when you place the cursor on this new line the editor recognizes that you are at a different level in the API definition hierarchy and have different needs. The Shelf changes to reflect your new options: Methods, Parameters, Security, Resources, Traits and Types now match the needs of this hierarchical level.
+. Add a a first attribute in this new line: `displayName`. Replace the default value for `displayName: User` +
+Place the cursor at the end of the displayName line and hit enter. The Designer keeps the next line indented automatically to continue adding elements hierarchically below the resource.
+
++
+image:/documentation/download/attachments/122752386/RAML_header.png?version=1&modificationDate=1412930411140[image]
++
+[source,ruby]
+----
+#%RAML 0.8
+title: My first API
+version: v0.1
+baseUri: https://api.iheartthem.com/{version}
+mediaType: application/json
+/Users:
+  displayName: Users
+----
+
+==== Step 3 – Methods
+
+. Now add methods and parameters to your API at this level. Note that when you add a `queryParameters` element and indent on the next line to add a parameter, the suggestions on the Shelf disappear as the editor cannot predict what parameters you need. 
+. After you've named a `queryParameter`, then moved on to the next line and indented appropriately, the shelf reappears with new options: *Docs* and *Parameters*.  +
+
++
+image:/documentation/download/attachments/122752386/API+Designer+shelf.png?version=1&modificationDate=1409001016134[image] +
++
+
+Click the characteristics you require to enter them.
+[source,ruby]
+----
+#%RAML 0.8
+title: My first API
+version: v0.1
+baseUri: https://api.iheartthem.com/{version}
+mediaType: application/json
+/Users:
+  displayName: Users
+  get:
+    description: Get a list of users
+    queryParameters:
+      firstName:
+        type: string
+        required: false
+      lastName:
+        type: string
+        required: true
+      userId:
+        type: integer
+        required: true
+----
+[TIP]
+If you previously defined a security scheme at the root, use **securedBy: **and name the scheme the resource requires in an array. Similarly, to reference a trait you previously described in the root use **is:**, and to reference a resource type use **type:**
+
+== Testing your RAML API in the Console
+
+Now that you've designed your API, it's time to test your user's experience of calling the API in the API console. 
+
+. Above the API console on the right, note that the Mocking Service is currently off. Flip it on. +
+
++
+image:https://www.mulesoft.org/documentation/download/attachments/111575073/Screenshot+2014-07-03+13.52.05.png?version=1&modificationDate=1404420744512[image] +
+
+. Notice the change to your RAML definition. Where previously your `baseUri` was a placeholder for the duration of the design phase (the service isn't actually tied to anything at the moment: calling https://api.iheartthem.com[api.iheartthem.com] doesn't return a response), now you've got something that looks like so: +
+
++
+image:/documentation/download/attachments/122752386/API+designer+mocking.png?version=1&modificationDate=1409001016128[image] +
++
+
+Whoa. What happened here? The `baseUri` that you provided when declaring your basic information at the root has been commented out and supplanted by a new URI.  With this one simple action, you've effectively published your API and it is now ready to receive live calls. If you provided example responses in the RAML definition, you can make live calls in the API Console OR your browser, which returns this data. You can see what your API consumers see when they make calls to the API, and fully test APX.  +
+ +
+
+== Sharing Your API Console in Your API Portal
+
+To share your API Console with developers and allow them to explore your API and try out all the possible calls, return to your API Version Details page, create an API Portal, click **Add new...**, then click *API Console*. The platform asks you to give your API Console a *name*, which displays in your API Portal left nav. Click the name to view the API Console in your portal. Your API's documentation now includes a direct view of the API Console. As you enter information into your RAML definition and save it, the console view on your API documentation page is updated to reference your updated definition.
+
+image:/documentation/download/attachments/122752386/API+console+from+designer.png?version=1&modificationDate=1409001016099[image]
+
+image:/documentation/download/attachments/122752386/API+console+try+it.png?version=1&modificationDate=1409001016107[image]
+
+To see how the console looks in the live portal, return to the API Version Details page and click *View Live Portal* to access the developer view of your API Portal.
+
+[IMPORTANT]
+Developers cannot browse to or search for your API Portal unless you make it Public or grant Portal Access to them. For more information, see link:/documentation/display/current/Managing+Users+and+Roles+in+the+Anypoint+Platform[Managing Users and Roles in the Anypoint Platform].
+
+[TIP]
+If you want to migrate or copy an existing API Version, you don't need to go through all these steps. You can simply http://www.mulesoft.org/documentation/display/current/Copy+of+Managing+API+Versions[export the existing API] to a .zip file and then import it into a new API Version.
+
+== See Also
+
+* Refer to the tutorials provided at http://raml.org/docs.html[raml.org/docs.html] for further use cases for each category on the shelf.
+* Examine a link:/documentation/display/current/APIkit+Tutorial#APIkitTutorial-MicroProcedures[tabular breakdown of an example API definition] used for the link:/documentation/display/current/APIkit+Tutorial[APIkit tutorial].

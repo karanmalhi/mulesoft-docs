@@ -1,0 +1,172 @@
+= Configuring MMC 3.4.2 for External Databases - Quick Reference
+
+*Enterprise Edition*
+
+*MMC Versions 3.4.2 and Above*
+
+== Overview
+
+In MMC version 3.4.2 and above, configuring MMC to store data on an external databases has been greatly simplified.
+
+The process involves two basic sets of tasks.
+
+On the database server:
+
+* Create the database and schema
+* Define database user name, permissions and password
+
+On MMC:
+
+* Modify the configuration file `web.xml` to tell MMC to use your desired database instead of MMC's default database
+* Modify a configuration file for your selected external database to set the parameters for connecting to the database
+
+To learn how to configure each database server for MMC, refer to the relevant pages for the supported servers:
+
+* link:/docs/display/34X/Persisting+MMC+3.4.2+Data+to+PostgreSQL[PostgreSQL]
+* link:/docs/display/34X/Persisting+MMC+3.4.2+Data+to+Oracle[Oracle]
+* link:/docs/display/34X/Persisting+MMC+3.4.2+Data+to+MySQL[MySQL]
+* link:/docs/display/34X/Persisting+MMC+3.4.2+Data+to+MS+SQL+Server[MS SQL Server]
+
+To learn how to configure MMC for each of the supported database servers, see the section below.
+
+== Configuring MMC
+
+Before modifying MMC configuration files, ensure that MMC is not running.
+
+=== Downloading Drivers for the External Database
+
+To persist data on an external database, you will need to download and install the database driver for your selected database server. The documentation pages for each database engine (linked above) contain full details about driver installation, including download links from the database server vendors.
+
+=== Defining the External Database for Environment or Tracking Data
+
+==== Configuration file: `<MMC_HOME>/WEB-INF/web.xml`
+
+This file contains a section called `spring.profiles.active`, shown below.
+
+[source]
+----
+<context-param>
+    <param-name>spring.profiles.active</param-name>
+    <param-value>tracking-h2,env-derby</param-value>
+</context-param>
+----
+
+As you can see in the code above, the default databases that MMC uses internally are *H2* for tracking data and *Derby* for storing environment data. To store tracking or environment data on external databases, you must modify the `spring.profiles.active` section according to the listings below.
+
+===== Values for Tracking Data (Business Events)
+
+* `tracking-h2` (default)
+* `tracking-mysql`
+* `tracking-oracle`
+* `tracking-mssql`
+* `tracking-db2`
+* `tracking-postgres`
+
+===== Values for Environment Data
+
+* `env-derby` (default)
+* `env-mysql`
+* `env-oracle`
+* `env-msssql`
+* `env-db2`
+* `env-postgres`
+
+For example, if you are storing tracking information on a *Postgres* database, and environment information on an *Oracle* database, the section would like this.
+
+[source]
+----
+<context-param>
+    <param-name>spring.profiles.active</param-name>
+    <param-value>tracking-postgres,env-oracle</param-value>
+</context-param>
+----
+
+=== Defining Parameters for the Database Connection
+
+==== Configuration files in <MMC_HOME>/WEB-INF/classes/META-INF/databases
+
+The directory named in the heading above contains configuration files whose names are in the format: `<type of data>-<database name>.properties`, where:
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|string |description |example
+|`<type of data>` |`mmc` for environment data, or `tracking-persistence` for transaction data |`tracking-persistence`
+|`<database name>` |name of the database server to use |`postgres`
+|===
+
+For example, the file `mmc-oracle.properties` stores properties for connecting to an Oracle database that stores environment data; the file `tracking-persistence-postgres.properties` stores properties for connecting to a Postgres database that stores tracking data, etc.
+
+These files define the parameters for connecting to the databases, including: driver, user, password, host, port, and others.
+
+// Complete list of files in MMC 3.4.2
+
+Each file contains the parameters listed in the table below, plus other possible additional parameters depending on each database server.
+
+In the table below, the column labeled *Modify* marks which parameters you need to modify according to your setup – for example, you must replace the value of `env.username` with your own database user.
+
+==== Parameters for Environment Database Config Files
+
+[cols=",,",options="header",]
+|===
+|Parameter |Description |Modify
+|`env.driver` |Driver to use for connecting to the database | 
+|`env.script` |Script to use for creating the tables in the target database | 
+|`env.username` |Database user |X
+|`env.password` |Password for the database user |X
+|`env.host` |Hostname or IP address where the database server is listening |X
+|`env.port` |Port where the database server is listening |X
+|`env.url` |URL for connecting to the database | 
+|`env.dbname` |Name of the database (DB2 only, same as `env.dbschema` |X
+|`env.dbschema` |Name of the database |X
+|`env.servicename` |*(Oracle.)* Service name for connecting to the external database |X
+|  |  | 
+|===
+
+==== Parameters for Tracking Database Config Files
+
+[cols=",",options="header",]
+|===
+|Parameter |Description
+|`mmc.tracking.db.platform` |SQL server of the external database
+|`mmc.tracking.db.driver` |Driver to use for connecting to the database
+|`mmc.tracking.db.host` |Hostname or IP address where the database server is listening
+|`mmc.tracking.db.port` |Port where the database server is listening
+|`mmc.tracking.db.url` |URL for connecting to the database
+|`mmc.tracking.db.username` |Database user
+|`mmc.tracking.db.password` |Password for the database user
+|`mmc.tracking.db.dbname` |Name of the database
+|`mmc.max.events.exception.details.length` |The number of characters from a Business Events exception that will be stored in the tracking database. The default is 8000; the maximum allowed is 261120.
+|===
+
+All of these files include comments with helpful information, as you can see in the example below.
+
+=== Complete Sample `mmc-oracle.properties`
+
+[source]
+----
+env.driver=oracle.jdbc.driver.OracleDriver
+env.script=oracle
+env.username=mmc_status
+#If you want to encrypt your password, set the value to ENC("encodedPassword").
+#For encoding your password open a console and cd into the MMC install directory, cd encrypt folder
+#and issue the command ./encrypt.sh input="mmc123" password=DEFAULTPASS
+#where password refers to the encryption key to use and input is the value you want to encrypt.
+#DEFAULTPASS is the default value set by MMC, refer to MMC docs at www.mulesoft.com for information on how
+#to change that configuration value.
+#env.password=ENC("HZe9CewttfG/PlAJSL8+KA==")
+env.password=mmc123
+env.host=localhost
+env.port=1521
+env.url=jdbc:oracle:thin:${env.username}/${env.password}@${env.host}:${env.port}/${env.servicename}
+env.servicename=XEXDB
+----
+
+After modifying the configuration files as needed, MMC is configured to store data on the extenal database(s) you specified. Start MMC to check your new configuration.
+
+== See Also
+
+* Learn how to configure MMC for your database server: +
+** link:/docs/display/34X/Persisting+MMC+3.4.2+Data+to+PostgreSQL[PostgreSQL]
+** link:/docs/display/34X/Persisting+MMC+3.4.2+Data+to+Oracle[Oracle]
+** link:/docs/display/34X/Persisting+MMC+3.4.2+Data+to+MySQL[MySQL]
+** link:/docs/display/34X/Persisting+MMC+3.4.2+Data+to+MS+SQL+Server[MS-SQL Server]

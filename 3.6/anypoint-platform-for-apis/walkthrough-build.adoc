@@ -1,0 +1,255 @@
+= Build Your API
+
+[NOTE]
+====
+This page is part of the Anypoint Platform for APIs walkthrough. If you landed here by mistake and you're not sure where to start, go to the link:/documentation/display/current/Anypoint+Platform+for+APIs+Walkthrough[walkthough introduction] to learn more.
+
+Looking for a user guide for building APIs in the Anypoint Platform? See link:/documentation/display/current/Building+Your+API[Building Your API].
+====
+
+== Before You Begin
+
+In order to complete this step of the walkthrough, you will need the RAML file that you created in your design step. If you didn't complete that step, you can jump in here using link:/documentation/download/attachments/122752477/t-shirt.raml?version=1&modificationDate=1406728800387[this RAML file].
+
+Note that this portion of the walkthrough only applies if you are either building an API from scratch or writing a RAML layer over an existing API. If you elected to proceed without working with RAML at all, you can skip this step and move straight to downloading and deploying a proxy for your API.
+
+== About Anypoint Studio
+
+Anypoint Studio is an Eclipse-based IDE that includes built-in support for creating RAML-based APIs. If you don't already have the latest version installed, please update to the latest version from within Studio by going to **Help > Check for Updates**. If you don't have Studio at all, you can download the latest version from the http://www.mulesoft.com/platform/mule-studio[download page].
+
+If you need an introduction to working with Anypoint Studio, check out the link:/documentation/display/current/Anypoint+Studio+Essentials[Anypoint Studio Essentials].
+
+== Build Your Anypoint Studio Project
+
+. Create a *New Studio Project*. Set the following in the fields of the new project wizard:
++
+[cols=",",options="header",]
+|===
+|Field |Value
+|Name |`my-raml-implementation`
+|Runtime |Mule Server 3.5.1 EE
+|Add APIkit components |From RAML file or URL
+|RAML File or URL |Download link:/documentation/download/attachments/122752477/t-shirt.raml?version=1&modificationDate=1406728800387[this RAML file] and point to its location in your disk
+|===
++
+
++
+image:/documentation/download/attachments/122752477/new+project+3.5.1.png?version=1&modificationDate=1405347601322[image] +
++
+
+Notice the folder structure that was created into the package explorer of the project. You will build your API's functionality in the `t-shirt.xml` file, located in the `src/main/app` folder. +
+
++
+image:/documentation/download/attachments/122752477/package+explorer.png?version=1&modificationDate=1405348019321[image]
++
+
+. On the package explorer, right click on your project. Select `APIKit -> Generate Flows`. This will automatically generate a set of flows on your  `t-shirt.xml` file that constitute a skeleton structure based on your RAML.
++
+image:/documentation/download/attachments/122752477/rightbutton.png?version=1&modificationDate=1405098591144[image]
++
+
+. Take a look at the flows that were generated in your project. +
+* A main flow receives requests via the HTTP Connector and then routes them based on their full path to the right flow. The APIkit Router's workings are based on the RAML definition. Once a message completes its transition through the flow it was forwarded to, it returns to the main flow to be sent back to the requester through the output branch of the HTTP Connector.
++
+image:/documentation/download/attachments/122752477/main+flow.png?version=1&modificationDate=1405101483946[image]
++
+
+* A flow for every operation described on your RAML file. This is where we'll build up the functionality of your API.
+
++
+image:/documentation/download/attachments/122752477/operation+flows.png?version=1&modificationDate=1405108716495[image]
++
+[IMPORTANT]
+If you rename any of these flows, APIKit Router will not be able to find them, as it relies on flow names to locate flows.
+* There's also a set of standard `400` error messages, which are always generated. You can customize the messages by changing what the action of the Set Payload element. Keep in mind that these flows will override the `400` responses you define in your RAML.
+
++
+image:/documentation/download/attachments/122752477/exceptions.png?version=1&modificationDate=1405108731464[image]
++
+
+. On the first flow, click the HTTP Connector, which will open this element's properties editor in the tab under the canvas. Change the port value (set to 8081 by default) into a dynamic property by writing `${http.port`} instead. You must now assign a value to the property `http.port`. To assign a value, open the file `mule-app.properties` in your project's `src/main/app` folder in the package explorer. You can open this file as a text file in Studio and edit it right there on the spot. In this file simply add a line with the following:
++
+[source,java]
+----
+http.port=8081
+----
++
+Then save changes.
+. On each of the three flows that are linked to the three Operations of your API, delete the Set Payload elements that appear by default.
+. In the palette menu on the right of the screen, in the `connectors` section, look for the *link:/documentation/display/current/Web+Service+Consumer[Web Service Consumer]* building block. Drag one of these into every one of these three flows.
++
+image:/documentation/download/attachments/122752477/flows+w+wsc.png?version=1&modificationDate=1405108983732[image] +
++
+
+All three of them display error messages, this is because they're not yet configured. In Studio you can edit the attributes of an element by clicking it, which opens a properties editor tab in the lower section of the screen.
+. Click the first of the Web Service Consumer building blocks. Then, in the properties editor tab, click on the green plus sign next to the Connector Configuration field to create a new link:/documentation/display/current/Global+Elements[Global Element].
++
+image:/documentation/download/attachments/122752477/get+to+a+GE.png?version=1&modificationDate=1405109485002[image] +
++
+
+A new window will pop up. Fill in the fields with the following:
++
+[cols=",",options="header",]
+|===
+|Field |Value
+|Name |Web_Service_Consumer
+|WSDL location |http://tshirt-service.cloudhub.io/?wsdl
+|Service |TshirtServicePortTypeService
+|Port |TshirtServicePortTypePort
+|Address |http://tshirt-service.cloudhub.io/
+|===
++
+[TIP]
+As soon as you fill in the WSDL Location field, the rest will get automatically filled as this WSDL doesn't offer any alternatives for the other values.
++
+
++
+image:/documentation/download/attachments/122752477/GE.png?version=1&modificationDate=1405109769743[image]
++
+Click OK.
+. Back in the properties editor of the Web Service Consumer, select the Connector Configuration that you just created, `Web_Service_Consu`. The Web Service Consumer element will now read the WSDL and display the different operations available in the `Operation` field.image:/documentation/download/attachments/122752477/WSC+configured.png?version=1&modificationDate=1405111245896[image] +
+
++
+Do the same for each instance of the Web Service Consumer in your project, picking in each case the operation that matches the flow as per the table below:
++
+[cols=",",options="header",]
+|===
+|Flow |Operation
+|`get:/products:t-shirt-config` |ListInventory
+|`get:/orders/{orderId}/status:t-shirt-config` |TrackOrder
+|`post:/orders:t-shirt-config` |OrderTShirt
+|===
++
+Your flows now all call out to the Web service, generating requests with the XML message structures that the Web service expects in each case. There's still a problem: the messages that arrive to your API are in a different JSON format, so you still need to map this incoming data to the expected one... and then also map the outgoing data to the requester's expected format.
+. Include a set of JSON example files in your project. These represent the required input and expected output data structures of the Web service requests, and they will soon come in handy. +
+
++
+image:/documentation/download/attachments/122752477/jsons.png?version=1&modificationDate=1405111942856[image] +
++
+
+You can find JSON examples in the file link:/documentation/download/attachments/122752477/JSON-example-files.zip?version=1&modificationDate=1405112028441[JSON-example-files.zip]. Download this compressed file, uncompress it and place these files in the `src/main/resources` folder of your project. +
+ +
+. In the palette menu on the right of the screen, in the `transformers` section, look for the *DataMapper* element. You will include five instances of DataMapper in your project. Drag a DataMapper element and place it to the right of the first Web Service Consumer, then add two more of them on each of the other two flows, one on the left and one on the right of each of the Web Service Consumers. +
+
++
+image:/documentation/download/attachments/122752477/flow+w+datamappers.png?version=1&modificationDate=1405112425115[image]
++
+
+. Click the first DataMapper you placed, the one on the `get:/products:t-shirt-config` flow. Notice that the properties editor of the DataMapper element is split in two areas, one for the input and the other for the output. Thanks to Studio's intelligent use of metadata, the input is already completed according to the known output of the Web service; however, you still must deal with DataMapper's output. Since you have a JSON example of the expected response for a get products request, you can simply build the message structure automatically based on that. +
+In the Output section of the DataMapper, configure the following:
++
+[cols=",",options="header",]
+|====
+|Field |Value
+|Target |Payload - Unknown
+|Type |JSON
+|Structure |From Example
+|Json sample |Location of the `inventory-response-example.json` file in your disk (you downloaded it in the zip file, a few steps back)
+|====
++
+
++
+image:/documentation/download/attachments/122752477/DM1.png?version=1&modificationDate=1405112906041[image] +
++
+
+Then click *Create Mapping* to have Studio build the mapping file. This may take a few seconds.
+. You will see that the properties editor transforms into a mapping editor, where you'll see fields in the input (to the left) mapped through arrows to fields in the output (to the right). +
+In this particular case, DataMapper by default mistakenly assumes that you try to match the entire array of inventory items that is returned by the Web service to a single JSON output file; this is represented by the dotted arrow that goes from the root XML element on the left to the root JSON element on the right. In reality, you want to match each one of the elements in the array to a separate JSON file. To get rid of this unwanted initial mapping, click the *red X next to Element Mapping* at the top of the mapping editor.
+
++
+image:/documentation/download/attachments/122752477/bad+mapping.png?version=1&modificationDate=1405113778996[image]
++
+
+. With your mapping editor clean of any unwanted arrows, drag the `inventory : inventory` element on the left to the `{}array JSON` element on the right. In this way you're mapping each element of the array (and not the entire array) to the described JSON output. This will in turn create a series of other arrows, one for each field in them.
+
++
+image:/documentation/download/attachments/122752477/DM2.png?version=1&modificationDate=1405114020074[image]
+
+
+. Move on to the first DataMapper in the `get:/orders/{orderId}/status:t-shirt-config` flow. You will see that in this case the output fields are already properly configured, based on the known expected input of the Web Service Consumer; however, you will have to set up the DataMapper's input. This time, two fields are required:
++
+* `orderId` (which arrives as a parameter in the URI path)
+* `email` (which is an inbound property of the incoming message). 
+
++
+In the Input section of the DataMapper, configure the following:
++
+[cols=",",options="header",]
+|===
+|Field |Value
+|Type |`Pojo`
+|Class |String - java.lang
+|Source |#[orderId]
+|===
+
++
+image:/documentation/download/attachments/122752477/weirdmapping.png?version=1&modificationDate=1405117165314[image]
+
++
+Click *OK* to close this dialogue, then click *Create Mapping*.
+
+. You now only have a single input field, which is a string that is taken off the `orderId` variable in the URI. To add the second input field, you should create an Input Argument. Do so by clicking the drop-down menu next to the green plus sign over the input fields, and selecting `add Input Argument`.
++
+image:/documentation/download/attachments/122752477/add+input+argument.png?version=1&modificationDate=1405117319650[image]
++
+Create the input argument according to the following table:
++
+[cols=",",options="header",]
+|===
+|Field |Value
+|Name |`email`
+|Type |`string`
+|Mule Expression |`#[message.inboundProperties.email]`
+|===
++
+Then click OK. +
+Your input now has both the fields you needed; it's time to drag each to its corresponding output.
+
++
+image:/documentation/download/attachments/122752477/mapping+mess.png?version=1&modificationDate=1405117554687[image]
++
+
+. Move on to the next DataMapper element. Mapping this one is a lot simpler, the input is already autocompleted for you and the output can be taken from one of the example JSON files. In the Output section of the DataMapper, configure the following:
++
+[cols=",",options="header",]
+|====
+|Field |Value
+|Target |Payload - Unknown
+|Type |JSON
+|Structure |From Example
+|Json sample |Location of the `status-response-example.json` file in your disk (you downloaded it in the zip file, a few steps back)
+|====
++
+Then click *Create Mapping*. This time the mapping that gets automatically created is exactly what you need, all done here!
+. The two mappings in the `post:/orders:t-shirt-config` flow are also just as easy as this last one. In the first, leave the output untouched and base the input on the JSON example `order-request-example.json`. In the second, leave the input untouched and base the output on the JSON example `order-response-example.json`. +
+In both cases, the mapping that gets automatically created after clicking Create Mapping is exactly what you need!
++
+You're now all set! Save your project, and it's ready to deploy! +
+
++
+[TIP]
+====
+If you haven't been following through these steps and building your own project, that's okay, but you will need to have something to work with on the next steps of the walkthrough.
+
+In that case, download link:/documentation/download/attachments/122752477/my-raml-implementation.zip?version=1&modificationDate=1405449384799[this .zip file] – it's what you would have as a result of following the steps in this page.
+====
+
+== Next
+
+The next step is to deploy your API. Pick the option that works best for you.
+
+*Deploy your API to a Mule runtime* if either of the following is true:
+
+* you want to separate your implementation from your orchestration layer (recommended)
+* your APIkit project contains multiple connectors other than HTTP, Jetty, Web Service Consumer, and two additional connectors. Although in this walkthrough example you have not added any other connectors, you could customize it further to add additional functionality, or you could just imagine that you did. Why does it matter how many different connectors you use? The API Gateway subscription includes a limited number of connectors for your APIs and proxy projects. Please mailto:support@mulesoft.com[contact us] for more information about pricing.
+
+If you think this is likely, go to **link:/documentation/display/current/Walkthrough+Deploy+to+Runtime[Deploy to Mule Runtime]**.
+
+or
+
+*Deploy your API directly to an on-premises or cloud API Gateway* if both of the following are true:
+
+* you do not need to separate your implementation and orchestration into separate layers
+* your APIkit project does not contain multiple additional connectors, beyond HTTP, Jetty, or Web Service Consumer connectors
+
+If you think this is likely, go to link:/documentation/display/current/Walkthrough+Deploy+to+Gateway[*Deploy to API Gateway*].

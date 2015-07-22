@@ -1,0 +1,120 @@
+= Upgrading from Tcat Server 6 R1 to Tcat Server 6 R2
+
+* link:#UpgradingfromTcatServer6R1toTcatServer6R2-UpgradingviatheInstaller[Upgrading via the Installer]
+* link:#UpgradingfromTcatServer6R1toTcatServer6R2-ManuallyUpgrading[Manually Upgrading]
+* link:#UpgradingfromTcatServer6R1toTcatServer6R2-LDAPUpgrade[LDAP Upgrade]
+* link:#UpgradingfromTcatServer6R1toTcatServer6R2-AmazonEC2PluginUpgrade[Amazon EC2 Plugin Upgrade]
+
+This page provides important information for users who are upgrading from a previous release of Tcat Server 6 to the R2 release. Throughout this page, the directory of your Tomcat installation is referred to as `CATALINA_HOME`. For information on what has changed in this release, see the link:/docs/display/TCAT/Release+Notes+Tcat+6+R2[Release Notes Tcat 6 R2].
+
+== Upgrading via the Installer
+
+The R2 installer upgrades your Tcat installation automatically. It installs a new console and a new agent WAR inside the installation directory. It backs up the previous console and agent into the `CATALINA_HOME/tcat-backup-DATE` in case you need to roll back to your previous installation.
+
+Typically, the installer requires no extra steps. However, if you are using LDAP or the EC2 plugin, you must perform some manual steps as described at the end of this page.
+
+== Manually Upgrading
+
+To manually upgrade using the R2 installation ZIP file, you take the following steps.
+
+. Stop your Tomcat or Tcat Server instance.
+. Copy your existing Tomcat installation directory to a backup file. For example, on UNIX, type:
++
+
+[source]
+----
+$ cp -a CATALINA_HOME CATALINA_HOME.bak
+----
+
+. Extract the R2 installation ZIP file. For example, on UNIX, type:
++
+
+[source]
+----
+$ unzip TcatServer-6.2.0.zip
+----
+
+. Copy the new agent, console, and scripts to your Tomcat installation directory. For example:
++
+
+[source]
+----
+$ cd TcatServer-6.2.0
+$ cp webapps/* CATALINA_HOME/webapps/
+$ rm -rf CATALINA_HOME/webapps/console CATALINA_HOME/webapps/agent
+$ mkdir -p CATALINA_HOME/webapps/console CATALINA_HOME/webapps/agent
+$ unzip webapps/console.war -d CATALINA_HOME/webapps/console
+$ unzip webapps/agent.war -d CATALINA_HOME/webapps/agent
+$ cp CATALINA_HOME.bak/webapps/agent/WEB-INF/agent.properties CATALINA_HOME/webapps/agent/WEB-INF/
+$ cp CATALINA_HOME.bak/webapps/agent/WEB-INF/truststore.jks CATALINA_HOME/webapps/agent/WEB-INF/
+$ mkdir -p CATALINA_HOME/conf/Catalina/localhost
+$ cp conf/Catalina/localhost/tcat* CATALINA_HOME/conf/Catalina/localhost
+$ cp bin/tcat* CATALINA_HOME/bin
+$ cp bin/catalina.sh CATALINA_HOME/bin
+----
+
+. If your original installation created a directory named `galaxy-data` anywhere other than in the root of your `CATALINA_HOME` directory, move it to the root of your `CATALINA_HOME` directory now. For example:
++
+
+[source]
+----
+$ mv CATALINA_HOME/bin/galaxy-data CATALINA_HOME/galaxy-data
+----
+
+. Clear out your `work` and `temp` directories. For example:
++
+
+[source]
+----
+$ rm -rf CATALINA_HOME/temp/* CATALINA_HOME/work/*
+----
+
+. Compare the following configuration files in your original installation with those in the new distribution: `server.xml`, `conf/catalina.properties`, `conf/web.xml`, `conf/context.xml`, `conf/tomcat-users.xml`, and `conf/logging.properties`. Where there are differences, you should consider whether you should merge those changes into your installation. For example, to compare `server.xml` on UNIX:
++
+
+[source]
+----
+$ diff -u conf/server.xml CATALINA_HOME/server.xml
+----
+
+. Set the proper ownership and group for the runtime tree (you must have superuser privileges to perform this step). For example:
++
+
+[source]
+----
+# chown -R tomcat:tomcat CATALINA_HOME
+----
+
+. If you are using LDAP or the Amazon EC2 plugin, see the directions below on how to complete the upgrade.
+
+You are now ready to start your Tcat Server.
+
+== LDAP Upgrade
+
+To migrate your previous LDAP configuration file from your backup to the new Tcat Server installation, you must copy the LDAP configuration file to the new installation and then copy the LDAP JAR to the Console webapp.
+
+=== Copy the LDAP Configuration File
+
+If you used the installer to upgrade, you restore your configuration by copying `tcat-backup-DATE/console/WEB-INF/classes/ldap.xml` to the `CATALINA_HOME/webapps/console/WEB-INF/classes` directory. For example, on UNIX, type:
+
+[source]
+----
+$ cd CATALINA_HOME
+$ cp tcat-backup-DATE/console/WEB-INF/classes/ldap.xml webapps/console/WEB-INF/classes
+----
+
+If you upgraded manually, you restore your configuration by copying `webapps/console/WEB-INF/classes/ldap.xml` from your backup file to the `CATALINA_HOME/webapps/console/WEB-INF/classes` directory. For example, on UNIX, type:
+
+[source]
+----
+$ cd CATALINA_HOME
+$ cp CATALINA_HOME.bak/webapps/console/WEB-INF/classes/ldap.xml webapps/console/WEB-INF/classes
+----
+
+=== Copy the LDAP JAR into the Console Webapp
+
+You must install the new LDAP JAR into the Console webapp as described in link:/docs/display/TCAT/Enabling+Authentication+Through+LDAP[Enabling Authentication Through LDAP].
+
+== Amazon EC2 Plugin Upgrade
+
+The Amazon EC2 plugin for Tcat R1 is not forward compatible with R2. You must download a new version of the plugin and install it by following the link:/docs/display/TCAT/Deploying+to+Amazon+EC2[Amazon EC2 instructions].

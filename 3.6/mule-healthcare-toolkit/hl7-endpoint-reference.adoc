@@ -1,0 +1,371 @@
+= HL7 Endpoint Reference
+:keywords: hl7, endpoint
+
+The HL7 Endpoint creates a channel to receive or send HL7 messages over MLLP. In a running Mule application, the HL7 Endpoint listens and sends data on specified ports; the channel that the HL7 Inbound Endpoint uses for communication can be configured through a link:/documentation/display/current/Global+Elements[Global Mule Element template], which the endpoint references.
+
+If you place an HL7 endpoint at the beginning of a flow, Studio automatically defines it as an inbound endpoint. If you place the endpoint in the middle or the end of a flow, Studio defines it as an outbound endpoint.
+
+[NOTE]
+The HL7 Endpoint is part of the link:/documentation/display/current/Mule+Healthcare+Toolkit[Mule Healthcare Toolkit], which also includes transformers and components for receiving, processing and sending HL7 messages. For details and a full list of available tools, consult the Toolkit's link:/documentation/display/current/Mule+Healthcare+Toolkit[documentation main page].
+
+link:#HL7EndpointReference-ConfigurationForStudioandMuleESB[Skip to the code]
+
+== Configuration
+
+The HL7 Endpoint contains four tabs, explained in this section. To configure the properties for any building block in your flow, double-click the building block in the *Message Flow* canvas. Studio displays the building block's *Pattern* *Properties* panel in which you can configure the element. Alternatively, add an `hl7:inbound-endpoint` or `hl7:outbound-endpoint` element to the XML configuration (see code below).
+
+== XML Elements
+
+As an inbound endpoint:
+
+[source]
+----
+hl7:inbound-endpoint
+----
+
+As an outbound endpoint:
+
+[source]
+----
+hl7:outbound-endpoint
+----
+
+== Sample Complete XML
+
+[tabs]
+------
+[tab,title="Studio"]
+....
+
+[source,xml]
+----
+<hl7:inbound-endpoint host="localhost" port="50609" responseTimeout="10000" doc:name="HL7" disableTransportTransformer="true" exchange-pattern="request-response" tracking:enable-default-events="true"/>
+----
+
+....
+[tab,title="ESB"]
+....
+
+[source,xml]
+----
+<hl7:inbound-endpoint host="localhost" port="50609" responseTimeout="10000" disableTransportTransformer="true" exchange-pattern="request-response"/>
+----
+
+....
+------
+
+== Configuration For Studio and Mule ESB
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+
+=== General Tab
+
+image:/documentation/download/attachments/122752539/hl7_Endpoint_general.png?version=1&modificationDate=1399403860768[image]
+
+[width="100%",cols="20a,40a,40a",options="header"]
+|===
+|Name
+|Description
+|XML
+
+|*Display Name*
+|Name of the building block as it appears in the flow.
+|[source]
+----
+doc:name="Sample Name"
+----
+|*Host*
+|Name of the host to which the endpoint must connect.
+|[source]
+----
+host="hostname"
+----
+|*Port*
+|Port number for the connection.
+|[source]
+----
+port="50609"
+----
+|===
+
+=== Advanced Tab
+
+image:/documentation/download/attachments/122752539/hl7_endpoint_advanced.png?version=1&modificationDate=1399403949709[image]
+
+[width="100%",cols="20a,40a,40a",options="header",]
+|===
+|Name
+|Description
+|XML
+
+|*Enable default events tracking*
+|*(Boolean)* Enables link:/documentation/display/current/Business+Events[Business Events] for the Endpoint.
+|[source]
+----
+tracking:enable-default-events="true"
+----
+|*Address*
+|The complete http://en.wikipedia.org/en/wiki/URI[URI] location of the host to which the Endpoint must connect.
+
+This parameter is mutually exclusive of the following other parameters:
+
+* Studio: *Host* (General tab), XML: `host=""`
+* Studio: *Port* (General tab), XML: `port=""`
+* Studio: *Endpoint Reference* (References tab), XML: `ref=""`
+
+|[source]
+----
+address="hl7://localhost:50609"
+----
+
+|*Response Timeout*
+|The timeout for a response, in milliseconds.
+|[source]
+----
+responseTimeout="10000"
+----
+
+|*Encoding*
+|String encoding for incoming or outgoing messages.
+|[source]
+----
+encoding="UTF-8"
+----
+
+|*Disable Transport Transformer*
+|
+*(Boolean)* Do not apply default transformations for this endpoint.
+
+To facilitate processing, an HL7 endpoint in Mule automatically applies default transformations to messages it receives. These default transformations make the message contents more “Mule friendly.”
+
+Use *Disable Transport Transformer* if you want the HL7 endpoint to strictly maintain the data format of messages it receives
+|[source]
+----
+disableTransportTransformer="true"
+----
+
+|*MIME Type*
+|MIME type of the message.
+|[source]
+----
+mimeType="text/plain"
+----
+
+|*Exchange Patterns*
+|
+Select between two possible exchange patterns:
+
+* *one-way*: An inbound endpoint  only receives data and not send anything back to the originating application. An outbound endpoint  only sends data.
+* *request-response*: Allows two-way communication between the endpoint and the external application
+|[source]
+----
+exchange-pattern="one-way"
+----
+|===
+
+
+=== References Tab
+
+image:/documentation/download/attachments/122752539/hl7_endpoint_references.png?version=1&modificationDate=1399404137814[image]
+
+[width="100%",cols="20a,40a,40a",options="header"]
+|======
+|Name
+|Description
+|XML
+|*Connector Reference*
+|References an HL7 connector configured as a link:/documentation/display/current/Global+Elements[Global Element].
+|[source]
+----
+connector-ref="HL7connectorName"
+----
+|*Endpoint Reference*
+|
+Allows you to reference an HL7 endpoint configured as a Global Element.
+
+This parameter is mutually exclusive with the following other parameters:
+
+* Studio: *Host* (General tab), XML: `host=""`
+* Studio: *Port* (General tab), XML: `port=""`
+* Studio: *Address* (Advanced tab), XML: `address=""`
+
+|[source]
+----
+ref="HL7endpointName"
+----
+|*Global Transformers* (*Request* section)
+|Add transformers that the endpoint  applies to information it receives. Use the *Add* icon next to the *Global Transformers* field to select transformers to add.
+|[source]
+----
+transformer-refs="HL7_Encoding_Transformer XML_to_Maps"
+----
+|*Global Transformers* (*Response* section)
+|Add transformers that the endpoint  applies to information it receives. Use the *Add* icon next to the *Global Transformers* field to select transformers to add.
+|[source]
+----
+responseTransformer-refs="Maps to XML HL7_Encoding_Transformer"
+----
+|*Transformers to be applied* (*Request* and *Response* sections)
+|Use the edit icons to edit, reorder or remove selected transformers. |
+|======
+
+....
+[tab,title="XML Editor"]
+....
+
+To access the Studio XML Editor, click the *Configuration XML* tab under the canvas.
+
+For details, see http://www.mulesoft.org/documentation/display/current/Mule+Studio+Essentials#MuleStudioEssentials-XMLEditorTipsandTricks[XML Editor trips and tricks].
+
+The table below describes all configurable parameters for this building block.
+
+[width="100%",cols="20,40a,40a",options="header"]
+|======
+|Name |Description |XML
+
+|*Display Name*
+|Name of the building block as it appears in the flow.
+|[source]
+----
+doc:name="Sample Name"
+----
+|*Host*
+|Name of the host to which the endpoint must connect.
+|[source]
+----
+host="hostname"
+----
+|*Port*
+|Port number for the connection.
+|[source]
+----
+port="50609"
+----
+|*Enable default events tracking*
+|*(Boolean)* Enables link:/documentation/display/current/Business+Events[Business Events] for the Endpoint.
+|[source]
+----
+tracking:enable-default-events="true"
+----
+|*Address*
+|
+The complete http://en.wikipedia.org/en/wiki/URI[URI] location of the host to which the Endpoint must connect.
+
+This parameter is mutually exclusive of the following other parameters:
+
+* Studio: *Host* (General tab), XML: `host=""`
+* Studio: *Port* (General tab), XML: `port=""`
+* Studio: *Endpoint Reference* (References tab), XML: `ref=""`
+
+|[source]
+----
+address="hl7://localhost:50609"
+----
+|*Response Timeout*
+|The timeout for a response, in milliseconds.
+|[source]
+----
+responseTimeout="10000"
+----
+|*Encoding*
+|String encoding for incoming or outgoing messages.
+|[source]
+----
+encoding="UTF-8"
+----
+|*Disable Transport Transformer*
+|
+*(Boolean)* Do not apply default transformations for this endpoint.
+
+To facilitate processing, an HL7 endpoint in Mule automatically applies default transformations to messages it receives. These default transformations make the message contents more “Mule friendly.”
+
+Use *Disable Transport Transformer* if you want the HL7 endpoint to strictly maintain the data format of messages it receives
+
+|[source]
+----
+disableTransportTransformer="true"
+----
+|*MIME Type*
+|MIME type of the message.
+|[source]
+----
+mimeType="text/plain"
+----
+|*Exchange Patterns*
+|
+Select between two possible exchange patterns:
+
+* *one-way*: An inbound endpoint  only receives data and doesn't send anything back to the originating application. An outbound endpoint  only sends data.
+* *request-response*: Allows two-way communication between the endpoint and the external application.
+
+|[source]
+----
+exchange-pattern="request-response"
+exchange-pattern="one-way"
+----
+|*Connector Reference*
+|Allows you to reference an HL7 connector configured as a link:/documentation/display/current/Global+Elements[Global Element].
+|[source]
+----
+connector-ref="HL7connectorName"
+----
+|*Endpoint Reference*
+|
+Allows you to reference an HL7 endpoint configured as a Global Element.
+
+This parameter is mutually exclusive with the following other parameters:
+
+* Studio: *Host* (General tab), XML: `host=""`
+* Studio: *Port* (General tab), XML: `port=""`
+* Studio: *Address* (Advanced tab), XML: `address=""`
+
+|[source]
+----
+ref="HL7endpointName"
+----
+|*Global Transformers* (*Request* section)
+|Add transformers that the endpoint  applies to information it receives. Use the *Add* icon next to the *Global Transformers* field to select transformers to add.
+|[source]
+----
+transformer-refs="HL7_Encoding_Transformer XML_to_Maps"
+----
+|*Global Transformers* (*Response* section)
+|Add transformers that the endpoint applies to information it receives. Use the *Add* icon next to the *Global Transformers* field to select transformers to add.
+|[source]
+----
+responseTransformer-refs="Maps to XML HL7_Encoding_Transformer"
+----
+|======
+
+....
+[tab,title="Standalone"]
+....
+
+=== HL7 Endpoint Attributes
+
+[cols=",,,,",options="header"]
+|===
+|Name |Type |Required |Default |Description
+|`host` |string |no |- |The host of the TCP socket.
+|`port` |port number |no |- |The port of the TCP socket.
+|===
+
+=== Namespace and Syntax
+
+[source]
+----
+http://www.mulesoft.org/schema/mule/hl7
+----
+
+=== XML Schema Location
+
+[source]
+----
+http://www.mulesoft.org/schema/mule/hl7/mule-hl7.xsd
+----
+
+....
+------

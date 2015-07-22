@@ -1,0 +1,141 @@
+= Installing Multiple Tcat Instances on a Single Machine
+
+* link:#InstallingMultipleTcatInstancesonaSingleMachine-oneInstallTcatServerwithAdministrationConsole[Install Tcat Server with Administration Console]
+* link:#InstallingMultipleTcatInstancesonaSingleMachine-noconsoleInstallAdditionalTcatServers[Install Additional Tcat Servers]
+* link:#InstallingMultipleTcatInstancesonaSingleMachine-startStartupTcatServerinstances[Startup Tcat Server instances]
+* link:#InstallingMultipleTcatInstancesonaSingleMachine-manageandLogin,Register,andManageTcatServers[Login, Register, and Manage Tcat Servers]
+
+This procedure enables you to run multiple instances of Tcat Server on a single machine, using one instance of the Tcat Administration Console (or more) to manage multiple instances of Tcat Server, each running within their own JVM.
+
+* link:#InstallingMultipleTcatInstancesonaSingleMachine-one[Install Tcat Server with Administration Console]
+** link:#InstallingMultipleTcatInstancesonaSingleMachine-before[Before You Begin]
+** link:#InstallingMultipleTcatInstancesonaSingleMachine-oneinstall[Run Installer]
+* link:#InstallingMultipleTcatInstancesonaSingleMachine-noconsole[Install Tcat Server Instances without Console]
+** link:#InstallingMultipleTcatInstancesonaSingleMachine-multinstall[Run Installer]
+** link:#InstallingMultipleTcatInstancesonaSingleMachine-editconf[Edit the Configuration Files]
+* link:#InstallingMultipleTcatInstancesonaSingleMachine-start[Start Tcat Server Instances]
+* link:#InstallingMultipleTcatInstancesonaSingleMachine-manageand[Login, Register, and Manage Tcat Servers]
+** link:#InstallingMultipleTcatInstancesonaSingleMachine-login[Login to Administration Console]
+** link:#InstallingMultipleTcatInstancesonaSingleMachine-pair[Register Tcat Server Instances]
+** link:#InstallingMultipleTcatInstancesonaSingleMachine-manage[Manage Tcat Server Instances]
+** link:#InstallingMultipleTcatInstancesonaSingleMachine-rename[Rename Tcat Server Instances]
+
+[WARNING]
+*Please send us comments or questions: [mailto:tcat-install@mulesoft.com]*
+
+== Install Tcat Server with Administration Console
+
+This process explains how to *install* multiple Tcat Server instances on one machine, then use the Administration Console to *manage*, *monitor*, and *deploy* servers and applications.
+
+=== Before You Begin
+
+For this procedure, you need a working installation of Java JDK or JRE 1.5 or better (JDK is preferred as it provides for additional utilities).
+
+Ensure that the JAVA_HOME environment variable is set correctly.
+
+Download the Tcat Server installer for Windows (.exe), Linux (.sh), Solaris (.sh), and MacOS (.dmg) from http://www.mulesoft.com/download-tcat-server-enterprise-tomcat.
+
+=== Step One: Run Installer, Accepting All Defaults
+
+Select Standard Install, and accept all defaults
+
+[width="99",cols="25,25,25,25",options="header"]
+|===
+|Windows |Linux |Solaris |OS X
+|installer.exe |installer.sh |installer.sh |installer.dmg
+|===
+
+image:/docs/download/attachments/58458179/standard1.png?version=1&modificationDate=1286304141371[image]
+
+[NOTE]
+*After the first install, start the server and leave it running.*
+
+== Install Additional Tcat Servers
+
+In this step, you will run the installer again, selecting Custom and determining the ports for HTTP, HTTPS redirect, Tcat Server Shutdown and AJP connector port.
+
+=== Run the Tcat Installer with Options
+
+Perform the following steps for each additional instance you want to have locally installed.
+
+image:/docs/download/attachments/58458179/custinst2.png?version=1&modificationDate=1286304023318[image]
+
+. Run the installer. At Select Installation Type, choose Custom Installation.
+. At the next window, deselect Administration Console from the list.
+. At the Port Settings page, enter unique port numbers according to the following table:
+
+[NOTE]
+Make sure that you only use the following settings for a single instance. Every other instance must use a different port assignment for each setting.
+
+[width="99",cols="50,50",options="header"]
+|===
+|Port |Default
+|HTTP/1.1 |8080
+|redirectPort |8443
+|Server SHUTDOWN |8005
+|AJP/1.3 Connector |8009
+|securePort |51443
+|===
+
+== Startup Tcat Server instances
+
+Start all the Tcat Server instances. (The the one with the Administration Console should already be running.)
+
+[width="99",cols="25,25,25,25",options="header"]
+|===
+|Windows |Linux |Solaris |OS X
+|bin/tcat6 start a|
+* as administrator: sudo service tcat6 start
+
+ |sudo svcadm enable tcat6 |catalina.sh start
+|  a|
+* as non-administrator: cd /opt/TcatServer6/bin/tcat6 start
+
+ |  | 
+|===
+
+== Login, Register, and Manage Tcat Servers
+
+*NOTE* if you are connected to your network via a virtual private network (VPN), disconnect before running Tcat Server. After you have registered all your Tcat Server instances, you can connect to your VPN again.
+
+=== Login to Administration Console
+
+. After a minute or two, open a Web browser to the following address: http://localhost:8080/console
+. Log in using "admin" for both username and password
+. The Tcat Server console appears, with the Servers tab selected by default
+
+=== Register Servers
+
+. In the left panel, click Unregistered
+. The local Tcat Server instance appears to the right
+. Click the checkbox next to Server Name
+. Click Register
+. The local server instance now appears in the All group with a green status indicator
+
+Repeat for each Tcat Server instance you installed.
+
+=== Manage Servers
+
+. Click the All list in the left panel
+. Click on Server Name
+. The Server Details panel appears
+. Click through the tabs to view the information and operations available
+. Click on Server Summary to verify secure port numbers are distinct
+
+image:/docs/download/attachments/58458179/servers1.png?version=1&modificationDate=1285629902956[image]
+
+=== Rename Servers
+
+. From the Servers tab in the Administration Console, click on one Tcat Server instance
+. The Server Summary appears
+. Click Edit Server Info
+. Enter a unique name in Server Name
+. Click Save
+. The new server name appears immediately in the list of Servers
+
+=== Rules About securePort Setting
+
+. Any port number from 1 to 65535 if the Tomcat JVM runs as root. Any number from 1024 to 65535 if the Tomcat JVM runs as a user other than root.
+. Must not conflict with any of the other TCP ports being used by Tomcat and/or webapps running in the same JVM that have opened server sockets.
+
+*NOTE* On non-Windows OSs, ports 1-1023 inclusive are "privileged ports" and require root privileges to bind to them. Those are the only special port numbers, and only on non-Windows OSs.

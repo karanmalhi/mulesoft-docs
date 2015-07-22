@@ -1,0 +1,49 @@
+= Customizing Connector Integration with ESB and Studio
+
+By default, DevKit infers the names and labels for the Studio dialog boxes from methods, parameters, JavaDoc comments, and instance variable names in your Java files. However, you can also use annotations to customize many aspects of the look and feel of your component to improve the user experience.
+
+* How parameters are exposed in XML
+* How data is passed into and out of the connector
+* The appearance of the connector in the Studio palette and in flows
+* The layout of the connector property dialog in Studio
+
+image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="6-package.png"]
+
+[NOTE]
+The package` org.mule.api.annotations.display `defines the annotations that let you perform these customizations. 
+
+[TIP]
+====
+To ensure that the addition of these annotations is properly reflected by the build, rebuild your connector from scratch. Run the following command in the directory containing your project's `pom.xml`:
+
+[source]
+----
+mvn clean package -Ddevkit.studio.package.skip=false
+----
+
+This will clean out any old build products that might interfere with the correct handling of these annotations.
+====
+
+== @Placement: Field Order, Grouping, and Tabs
+
+Apply this annotation to instance variables and method parameters. It accepts the following parameters:
+
+* *order* — The relative order of the annotated element within its group. If the value provided is duplicated then the order of these elements is arbitrarily defined. Value is relative; an element with order 10 has higher precedence than an element with value 25.
+* *group* — A logical way to display one or more variables together. If you do not specify a group, then Mule assumes a default group. To place multiple elements in the same group, assign the same values to them for this attribute.
+* *tab* — A logical way to group annotated elements together. This attribute specifies the name of the tab in which to display the annotated element. If no tab is specified, then Mule assumes a default tab. To display multiple parameters in the same the tab, assign the same values to them for this attribute.
+
+== @FriendlyName: Field Labels
+
+Apply this annotation to instance variables and method parameters to provide a way to override the default inferred nickname for a `@Configurable` variable or a `@Processor`/`@Source`/`@Transformer` method parameter.
+
+== @Password: Masking Field Contents
+
+Apply this annotation to identify a field or method parameter as a password or, more generally, as a variable which contains data that should not be displayed as plain text.
+
+== @Summary: Short Descriptions
+
+Apply this annotation to instance variables and method parameters to provide a way to override the default inferred description for a `@Configurable` variable or a `@Processor`/`@Source`/`@Transformer` method parameter.
+
+== @Icons: Custom Palette and Flow Editor Icons
+
+Apply the `@Icons` annotation to the connector class to override the default location of one or more of the required icons. The path needs to be relative to `/src/main/java`.

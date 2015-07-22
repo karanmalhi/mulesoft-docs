@@ -1,0 +1,106 @@
+= Enabling Authentication Through LDAP
+
+The management console can use a LDAP server to manage users and roles. To use LDAP, complete the following steps:
+
+. link:#EnablingAuthenticationThroughLDAP-ldap[mmc:Gather LDAP server connection parameters]
+. link:#EnablingAuthenticationThroughLDAP-roles[mmc:Set up management console roles]
+. link:#EnablingAuthenticationThroughLDAP-JAR[mmc:Add the LDAP JAR to your classpath]
+. link:#EnablingAuthenticationThroughLDAP-add[mmc:Add the LDAP configuration file]
+
+== Gather LDAP Server Connection Parameters
+
+To begin configuring the management console to authenticate users against LDAP, gather the following information from the LDAP server administrator:
+
+* LDAP server hostname and port number
+* User account that the management console will use to access the LDAP server and perform queries in it. This LDAP user account requires *READ ONLY* privileges to read entries below the subtrees, that is, base Distinguished Names (DNs) holding users and groups.
+* Base DNs for users and groups
+* Information on the structure (objectClass and attribute used to build DNs) for both users and groups.
+
+== Set up Management Console Roles
+
+If a user has a role (also called a "group") on the LDAP server, and you want to use that same role to manage permissions in the management console, you must also create that role inside the management console and set the appropriate permissions. For instance, if you add the "Developers" role to the LDAP server, you must also create a role with that name on the Administration panel of the management console and configure the appropriate permissions.
+
+You can do this in one of two ways:
+
+* Create a role called Administrators on the LDAP server. The management console comes with a set of default permissions for users with the Administrators role. Ensure that your user name has the Administrators role, and then log into the management console. You can then create other roles, assign the appropriate permissions, and remove the original Administrators role from the LDAP server.
+
+* Start the management console without LDAP enabled. Create roles in the management console that correspond to your roles on the LDAP server, and then follow the instructions below to enable LDAP.
+
+== Add the LDAP JAR to Your Classpath
+
+The management console LDAP support JAR file contains the necessary classes for the management console to authenticate against an LDAP server. You can download the file http://repository.muleforge.org/org/mule/galaxy/galaxy-ldap/2.2.2/galaxy-ldap-2.2.2.jar[here]. Download the file to the `/WEB-INF/lib` directory under the MMC web application (`<TomcatHome>/webapps/console/WEB-INF/lib`).
+
+== Add the LDAP Configuration File
+
+You must have an LDAP configuration file, called `ldap.xml`, which needs to be placed in `/WEB-INF/classes`. The `galaxy-ldap.jar` file (downloaded link:#EnablingAuthenticationThroughLDAP-JAR[mmc:above]) contains a default `ldap.xml` file in which the LDAP properties are set to link:#EnablingAuthenticationThroughLDAP-ldapdefs[mmc:default values]. You may use that file as is. Or you can override some of the LDAP property values by providing either an `ldap.properties` file or by specifying the properties as Java properties (as explained link:#EnablingAuthenticationThroughLDAP-setldap[mmc:below]). If you need a more complex configuration, then you should consider providing your own `ldap.xml` file (see link:#EnablingAuthenticationThroughLDAP-cLdapXml[mmc:Create an LDAP Configuration File]) and manually modifying the `galaxy-ldap.jar` file to use your custom version.
+
+The default `ldap.xml` file contains the following properties set to these default values:
+
+[width="10",cols="50,50",options="header"]
+|===
+|LDAP Property |Default Value
+|providerURL |ldap://localhost:62009/
+|userDn |uid=admin, ou=system
+|password |secret
+|userSearchBaseContext |ou=system
+|userSearchFilterExpression |uid=\{0}
+|userSearchBase |ou=system
+|userSearchAttributeKey |objectclass
+|userSearchAttributeValue |person
+|roleDn |ou=groups, ou=system
+|groupSearchFilter |uniqueMember=\{0}
+|===
+
+For more information on these LDAP properties, see link:#EnablingAuthenticationThroughLDAP-properties[mmc:below].
+
+The following code example shows how to use the values in an `ldap.properties` file to configure the `ldap.xml` properties. If the `ldap.properties` file does not exist, then the properties are configured according to any key/value pairs passed as parameters to the code. Property values are changed only for those properties either in the `ldap.properties` file or passed in as parameters (and identified by key name). When no matches are found for properties, these property values retain the default values.
+
+[source]
+----
+<bean id="propertyPlaceholder"  class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">  <property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" /> <!-- Existing system properties override local ones -->  <property name="location" value="ldap.properties" />  <property name="ignoreResourceNotFound" value="true" /> <!-- Do not fail if ldap.properties does not exist -->  <property name="localOverride" value="false" /> <!-- local properties override ldap.properties ones -->  <property name="properties"> <!-- Local properties -->   <props>    <prop key="key">value</prop>   </props>  </property> </bean>
+----
+
+=== Create an LDAP Configuration File
+
+You can create your own `ldap.xml` configuration file. The following is an example of an `ldap.xml` configuration file. A description of the LDAP properties set in the file follows the example.
+
+[source]
+----
+<beans xmlns="http://www.springframework.org/schema/beans"  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:schemaLocation="    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">    <bean id="initialDirContextFactory"          class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">    <constructor-arg value="ldap://host:port/"/>    <property name="userDn"><value>cn=Manager,dc=acme,dc=org</value></property>    <property name="password"><value>password</value></property>  </bean>    <bean id="userSearch" class="org.springframework.security.ldap.search.FilterBasedLdapUserSearch">    <constructor-arg value="ou=People,dc=acme,dc=org"/>    <constructor-arg value="(uid={0})"/>    <constructor-arg ref="initialDirContextFactory" />    <property name="searchSubtree" value="true"/>  </bean>    <bean id="userManager"        class="org.mule.galaxy.security.ldap.LdapUserManager"        init-method="initialize">    <property name="initialDirContextFactory" ref="initialDirContextFactory"/>    <property name="persisterManager" ref="persisterManager" />    <property name="userSearch" ref="userSearch"/>    <property name="userMapper" ref="userDetailsMapper"/>        <!-- Configure these two properties -->    <property name="userSearchBase" value="ou=People,dc=acme,dc=org"/>    <property name="userSearchAttributes">        <map>            <entry key="objectclass" value="inetOrgPerson"/>        </map>    </property>  </bean>      <bean id="ldapAuthoritiesPopulator" class="org.mule.galaxy.security.ldap.LdapAuthoritiesPopulator">      <constructor-arg ref="initialDirContextFactory" />      <constructor-arg value="ou=Groups,dc=acme,dc=org" />      <property name="groupSearchFilter" value="uniqueMember={0}"/>      <property name="searchSubtree" value="true"/>      <property name="rolePrefix" value=""/>      <property name="convertToUpperCase" value="false"/>      <property name="accessControlManager" ref="accessControlManager"/>  </bean>  </beans>
+----
+
+Following are the properties that are set in this file:
+
+* The `userDn` property of the `initialDirContextFactory` bean. This is the DN of the user that will log in to the LDAP server.
+* The `password` property of the `initialDirContextFactory` bean. This is the password of the user that will log in to the LDAP server.
+* The first `<constructor-arg>` of the `userSearch` bean. This is the base context in which the management console will search for users.
+* The second `<constructor-arg>` of the `userSearch` bean. This is a filter expression used to find entries that match a particular user name. For example, (uid=\{0}) directs a search for an entry where the uid attribute matches the user name.
+* The `userSearchBase` property of the `userManagerTarget` bean. This is the base context in which the management console will search for users.
+* The `userSearchAttributes` property of the `userManagerTarget` bean. These attributes are used to search for users in the LDAP server.
+* The second `<constructor-arg>` of the `ldapAuthoritiesPopulator` bean. This is the DN of the context that will be used to search for roles to which the user belongs.
+* The `groupSearchFilter` property of the `ldapAuthoritiesPopulator` bean. This is an expression that finds roles. For instance, "(uniqueMember=\{0})" directs a search for roles inside of the `groupSearchBase` that have an attribute "uniqueMember" where one of the values is the user name.
+
+== Using Active Directory
+
+You can use Active Directory (an LDAP-based directory service) with the management console to manage users and roles. To use Active Directory with the management console, you need to enable authentication in the same way as covered previously on this page. However, you will need to customize the ldap.xml file. Here is an example of what a customized ldap.xml file would look like to use Active Directory. A description of the LDAP properties set in the file follows the example.
+
+[source]
+----
+<beans xmlns="http://www.springframework.org/schema/beans"  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:schemaLocation="    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">      <bean id="initialDirContextFactory"            class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">      <constructor-arg value="ldap://IP:3268/"/>       <property name="userDn"><value>cn=CN,dc=DC, ...</value></property>      <property name="password"><value>PASSWORD</value></property>    </bean>    <bean id="userSearch" class="org.springframework.security.ldap.search.FilterBasedLdapUserSearch">    <constructor-arg value="cn=CN,dc=DC, ..."/>    <constructor-arg value="(sAMAccountName={0})"/>    <constructor-arg ref="initialDirContextFactory" />    <property name="searchSubtree" value="true"/>  </bean>    <bean id="userDetailsMapper" class="org.mule.galaxy.security.ldap.UserLdapEntryMapper">      <property name="usernameAttribute" value="sAMAccountName"/>  </bean>    <bean id="userManager"        class="org.mule.galaxy.security.ldap.LdapUserManager"        init-method="initialize">    <property name="initialDirContextFactory" ref="initialDirContextFactory"/>    <property name="persisterManager" ref="persisterManager" />    <property name="userSearch" ref="userSearch"/>    <property name="userMapper" ref="userDetailsMapper"/>    <property name="ldapUserMetadataDao" ref="ldapUserMetadataDao"/>        <!-- Configure these two properties -->    <property name="userSearchBase" value="cn=CN,dc=DC,..."/>    <property name="userSearchAttributes">        <map>            <entry key="objectclass" value="person"/>        </map>    </property>  </bean>      <bean id="ldapAuthoritiesPopulator" class="org.mule.galaxy.security.ldap.LdapAuthoritiesPopulator">      <constructor-arg ref="initialDirContextFactory" />      <constructor-arg value="dc=DC, ..." />      <property name="groupSearchFilter" value="member={0}"/>      <property name="searchSubtree" value="true"/>      <property name="rolePrefix" value=""/>      <property name="convertToUpperCase" value="false"/>      <property name="accessControlManager" ref="accessControlManager"/>        </bean>  </beans>
+----
+
+Following are the properties that are set in this file:
+
+* The `<constructor-arg>` of the `initialDirContextFactory` bean. This specifies the host and port of the LDAP server. The standard LDAP port is 389. However, it is recommended that you specify the Active Directory global port (3268).
+* The `userDn` property of the `initialDirContextFactory` bean. This is the DN of the user that will log in to the LDAP server.
+* The `password` property of the `initialDirContextFactory` bean. This is the password of the user that will log in to the LDAP server.
+* The first `<constructor-arg>` of the `userSearch` bean. This is the base context in which the management console will search for users.
+* The second `<constructor-arg>` of the `userSearch` bean. This is a filter expression used to find entries that match a particular user name. ActiveDirectory uses the `sAMAccountName` attribute for the unique user ID. For instance, `(sAMAccountName={0})` directs a search for an entry whose `sAMAccountName` attribute matches the user name.
+* The `userSearchBase` property of the `userManager` bean. This is the base context in which the management console will search for users.
+* The `userSearchAttributes` property of the `userManager` bean. These attributes are used to search for users in the LDAP server.
+* The second `<constructor-arg>` of the `ldapAuthoritiesPopulator` bean. This is the DN of the context that will be used to search for roles to which the user belongs.
+* The `groupSearchFilter` property of the `ldapAuthoritiesPopulator` bean. This is an expression that finds roles. For instance, `(member={0})` directs a search for roles inside of the `groupSearchBase` that have an attribute "member" where one of the values is the user name.
+
+link:/documentation-3.2/display/32X/Validating+the+License[<< Previous: *Validating the License*]
+
+link:/documentation-3.2/display/32X/Customizing+the+Dashboard[Next: *Customizing the Dashboard* >>]

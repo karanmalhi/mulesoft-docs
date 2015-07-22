@@ -1,0 +1,457 @@
+= *[mmc:Mule 3.2]* Managing Deployments Using REST APIs
+
+
+The management console provides REST APIs that you can use to programmatically access much of the console's functionality. Among the operations that you can request with the REST APIs are operations related to managing deployments. This includes deploying, undeploying, creating, updating, and deleting deployments inside a server or cluster.
+
+[NOTE]
+See link:/documentation-3.2/display/32X/Using+the+Management+Console+API[Using the Management Console APIs] for an overview of the REST APIs, including a basic example of use, and a summary of returned status codes and error handling codes.
+
+
+This page provides a brief description of each REST API for managing deployments, an HTTP method to invoke the API, and a usage example. The examples show how to invoke the API using http://curl.haxx.se/[cURL], the command line HTTP tool.
+
+Note: The notation \{mmc base} refers to the console base address. The console base address used in the examples is http://localhost:8080/mmc and configured with the default username and password (admin:admin).
+
+The table below summarizes the REST APIs for managing deployments:
+
+[cols=",,,",options="header",]
+|===
+|Task |Resource |Description |HTTP Invocation Method
+|Get All Deployments |\{mmc base}/api/deployments |Gets all deployments |GET
+|Get a Single Deployment |\{mmc base}/api/deployments/<deploymentId> |Gets one deployment |GET
+|Create a Deployment |\{mmc base}/api/deployments |Creates a deployment |POST
+|Add Applications/Servers |\{mmc base}/api/deployments/<deploymentId>/add |Adds applications or servers to the deployment |PUT
+|Remove Applications/Servers |\{mmc base}/api/deployments/<deploymentId>/remove |Removes applications and servers from a deployment |PUT
+|Delete a Deployment |\{mmc base}/api/deployments/<deploymentId> |Deletes an entire deployment |DELETE
+|Deploy a Deployment |\{mmc base}/api/deployments/<deploymentId>/deploy |Deploys one or more specified deployments |POST
+|Redeploy a Deployment |\{mmc base}/api/deployments/<deploymentId>/redeploy |Redeploys one or more specified deployments |POST
+|Undeploy a Deployment |\{mmc base}/api/deployments/<deploymentId>/undeploy |Undeploys one or more specified deployments |POST
+|===
+
+== Get All Deployments
+
+Returns a list of all deployments on the specified server. If no server is specified, the API returns a list of all deployments on all servers.
+
+*HTTP Method:*
+
+GET
+
+*URL:*
+
+[source]
+----
+http://{mmc base}/api/deployments
+----
+
+*Parameters:*
+
+serverId: An optional parameter that specifies the ID of the server from which the deployments are listed. If not specified, this parameter is set to `all`. If the specified ID is not a valid server ID, the JSON returned is an empty list.
+
+*Example:*
+
+Request:
+
+[source]
+----
+curl --basic -u admin:admin http://localhost:8080/mmc/api/deployments
+----
+
+JSON Response:
+
+The returned JSON contains the following fields:
+
+* total: Number of deployments.
+* data: A list containing information about each deployment.
+* name: Name of the deployment.
+* id: ID of the deployment.
+* lastModified: Date indicating the last time the deployment was modified. The date format is: `%day, %dayNumber %month %year %hour:%minutes:%seconds %timeZone`.
+* status: The current status of the deployment. Possibles status values are: `DEPLOYED`, `UNDEPLOYED`, `IN_PROGRESS`, `SUCCESSFUL`, `FAILED`, and `DELETING`.
+* href: Link to the current deployment screen in the Management Console.
+* servers: Lists the IDs for all the servers assigned to the deployment.
+* clusters: List the IDs for all clusters assigned to the deployment.
+* clustersNames: List all the names for all clusters assigned to the deployment.
+* reconciled: Boolean value indicating the reconciled status of the deployment.
+* applications: Lists IDs for all the applications that are assigned to the deployment.
+
+Response:
+
+[source]
+----
+{
+    "data": [
+        {
+            "applications": [
+                "local$1b8ee6e2-043c-403c-b404-af3aa74d6f92"
+            ],
+            "clusterIds": [],
+            "clusterNames": [],
+            "href": "http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36",
+            "id": "local$97e3c184-09ed-423e-a5a5-9b94713a9e36",
+            "lastModified": "Mon, 5 Sep 2011 12:19:15 GMT-03:00",
+            "name": "Example",
+            "reconciled": false,
+            "servers": [
+                "local$3a99adfe-e942-4b52-b082-1a351de01420"
+            ],
+            "status": "UNDEPLOYED"
+        }
+    ],
+    "total": 1
+}
+----
+
+== Get a Single Deployment
+
+Returns information about a specific deployment.
+
+*HTTP Method:*
+
+GET
+
+*URL:*
+
+[source]
+----
+http://{mmc base}/api/deployments/{deploymentId}
+----
+
+*Parameters:*
+
+deploymentID: The ID of the deployment.
+
+*Example:*
+
+The following example shows how to list the deployment whose ID is local$06d1e159-7297-475f-b84e-d83cc6d0540c:
+
+Request:
+
+[source]
+----
+curl --basic -u admin:admin http://localhost:8080/mmc/api/deployments/'local$06d1e159-7297-475f-b84e-d83cc6d0540c'
+----
+
+Response:
+
+The returned JSON contains the following fields:
+
+* name: Name of the deployment.
+* id: ID of the deployment.
+* lastModified: Date indicating the last time the deployment was modified. The date format is: `%day, %dayNumber %month %year %hour:%minutes:%seconds %timeZone`.
+* status: The current status of the deployment. Possibles status values are: `DEPLOYED`, `UNDEPLOYED`, `IN_PROGRESS`, `SUCCESSFUL`, `FAILED`, and `DELETING`.
+* href: Link to the current deployment screen in the management console.
+* servers: Lists the IDs for all the servers assigned to the deployment.
+* reconciled: Boolean value indicating the reconciled status of the deployment.
+* applications: Lists IDs for all the applications that are assigned to the deployment.
+
+[source]
+----
+{
+    "applications": [
+        "local$1b8ee6e2-043c-403c-b404-af3aa74d6f92"
+    ],
+    "clusterIds": [],
+    "clusterNames": [],
+    "href": "http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36",
+    "id": "local$97e3c184-09ed-423e-a5a5-9b94713a9e36",
+    "lastModified": "Mon, 5 Sep 2011 12:19:15 GMT-03:00",
+    "name": "Example",
+    "reconciled": false,
+    "servers": [
+        "local$3a99adfe-e942-4b52-b082-1a351de01420"
+    ],
+    "status": "UNDEPLOYED"
+}
+----
+
+== Create a Deployment
+
+Creates a deployment with the specified deployment name, on the specified servers and for the applications, and saves the deployment on the console. The input values are specified using JSON. The returned JSON contains the information about the newly created deployment.
+
+*HTTP Method:*
+
+POST
+
+[source]
+----
+http://{mmc base}/api/deployments
+----
+
+*JSON Input Fields:*
+
+* name: Name of the deployment to be created.
+* servers: List of server valid ID. If a server ID is not valid, an error message is returned with with the invalid ID.
+* clusters: List of valid clusters IDs. If a cluster ID is not valid, an error message is returned with with the invalid ID.
+* serversNames: List of server names.
+* clusterNames: List of cluster names. +
+applications: List of valid application IDs to be assigned to the new deployment. If an application ID is not valid, an error message is returned with with the invalid ID. +
+applicationsNames: List of applications names.
+
+The only restriction about the JSON request is that must be a name specified and at least one target (server, serverName, cluster or clusterName) and at least one application (applications, applicationsNames).
+
+*Example:*
+
+Request:
+
+[source]
+----
+curl --basic -u admin:admin -d  '{"name" : "Example" , "serversNames": [ "mule0" ], "applications": [ "local$75e22cd7-ce94-422a-9987-aa0403713e3e" ]  }' --header 'Content-Type: application/json' http://localhost:8080/mmc/api/deployments
+----
+
+Response:
+
+[source]
+----
+{
+    "applications": [
+        "local$1b8ee6e2-043c-403c-b404-af3aa74d6f92"
+    ],
+    "clusterIds": [],
+    "clusterNames": [],
+    "href": "http://localhost:8080/mmc/api/deployments/local$97e3c184-09ed-423e-a5a5-9b94713a9e36",
+    "id": "local$97e3c184-09ed-423e-a5a5-9b94713a9e36",
+    "lastModified": "Mon, 5 Sep 2011 12:19:15 GMT-03:00",
+    "name": "Example",
+    "reconciled": false,
+    "servers": [
+        "local$3a99adfe-e942-4b52-b082-1a351de01420"
+    ],
+    "status": "UNDEPLOYED"
+}
+
+----
+
+The returned JSON contains the following fields:
+
+* name: Name of the deployment just created.
+* id: ID of the new deployment.
+* lastModified: Date when the deployment was created. The date format is: `%day, %dayNumber %month %year %hour:%minutes:%seconds %timeZone`.
+* status: The current status of the deployment, which is `UNDEPLOYED`.
+* href: Link to the current deployment screen in the management console.
+* servers: Lists the IDs for all the servers that are assigned to the deployment.
+* reconciled: Boolean value indicating the reconciled status of the deployment.
+* applications: Lists IDs for all the applications that are assigned to the deployment.
+
+== Add Applications/Servers
+
+Adds applications or servers that are already in the repository to the deployment. The input values are specified using JSON. The resulting JSON contains the updated information about the deployment. Be aware that the resulting deployment has a different ID than the original deployment.
+
+*HTTP Method:*
+
+PUT
+
+*URL:*
+
+[source]
+----
+http://{mmc base}/api/deployments/{deploymentId}/add
+----
+
+*JSON Input Fields:*
+
+* name: (Optional) A new name for the deployment. If no name field is specified, the name of the deployment remains the same.
+* servers: List of server IDs to be assigned to the specified deployment. If the list contains a non-existing ID, an error message is returned with the invalid ID.
+* applications: List of application IDs to be assigned to the specified deployment. If the list contains a non-existing ID, an error message is returned with the invalid ID.
+
+Here is an example of JSON input:
+
+[cols="",]
+|===
+|{  "applications": [ "appId1", "appId2" .. ], "servers": [ "serverId0", "serverId1" .. ], "name": "new example name" }
+|===
+
+*Example:*
+
+Request:
+
+[source]
+----
+curl --basic -u admin:admin -X PUT -d '{"applications": [ "local$51928b35-778b-4bcb-9190-340c2bb5fe59" ], "servers": [ "local$2796fd32-10f3-44ea-809b-f06ebbeeb2ad" ]}' --header 'Content-Type: application/json' http://localhost:8080/mmc/api/deployments/'local$97e3c184-09ed-423e-a5a5-9b94713a9e36'/add
+----
+
+Response:
+
+The returned JSON contains the following fields:
+
+* name: Name of the updated deployment. If no name field was entered in the input JSON, the name remains the same as it was prior to the update.
+* id: ID of the updated deployment.
+* lastModified: Date when the deployment was updated. The date format is: `%day, %dayNumber %month %year %hour:%minutes:%seconds %timeZone`.
+* status: The current status of the deployment.
+* href: Link to the current deployment screen in the management console.
+* servers: Lists the IDs for all the servers that are assigned to the deployment after the update.
+* reconciled: Boolean value indicating the reconciled status of the deployment.
+* applications: Lists IDs for all the applications that are assigned to the deployment after the update.
+
+== Remove Applications/Servers
+
+Removes applications or servers from a deployment. The resulting JSON contains the information about the deployment after being modified. Be aware that the resulting deployment will have a different ID than it had before the operation.
+
+*HTTP Method:*
+
+DELETE
+
+*URL:*
+
+[source]
+----
+http://{mmc base}/api/deployments/{deploymentId}/remove
+----
+
+*JSON Input Fields:*
+
+* servers: List of server IDs that will be removed from the specified deployment. If the list contains a server ID that is not assigned to the deployment, that server ID will be ignored.
+* applications: List of application IDs that will be removed from the specified deployment. If the list contains an application ID that is not assigned to the deployment, the application ID will be ignored.
+
+Here is an example of JSON input:
+
+[cols="",]
+|===
+|{  "applications": [ "appId1", "appId2" .. ], "servers": [ "serverId0", "serverId1" ..]}
+|===
+
+*Example:*
+
+Request:
+
+[source]
+----
+curl --basic -u admin:admin -X PUT -d '{"servers": ["local$4c9b276a-86f8-4553-b5d3-759a5b915891"], "applications":["local$ed4f9df8-a937-4bd4-8cc4-c32e78edb0cb"]}' --header 'Content-Type: application/json' http://localhost:8080/mmc/api/deployments/'local$97e3c184-09ed-423e-a5a5-9b94713a9e36'/remove
+----
+
+Response:
+
+The returned JSON contains the following fields:
+
+* name: Name of the modified deployment.
+* id: New ID for the modified deployment.
+* lastModified: Date of the last modification of the deployment. The format is: "%day, %dayNumber %month %year %hour:%minutes:%seconds %timeZone".
+* status: The current status of the deployment.
+* href: Link to the current deployment screen in management console.
+* servers: List of all the servers IDs that are assigned to the deployment after removing the specified servers and applications.
+* reconcilied: Boolean for the reconciled status of the deployment.
+* applications: List of all the application IDs that are still assigned to the deployment after removing the specified servers and applications.
+
+== Deploy a Deployment
+
+Redeploys one or more specified deployments.
+
+*HTTP Method:*
+
+POST
+
+*URL:*
+
+[source]
+----
+http://{mmc base}/api/deployments/{deploymentId}/deploy
+----
+
+*Parameters:*
+
+* id: The ID of the deployment (or deployments) to be deployed.
+
+*Example:*
+
+Request:
+
+[source]
+----
+curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/deployments/'local$97e3c184-09ed-423e-a5a5-9b94713a9e36'/deploy
+----
+
+Response:
+
+The specified deployments are redeployed.
+
+== Redeploy a Deployment
+
+Redeploys one or more specified deployments.
+
+*HTTP Method:*
+
+POST
+
+*URL:*
+
+[source]
+----
+http://{mmc base}/api/deployments/{deploymentId}/redeploy
+----
+
+*Parameters:*
+
+* id: The ID of the deployment (or deployments) to be redeployed.
+
+*Example:*
+
+Request:
+
+[source]
+----
+curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/deployments/'local$97e3c184-09ed-423e-a5a5-9b94713a9e36'/redeploy
+----
+
+Response:
+
+The specified deployments are redeployed.
+
+== Undeploy a Deployment
+
+Undeploys one or more specified deployments.
+
+*HTTP Method:*
+
+POST
+
+*URL:*
+
+*Parameters:*
+
+* id: The ID of the deployment (or deployments) to be undeployed.
+
+*Example:*
+
+Request:
+
+[source]
+----
+curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/deployments/'local$97e3c184-09ed-423e-a5a5-9b94713a9e36'/undeploy
+----
+
+Response:
+
+The specified deployments are undeployed.
+
+== Delete a Deployment
+
+Deletes one or more specified deployments.
+
+*HTTP Method:*
+
+DELETE
+
+*URL:*
+
+[source]
+----
+http://{mmc base}/api/deployments/{deploymentId}
+----
+
+*Parameters:*
+
+* id: The ID of the deployment (or deployments) to be deleted.
+
+*Example:*
+
+Request:
+
+[source]
+----
+curl --basic -u admin:admin -X DELETE http://localhost:8080/mmc/api/deployments/'local$97e3c184-09ed-423e-a5a5-9b94713a9e36'
+----
+
+Response:
+
+The specified deployments are deleted.
+
+link:/documentation-3.2/display/32X/Managing+Applications+Using+REST+APIs[<< Previous: *Managing Applications Using REST APIs*]
+
+link:/documentation-3.2/display/32X/Managing+Flows+in+a+Server+Using+REST+APIs[Next: *Managing Flows in a Server Using REST APIs*] >>

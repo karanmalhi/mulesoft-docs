@@ -1,0 +1,202 @@
+= Creating an APIkit Project with Maven
+
+As an alternative to following the link:/documentation/display/current/APIkit+Tutorial[APIkit Tutorial] and creating an APIkit project through Mule's visual interface, you can achieve the same results using the Maven commands described in this document.
+
+== Assumptions
+
+This document assumes that you're familiar with http://raml.org/[RAML] and the link:/documentation/display/current/APIkit+Basic+Anatomy[APIkit Basic Anatomy]. It assumes that you have Maven installed on your local system and that you are reasonably familiar with how to use it. For additional information, consult this http://maven.apache.org/guides/getting-started/maven-in-five-minutes.html[Apache Maven installation and basic usage guide]. For an overview and details about using Maven to develop in Mule, see link:/documentation/display/current/Using+Maven+with+Mule[Using Maven with Mule].
+
+Further, this document assumes that your Maven settings file includes the Mule repositories. The Maven settings file, `settings.xml`, is located inside the `.m2` directory in your home folder. (Keep in mind that in Linux or Mac `.m2` is a hidden folder.) For example:
+
+*Mac:* `/Users/mary/.m2`
+
+**Linux:**` /home/mary/.m2`
+
+**Windows:**` C:\Documents and Settings\mary\.m2`
+
+If you do not have a `settings.xml` file or if the file does not include the Mule repositories, follow the instructions in the expandable section immediately below.
+
+=== Point to Mule Respositories in settings.xml
+
+Add the following content to your `settings.xml` file.
+
+[IMPORTANT]
+If you don't have a `settings.xml` file at all, create it inside the `~/.m2` folder, then insert the code below into the new file.
+
+[source,xml]
+----
+<settings>
+    <pluginGroups>
+        <pluginGroup>org.mule.tools</pluginGroup>
+    </pluginGroups>
+    <profiles>
+        <profile>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <id>mule-repositories</id>
+            <repositories>
+                <repository>
+                    <id>mulesoft-releases</id>
+                    <name>Mulesoft Releases Repository</name>
+                    <url>http://repository.mulesoft.org/releases/</url>
+                </repository>
+                <repository>
+                    <id>mulesoft-snapshots</id>
+                    <name>Mulesoft Snapshots Repository</name>
+                    <url>http://repository.mulesoft.org/snapshots/</url>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>mulesoft-releases</id>
+                    <name>MuleSoft Releases</name>
+                    <url>http://repository.mulesoft.org/releases/</url>
+                </pluginRepository>
+                <pluginRepository>
+                    <id>mulesoft-snapshots</id>
+                    <name>MuleSoft Snapshots</name>
+                    <url>http://repository.mulesoft.org/snapshots/</url>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+
+</settings>
+----
+
+== Step 1    Generating a New Project
+
+. In a terminal, use the `cd` command to navigate to the directory where you want to create the project, then run the following command.
+
++
+[TIP]
+MuleSoft recommends that you run the Maven generation command from within your Anypoint Studio workspace folder  (such as `C:\Users\Aaron\workspace`) so that Maven stores the project files in the Studio workspace.
+
++
+[source]
+----
+mvn archetype:generate -DarchetypeGroupId=org.mule.tools -DarchetypeArtifactId=apikit-archetype -DarchetypeVersion=1.2
+----
++
+This command instructs Maven to create a new project, with its proper folder structure and empty `api.raml` file, and to set up all necessary dependencies. Maven stores the instructions for building the project and associated settings in a template called an _archetype._ APIkit provides a specialized Maven archetype tailored to the needs of creating APIkit projects. It is hosted in Mule's public repositories so you don't need to download it; you can simply reference its virtual address in your Maven commands.
+
++
+[NOTE]
+====
+ Read more about the parameters in this command
+
+In the above command, the parameters listed below define where to find the archetype.
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Parameter |Value
+a|
+`archetypeGroupId`
+
+ a|
+
+ `org.mule.tools`
+
+a|
+`archetypeArtifactId`
+
+ a|
+ `apikit-archetype`
+
+a|
+`archetypeVersion`
+
+ a|
+1.2
+
+|===
+
+You can also include the following parameters in your command, with values specific to your project.
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+a|
+Parameter
+
+ a|
+Description
+
+|`groupId` |The standard Maven group Id for the project.
+|`artifactId` |The file name Maven will give to your project.
+|`package` |The Java package under which the message processor will live.
+|`version` |The version of the new project.
+|===
+
+If you don't include the above parameters, Maven will prompt you to provide values for them upon execution.
+
+*Additional Help*
+
+*Mac OSX* or *Linux:*
+
+For more detail about using the `mvn` command, including a description of available parameters, consult the man page by running `man mvn` in the terminal.
+
+*Windows:*
+
+Consult the http://www.manpagez.com/man/1/mvn/[online version] of the man page.
+
+====
+
+. Maven prompts you to ensure that the parameters listed above are correct. Type **`Y`**, then press *enter* to confirm.  +
+ +
+At this point Maven has generated a new project for you in the directory that you specified. Navigate to the folder and verify that a folder structure now exists. +
+ +
++
+[IMPORTANT]
+The project generated by the archetype includes the latest Mule runtime available.  If you want to use an older runtime, open the pom.xml file and change the contents of the `<mule.version>` XML tag to the version you require.
+
+== Step 2    Preparing a RAML File
+
+Maven has created a file named `api.raml` that resides inside the new project folder, in `src/main/api`. This file defines the structure of your API. The file is initially empty and will not serve in creating any structures. To populate the file, complete one of the following tasks:
+
+* If you have a RAML file but have not defined your API, edit the `api.raml` file to define your API.
+* If you do not have a RAML file to use, you can use this link:/documentation/download/attachments/122752397/sample_RAML?version=1&modificationDate=1385499212041[sample RAML file].
+* If you have a RAML file defines your API: +
+** replace the contents of the default `api.raml` file with your description +
+OR
+** edit the `mule-config.xml` file to point to the file that contains your RAML description. In the `apikit:config` tag, the attribute `raml` specifies the file from which to acquire the API definition. Replace the default value, `api.raml`, with the path to your own RAML file, as shown below.
++
+[source,xml]
+----
+<apikit:config name="apiConfig" raml="CUSTOM FILE NAME" consoleEnabled="true" consolePath="console" />
+----
+
+[NOTE]
+Not sure what RAML is or how to use it? Visit http://raml.org[RAML.org].
+
+== Step 3    Running the Scaffolder
+
+. From the command line, navigate to the newly-created folder that contains your project.
+. Run the following Maven command:
++
+[source,xml]
+----
+mvn org.mule.tools:apikit-maven-plugin:0.2-SNAPSHOT:create
+----
++
+When this command runs, Maven uses the information from the `api.raml` file you provided to generate a new Mule flow for each resource-action pairing.
+
+== Step 4    Importing the Project into Anypoint Studio
+
+Now that the basic structure for your project has been created, you can import the project into Anypoint Studio, then start building the backend flows which map to the resource-action pairs in the API Definition. 
+
+. In Studio, under the *File* menu, select *Import*.
+. In the Import wizard, expand the *Mule* folder, then select `Maven-based Mule project from pom.xml`. +
+
++
+image:/documentation/download/attachments/122752397/import-maven.png?version=1&modificationDate=1399315791340[image] +
++
+
+. Complete the remaining steps in the wizard to identify the *name* and *location* of your project's `pom.xml` on your local drive, then click *Finish* to import the project. 
+. Add message processors to the backend flows to support the resource-action pairings in your API Definition. For more details, read link:/documentation/display/current/APIkit+Beyond+the+Basics#APIkitBeyondtheBasics-Backend-FirstDesign[Backend-First Design].
+
+== See Also
+
+* link:/documentation/display/current/APIkit+Tutorial[APIkit Tutorial]
+* link:/documentation/display/current/APIkit+Beyond+the+Basics[APIkit Beyond the Basics]
+* link:/documentation/display/current/Using+Maven+with+Mule[Using Maven with Mule]

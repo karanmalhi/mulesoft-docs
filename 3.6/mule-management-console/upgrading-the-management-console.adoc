@@ -1,0 +1,222 @@
+= Upgrading the Management Console
+
+*_Enterprise_*
+
+*_*MMC Version 3.6.0*_*
+
+MMC agent and .war files are available through the http://www.mulesoft.com/support-login[MuleSoft Customer Portal]. It is strongly recommended to upgrade to the latest version of MMC.
+
+[NOTE]
+Starting with Mule ESB 3.4.0, the MMC agent comes bundled with the Mule ESB Enterprise runtime download.
+
+== Overview
+
+The steps required to upgrade to MMC 3.6.0 depend on your current MMC version. If you are using MMC 3.5.0, you do not need to perform any special steps and can proceed directly with the upgrade. If you are upgrading from a version earlier than 3.5.0, read on for an overview of your upgrade path.
+
+=== External Database and LDAP Configuration in MMC <3.4.2
+
+MMC 3.4.2 introduced a new, simplified configuration for persisting data on external databases and for managing users via LDAP. This means that if your current MMC version is earlier than 3.4.2, and you use an external database for data persistence and/or use LDAP to manage MMC users, you will need to migrate your current configuration to the new config.
+
+Additionally, if upgrading from MMC 3.4.0 or 3.4.1, you may need to upgrade your MMC agent.
+
+=== Business Events Data in MMC <3.5.0
+
+MMC 3.5.0 introduced changes to one of the tables that store Business Events data. Before upgrading to MMC 3.5.0 or 3.6.0, you will need to run a migration script on the database that persists Business Events data. This does not apply if your current MMC version is 3.4.2 and you persist Business Events data on MS SQL Server.
+
+=== Upgrade Path Table According to Your MMC Version
+
+The table below provides details for each MMC version.
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Your Current MMC version |Steps Required to Upgrade to 3.6.0
+|*Clean install* a|
+* If persisting MMC data on an external database, edit the MMC config files to include database connection information such as user, host, etc. See link:/documentation/display/current/Persisting+MMC+Data+On+External+Databases[Persisting MMC Data On External Databases] for details
+* If managing MMC users via LDAP, edit the MMC config files to include LDAP information such as host, connection parameters, etc. See link:/documentation/display/34X/Setting+Up+and+Managing+Users+via+LDAP[Setting Up and Managing Users via LDAP] for details
+
+|*3.5.x* a|
+* If persisting MMC data on an external database, copy the MMC config files containing database connection information to your new installation. See link:/documentation/display/current/Persisting+MMC+Data+On+External+Databases[Persisting MMC Data On External Databases] for details
+* If managing MMC users via LDAP, copy the MMC config files containing the LDAP information. See link:/documentation/display/34X/Setting+Up+and+Managing+Users+via+LDAP[Setting Up and Managing Users via LDAP] for details
+
+|*Earlier than 3.4.x* a|
+* Follow the steps required to link:#UpgradingtheManagementConsole-341_earlier[upgrade your MMC agent]
+* If using an external database, follow the steps required to link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+an+External+Database[upgrade to MMC 3.5.0 with an external databaseupgrade to MMC 3.6.0 with an external database]
+* If persisting Business Events on MMC's H2 default internal database or an external database, run the relevant link:/documentation/display/current/Migration+Scripts+for+Business+Events[migration scripts for Business Events]
+* If managing MMC users via LDAP, migrate your MMC LDAP configuration as described in link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+LDAP[Upgrading to MMC 3.6.0 with LDAP]
+
+|*3.4.0 and 3.4.1* a|
+* If using an external database, follow the steps required to link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+an+External+Database[upgrade to MMC 3.6.0 with an external database]
+* If persisting Business Events on MMC's H2 default internal database or an external database, run the relevant link:/documentation/display/current/Migration+Scripts+for+Business+Events[migration scripts for Business Events]
+* If managing MMC users via LDAP, migrate your MMC LDAP configuration as described in link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+LDAP[Upgrading to MMC 3.6.0 with LDAP]
+
+|*3.4.1 for MS SQL Server* a|
+* Follow the steps required to link:/documentation/display/current/Upgrading+from+MMC+3.4.1+for+MS-SQL+Server+to+MMC+3.6.0+for+MS-SQL+Server[upgrade from MMC 3.4.1 for MS-SQL Server to MMC 3.6.0 for MS-SQL Server]
+* If managing MMC users via LDAP, migrate your MMC LDAP configuration as described in link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+LDAP[Upgrading to MMC 3.6.0 with LDAP]
+
+|*3.4.2* a|
+* If persisting data on an external database, link:#UpgradingtheManagementConsole-342_file_list[copy the files containing database connection information] to your new installation
+* If persisting Business Events on MMC's H2 default internal database or an external database other than MS SQL Server, run the relevant link:/documentation/display/current/Migration+Scripts+for+Business+Events[migration scripts for Business Events]
+* If managing MMC users via LDAP, link:#UpgradingtheManagementConsole-342_ldap[copy the relevant config files] to your new installation
+
+|*3.4.2 for MS SQL Server* a|
+* link:#UpgradingtheManagementConsole-342_file_list[Copy the files containing database connection information] to your new installation
+* If managing MMC users via LDAP, link:#UpgradingtheManagementConsole-342_ldap[copy the relevant config files] to your new installation
+
+|===
+
+[TIP]
+====
+*If using LDAP or External DBs* +
+
+If your current MMC version is <3.4.2, and you either:
+
+* use LDAP to manage MMC users, or
+* use an external database to persist MMC data,
+
+you can access a quick guide describing link:/documentation/display/current/Configuration+Files+for+LDAP+and+External+DBs+in+MMC+Before+and+After+3.4.2[configuration files for LDAP and external DBs in MMC 3.4.1 and MMC 3.4.2 or later]. Alternatively, you can access step-by-step instructions in:
+
+* link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+an+External+Database[Upgrading to MMC 3.6.0 with an External Database]
+* link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+LDAP[Upgrading to MMC 3.6.0 with LDAP]
+====
+
+== Determining Your MMC Version
+
+You can determine what version of the MMC .war file  you are currently running by logging into the console and clicking *About Mule ESB Enterprise* at the bottom right of the screen.
+
+[NOTE]
+In all cases, it is strongly recommended to upgrade to the newest version of the Management Console.
+
+=== Upgrading
+
+This section contains upgrade information relevant for earlier versions of MMC:
+
+* link:#UpgradingtheManagementConsole-341_earlier[MMC 3.4.0 and 3.4.1]
+* link:#UpgradingtheManagementConsole-341_mssql[MMC 3.4.1 Patched for MS SQL Server to MMC 3.6.0]
+* link:#UpgradingtheManagementConsole-342_mssql[MMC 3.4.2 for MS SQL Server to MMC 3.6.0]
+
+==== MMC 3.4.0 and 3.4.1 to MMC 3.6.0
+
+If you are upgrading your .war to version 3.6.0, and your Mule ESB version is earlier than 3.4.1, you may need to upgrade your Management Console agent, as described below.
+
+If you are upgrading your .war to version 3.6.0, and your Mule ESB version is 3.4.1 or later, you do not need to upgrade your Management Console Agent.
+
+[cols=",,,",options="header",]
+|===
+|Your Mule ESB version |Your current MMC agent version |You need to upgrade your agent to at least |Agent file name
+|3.1.x |3.1.x |3.1.4 |mmc-agent-mule3-app-3.1.4.zip
+|3.2.x |3.2.x |3.2.4 |mmc-agent-mule3-app-3.2.4.zip
+|3.3x |3.3.2 or above |No action necessary | 
+|3.4.x |Any |No action necessary | 
+|===
+
+==== MMC 3.4.1 for MS SQL Server to MMC 3.6.0
+
+MMC 3.4.2 introduced a new and greatly simplified configuration for persisting data on external databases. So in order to upgrade from MMC 3.4.1 to 3.6.0, you need to first migrate your config files to the new format introduced in 3.4.2.
+
+Migrating your config files is described in link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+an+External+Database[Upgrading to MMC 3.6.0 with an External Database]. The process is the same for upgrading to 3.4.2, for 3.5.x and for 3.6.0.
+
+After migrating your config files, you need to run migration scripts on your target MS SQL database. This process is described in link:/documentation/display/current/Upgrading+from+MMC+3.4.1+for+MS-SQL+Server+to+MMC+3.6.0+for+MS-SQL+Server[Upgrading from MMC 3.4.1 for MS-SQL Server to MMC 3.6.0 for MS-SQL Server].
+
+Finally, if you are managing MMC users via LDAP, you need to migrate your MMC LDAP configuration as described in link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+LDAP[Upgrading to MMC 3.6.0 with LDAP].
+
+The complete sequence of steps is:
+
+. Download MMC 3.6.0.
+. Stop your MMC 3.4.1 for MS SQL server.
+. In MMC 3.6.0, modify the configuration for external data persistence as described in link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+an+External+Database[Upgrading to MMC 3.6.0 with an External Database].
+. If managing MMC users via LDAP, modify the configuration for LDAP as described in link:/documentation/display/current/Upgrading+to+MMC+3.6.0+with+LDAP[Upgrading to MMC 3.6.0 with LDAP]. If not managing MMC users via LDAP, skip this step.
+. On your target database on MS SQL server, run the SQL migration scripts as described in link:/documentation/display/current/Upgrading+from+MMC+3.4.1+for+MS-SQL+Server+to+MMC+3.6.0+for+MS-SQL+Server[Upgrading from MMC 3.4.1 for MS-SQL Server to MMC 3.6.0 for MS-SQL Server].
+. Start MMC 3.6.0.
+
+==== MMC 3.4.2 or 3.5.x for MS SQL Server to MMC 3.6.0
+
+You need to copy database connection information (database host, user credentials, etc.) from your old MMC installation to your 3.6.0 installation. For details, see link:#UpgradingtheManagementConsole-342_file_li[MMC 3.4.2 or 3.5.x to 3.6.0 with an External Database].
+
+=== MMC 3.4.2 to MMC 3.6.0
+
+If upgrading from MMC 3.4.2 to 3.6.0, you need to run an SQL migration script on the database used to store Business Events data if one of two conditions are met:
+
+* You are persisting Business Events data on MMC's internal H2 database (the default)
+* You are persisting Business Events data on any external database except MS SQL Server
+
+You must run this script before running MMC 3.6.0 for the first time. For instructions and the SQL scripts to run, see link:/documentation/display/current/Migration+Scripts+for+Business+Events[Migration Scripts for Business Events].
+
+=== MMC 3.4.2 or 3.5.x to MMC 3.6.0 with an External Database
+
+MMC 3.4.2 introduced a new configuration for persisting data on external databases. MMC 3.5.x and 3.6.0 also use this configuration, so if upgrading from 3.4.2 or 3.5.x to 3.6.0 you do not need to migrate to a new configuration. However, you do need to perform two steps:
+
+. Activate the Spring profile for your external database in `<MMC_HOME>/WEB-INF/web.xml`
+. Copy the database connection information (host, user credentials, etc.) to the 3.6.0 installation. To do this, you can copy the file `<MMC_HOME>/WEB-INF/classes/META-INF/databases/<your_database_file>` from your old installation. The actual name of this file depends on the type of data you are persisting (environment or tracking) and the external database you are using. For example, if persisting environment data to Oracle, the correct file is `mmc-oracle.properties`.
+
+For details on both files, see the following sections.
+
+===== File: `<MMC_HOME>/WEB-INF/web.xml`
+
+This file defines, among other things, the internal or external databases used by MMC uses to store its data. The definition is stored in the `spring.profiles.active` section, whose default value is shown below.
+
+[source]
+----
+<context-param>
+    <param-name>spring.profiles.active</param-name>
+    <param-value>tracking-h2,env-derby</param-value>
+</context-param>
+----
+
+To activate a profile for an external database in MMC 3.6.0, you can manually add the value to the section shown above, or copy the entire `web.xml` file from your old installation.
+
+===== File: `<MMC_HOME>/WEB-INF/classes/META-INF/databases/<type of data>-<database name>.properties`
+
+The type of data can be `mmc` (for MMC environment data) or `tracking-persistence` (for Business Events). The full list of available files is shown below.
+
+[source]
+----
+mmc-db2.properties
+mmc-derby.properties
+mmc-mssql.properties
+mmc-mysql.properties
+mmc-oracle.properties
+mmc-postgres.properties
+tracking-persistence-db2.properties
+tracking-persistence-h2.properties
+tracking-persistence-mssql.properties
+tracking-persistence-mysql.properties
+tracking-persistence-oracle.properties
+tracking-persistence-postgres.properties
+----
+
+So for example, the file `mmc-oracle.properties` defines the configuration for persisting MMC environment data on an external Oracle database; the file `tracking-persistence-postgres.properties` defines the configuration for persisting Business Events data on an external Postgres database, etc.
+
+You can copy the entire relevant file(s) from your old installation to MMC 3.6.0.
+
+=== MMC 3.4.2 or 3.5.x to MMC 3.6.0 Using LDAP
+
+MMC 3.4.2 introduced a new configuration for managing users via LDAP. MMC 3.5.x and 3.6.0 also use this configuration, so if upgrading from 3.4.2 or 3.5.x to 3.6.0 you do not need to migrate to a new configuration. However, you do need to perform two steps:
+
+. Activate the LDAP Spring profile in `<MMC_HOME>/WEB-INF/web.xml`
+. Copy the LDAP connection information (LDAP host, MMC credentials, etc.) to the 3.6.0 installation. To do this, you can copy the file `<MMC_HOME>/WEB-INF/classes/META-INF/mmc-ldap.properties` from your old installation
+
+Details about the LDAP configuration are provided below.
+
+===== File: `<MMC_HOME>/WEB-INF/web.xml`
+
+This file defines, among other things, whether the LDAP profile is active or not. The definition is stored in the `spring.profiles.active` section, as shown below.
+
+[source]
+----
+<context-param>
+...
+    <param-name>spring.profiles.active</param-name>
+    <param-value>tracking-h2,env-derby,ldap</param-value>
+</context-param>
+----
+
+You can manually add the `ldap` parameter to this file in MMC 3.6.0, or copy the entire file from your old installation to MMC 3.6.0.
+
+===== File: `<MMC_HOME>/WEB-INF/classes/META-INF/mmc-ldap.properties`
+
+This is the LDAP configuration file for MMC. It is divided by sections such as `LDAP CONNECTION`, `MMC AUTHENTICATION`, etc. and contains extensive comments. When upgrading from MMC 3.4.2 or 3.5.x to 3.6.0, you can simply copy the file to your new installation.
+
+== See Also
+
+* Access the link:/documentation/display/current/Configuring+MMC+for+External+Databases+-+Quick+Reference[Quick Reference] for configuring MMC 3.4.2 and above for external databases
+* Learn how to link:/documentation/display/current/Encrypting+LDAP+and+Database+Passwords+in+MMC[encrypt LDAP and database passwords] in MMC 3.4.2 and above

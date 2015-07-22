@@ -1,0 +1,525 @@
+= Saving JMX Metric Data to CSV Files
+
+* link:#SavingJMXMetricDatatoCSVFiles-Pre-requisites[Pre-requisites]
+* link:#SavingJMXMetricDatatoCSVFiles-TheStartscript[The Start script]
+* link:#SavingJMXMetricDatatoCSVFiles-TheCSVSaveWriterscript[The CSV Save Writer script]
+* link:#SavingJMXMetricDatatoCSVFiles-TheStopscript[The Stop script]
+
+Here are some Tcat admin console groovy scripts for saving JMX metric data from your Tcat server group servers to CSV files from the Tcat console JVM. You can copy and paste these into your admin shell and save them there, and below is some info about how to use the scripts.
+
+== Pre-requisites
+
+These scripts require you to have a server group, and to configure server group ID into the top of the scripts. Once the group exists in the Tcat console, you can obtain the group ID via the REST API, for instance with this curl command:
+
+[source]
+----
+ > curl --basic -u admin:admin http://localhost:8080/console/api/serverGroups
+----
+
+Example: `401e81bf-b792-49fd-9006-eff59cd29387`
+
+Next, the script will monitor one or more JMX attributes. You will need to input the JMX ObjectName and attribute name strings, and whether you want to track it as a delta (a boolean), each in their own array, also shown near the top of each script:
+
+[source]
+----
+def objectNames = [ "Catalina:type=GlobalRequestProcessor,name=http-8080",
+                              "Catalina:type=ThreadPool,name=http-8080"
+                             ]
+def attributeNames = [ "requestCount", "currentThreadsBusy" ]
+def trackDeltas = [ false, false ]
+----
+
+These three arrays are comma separated, and the first element of each describes the first metric to be monitored, the second element of each describes the second metric to be monitored, and so on. Each of these three arrays has to have the same number of elements. If you're monitoring two metrics, each array has to contain two elements.
+
+Next, set the data collection period in whole seconds. This is how often you would like the metric values to be collected. You may go as low as a 1 second period, but the lower you go, the more metric data collection load you place on your servers. Choose a period that will be okay for more than one metric, because CSV files are currently per (server JVM & period).
+
+Configure each of the scripts as described above – make sure they are configured the same.
+
+== The Start script
+
+Run the start script just once when you have it configured. You should see a success message in the admin shell, and your Tomcat's catalina.out log file should show that it is now collecting metric data for the metrics you listed, on each of the servers in the Tcat server group matching the ID you configured. As soon as you execute this script, it adds a group membership event listener that will make any servers added to the group also begin monitoring these metrics, and any server you remove from the group will have the metric monitors removed as well. You can run the start script as many times as you like – it will only refresh the listener and monitors on each subsequent re-run, whether or not any refresh is needed. You should schedule this start script to run on Tcat startup so that the event listener runs after Tcat console server JVM restarts.
+
+[source]
+----
+import com.mulesoft.common.server.GroupMembershipEvent
+import com.mulesoft.common.agent.jmx.JmxCollectorInfo
+import com.mulesoft.common.remoting.RemoteContext
+import com.mulesoft.common.agent.jmx.JmxService
+import org.mule.galaxy.util.SecurityUtils
+import org.mule.galaxy.ee.common.dto.ChartDefinition
+import org.mule.galaxy.ee.common.charts.ChartDefinitionTypes
+import org.mule.galaxy.DuplicateItemException
+import org.mule.galaxy.ee.common.dto.ServerGroup
+import org.mule.galaxy.event.EventManager
+import org.mule.galaxy.event.annotation.Async
+import org.mule.galaxy.event.annotation.BindToEvent
+import org.mule.galaxy.event.annotation.OnEvent
+import org.mule.galaxy.NotFoundException
+ 
+import org.springframework.context.ApplicationContext
+ 
+@BindToEvent("com.mulesoft.common.server.GroupMembershipEvent")
+public class DevGroup10sMetricsMonitorListener {
+ 
+    // The below variables are for the user to configure, to set what is to
+    // be monitored on which server group.
+    def groupId = "401e81bf-b792-49fd-9006-eff59cd29387"
+    def objectNames = [ "Catalina:type=GlobalRequestProcessor,name=http-8080",
+                        "Catalina:type=ThreadPool,name=http-8080"
+                      ]
+    def attributeNames = [ "requestCount", "currentThreadsBusy" ]
+    def trackDeltas = [ false, false ]
+    def period = 10
+ 
+    // The below variables are more programmatic, and shouldn't need changing.
+    def applicationContext
+    def serverManager
+    def eventManager
+    def chartService
+ 
+    public DevGroup10sMetricsMonitorListener(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext
+    }
+ 
+    public void install() {
+        serverManager = applicationContext.getBean("serverManager")
+        eventManager = applicationContext.getBean("eventManager")
+        chartService = applicationContext.getBean("chartService")
+ 
+        // Get the group by ID so that if it gets renamed we can still track it.
+        try {
+            ServerGroup group = serverManager.getServerGroup(groupId)
+        } catch (NotFoundException e) {
+            println e
+            return
+        }
+ 
+        // Remove the previous listener, if any.
+        eventManager.listeners.each {
+            if (it.class.simpleName == "DevGroup10sMetricsMonitorListener") {
+                eventManager.removeListener(it)
+            }
+        }
+        // Add this event listener.
+        eventManager.addListener(this)
+ 
+        // Add monitors for all servers that are already in this group.
+        def results = serverManager.getServersForGroup(groupId, 0, -1, null)
+        def servers = results.getData()
+        servers.each { server ->
+            // Only talk to the server if it is reachable by the console..
+            if (serverManager.isServerUp(server.id)) {
+                def metricCount = -1;
+                objectNames.each { objectName ->
+                    metricCount++
+                    def attributeName = attributeNames[metricCount]
+                    def trackDelta = trackDeltas[metricCount]
+                    addMonitor(server.id, objectName, attributeName, trackDelta)
+                }
+            }
+        }
+    }
+ 
+    @Async
+    @OnEvent
+    void onEvent(com.mulesoft.common.server.GroupMembershipEvent e) {
+        if (e.groupId == this.groupId) {
+            def metricCount = -1;
+            objectNames.each { objectName ->
+                metricCount++
+                def attributeName = attributeNames[metricCount]
+                def trackDelta = trackDeltas[metricCount]
+                if (e.added == true) {
+                    addMonitor(e.serverId, objectName, attributeName, trackDelta)
+                }
+            }
+        }
+    }
+ 
+    void addMonitor(String serverId, String objectName,
+                    String attributeName, boolean trackDelta) {
+        // Start monitoring the JMX attribute in this server's agent.
+        def d = new ChartDefinition()
+        def jmxCollectorInfoId = groupId + "|" + period + "|" + serverId + "|" + objectName + "|" + attributeName + "|" + trackDelta
+        d.setName(jmxCollectorInfoId)
+        d.setPortletId("csvsave")
+        d.getServerTypeDestination().setId(serverId)
+        d.getServerTypeDestination().setGroup(false)
+        d.setUnit(ChartDefinition.Unit.NOUNIT)
+        d.setUserId(SecurityUtils.SYSTEM_USER.getId())
+        d.setType(ChartDefinitionTypes.JMX_ATTRIBUTE_CHART.getId())
+        Map<String, String> config = d.getConfiguration()
+        config.put(ChartDefinition.JMX_OBJECT_NAME, objectName)
+        config.put(ChartDefinition.JMX_ATTRIBUTE, attributeName)
+        config.put(ChartDefinition.JMX_PERIOD, period as String)
+        config.put(ChartDefinition.JMX_TRACK_DELTA, trackDelta as String)
+ 
+        try {
+            chartService.save(d)
+            println "Started monitoring ${jmxCollectorInfoId}"
+        } catch (DuplicateItemException e) {
+            // This metric is already being monitored.
+            println "Already being monitored: ${jmxCollectorInfoId}"
+        }
+    }
+}
+ 
+new DevGroup10sMetricsMonitorListener(applicationContext).install()
+"Success!"
+----
+
+== The CSV Save Writer script
+
+Run the CSV save writer script once you've run the start script. The CSV save writer script is what writes the metric data to CSV files. Near the top of the script, you can configure the directory where the CSV files are written. By default, this is in the Tomcat logs/ directory, but you may configure any absolute filesystem path here. Each invocation of the CSV save writer script collects the JMX metric value(s) from each server in the monitored server group, and writes one CSV file per server JVM. The period of all data in one CSV file is the same period, because dealing with mixed period data is a more complex problem. If you want to collect data of different periods, you should duplicate the scripts, one configured copy for each sampling period you would like to use. Schedule the CSV save writer script to run in the Tcat console admin shell at the same period that you configure data collection to occur inside the CSV save start script. The Tcat admin shell scheduler must run the writer script at the same period. When configuring the scheduler to run the CSV save writer script, you should check the Allow Concurrent Execution checkbox.
+
+Currently, the CSV files grow unbounded, but you may either move, truncate, or delete them at any time, and the console will begin a new one. If you have an external log rolling system (such as log-rotate on Linux), you can roll these CSV files that way. Otherwise, you can allow the CSV files to grow until you either delete it or move it to another filename.
+
+[source]
+----
+import com.mulesoft.tcat.Server
+import com.mulesoft.common.remoting.RemoteContext
+import com.mulesoft.common.server.ServerHealthEvent
+import com.mulesoft.tcat.osutil.ReferenceProcessor
+import org.mule.galaxy.impl.jcr.JcrItem
+import org.mule.galaxy.ee.common.dto.ChartDefinition
+import org.mule.galaxy.util.SecurityUtils
+import org.mule.galaxy.impl.jcr.JcrUtil
+ 
+import org.springmodules.jcr.JcrCallback
+import org.springframework.remoting.RemoteAccessException
+import java.io.File
+import java.io.FileWriter
+import java.util.HashMap
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorCompletionService
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicLong
+import java.text.SimpleDateFormat
+ 
+// The below variables are for the user to configure, to set what is to
+// be monitored on which server group.
+def groupId = "401e81bf-b792-49fd-9006-eff59cd29387"
+def objectNames = [ "Catalina:type=GlobalRequestProcessor,name=http-8080",
+                    "Catalina:type=ThreadPool,name=http-8080"
+                  ]
+def attributeNames = [ "requestCount", "currentThreadsBusy" ]
+def trackDeltas = [ false, false ]
+def period = 10
+def csvSaveDir = "\${catalina.base}/logs"
+ 
+// Resolve any system property references in csvSaveDir.
+csvSaveDir = ReferenceProcessor.resolveRefs(csvSaveDir, [:], true, false, System.getProperty("os.name"))
+ 
+// You probably shouldn't change variables below.
+ 
+def c = applicationContext
+// Copy into a local var, referenced in closure.
+def logger = log
+def sf = c.getBean("sessionFactory")
+def r = c.getBean("registry")
+def serverManager = c.getBean("serverManager")
+def statisticsService = c.getBean("v1/statisticsService")
+def chartService = c.getBean("chartService")
+def servers = r.getItemByPath("/Provisioning/Servers").items
+if (!servers) {
+    if (logger.debugEnabled) {
+        logger.debug "No servers found, nothing to ping"
+    }
+    return
+}
+// Randomize the order to have a better throughput with servers 'down' in the list
+Collections.shuffle(servers)
+ 
+// Calculate thread pool size.
+def numProcs = Runtime.runtime.availableProcessors()
+def numServers = servers.size()
+def tpSize = numServers
+if (numServers > numProcs) {
+    // Make it one thread for every 4 servers to collect data from.
+    tpSize = numServers / 4
+    // But don't let the thread pool size exceed 2 threads per processor.
+    if (tpSize > numProcs * 2) {
+        tpSize = numProcs * 2
+    }
+}
+ 
+def class CSVSaveThreadFactory implements ThreadFactory {
+    def AtomicLong threadCount = new AtomicLong(0)
+    // Be a good citizen, introduce ourselves and bind to a parent.
+    def ThreadGroup threadGroup = new ThreadGroup(Thread.currentThread().threadGroup, "pool-csvsave")
+ 
+    def Thread newThread(Runnable r) {
+        // Name worker threads.
+        def threadName = "csvsave-worker-${threadCount.getAndIncrement()}"
+        return new Thread(threadGroup, r, threadName)
+    }
+}
+ 
+def ExecutorService exec = Executors.newFixedThreadPool(tpSize,  new CSVSaveThreadFactory())
+def ExecutorCompletionService compService = new ExecutorCompletionService(exec)
+def int submittedTasksCount = 0
+def int timeout = 10 // Maximum time (seconds) allowed for metric collection.
+ 
+def saveData = { List<ChartDefinition> charts, JcrItem server ->
+    if (charts == []) {
+        println "No metric data to store."
+        return
+    }
+    def csvFile = new File(new File(csvSaveDir),
+        server.name.replace(' ', '-') + "-" + period + "s-period-jmx.csv")
+    def csvFileExists = false;
+    if (csvFile.exists()) csvFileExists = true;
+    FileWriter writer = null;
+    try {
+        writer = new FileWriter(csvFile, true)
+    } catch (IOException e3) {
+        e3.printStackTrace()
+        return
+    }
+    if (!csvFileExists) {
+        // Initialize the CSV file.
+        def header = "\"Time\","
+        def fieldCount = -1
+        objectNames.each { objectName ->
+            fieldCount++
+            if (fieldCount > 0) header = header + ","
+            header = header + "\"" + objectName + " " + attributeNames[fieldCount]
+            if (trackDeltas[fieldCount]) header = header + " delta"
+            header = header + "\""
+        }
+        try {
+            writer.append(header + "\r")
+        } catch (IOException e4) {
+            e4.printStackTrace()
+            return
+        }
+    }
+    def date = new Date()
+    def dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    def dataLine = "\"" + dateFormat.format(date) + "\","
+    def valueCount = -1
+    charts.each { chart ->
+        valueCount++
+        if (valueCount > 0) dataLine = dataLine + ","
+        dataLine = dataLine + "\"" + chart.lastData + "\""
+    }
+    try {
+        writer.append(dataLine + "\r")
+        writer.close()
+    } catch (IOException e5) {
+        e5.printStackTrace()
+        return
+    }
+}
+ 
+def csvSave = { JcrItem server ->
+    def Callable task = {
+        def jcrTransactionCallback = { session ->
+            RemoteContext.setServerId(server.id)
+            def executor = Executors.newSingleThreadExecutor()
+            try {
+                // Give 'timeout' maximum seconds for metric collection
+                // call to succeed.
+                def serverId = server.id
+ 
+                def Callable getStatCallable = {
+                    SecurityUtils.doPrivileged({
+                        JcrUtil.doInTransaction(sf, { session2 ->
+ 
+                            // Collect metric values for this server.
+                            RemoteContext.setServerId(serverId);
+                            def charts = chartService.getPortletCharts("csvsave")
+                            def chartsForThisServer = []
+                            for (int i = 0; i < objectNames.size(); i++) {
+                                def objectName = objectNames[i]
+                                def attributeName = attributeNames[i]
+                                def trackDelta = trackDeltas[i]
+                                def jmxCollectorInfoId = groupId + "|" + period + "|" + serverId + "|" + objectName + "|" + attributeName + "|" + trackDelta
+                                charts.each { chart ->
+                                    if (chart.name == jmxCollectorInfoId) {
+                                        chartsForThisServer.add(chart)
+                                    }
+                                }
+                            }
+                            saveData(chartsForThisServer, server)
+ 
+                        } as JcrCallback)
+                    })
+                } as Callable
+ 
+                try {
+                    executor.submit(getStatCallable).get(timeout, TimeUnit.SECONDS)
+                } catch (ExecutionException e) {
+                    throw e?.cause?.cause // Extracts real exception thrown from ExecutionException then InvokerInvocationException
+                }
+                // The collection completed successfully.
+            } catch (RemoteAccessException e) {
+                if (logger.debugEnabled) {
+                    logger.debug("Unreachable server ${server.name}: ${e.message}")
+                }
+                println "Unreachable server ${server.name}: ${e.message}"
+                saveData(Collections.emptyList())
+                return null
+            } catch (TimeoutException e) {
+                if (logger.debugEnabled) {
+                    logger.debug("Unreachable server after ${timeout} seconds ${server.name}: ${e.message}")
+                }
+                println "TimeoutException, server ${server.name}"
+                saveData(Collections.emptyList())
+                return null
+            } catch (Exception e) {
+                println "Failed to collect metric from server ${server.name} ${e.message}"
+                logger.error("Failed to collect metric from server ${server.name}", e)
+            } finally {
+                executor.shutdownNow()
+            }
+        } as JcrCallback
+ 
+        SecurityUtils.doPrivileged({
+            JcrUtil.doInTransaction(sf, jcrTransactionCallback)
+        })
+ 
+        return null
+         
+    } as Callable
+ 
+    compService.submit task
+    submittedTasksCount++
+ 
+    if (logger.debugEnabled) {
+        logger.debug "Submitted tasks: $submittedTasksCount"
+    }
+}
+ 
+try {
+    // Invoke metric value collection and storage, each server in a thread.
+    servers.each { server ->
+         
+        // If the server is unreachable by the console, we'll store
+        // a value meaning that we didn't get any data for that sample.
+        if (!serverManager.isServerUp(server.id)) {
+            saveData(Collections.emptyList(), server)
+            return null
+        }
+ 
+        if (logger.debugEnabled) {
+            logger.debug "Saving CSV stats for server ${server.name}"
+        }
+        csvSave(server)
+    }
+ 
+    // Time out each thread and
+    def int tasksLeft = submittedTasksCount
+    submittedTasksCount.times {
+        // Ensure all submitted tasks complete.
+        def result = compService.take().get()
+        tasksLeft--
+        if (logger.debugEnabled) {
+            logger.debug "Done with server ${result}. ${tasksLeft} task(s) remaining"
+        }
+    }
+} finally {
+    if (logger.debugEnabled) {
+        logger.debug "Shutting down thread pool"
+    }
+    exec.shutdown()
+    if (!exec.awaitTermination(5, TimeUnit.SECONDS)) {
+        exec.shutdownNow()
+    }
+    if (logger.debugEnabled) {
+        logger.debug "Thread pool shutdown complete"
+    }
+}
+"Success!"
+----
+
+== The Stop script
+
+Simply removing servers from the monitored Tcat server group should be enough for the Start script's event listener to stop monitoring the metrics on the server that is being removed. But, if you would like to stop monitoring the metrics on all servers in the group, run this Stop script. It will remove all monitors for the listed metrics from every server in the monitored Tcat server group. If the CSV save writer script is still running, the metric values it logs will no longer be changing values.. but the CSV save writer script will continue to log into the CSV files until you reconfigure the scheduler to stop running the CSV save writer script.
+
+[source]
+----
+import org.mule.galaxy.ee.common.dto.ServerGroup
+import org.mule.galaxy.util.SecurityUtils
+import org.mule.galaxy.impl.jcr.JcrUtil
+ 
+import org.springframework.context.ApplicationContext
+import org.springmodules.jcr.JcrCallback
+import java.util.concurrent.Executors
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
+ 
+// The below variables are for the user to configure, to set what is to
+// be monitored on which server group.
+def groupId = "401e81bf-b792-49fd-9006-eff59cd29387"
+def objectNames = [ "Catalina:type=GlobalRequestProcessor,name=http-8080",
+                    "Catalina:type=ThreadPool,name=http-8080"
+                  ]
+def attributeNames = [ "requestCount", "currentThreadsBusy" ]
+def trackDeltas = [ false, false ]
+def period = 10
+ 
+// You probably shouldn't change variables below.
+ 
+def c = applicationContext
+// Copy into a local var, referenced in closure.
+def logger = log
+def serverManager = c.getBean("serverManager")
+def chartService = c.getBean("chartService")
+def sf = c.getBean("sessionFactory")
+ 
+def Callable deleteMonitorsCallable = {
+    SecurityUtils.doPrivileged({
+        JcrUtil.doInTransaction(sf, { session ->
+ 
+            def deleteMonitors = { serverId, charts ->
+                // Stop monitoring the JMX attribute in this server's agent.
+                try {
+                    for (int i = 0; i < objectNames.size(); i++) {
+                        def objectName = objectNames[i]
+                        def attributeName = attributeNames[i]
+                        def trackDelta = trackDeltas[i]
+                        def jmxCollectorInfoId = groupId + "|" + period + "|" + serverId + "|" + objectName + "|" + attributeName + "|" + trackDelta
+                        charts.each { chart ->
+                            if (chart.name == jmxCollectorInfoId) {
+                                chartService.delete(chart.id)
+                                println "Stopped monitoring ${jmxCollectorInfoId}"
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    println e
+                }
+            }
+ 
+            // Delete monitors for all servers in this group.
+            def results = serverManager.getServersForGroup(groupId, 0, -1, null)
+            def servers = results.getData()
+ 
+            def charts = chartService.getPortletCharts("csvsave")
+ 
+            servers.each { server ->
+                if (serverManager.isServerUp(server.id)) {
+                    deleteMonitors(server.id, charts)
+                } else {
+                    println "Server ${server.id} was unreachable."
+                }
+            }
+        } as JcrCallback)
+    })
+} as Callable
+def executor = Executors.newSingleThreadExecutor()
+try {
+    executor.submit(deleteMonitorsCallable).get(60, TimeUnit.SECONDS)
+} catch (ExecutionException e) {
+    throw e?.cause?.cause
+}
+ 
+"Success!"
+----

@@ -1,0 +1,780 @@
+= HTTPS API Proxy Example
+
+This document provides an example of an HTTPS proxy application, which requires some additional configuration steps in the proxy than described in the link:/documentation/display/current/Proxying+Your+API[standard proxy example]. +
+
+*link:#HTTPSAPIProxyExample-templatecode[Skip to the code]*
+
+== Assumptions
+
+This document assumes that you're familiar with the concept of link:/documentation/display/current/Proxying+Your+API[proxying APIs] for the link:/documentation/display/current/Anypoint+Platform+for+APIs[Anypoint Platform for APIs].
+
+== Example HTTPS Proxy Using the Box API
+
+To demonstrate the basic procedure of creating a proxy application, this document uses the public http://www.apihub.com/box/api/box-api[Box API] as an example REST API to stand in for any REST API that you have that you might want to proxy through your API Gateway. The specific configuration for Box is summarized here, but you will need to replace this with the corresponding information for your own RESTful services that you wish to proxy.
+
+To follow along with the steps in this example, you must have a https://app.box.com/files[box.com] account, which you can create for free if you don't already have one.
+
+=== Registering an App in the Box Developer Portal
+
+The steps below are only needed in this particular example so that you can test your finished proxy for the Box API by simulating an API call from an application. They don't necessarily match the steps you need to carry out to test your own API.
+
+. Go to Box's developer portal: http://developers.box.com/[developers.box.com]
+. Click *Get API Key* to register a new app for the Box API. You may have to log in with your Box account after this.
+. You are then prompted to provide a name for your application. Give it any name, such as `MyProxy`, then select the *Content API*. If this is your first Box app, you will be prompted to upgrade your Box account to a Developer account.
+. Click *Edit Application*.
+. Look for the `client_id` and the `client_secret`. Copy these to a safe place, as you will need them later.
+. Add a `redirect_url`. For the purpose of this exercise, any https URL will do, even https://www.google.com.
+
+Leave the box developer portal open for now, as you will return here later to request an OAuth token. Because the OAuth token expires very quickly, it's best to build the flow before you request it.
+
+=== Building the Proxy in Studio
+
+Next, build your proxy application in Anypoint Studio. As noted in link:/documentation/display/current/Proxying+Your+API[Proxying Your API], your proxy application needs to:
+
+. Accept incoming service calls from applications and route them to the Box API.
+. Copy any message headers from the service call and pass them along to the Box API.
+. Disable the default status code exception check to allow any error messages that the Box API returns to be passed on to the application. 
+. Capture message headers from the Box API's response and attach them to the response message.
+. Route the response to the application that made the service call.
+
+
+If you're using HTTPS, as the Box API requires, you must create a keystore file to certify the communication. This can be done using the keytool provided by Java, found in the bin directory of your Java installation. Navigate to this directory on your machine using the command line, then execute the following command to create a keystore file:
+
+[source,java]
+----
+keytool -genkey -alias mule -keyalg RSA -keystore keystore.jks
+----
+
+You will be prompted to create two passwords. Remember these. The command creates a .jks file in the local directory called `keystore.jks`. Drag this file into the `restproxybox/src/main/resources` directory in Mule Studio's Package Explorer.
+
+image:/documentation/download/attachments/122752433/RestProxy_keystorefile.png?version=1&modificationDate=1406738563524[image]
+
+Follow the instructions below to build the proxy application, using either the visual drag-and-drop editor or the XML editor, or some combination. Instructions for both editors are provided below.
+
+==== Studio Visual Editor [TAB]
+
+. Create a new Mule Project by going to **File > New... > Mule Project**, naming it *RESTProxyBox*.
+. Drag an *HTTP endpoint* into a new flow. This is an inbound endpoint for your proxy application and receives all the requests that reference its address. +
+
++
+image:/documentation/download/attachments/122752433/boxproxy-flow1.png?version=1&modificationDate=1406738563261[image]
++
+If you click on the HTTP icon, Studio opens the endpoint's properties editor in the console below the canvas. Here, you can configure the inbound endpoint to be reached through a custom address by setting the host and port, or switching to the advanced tab and specifying an address. For the purposes of this example, keep all the default settings, except for the *Display Name*, which you can change to `Receive HTTP requests from apps.`
++
+[cols=",",options="header",]
+|===
+|Attribute |Value
+|Display Name |Receive HTTP requests from apps
+|Host |localhost
+|Port |8081
+|Path | 
+|===
++
+[IMPORTANT]
+Setting a path for an inbound endpoint is not recommended on a proxy. If your inbound endpoint is reached through an address that includes a path  (ex: through `http://somehost:someport/flow1`), then this path will form part of the property `http.request`, which is needed later. The `http.request` property will only resolve correctly if it does not include a `/path`.
++
+[NOTE]
+====
+*Reaching the proxy via HTTPS*
+
+Ideally, because this API requires HTTPS, all connections to and from the proxy application would run over HTTPS rather than HTTP. However, for the purposes of this example, the inbound endpoint for the proxy is reached through your localhost, which is not certified as a secure server, and thus this inbound connection does not work reliably through HTTPS.
+
+If you wish to use HTTPS for the inbound endpoint of your API proxy, your web server must have a *public key certificate*, signed by a *trusted certificate authority*. Once you have that, you can make this inbound endpoint HTTPS by following the same procedure as for the outbound endpoint, described below in steps 5 and 8-11.
+====
+. Drag a second *HTTP endpoint* into the same flow. This second endpoint acts as an outbound endpoint and passes requests to the Box API, receives responses from the API, and passes the responses back to the application that initiated the API call. +
+
++
+image:/documentation/download/attachments/122752433/boxproxy-flow2.png?version=1&modificationDate=1406738563268[image]
+
+. Click on the HTTP icon to open its properties editor. In the General tab, change the *Display Name* to `Send requests to API`. +
+. Check the box to *Enable HTTPS*. +
++
+[NOTE]
+The Box API requires all incoming calls be through the HTTPS protocol. This might not be the case for your API.
+. Delete the default value that appears in the *Host* field, leaving it blank. +
+
++
+image:/documentation/download/attachments/122752433/boxproxy-httpconfig2.png?version=1&modificationDate=1406738563318[image]
+
+. In the *Advanced* tab, set the address to:
++
+*`https://api.box.com#[message.inboundProperties['http.request']]`* +
+The **`http.request`** inbound property references the URI subpath of the request that reaches the HTTP inbound endpoint. If your proxy application receives an HTTP request through `http://localhost:8081/2.0/folders/0` then `http.request` contains the value `2.0/folders/0`. As this is a REST API, the requests that apps send to the API include arguments as part of the URI. By appending  `#[message.inboundProperties['http.request']]` onto the end of the URL, your proxy application captures these arguments and forwards them to the Box API.
+
++
+image:/documentation/download/attachments/122752433/boxproxy-http2-adv.png?version=1&modificationDate=1406738563292[image]
+
+. In the *References* tab, add a new Connector Reference by clicking on the green plus sign next to the field. This will create a global element, which encapsulates reusable connection settings. +
+
++
+image:/documentation/download/attachments/122752433/boxproxy-reftab.png?version=1&modificationDate=1406738563335[image] +
+
+
++
+. On the Choose Global Type window, select **HTTP\HTTPS**, then click *OK*.
+. Studio opens the Global Element Properties window and prompts you to name your global element. Name it *httpConnector*.
+. In the *Security* tab, navigate to the *Path* of the `keystore.jks` that you created link:#HTTPSAPIProxyExample-keystore[above] and enter the *Key Password* and *Store Password* that you defined when creating this keystore. Click *OK*.
+
++
+image:/documentation/download/attachments/122752433/boxproxy-httpconnector.png?version=1&modificationDate=1406738563328[image] +
+
++
+Drag a *Property* transformer in between the two HTTP endpoints.
++
+image:/documentation/download/attachments/122752433/boxproxy-flow3.png?version=1&modificationDate=1406738563276[image]
++
+Configure it as shown:
+
++
+image:/documentation/download/attachments/122752433/boxproxy-disablecheck.png?version=1&modificationDate=1406738563240[image]
++
+[cols=",",options="header",]
+|===
+|Attribute |Value
+|Display Name |Disable exception check
+|Operation |Set Property
+|Name |`http.disable.status.code.exception.check`
+|===
++
+By setting the variable `http.disable.status.code.exception.check` to **`true`**, you are adding a flag to the message that indicates to Mule that any HTTP status codes generated by the Box API must be returned to the requesting app, without being overwritten by the proxy's own status codes.
+. To deal with the message headers, you'll need to perform a series of simple operations. As these same operations have to be processed both with incoming and outgoing messages, it makes sense to encapsulate this set of tasks into a reusable sub-flow that you can call twice. You must add: +
+.. a *sub-flow* outside the current flow, created by dragging a sub-flow component to the empty space below the flow 
+.. a *flow reference* element after the HTTP inbound endpoint that comes from the requesting app
+.. another *flow reference* element after the HTTP outbound endpoint to your API. +
+
++
+image:/documentation/download/attachments/122752433/subflow.png?version=1&modificationDate=1406738563551[image] +
+
++
+Whenever the message reaches one of the *flow reference* elements, the logic in the referenced *sub-flow* is executed, then the execution of the rest of the main flow is resumed.
+
+. Click on the sub-flow and rename it to **copy-headers**.
+. Configure both flow reference elements so that they reference the sub-flow you created: +
+
++
+image:http://www.mulesoft.org/documentation/download/attachments/98309837/ex10.png?version=2&modificationDate=1391468622861[image]
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+a|
+Field
+
+ a|
+Value
+
+|*Display Name* |`Copy HTTP Headers`
+|*Flow name* |`copy-headers`
+|===
+
+. When an application makes a call to your API, that call may include headers that the API needs to receive. The proxy application must capture all incoming headers and pass them along, unaltered. In Mule, any incoming message headers that enter the proxy application are treated as inbound properties, which are not forwarded to your API. Thus, the proxy application must take HTTP inbound properties and transform them into *outbound properties*, which are sent to the API via the outbound endpoint. In the new sub-flow that you created below the main flow, drag and drop a *property* component. +
+
++
+image:/documentation/download/attachments/122752433/propertysubflow.png?version=1&modificationDate=1406738563486[image]
+
+
+. Configure this property transformer as shown:
+
++
+image:/documentation/download/attachments/122752433/propertynewscreen.png?version=1&modificationDate=1406738563479[image]
++
+[cols=",",options="header",]
+|===
+|Attribute |Value
+|Display Name |Copy All HTTP Headers
+|Operation |Copy Properties
+|Name |*
+|===
++
+Set like this, the transformer copies all inbound properties and sets them as outbound properties.
+. Still in the sub-flow, after the property transformer, add four more *property* transformers and configure them as follows:
+
++
+image:/documentation/download/attachments/122752433/fullsubflow.png?version=1&modificationDate=1406738563408[image]
++
+First Property transformer:
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+a|
+Field
+
+ a|
+Value
+
+|*Display Name* |`Remove Content Length`
+|*Operation* |`Remove Property`
+|*Name* |`Content-Length`
+|===
++
+Second Property transformer:
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+a|
+Field
+
+ a|
+Value
+
+|*Display Name* |`Remove MULE properties`
+|*Operation* |`Remove Property`
+|*Name* |`MULE_*`
+|===
++
+Third Property transformer:
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+a|
+Field
+
+ a|
+Value
+
+|*Display Name* |`Remove X_MULE properties`
+|*Operation* |`Remove Property`
+|*Name* |`X_MULE*`
+|===
++
+Third Property transformer:
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+a|
+Field
+
+ a|
+Value
+
+|*Display Name* |`Remove X-MULE properties`
+|*Operation* |`Remove Property`
+|*Name* |`X-MULE*`
+|===
++
+The output of a well-built proxy should be identical to its input. Mule auto-generates a few headers that are meant for using within the flow and that are irrelevant to your API, when making all HTTP headers into outbound properties (as instructed in the previous step) these headers will be passed on as well. The four Property transformers covered in this step take care of removing these unnecessary headers.
+
+Your finished project looks like this:
+
+image:/documentation/download/attachments/122752433/finalwsubflow.png?version=1&modificationDate=1406738563385[image]
+
+You now have a minimum proxy that can route requests and responses to and from your REST API.
+
+==== XML Editor [TAB]
+
+. Create an *HTTPS connector* that specifies HTTPS settings that will be later used by an HTTP outbound endpoint that connects to the Box API.
++
+[NOTE]
+The code below is missing a path, keyPassword, and a storePassword. You must enter these yourself.
++
+[source,xml]
+----
+<https:connector name="httpConnector" doc:name="HTTP\HTTPS">
+    <https:tls-key-store path="" keyPassword="" storePassword=""/>
+</https:connector>
+----
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Attribute |Value
+a|
+
+`name`
+ a|
+
+`httpConnector`
+
+
+a|
+`doc:name`
+
+
+ a|
+
+`HTTP\HTTPS`
+
+
+|===
++
+Child element *https:tls-key-store*
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Attribute |Value
+a|
+`path`
+
+
+ a|
+
+`<your keystore path>``
+
+
+a|
+
+`keyPassword`
+
+
+ a|
+
+`<password on keystore>``
+
+
+a|
+
+`storePassword`
+
+
+ a|
+
+`<password on keystore>``
+
+
+|===
++
+Define the full path, pointing to your keystore file, then add the Key Password and a Store Password that you defined when creating this keystore.
+. Create a flow, then add an **HTTP inbound-endpoint**. This an inbound endpoint for your proxy application and receives all the requests that reference its address.
++
+[source,xml]
+----
+<flow name="restproxyboxFlow1" doc:name="restproxyboxFlow1>
+    <http:inbound-endpoint  address="http://localhost:8081" doc:name="Receive HTTP requests from apps" exchange-pattern="request-response" />
+</flow>
+----
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+a|
+Attribute
+
+ a|
+Value
+
+a|
+
+`exchange-pattern`
+
+
+ a|
+
+
+`request-response`
+
+
+a|
+`address`
+
+
+ a|
+
+`http://localhost:8081`
+
+
+a|
+
+
+`doc:name`
+
+
+ a|
+
+Receive HTTP requests from apps
+
+
+|`path` | 
+|===
++
+[IMPORTANT]
+Setting a path for an inbound endpoint is not recommended on a proxy. If your inbound endpoint is reached through an address that includes a path  (ex: through `http://somehost:someport/flow1`), then this path will form part of the property `http.request`, which is needed later. The `http.request` property will only resolve correctly if it does not include a `/path`.
++
+[NOTE]
+====
+*Reaching the proxy via HTTPS*
+
+Ideally, because this API requires HTTPS, all connections to and from the proxy application would run over HTTPS rather than HTTP. However, for the purposes of this example, the inbound endpoint for the proxy is reached through your localhost, which is not certified as a secure server, and thus this inbound connection does not work reliably through HTTPS.
+
+If you wish to use HTTPS for the inbound endpoint of your API proxy, your web server must have a *public key certificate*, signed by a *trusted certificate authority*. Once you have that, you can make this inbound endpoint HTTPS by following the same procedure as for the outbound endpoint, described in step 5 below.
+====
+
++
+. Add a set-properties transformer to set the value of the variable `http.disable.status.code.exception.check` to **`true`**. By doing this, you are adding a flag to the message that indicates to Mule that any HTTP status codes generated by the Box API must be returned to the requesting app without being overwritten by the proxy's own status messages.
++
+[source,xml]
+----
+<flow name="restproxyboxFlow1" doc:name="restproxyboxFlow1>
+    <http:inbound-endpoint  address="http://localhost:8081" doc:name="Receive HTTP requests from apps" exchange-pattern="request-response" />
+    <set-property propertyName="http.disable.status.code.exception.check" value="true" doc:name="Disable exception check"/>
+</flow>
+----
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Attribute |Value
+a|
+
+`propertyName`
+
+
+ a|
+
+
+`http.disable.status.code.exception.check`
+
+a|
+
+`value`
+
+
+ a|
+
+
+`true`
+
+a|
+
+`doc:name`
+
+
+ a|
+
+`Disable exception check`
+
+
+|===
++
+. Add an https:outbound-endpoint to connect to the Box API. This second endpoint acts as an outbound endpoint and passes requests to the Box API, receives responses from the API, and passes the responses back to the application that initiated the API call. This endpoint references the HTTPS global element created in step 1 using the connector-ref attribute. +
++
+[source,xml]
+----
+<flow name="restproxyboxFlow1" doc:name="restproxyboxFlow1>
+    <http:inbound-endpoint  address="http://localhost:8081" doc:name="Receive HTTP requests from apps" exchange-pattern="request-response" />
+    <set-property propertyName="http.disable.status.code.exception.check" value="true" doc:name="Disable exception check"/>
+    <https:outbound-endpoint  address="https://api.box.com#[message.inboundProperties['http.request']]" doc:name="Send requests to API" exchange-pattern="request-response" connector-ref="httpConnector" keep-alive="true"/>
+</flow>
+----
+
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Attribute |Value
+a|
+`address`
+
+
+ a|
+
+https://api.box.com#[message.inboundProperties['http.request']]
+
+a|
+
+
+
+`doc:name`
+
+
+ a|
+
+
+Send requests to API
+
+
+a|
+
+
+`exchange-pattern`
+
+
+ a|
+
+
+
+`request-response`
+
+
+a|
+
+
+`connector-ref`
+
+
+ a|
+
+
+`httpConnector`
+
+
+a|
+
+
+`keep-alive`
+
+
+ a|
+
+`true`
+
+
+|===
++
+The **`http.request`** inbound property references the URI subpath of the request that reaches the HTTP inbound endpoint. Thus, if your proxy application receives an HTTP request through `http://localhost:8081/2.0/folders/0` then `http.request` contains the value `2.0/folders/0`. As this is a REST API, the requests that apps send to the API include arguments as part of the URI. By appending `#[message.inboundProperties['http.request']]` onto the end of the URL, your proxy application captures these arguments and forwards them to the Box API. +
+
+. To deal with the message headers, you'll need to perform a series of simple operations. As these same operations have to be processed both with incoming and outgoing messages, it makes sense to encapsulate this set of tasks into a reusable sub-flow that you can call twice. You must add:
+
+.. a *sub-flow* outside the current flow, name it `copy-headers`
+.. a *flow reference* element after the HTTP inbound endpoint that comes from the requesting app
+.. another *flow reference* element after the HTTP outbound endpoint to your API +
++
+[source,xml]
+----
+    <flow name="RESTproxy_template_Flow1" doc:name="RESTproxy_template_Flow1">
+        <http:inbound-endpoint  address="http://localhost:8081" exchange-pattern="request-response" doc:name="HTTP"/>
+        <set-property propertyName="http.disable.status.code.exception.check" value="true" doc:name="Disable Exception Check"/>
+        <flow-ref name="copy-headers" doc:name="Copy HTTP Headers"/>
+        <http:outbound-endpoint exchange-pattern="request-response" address="http://<MY-API-URL.com>#[message.inboundProperties['http.request']]"  doc:name="Send Requests to API"/>
+        <flow-ref name="copy-headers" doc:name="Copy HTTP Headers"/>
+    </flow>
+    <sub-flow name="copy-headers" doc:name="copy-headers">
+
+    </sub-flow>
+----
+
++
+Attributes of both *flow-ref* elements:
+
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Attribute |Value
+|name a|`copy-headers`
+|`doc:name`
+| Copy HTTP Headers
+|===
+
++
+Attributes of the *subflow*:
+
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Attribute |Value
+|name a|
+`copy-headers`
+|
+`doc:name`
+|
+`copy-headers`
+|===
+
++
+Whenever the message reaches one of the *flow reference* elements, the logic in the referenced *sub-flow* is executed, then the execution of the rest of the main flow is resumed.
+. When an application makes a call to the API, that call may include headers. Any incoming message headers that enter the proxy application are treated as inbound properties. These headers must reach the Box API, so the proxy application must transform any inbound properties into outbound properties, so that they are sent to the Box API via the outbound endpoint.  +
+Add a *copy-property transformer* in this new subflow to copy all inboundProperties to outboundProperties:
++
+[source,xml]
+----
+<sub-flow name="copy-headers" doc:name="copy-headers">
+        <copy-properties propertyName="*" doc:name="Copy All HTTP Headers"/>
+</sub-flow>
+----
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Attribute |Value
+a|
+propertyName
+
+|`*`
+|
+`doc:name`
+|
+Copy Headers
+
+|===
++
+Set like this, the transformer copies all inbound properties and sets them as outbound properties.
+. Still in the sub-flow, after the property transformer, add four *remove-property transformers* and configure them as follows:
++
+[source,xml]
+----
+<sub-flow name="copy-headers" doc:name="copy-headers">
+        <copy-properties propertyName="*" doc:name="Copy All HTTP Headers"/>
+        <remove-property propertyName="Content-Length" doc:name="Remove Content Length"/>
+        <remove-property propertyName="MULE_*" doc:name="Remove MULE Properties"/>
+        <remove-property propertyName="X_MULE*" doc:name="Remove X_MULE Properties"/>
+        <remove-property propertyName="X-MULE*" doc:name="Remove X-MULE Properties"/>
+</sub-flow>
+----
++
+First remove-property transformer:
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+a|
+Attribute
+
+ a|
+Value
+
+|*doc:name* |Remove Content Length
+|*propertyName* |Content-Length
+|===
++
+Second remove-property transformer:
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+a|
+Attribute
+
+ a|
+Value
+
+|*doc:name* |Remove MULE properties
+|*propertyName* |MULE_*
+|===
++
+Third remove-property transformer:
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+a|
+Attribute
+
+ a|
+Value
+
+|*doc:name* |Remove X_MULE properties
+|*propertyName* |X_MULE*
+|===
++
+Fourth remove-property transformer:
++
+[width="100%",cols="50%,50%",options="header",]
+|===
+a|
+Attribute
+
+ a|
+Value
+
+|*doc:name* |Remove X-MULE properties
+|*propertyName* |X-MULE*
+|===
+
+You now have a minimum proxy that can route requests and responses to your API.
+
+=== Full Code Example
+
+[IMPORTANT]
+The code below is missing a path, keyPassword, and storePassword. You must enter these yourself.
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+    xmlns:https="http://www.mulesoft.org/schema/mule/https"
+    xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.4.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/https http://www.mulesoft.org/schema/mule/https/current/mule-https.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+
+<https:connector name="httpConnector" doc:name="HTTP\HTTPS" clientSoTimeout="10000" cookieSpec="netscape" receiveBacklog="0" receiveBufferSize="0" sendBufferSize="0" serverSoTimeout="10000" socketSoLinger="0" validateConnections="true">
+    <https:tls-key-store path="/Users/mulesoft/MuleStudio/workspace/restproxytest/bin/keystoreOutbound.jks" keyPassword="Mulesoft1" storePassword="Mulesoft1"/>
+</https:connector>
+    <flow name="restproxyboxFlow1" doc:name="restproxyboxFlow1">
+        <http:inbound-endpoint  address="http://localhost:8081" exchange-pattern="request-response" doc:name="HTTP"/>
+        <set-property propertyName="http.disable.status.code.exception.check" value="true" doc:name="Disable Exception Check"/>
+        <flow-ref name="copy-headers" doc:name="Copy HTTP Headers"/>
+        <https:outbound-endpoint  address="https://api.box.com#[message.inboundProperties['http.request']]" doc:name="Send Requests to API" exchange-pattern="request-response" connector-ref="httpConnector" keep-alive="true"/>
+        <flow-ref name="copy-headers" doc:name="Copy HTTP Headers"/>
+    </flow>
+    <sub-flow name="copy-headers" doc:name="copy-headers">
+        <copy-properties propertyName="*" doc:name="Copy All HTTP Headers"/>
+        <remove-property propertyName="Content-Length" doc:name="Remove Content Length"/>
+        <remove-property propertyName="MULE_*" doc:name="Remove MULE Properties"/>
+        <remove-property propertyName="X_MULE*" doc:name="Remove X_MULE Properties"/>
+        <remove-property propertyName="X-MULE*" doc:name="Remove X-MULE Properties"/>
+    </sub-flow>
+</mule>
+----
+
+=== Testing the Proxy Example
+
+The following steps describe how to obtain a token for the Box API and use it to test the proxy you have just built by simulating an API call from an application.
+
+[NOTE]
+====
+To test the proxy, you can deploy the application to the embedded server in Anypoint Studio rather than deploy to your production API Gateway. The embedded server is useful for testing and making quick adjustments to your proxy application as you build it.
+
+For guidance on deploying your production-ready proxy applications to your API Gateway, refer to link:/documentation/display/current/Deploying+Your+API+or+Proxy[Deploying Your API or Proxy].
+====
+
+. Deploy your Mule Project to the embedded Mule server by right-clicking the project in the Package Explorer, then selecting **Run As... > Mule Application**. You may have to wait a minute for the project to be fully deployed. Watch the Console and wait until you see this message:
++
+image:/documentation/download/attachments/122752433/boxproxy-startedapp.png?version=1&modificationDate=1406738563343[image]
++
+
+. In any Web browser, enter the following URL: 
++
+http://localhost:8081/oauth2/authorize?response_type=code&client_id=<CLIENT_ID>
+
++
+[IMPORTANT]
+Replace <CLIENT_ID> in the URL above with the client_id provided by Box when you registered your new app
+. Box will prompt you to log in with your username and password. You can use your personal credentials or create a new test account.
+. Before you click *Grant access to Box*, you should be ready for the following steps, as the token code you will obtain will expire in only 30 seconds. +
+Be ready to send **http://localhost:8081/oauth2/token** as an HTTP request that includes a body with the properties below: +
++
+[cols=",",options="header",]
+|===
+|Attribute |value
+|grant_type |`authorization_code`
+|code |<fill this in during the next step>
+|client_id |<client_id provided by Box when you registered your app>
+|client_secret |<client_secret provided by Box when you registered your app>
+|===
++
+[TIP]
+To send this request, use a browser extension such as https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm[Postman] (Google Chrome), or the http://curl.haxx.se/[curl] command line utility.
+
+. Once you have prepared for the next step, go back to the browser page where you entered your Box credentials and click *Grant access to Box*.
+. The browser is redirected to the page you set as the *redirect* on your Box app. For this exercise, the page itself is irrelevant, but the full URL will include an extra parameter named `code`. For example:
++
+[source,xml]
+----
+https://www.google.com/?state=&code=<CODE>
+----
+. Copy the value of <`CODE>` from the URL and paste it into your POST request so that its properties are the following:
+
++
+[cols=",",options="header",]
+|===
+|Attribute |Value
+|grant_type |`authorization_code`
+|code |<code provided by redirect URL>
+|client_id |<client_id provided by Box when you registered your app>
+|client_secret |<client_secret provided by Box when you registered your app>
+|===
+. Send the request.
+. This POST request returns a JSON object with several fields. Copy the value corresponding to `access_token`, as you will need it soon. The `access_token` lasts for an hour before expiring.
+. Now you can make proper requests to your proxy. You must include `access_token` on every request as a header with the name Authorization.
+
+[cols=",",options="header",]
+|===
+|Header |Value
+|Authorization |Bearer <access_token>
+|===
+
+[NOTE]
+====
+The value of the header must include the word *Bearer* followed by a space and then the access_token. For example:
+
+`Authorization=Bearer 1234123412341234`
+
+====
+
+Try making a GET request to http://localhost:8081/2.0/folders/0, remembering to include the Authorization header. 
+
+== See Also
+
+* Have a proxy application ready to deploy for production use? Refer to link:/documentation/display/current/Deploying+Your+API+or+Proxy[Deploying Your API or Proxy].  

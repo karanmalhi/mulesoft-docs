@@ -1,0 +1,143 @@
+= CloudHub Insight
+:keywords: cloudhub, analytics, monitoring, insight
+
+*CloudHub Insight* gives you in-depth visibility into business transactions and events on your Mule applications. By tracking everything your data does in an application, Insight makes information searchable and helps you find and recover from any errors that occurred during message processing and replay your transactions instantly.
+
+CloudHub Insight helps you answer questions about your integrated apps, such as:
+
+* What happened with a particular transaction or synchronization?
+* When did the transaction occur? How long did it take?
+* What was the result of a transaction?
+* If something went wrong during processing, at what point did the failure occur?
+
+Using the *Insight Dashboard*, you can view events that occur within the flows that handle your business transactions. Further, you can drill down into event-related data to access information that can help you analyze the root cause of failures, isolate performance bottlenecks, and test for compliance with company procedures.
+
+By default CloudHub tracks the most recent 100,000 events which occurred within your application. To arrange to track more, please file a claim in the MuleSoft link:/documentation/display/current/Community+and+Support#CommunityandSupport-Support[support portal].
+
+[IMPORTANT]
+CloudHub Insight does not support visibility into link:/documentation/display/current/Batch+Processing[batch processing].
+
+== Enabling CloudHub Insight
+
+To track, aggregate, and store Mule server events by default, CloudHub Insight requires some processing and network overhead. Complete the following procedure to enable Insight to track the events your Mule servers generate. 
+
+. Log in to your CloudHub account.
+. Navigate to the *Settings *page, click *Advanced* and at *Insight*, click a tracking option: +
+* *Metadata* to simply track events.
+* *Metadata and Replay* to track events and enable the ability to instantly replay a transaction from the console. For more information, see link:#CloudHubInsight-replaysection[Diagnosing Problems and Replaying Transactions]. *Note*: Replay only works for flows that have inbound endpoints.
+* *Disabled* to not use Insight.
+. Click Apply changes to apply the settings.
+
+image:/documentation/download/attachments/122752494/CHInSet.png?version=1&modificationDate=1414455352552[image]
+
+After you enable Insight, CloudHub tracks the following events by default:
+
+* Data that passes through endpoints (inbound and outbound) in your Mule applications
+* Flow initiation and completion
+* Custom business events you embed in your Mule flows
+
+== Setting Up Business Events
+
+You can configure business events in your Mule applications by embedding custom business events in flows, or by enabling granular event tracking within message processors in your flows.
+
+* *Custom Business Events* -  Include *Custom Business Event* elements at relevant points within the flows of your application to surface the processing information that is most relevant for your business to track. Read more about link:/documentation/display/current/Business+Events#BusinessEvents-CustomEvents[configuring custom business events] for details.
+* *Event Tracking* -  Track more granular events by enabling *default event tracking* for your entire flow or for specific message processors or endpoints within your flow. When you configure the flows in your application, you can explicitly configure the scope for default event tracking. Read more about link:/documentation/display/current/Business+Events#BusinessEvents-DefaultEvents[enabling default business event tracking] in your flows.
+
+== Searching and Filtering Transactions and Events
+
+The *Insight Dashboard* displays information at three tracking levels: Transactions, Events, and Metadata. 
+
+* *Transactions* are logical groupings of related events, and often correspond to a business view of the system.
+* *Events* track low-level details of a transaction. Events map to message processors and endpoints and reveal information about exceptions and any custom business events you may have configured. 
+* *Metadata* tracks customized key/value pairs that you have specified as part of custom events in your application. The information that Insight tracks at this level presents information about high-level business events.
+
+The following image illustrates where to find transactions, events, and metadata on the Insight dashboard. By default, Insight displays all transactions in your application for the entire time it has been tracking transactions, up to a maximum of 100,000.
+
+image:/documentation/download/attachments/122752494/CHInDash.png?version=1&modificationDate=1414210487006[image]
+
+=== Customizing the Transaction ID
+
+For Transaction-level events, Insight may display long numeric values in the ID column. Rather than use random number identifiers, you may wish to customize the transaction IDs so that they display more intuitive values which are relevant to your business requirements.
+
+Use a link:/documentation/display/current/Mule+Expression+Language+MEL[Mule expression] to configure your Mule application to return meaningful information about a transaction, such as order number, tracking number, or employee identification number. Read more about link:/documentation/display/current/Business+Events#BusinessEvents-CustomizingtheTransactionId[how to customize your transaction ID] in Studio's visual editor or XML editor.  
+
+=== Searching or Filtering Transactions
+
+On the Insight tab of the CloudHub console, you can use a search tool or filter data to refine the results displayed. This table lists how to specify search or filter criteria:
+
+[cols="2*a", options="header"]
+|===
+| Action
+| To Apply
+
+| Display a specific transaction
+| Click *Insight*. Click *Advanced* in the Search field and in *Transaction ID*, type the ID value. Click *Apply*.
+image:/documentation/download/attachments/122752494/CHInTransID.png?version=1&modificationDate=1414210487031[image]
+
+| Display only transactions which failed
+| Indicate *Any*, *Completed*, or *Failed*. image:/documentation/download/thumbnails/122752494/CHInAny.png?version=1&modificationDate=1414210486990[image]
+
+| Display transactions within a specific date range
+| Click *Advanced > Date & Time* to specify a date or a range: image:/documentation/download/thumbnails/122752494/CHInAny.png?version=1&modificationDate=1414210486990[image]
+
+| Display transactions within a specific date range
+|* Click *Advanced* > *Date & Time* to specify a date or a range: +
+image:/documentation/download/attachments/122752494/CHInDateTime.png?version=1&modificationDate=1414210487015[image]
++
+* Click and drag within the graph to select a specific date range
++
+image:/documentation/download/attachments/122752494/CH_date+range+click+drag.png?version=1&modificationDate=1414210486890[image]
++
+
+| Locate transactions according to flow name, exception message, processing time, and/or any custom business data
+| In your application, click *Advanced* in the *Search* field to locate additional search parameters. image:/documentation/download/attachments/122752494/CHInBizData.png?version=1&modificationDate=1414210486998[image]
+
+| Save Search
+| To save a search, click Save search: image:/documentation/download/attachments/122752494/CHSaveSearch.png?version=1&modificationDate=1416262372800[image]
+
+|===
+
+
+
+=== Filtering Events
+
+Within transactions, use the *Transaction Details* to further refine the types of events that Insight displays for each transaction. Click the events Transaction Details dropdown to reveal possible filter criteria. If you are debugging, you may find it useful to see all events so that you can drill down into the detailed steps of your flow. If you are interested in analyzing higher level business information, you may wish to apply a filter so as to view only your custom business events.
+
+image:/documentation/download/thumbnails/122752494/CHTransactionDetails.png?version=1&modificationDate=1416260820599[image]
+
+The *default settings* of the events filter depend upon your CloudHub user role as follows:
+
+* If your user role is *Support*, the default events filter setting display only custom events.
+* If your user role is *Admin* or *Developer*, the default events filter setting displays custom events, endpoint events, and message processor events, but does not display flow events.
+
+== Diagnosing Problems and Replaying Transactions
+
+CloudHub Insight's *Message Replay* feature enables advanced error recovery. When you encounter a failed transaction (as displayed on Insight's dashboard), you can diagnose the problem, fix the root issue, then replay the transaction that failed. The following example demonstrates this functionality.
+
+==== Transaction Failed
+
+For example, a transaction fails because an application exceeds the limited number of API calls for a Salesforce account. Insight displays the status of the transaction as Failed (see image below). Click to expand the transaction, then examine the individual events within that transaction. Where it failed, you can see the exception and the error message listed next to the failed event, as well as an existing stack trace.
+
+image:/documentation/download/attachments/122752494/CHExcMsg.png?version=1&modificationDate=1414210486982[image]
+
+==== Fix then Replay
+
+After investigating the logs and resolving the issue that caused the transaction failure – for example, by purchasing more API capacity  – you can simply replay the transaction.
+
+*Note*: Replay only works for flows that have inbound endpoints.
+
+Click the replay icon (circular arrow) next to the first event in the failed transaction to replay it:
+
+image:/documentation/download/attachments/122752494/CHReplayButton.png?version=1&modificationDate=1416262262358[image]
+
+Insight requests for confirmation (below, top), then confirms that it has replayed the message during which the transaction first failed (below, bottom). Insight displays replayed transactions immediately on the dashboard and in the Logs tab.
+
+image:/documentation/download/attachments/122752494/CH_replay_transaction_sure.png?version=1&modificationDate=1414210486953[image]
+
+image:/documentation/download/attachments/122752494/CH_replay-transaction-replayed.png?version=1&modificationDate=1414210486946[image]
+
+== See Also
+
+* link:/documentation/display/current/Business+Events[Configure business events] in your application.
+* Read more about link:/documentation/display/current/Viewing+Log+Data[viewing log data].
+* Read more about CloudHub Insight on our http://blogs.mulesoft.org/announcing-cloudhub-insight-real-time-visibility-message-replay-and-root-cause-analysis/[MuleSoft Blog].

@@ -1,0 +1,364 @@
+= Create a RAML Definition for Your Existing API
+
+*_API Creator_*
+
+
+[NOTE]
+====
+This page is part of the Anypoint Platform for APIs walkthrough. If you landed here by mistake and you're not sure where to start, go to the link:/documentation/display/current/Anypoint+Platform+for+APIs+Walkthrough[walkthough introduction] to learn more.
+
+Looking for a user guide for building APIs in the Anypoint Platform? See link:/documentation/display/current/Designing+Your+API[Designing Your API].
+====
+
+
+== Before You Begin
+
+This walkthrough assumes that you have already created an API version details page for the T-Shirt Ordering Service API, which we are using to represent your API. If necessary, return to link:/documentation/display/current/Walkthrough+Intro+Create[Create an API] to complete this step. You have clicked *Define API* and landed in the API Designer, which looks like this:
+
+image:/documentation/download/attachments/122752481/Screenshot+2014-07-02+15.09.57.png?version=1&modificationDate=1404426832543[image]
+
+== About RAML
+
+http://raml.org/index.html[RAML] (RESTful API Modeling Language) is a simple and very practical language for describing APIs. RAML encourages reuse, enables discovery and pattern-sharing, and aims for merit-based emergence of best practices. RAML is built on broadly-used standards such as YAML and JSON and is a non-proprietary, vendor-neutral open spec.
+
+In short, RAML makes it easier for you to write your API, and it enables a series of online tools that make it easier for developers to engage with it.
+
+A RAML file includes the following elements:
+
+* Root
+* Documentation
+* Resources
+* Methods
+* Pattern-based, re-usable elements
+
+For more information on defining a RAML API definition, please visit http://www.raml.org/[RAML.org]
+
+[TIP]
+One of the key strengths of the RAML specification is the ability to reuse elements, as they make your API more succinct and more readable. However, the reusable elements in RAML are outside the scope of this walkthrough; for more information, visit the http://raml.org/docs.html[RAML tutorials].
+
+== The API Designer
+
+While you _may_ write up your RAML file in any text editor, we recommend you check out the API Designer. The web-based API Designer allows you to design your API quickly, efficiently, and consistently. The API Designer consists of a RAML editor with an embedded RAML API console that provides suggestions, error feedback, and a built in live testing environment. 
+
+
+== Build a RAML File for an Existing API
+
+In this walkthrough, we take an existing SOAP API that already has a http://tshirt-service.cloudhub.io/?wsdl[WSDL definition] and build a RAML file around it in a legacy modernization project to move from SOAP to REST. The web service we work with allows users to order t-shirts and track these orders. You can access the WSDL at http://tshirt-service.cloudhub.io/?wsdl.
+
+. If you haven't already, click *Define API* on your API Version Details page to open API Designer.
+
++
+image:/documentation/download/attachments/122752481/raml+create.jpg?version=1&modificationDate=1413322748061[image] +
+
+. In your new RAML file, the first thing you notice is that the information you provided when registering the new API (the name and version number) have been entered for you in the root.
++
+[source,ruby]
+----
+#%RAML 0.8
+title: T-Shirt Ordering Service
+version: 1.0.development
+----
++
+At this time, also add a placeholder for a `baseUri`. The placeholder helps you visualize what your final URL looks like with resources appended to the URL, which is useful when you test your newly-designed API. 
++
+[source,ruby]
+----
+#%RAML 0.8
+title: T-Shirt Ordering Service
+version: 1.0.development
+baseUri: http://www.tshirt.com/api
+----
++
+Next, look at the Shelf at the bottom of the Designer. The Shelf is context aware: it displays a list of the components you can enter at that point in the hierarchy of your API. These components are arranged into categories that appear when relevant: Root, Docs, Parameters, Security, Resources, Methods,  Traits and Types, Schemas, Body, and Responses. +
+
++
+image:/documentation/download/attachments/122752481/API+Designer+shelf.png?version=1&modificationDate=1428694389110[image] +
++
+
+Instead of typing each of these components in, you can click what you want to add, which then appears in your RAML definition. As you enter a component, it disappears from the Shelf. For example, because you can't have two `GET` methods for the same resource, if you select a `GET` method from the list of Methods, it disappears from the Shelf. 
+. Next, look at your API's http://tshirt-service.cloudhub.io/?wsdl[original WSDL], which lists a set of operations that can be called. All of these operations act upon a certain type of resource: notice how they have names like `ListInventory`, `OrderTshirt`, or `TrackOrder`. In this API, all operations involve one of the following three resources: `products` (mostly t-shirts), `orders` (t-shirt orders, of course), and order `status`es.
+
++
+image:/documentation/download/attachments/122752481/wsdl.png?version=1&modificationDate=1404162809889[image]
++
+In your RAML file, create a resource for each of the three resources that can be called by the API:
+
++
+* *`/products`* (the t-shirts)
+* **`/orders`**(t-shirt orders, of course)
+* orders each have a nested **`{orderId}/status`**, which is considered a sub-resource of `orders`.
++
+You can do things the classic way and type these resources into the RAML definition, but the API Designer offers you an easier way: place the cursor on a new line and click the `New Resource` component in the Shelf. This automatically adds a couple of lines of skeleton code at your position, saving you the pain of stressing over syntax considerations. 
+
++
+image:/documentation/download/attachments/122752480/new+resource.png?version=1&modificationDate=1403898083890[image]
++
+Then, just replace the text in the resource title and in its child element `displayName`.
++
+[NOTE]
+Keep in mind that the elements that the API Designger suggests depend contextually upon where you place the cursor, the shelf only offers you the option of placing elements that make sense in that particular position within the RAML tree structure.
++
+Here's what your RAML should look like so far:
+
++
+[source,ruby]
+----
+#%RAML 0.8
+title: T-Shirt Ordering Service
+version: 1.0.development
+baseUri: http://www.tshirt.com/api
+/products:
+  displayName: Products
+/orders:
+  displayName: Orders
+  /{orderId}/status:
+    displayName: Status
+----
+
++
+Notice that the API Console, displayed to the right of the editor, now actually contains something. Awesome! Developers who want to engage with your API can view this same console and immediately know what resources are available on your API and how to access them.
+
++
+image:/documentation/download/attachments/122752481/basic+console.png?version=1&modificationDate=1406733128694[image]
++
+
+. Now go back to the API's WSDL, and go over the existing operations. To keep our RAML short and sweet, we don't need to cover all of the existing operations, only the operations that we consider essential, so for now let's stick to just these three:
+
++
+* `OrderTshirt` allows users to place orders, so give the /`orders` resource a `POST` method.
+* `ListInventory` allows users to read information about products, so for the `/products` resource, add a `GET `method.
+* `TrackOrder` allows users to check an order's status, so give the `status` resource a `GET` method. +
+
++
+Instead of typing these in, you can place the cursor in a new line right beneath the `displayName` of a resource and use the corresponding method element from the Shelf (below the editor) to automatically obtain a skeleton structure to fill in.
+
+
++
+image:/documentation/download/attachments/122752480/methods.png?version=1&modificationDate=1403898711977[image]
+
+. Then add a valid `description`for each of the methods you add:
++
+[source,ruby]
+----
+#%RAML 0.8
+title: T-Shirt Ordering Service
+version: 1.0.development
+baseUri: http://www.tshirt.com/api
+/products:
+  displayName: Products
+  get:
+    description: Get a list of all the inventory products.
+/orders:
+  displayName: Orders
+  post:
+    description: Place a new T-Shirt order
+  /{orderId}/status:
+    displayName: Status
+    get:
+      description: Get the status of an existing order
+----
++
+Notice that in the API Console, which displays on the right of the editor, now lets you see that the resources each have a corresponding set of methods (actually only one method each, in our case). You can now click these methods to read the descriptions you just added.
+
++
+image:/documentation/download/attachments/122752481/full+console.png?version=1&modificationDate=1406733177312[image]
+
+. Next, go over the list of `responses` that these methods support in your API. All of them should have a `200` (OK) response, that's easy. In the `POST order` method let's also include a `500` (server error) response in case something fails on the server side, and in the `GET status` resource let's also include a `400` (client error) response, in case the user requests a nonexistent order. +
+Once again, you can either look for the `responses` component on the Shelf and click it, or just type in the necessary lines. +
+In the case of this API, the actual response that a user receives is constructed by the service that sits behind the API. Nevertheless, it's a good practice to provide a response example in the API RAML definition. With these examples in place, developers can then use the API Console to preview the structure of the response and build their consuming application accordingly.
++
+[source,ruby]
+----
+#%RAML 0.8
+title: T-Shirt Ordering Service
+version: 1.0.development
+baseUri: http://www.tshirt.com/api
+/products:
+  displayName: Products
+  get:
+    description: Get a list of all the inventory products
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              [
+                {
+                  "productCode": "TS",
+                  "size": "S",
+                  "description": "Small T-shirt",
+                  "count": 30
+                },
+                {
+                  "productCode": "TS",
+                  "size": "M",
+                  "description": "Medium T-shirt",
+                  "count": 22
+                }
+              ]
+
+/orders:
+  displayName: Orders
+  post:
+    description: Place a new T-Shirt order
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {
+                "orderId": "4321"
+              }
+      500:
+        body:
+          application/json:
+            example: |
+              {
+                "errorMessage": "The order couldn't be entered"
+              }
+  /{orderId}/status:
+    displayName: Status
+    get:
+      description: Get the status of an existing order
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "orderId": "4321",
+                  "status": "Delivered",
+                  "size": "M"
+                }
+        400:
+          body:
+            application/json:
+              example: |
+                {
+                  "message": "The orderId doesn't match the specified e-mail"
+                }
+----
+
++
+. To ensure that `POST` requests sent to the *`/order`* resource are valid, you can enforce that they all follow a given structure. You can provide a schema to match for incoming requests to ensure their validity. To help developers that are trying to understand what input your API requires, you can also add an example message, which will not only be readable in the RAML code, but that will be visibly exposed if the API is looked at in the API Console. Add both these elements into the `post` method of the `/orders` resource, placing them within `body – application/json`.
++
+[source,ruby]
+----
+
+/orders:
+  post:
+    description: Places a new T-Shirt order
+    body:
+      application/json:
+        example: |
+          {
+            "size": "M",
+            "email": "robin@mail.com",
+            "name": "Robin Pille",
+            "address1": "77 Geary St.",
+            "address2": "Apt 7",
+            "city": "San Francisco",
+            "stateOrProvince": "CA",
+            "country": "US",
+            "postalCode": "94131"
+          }
+        schema: |
+          {
+            "type": "object",
+            "$schema": "http://json-schema.org/draft-03/schema",
+            "id": "http://jsonschema.net",
+            "required": true,
+            "properties": {
+              "address1": {
+                  "type": "string",
+                  "id": "http://jsonschema.net/address1",
+                  "required": true
+              },
+              "address2": {
+                  "type": "string",
+                  "id": "http://jsonschema.net/address2",
+                  "required": true
+              },
+              "city": {
+                  "type": "string",
+                  "id": "http://jsonschema.net/city",
+                  "required": true
+              },
+              "country": {
+                  "type": "string",
+                  "id": "http://jsonschema.net/country",
+                  "required": true
+              },
+              "email": {
+                  "type": "string",
+                  "format": "email",
+                  "id": "http://jsonschema.net/email",
+                  "required": true
+              },
+              "name": {
+                  "type": "string",
+                  "id": "http://jsonschema.net/name",
+                  "required": true
+              },
+              "size": {
+                  "type": "string",
+                  "enum": ["S", "M", "L", "XL", "XXL"],
+                  "id": "http://jsonschema.net/size",
+                  "required": true
+              },
+              "stateOrProvince": {
+                  "type": "string",
+                  "id": "http://jsonschema.net/stateOrProvince",
+                  "required": true
+              },
+              "postalCode": {
+                "type": "string",
+                "id": "http://jsonschema.net/postalCode",
+                "required": true
+              }
+            }
+          }
+----
+
++
+The `status` resource in the API is query-able using a requester's email. To allow that, we can add *queryParameters* to the `GET` operation. At the same level on the tree structure as the operation's `response` label, add a `queryParameters` element with the following attributes:
+
++
+[source,ruby]
+----
+queryParameters:
+        email:
+          description: Retrieve the status of an order with the same email that was used to place the order.
+          pattern: ^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$
+          required: true
+----
+
+== Testing your RAML API in the Console
+
+Now that you've designed your API, it's time to test your user's experience of calling the API in the API console. 
+
+. Above the API console on the right, note that the Mocking Service is currently off. Flip it on. +
+
++
+image:/documentation/download/attachments/122752481/mocking+service.png?version=1&modificationDate=1406733258653[image]
+
+
+. Notice the change to your RAML definition. Where previously your `baseUri` was a placeholder for the duration of the design phase (the service isn't actually tied to anything at the moment: calling http://www.tshirt.com/api doesn't return a response), now you've got something that looks like so: +
+
++
+image:/documentation/download/attachments/122752481/mock+URL.png?version=1&modificationDate=1406733521144[image]
+
++
+Whoa. What happened here? The `baseUri` that you provided when declaring your basic information at the root has been commented out and supplanted by a new URI.  With this one simple action, you've effectively published your API and it is now ready to receive live calls. You've provided example responses, right? You can make live calls in the API Console OR your browser, which returns data that you've provided in your RAML API definition. You can see what your API consumers see when they make calls to the API, and fully test APX.  +
++
+Let's test that theory in the API console by making a `GET` request on the status of a particular order. +
+
++
+image:/documentation/download/attachments/122752480/Screenshot+2014-07-03+14.49.46.png?version=1&modificationDate=1404424220244[image]
++
+
+As you can see, by providing a valid email address, the request URL reflected the resource path appended to the `baseUri` (just as it would with any functioning API). The call was performed live, and in response, the user receives a status 200: success! The response body is the example in the RAML file. In this case, the information isn't important - it's knowing how the response looks and that it's successful that's important.
+
+== Next
+
+Congratulations, you've completed your RAML definition. Proceed to link:/documentation/display/current/Walkthrough+Build[Build].
