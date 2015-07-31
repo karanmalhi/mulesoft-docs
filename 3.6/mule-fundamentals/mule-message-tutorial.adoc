@@ -52,12 +52,11 @@ image:/documentation/download/attachments/122751598/basic+flow.png?version=1&mod
 . Open a browser and point it to http://localhost:8081.[http://localhost:8081].
 . Observe that, by default, the logger logs all the information about the Mule message, except for the payload.
 +
-[collapsed content]
+[INFO]
 ----
 Why isn't the payload included in this log output?
 
 By design, the logger's default output is all information about the Mule message except for the payload. The payload is not included because it might be very verbose or in an unreadable format. Instead, this default output includes information about the payload type, which is very useful information in a situation where you are interested in seeing a collection of all the key information about the message and its fields.
-
 Of course, logging the payload is also very easy to do: simply set the logger message to `#[message.payload]`.
 ----
 +
@@ -103,7 +102,7 @@ image:/documentation/download/attachments/122751598/deploy-success.png?version=1
 . Navigate to your `$MULE_HOME/logs` folder and open the .log file associated with this application.
 . Observe the log output produced by the message that you sent via your browser.
 +
-[collapsed content]
+[INFO]
 ----
 Why isn't the payload included in this log output?
 
@@ -348,48 +347,48 @@ Don't hesitate to use the tools in Anypoint Studio to help you work out how to 
 
 ==== image:/documentation/download/thumbnails/122751598/hints.png?version=1&modificationDate=1405021891070[image] Hints
 
-[collapsed content]
-----
-How do I set that map as my payload?
 
+How do I set that map as my payload?
+// hide
+[TIP]
 Use a *Set Payload* transformer and set the value to +
 `#[['favorite_animal':'mule','favorite_color':'blue','favorite_day':'today']]`
-
 Be sure to check your brackets!
-----
 
-[collapsed content]
-----
+
 Which message processor allows me to use MEL to manipulate one part of my payload while leaving the rest intact?
-
+// hide
+[TIP]
 Use an *Expression Component* in your flow to manipulate parts of the Mule message without replacing the entire payload. Note that an expression component and expression transformer look very similar, but the latter will always set the value of the expression as the new payload of the message, so you don't want that in this case.
-----
 
-[collapsed content]
-----
+
+
 How do I form the part of the expression that accesses just the part of the map that I want?
 
+// hide
+[TIP]
 Include `message.payload.favorite_day` in a MEL expression to access the value of the 'favorite_day' map item.
-----
 
-[collapsed content]
-----
+
+
 How do I form the part of the expression that calculates the day of the week?
-
+// hide
+[TIP]
 Use the server.dateTime function, then format the result by calling the format() method, passing the argument 'EEEE'. Based on http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html[SimpleDateFormat], this will return a string in the form of the day of the week.
-----
 
-[collapsed content]
-----
+
+
 Help! I ran my application and it returns some kind of file instead of logging to the console.
-
+// hide
+[TIP]
 Try running your application in Debug Mode with breakpoints on your message processors. What payload type do you observe? Is that payload type serializable? If it is, Mule is converting your payload to a bytearray per its default behavior. In this case, you want a nice readable string instead, so you need to add an additional message processor after your expression component to change your data type. Browse through the transformers drawer in the palette to find the appropriate one that will do the trick.
-----
 
-==== ~image:/documentation/download/thumbnails/122751598/answer.png?version=1&modificationDate=1405021890815[image] ~Answer
 
-[collapsed content]
-....
+==== image:/documentation/download/thumbnails/122751598/answer.png?version=1&modificationDate=1405021890815[image] Answer
+
+// hide
+[TIP]
+====
 View the answer, including explanation of steps and complete code
 
 There is more than one way to achieve the goals outlined above, but here is the fastest way:
@@ -404,23 +403,25 @@ Drag an HTTP connector onto the canvas. Create a configuration element for it wi
 image:/documentation/download/attachments/122751598/expression-mel.png?version=1&modificationDate=1405021891026[image]
 
 Note that you do not need to put #[] around the statement, because the expression component adds the expression syntax automatically. In XML, the expression component looks like this:
-+
+
+
 [source]
 ----
 <expression-component doc:name="Expression"><![CDATA[message.payload.favorite_day = server.dateTime.format('EEEE')]]></expression-component>
 ----
-+
+
 The left side of the expression accesses the 'favorite_day' item in your map. The right side of the expression calculates the day of the week using a server.dateTime expression. The equals sign assigns the day of the week to the 'favorite_day' map item.
 . Add an Object to String transformer after the Expression Component. Because the payload is serializable, Mule automatically converts it to a bytearray, unless otherwise instructed. In this case, you want human-readable output. Adding this transformer produces a string.
 . Add a logger and set the message to `#[message.payload]` to log the new payload.
 . Your flow should now look like this.
-+
+
 image:/documentation/download/attachments/122751598/mel-ec-flow.png?version=1&modificationDate=1405021891152[image]
 
 . Save your project, then run it locally.
 . Go to a browser and request http://localhost:8081.[http://localhost:8081]. Your browser should print a map similar to the following: `{favorite_animal=mule, favorite_color=blue, favorite_day=Wednesday}`
+====
 
-*Full Code of the Extra Credit Application*
+== Full Code of the Extra Credit Application
 
 [source]
 ----
@@ -444,7 +445,6 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
     </flow>
 </mule>
 ----
-....
 
 == See Also
 
@@ -452,7 +452,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 * Refer to the main link:/documentation/display/current/Mule+Expression+Language+MEL[MEL documentation] including the collection of link:/documentation/display/current/Mule+Expression+Language+Examples[examples], which demonstrate how to use MEL expressions in a variety of other message processors.
 * Access the Mule Expression Language link:/documentation/display/current/Mule+Expression+Language+Reference[reference] page for a searchable listing of context objects and their fields, operations, and functions. 
 * Learn more about link:/documentation/display/current/Studio+Visual+Debugger[Visual Debugger], the link:/documentation/display/current/Logger+Component+Reference[Logger], and link:/documentation/display/current/DataSense[DataSense].
-* If you haven't already, try out some of our other tutorials, all of which involve using MEL expressions: +
+* If you haven't already, try out some of our other tutorials, all of which involve using MEL expressions:
 ** link:/documentation/display/current/Basic+Studio+Tutorial[Basic Studio Tutorial]
 ** link:/documentation/display/current/Content-Based+Routing+Tutorial[Content-Based Routing Tutorial]
 ** link:/documentation/display/current/Anypoint+Connector+Tutorial[Anypoint Connector Tutorial]
