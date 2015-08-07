@@ -91,7 +91,7 @@ Follow these steps to configure the parameters of a Concur connector in the flow
 ....
 First, ensure that you have included the Concur namespaces in your configuration file.
 
-[source]
+[source,xml]
 ----
 http://www.mulesoft.org/schema/mule/concur
 http://www.mulesoft.org/schema/mule/concur/current/mule-concur.xsd
@@ -101,7 +101,7 @@ Follow these steps to configure a Concur connector in your application.
 
 . First, create a global Concur configuration outside and above your flows, using the following global configuration code.
 +
-[source]
+[source,xml]
 ----
 <concur:config name="Concur" username="YOUR_USERNAME" password="YOUR_PASSWORD" apiUrl="YOUR_SERVICENOW_URI" consumerKey="YOUR_CONSUMER_KEY" doc:name="Concur"/>
 ----
@@ -399,7 +399,7 @@ image:/documentation/download/attachments/122752036/conc3.png?version=1&modifica
 
 . Add a *concur:config* ** global element to your project, then configure its attributes according to the table below (see code below for a complete sample).
 +
-[source]
+[source,xml]
 ----
 <concur:config name="Concur" username="<your username>" password="<your password>" apiUrl="<the API URL of your Concur instance>" consumerKey="<your Consumer Key>" doc:name="Concur"/>
 ----
@@ -417,7 +417,7 @@ image:/documentation/download/attachments/122752036/conc3.png?version=1&modifica
 
 . Create a flow and add an HTTP connector in it, configured as follows:
 +
-[source]
+[source,xml]
 ----
 <http:listener config-ref="HTTP_Listener_Configuration" path="submitreport" doc:name="HTTP"/>
 ----
@@ -432,7 +432,7 @@ image:/documentation/download/attachments/122752036/conc3.png?version=1&modifica
 
 .  The *config-ref* attribute in the connector references a global element, you must now create this global element outside your flow.
 +
-[source]
+[source,xml]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
 ----
@@ -447,14 +447,14 @@ image:/documentation/download/attachments/122752036/conc3.png?version=1&modifica
 |===
 . After the HTTP connector, add a *Set Payload transformer* to set the payload into expense report header. 
 +
-[source]
+[source,xml]
 ----
 <set-payload doc:name="Set Payload" value="#[['name':'April Expenses','purpose':'All expenses for April','comment':'This is a comment.','orgUnit1':'US','orgUnit2':'NW','orgUnit3':'Redmond','custom1':'Client','custom2':'Local','userDefinedDate':'2014-03-26 15:15:07.0']]"/>
 ----
 
 . Add a *concur:post-expense-report-header* element to the flow. Configure the attributes according to the table below.
 +
-[source]
+[source,xml]
 ----
 <concur:post-expense-report-header config-ref="Concur" doc:name="Post Expense Report Header">
 ----
@@ -475,7 +475,7 @@ image:/documentation/download/attachments/122752036/conc3.png?version=1&modifica
 
 . Add a *DataMapper* element between the Set Payload transformer and the Concur connector.
 +
-[source]
+[source,xml]
 ----
 <data-mapper:transform config-ref="Map_To_Report" doc:name="Map To Report"/>
 ----
@@ -505,7 +505,7 @@ image:/documentation/download/attachments/122752036/conc3.png?version=1&modifica
 
 . Add a **set-variable** element in the flow after the DataMapper to save the Expense Report ID.
 +
-[source]
+[source,xml]
 ----
 <set-variable variableName="ReportId" value="#[groovy:payload.reportDetailsUrl.tokenize('/')[-1]]" doc:name="Extract Report Id"/>
 ----
@@ -520,7 +520,7 @@ image:/documentation/download/attachments/122752036/conc3.png?version=1&modifica
 
 . Now, add a *set-payload* element.
 +
-[source]
+[source,xml]
 ----
 <set-payload value="#[['crnCode':'US','expKey':'BUSPR','description':'Business Promotions','transactionDate':'2014-01-12','transactionAmount':'29','comment':'Brochure Sample','vendorDescription':'Kinkos','isPersonal':'N']]" doc:name="Set Payload"/>
 ----
@@ -529,7 +529,7 @@ image:/documentation/download/attachments/122752036/conc3.png?version=1&modifica
 |===
 |Attribute |Value
 |value a|
-[source]
+[source,xml]
 ----
 #[['crnCode':'US','expKey':'BUSPR','description':'Business Promotions','transactionDate':'2014-01-12','transactionAmount':'29','comment':'Brochure Sample','vendorDescription':'Kinkos','isPersonal':'N']]
 ----
@@ -538,7 +538,7 @@ image:/documentation/download/attachments/122752036/conc3.png?version=1&modifica
 
 . Add a *concur:post-expense-entry-request* element to the flow.
 +
-[source]
+[source,xml]
 ----
 <concur:post-expense-entry-request config-ref="Concur" reportId="#[flowVars['ReportID']]" doc:name="Post Expense Entry Request">
 ----
@@ -583,7 +583,7 @@ Configure the attributes according to the table below.
 
 . Add *concur:post-expense-report-submit-request* element to submit the expense report to concur.
 
-[source]
+[source,xml]
 ----
 <concur:post-expense-report-submit-request config-ref="Concur" reportId="#[flowVars['ReportID']]" doc:name="Post Expense Report"/>
 ----
@@ -592,7 +592,7 @@ Configure the attributes according to the table below.
 
 == Example Code
 
-[source]
+[source,xml]
 ----
 <mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:concur="http://www.mulesoft.org/schema/mule/concur" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
     xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"

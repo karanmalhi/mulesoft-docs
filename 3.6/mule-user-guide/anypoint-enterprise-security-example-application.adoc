@@ -48,7 +48,7 @@ image:/documentation/download/attachments/122752330/full+example+flow.png?versio
 
 === View the XML
 
-[source]
+[source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns:spring="http://www.springframework.org/schema/beans" xmlns:secure-property-placeholder="http://www.mulesoft.org/schema/mule/secure-property-placeholder"
@@ -156,7 +156,7 @@ Then it uses a Mule Digital Signature Processor to verify the identity of the me
 
 image:/documentation/download/attachments/122752330/example+signature+1.png?version=1&modificationDate=1420814985043[image]
 
-[source]
+[source,xml]
 ----
 <signature:verify-signature config-ref="Signature" input-ref="#[message.inboundProperties.'http.query.params'.user]" expectedSignature="#[message.inboundProperties.'http.query.params'.token]" doc:name="Verify User Signature" doc:description="Verify if the Signature is correct, so we can validate the User"/>
 ----
@@ -183,7 +183,7 @@ After verifying that the requester is valid, Mule uses an expression to set the 
 
 Rather than returning the raw credit card information to the caller, Mule first encodes it using a Mule Message Encryption Processor. Using an XML encryption strategy, Mule encrypts the message payload. The table below describes the configurations of the encrypter.
 
-[source]
+[source,xml]
 ----
 <signature:config name="Signature"  enableLanguage="true" doc:name="Signature">
     <signature:jce-signer algorithm="HmacMD5" key="JLfl5sER3kt4oVkzP2d39UQrUxrEK63LjmXAO45b6cU="/>
@@ -209,7 +209,7 @@ The Message Encryption Processor references the *plainXML* global encryption ele
 +
 image:/documentation/download/attachments/122752330/global_XML_encrypt.png?version=1&modificationDate=1367968577270[image]
 
-[source]
+[source,xml]
 ----
 <signature:config name="Signature"  enableLanguage="true" doc:name="Signature">
     <signature:jce-signer algorithm="HmacMD5" key="JLfl5sER3kt4oVkzP2d39UQrUxrEK63LjmXAO45b6cU="/>
@@ -228,7 +228,7 @@ image:/documentation/download/attachments/122752330/get_cc_info_response.png?ver
 
 An end user submits a request to the Mule application to decrypt the message payload in order to acquire a customer’s unencrypted credit card information. Use an HTTP Request tool (such as the https://chrome.google.com/webstore/detail/rest-console/cokgbflfommojglbmbpenpphppikmonn[REST Console plugin] in the Chrome Web browser) to POST the request below to `http://localhost:8081/decrypt`
 
-[source]
+[source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <user>
@@ -268,7 +268,7 @@ Using an XML encryption strategy, Mule decrypts the message payload before loggi
 
 image:/documentation/download/attachments/122752330/decrypt1.png?version=1&modificationDate=1399071973747[image]
 
-[source]
+[source,xml]
 ----
 <encryption:decrypt config-ref="plainXml" using="XML_ENCRYPTER" doc:name="Decrypt the xml payload"/>
 ----
@@ -284,7 +284,7 @@ The Message Encryption Processor references the *plainXML* global encryption ele
 
 Finally, Mule uses the HTTP connector to pass the response — decrypted credit card information — to the end user’s browser. The code below displays the unencrypted credit card information.
 
-[source]
+[source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <user>

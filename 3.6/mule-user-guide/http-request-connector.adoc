@@ -1,4 +1,5 @@
 = HTTP Request Connector
+:keywords: anypoint studio, esb, connectors, http, https, http headers, query parameters, rest, raml
 
 The HTTP Request Connector provides the most practical way to consume an external HTTP service. When sending HTTP requests, you can choose what method to use (GET, POST, etc) and may include a body, headers, attachments, query parameters, form parameters and URI parameters. The response is then received by the connector and is passed on to the next element in your flow.
 
@@ -52,7 +53,7 @@ image:/documentation/download/attachments/122751350/request+config+2.png?version
 
 For example:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081"/>
 
@@ -144,7 +145,7 @@ You need to provide a *path* and *method* for your requests, as well as referenc
 
 As child elements of this connector, you can add as many parameters as you want, which may be headers, query parameters or uri parameters.
 
-[source]
+[source,xml]
 ----
 <http:request config-ref="HTTP_Request_Configuration" path="test" method="POST" doc:name="HTTP"/>
 ----
@@ -164,7 +165,7 @@ By default, GET, HEAD and OPTIONS methods will not send the payload in the reque
 
 Every HTTP Connector must reference a global configuration element that sits outside any flow in your project. This element encapsulates much of the common configuration parameters that can be reused by other connectors in your project and can be referenced by multiple instances of the connector. At the very least, you need to provide a *host* and a *port*:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP Request Configuration"/>
 ----
@@ -209,7 +210,7 @@ The above configuration will perform a GET request to http://www.example.com/tes
 
 Below are two connectors sharing the same connector configuration:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="80" basePath="/api/v2" />
 
@@ -380,7 +381,7 @@ A POST request will be sent to http://www.example.com/test[ www.example.com/test
 
 You can add query parameters by using the request-builder element inside the request:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -403,7 +404,7 @@ Both the name and value allow using MEL expressions.
 
 If query parameters should be set dynamically (for example, you don't know in design time how many query parameters will be needed in the request), they can be set through a MEL expression that returns a map of parameters:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -421,7 +422,7 @@ This example will generate the same request than the previous one, a GET request
  +
 The `query-param` and `query-params` elements can be combined inside the request builder. The parameters will be resolved for each request (evaluating all the MEL expressions in the context of the current message), and in the order they are specified inside the request builder. This allows to override parameters if necessary. If the same parameter is defined more than once, the latest value will be used.
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -445,7 +446,7 @@ In this example, the parameter k2 defined in the map will override the k2 query-
 
 When parameters should be part of the path, placeholders can be added in the path attribute with a name for each of them, and then they must be referenced from the request builder to provide the values, using the `uri-param` element:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -468,7 +469,7 @@ Both the name and value allow using MEL expressions.
 
 If URI parameters should be set dynamically, they can be set through a MEL expression that returns a map of parameters to set:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -487,7 +488,7 @@ This example will generate a GET request to http://www.example.com/test/v1/v2
 
 Just as with query parameters, the `uri-param` and `uri-params` elements can be combined inside the request builder. They will be resolved for each request (evaluating all the MEL expressions in the context of the current message), and in the order they are specified inside the request builder. This allows to override parameters if necessary. If the same parameter is defined more than once, the latest value will be used.
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -513,7 +514,7 @@ In every case, all the placeholders used in the path to reference URI parameters
 
 HTTP headers can be added to the request by using the "header" element inside the request-builder:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -536,7 +537,7 @@ Both the name and value allow using MEL expressions.
 
 Another way of sending headers is by setting outbound properties in the Mule message (current behavior of the HTTP transport). Outbound properties will be mapped as HTTP headers in the request. Thus, the following example is equivalent to the previous one:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -554,7 +555,7 @@ In both cases, the headers of the response will be mapped as inbound properties 
 
 If headers must be set dynamically (for example, you don't know in design time how many extra headers will be needed in the request), they can be set through a MEL expression that returns a map of headers:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -574,7 +575,7 @@ This example will generate a GET request to http://www.example.com/test, adding 
 
 Just as with query parameters, the header and headers elements can be combined inside the request builder. They will be resolved for each request (evaluating all the MEL expressions in the context of the current message), and in the order they are specified inside the request builder. This allows to override parameters if necessary. If the same parameter is defined more than once, the latest value will be used.
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -601,7 +602,7 @@ TestHeader3: TestValue3
 
 In order to send parameters in a POST request, the payload of the Mule message should be a Map with the names and the values of the parameters to send. Hence, one way of sending form parameters in your request is adding a Set Payload element before the HTTP Request Connector to make the payload of your message equal to the form parameters you must send:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -661,7 +662,7 @@ You can change the set of valid HTTP response codes by setting one of the follow
 
 For example:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -680,7 +681,7 @@ For example:
 
 See full XML Code
 
-[source]
+[source,xml]
 ----
 <mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
     xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.0"
@@ -719,7 +720,7 @@ In the example above, the  list of accepted status codes is defined separated b
 
 For example:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -738,7 +739,7 @@ For example:
 
 See full XML Code
 
-[source]
+[source,xml]
 ----
 <mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
     xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.0"
@@ -783,7 +784,7 @@ For example, GET requests usually do not contain a body, but some APIs require t
 
 For example, GET requests usually do not contain a body, but some APIs require them to have one. In those cases, the `sendBodyMode` attribute should be specified to force this behavior:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -820,7 +821,7 @@ Use this attribute to specify an alternate place other than payload for the outp
 
 For example:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -848,7 +849,7 @@ Use this attribute to specify an alternate place other than payload for the outp
 
 For example:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -886,7 +887,7 @@ For example, if your input is a file inbound endpoint that set a stream as the p
 
 The following example will make a POST request to http://www.example.com/test[www.example.com/test], reading a file from the "input" directory, and sending its content as the body of the request. In this case, streaming will be used because the file inbound endpoint will set a stream as the payload of the Mule message that is generated. The generated HTTP request will be sent using `Transfer-Encoding: chunked`.
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -898,7 +899,7 @@ The following example will make a POST request to http://www.example.com/test[ww
 
 For streaming to be disabled in this case, we need to explicitly set ` requestStreamingMode`="NEVER"
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -934,7 +935,7 @@ This will send a POST request with ContentType: multipart/form-data and with two
 
 For example:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP_Request_Configuration"/>
 
@@ -972,7 +973,7 @@ In the connector's Global Configuration Element, on the *General* tab, select th
 
 For example:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" protocol="HTTPS" doc:name="HTTP_Request_Configuration"/>
 
@@ -1007,7 +1008,7 @@ If you want to use a different set of HTTPS certificates, you can customize them
 
 You can add your TLS credentials as a child element of the `http:request-config` element:
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" protocol="HTTPS" doc:name="HTTP_Request_Configuration"/>
         <tls:context>
@@ -1026,7 +1027,7 @@ The above example will send a POST request to http://www.example.com/test[www.ex
 
 You can also add your TLS credentials in a separate construct, outside your `http:request-config` element. In that case, you must name your `tls:context` and add a `tlsContext-ref` attribute in your `http:request-config`.
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" tlsContext-ref="My-TLS_Context" protocol="HTTPS" doc:name="HTTP_Request_Configuration"/>
 

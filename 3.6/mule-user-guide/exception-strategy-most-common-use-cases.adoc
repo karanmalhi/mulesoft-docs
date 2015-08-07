@@ -18,7 +18,7 @@ The first two examples implement a transactional JMS queue and include a message
 
 In this first case, the exception strategy recovers the message as it existed _just_ before the error occurred. In other words, Mule has already transformed the message (i.e. appended a string to the payload), but the message has not yet thrown an exception.
 
-[source]
+[source,xml]
 ----
 <flow name="LastMessageStateRouting">
         <jms:inbound-endpoint queue="in">
@@ -45,7 +45,7 @@ In this first case, the exception strategy recovers the message as it existed _j
 
 In this second case, rather than processing the message in its transformed state, the exception strategy must recover, then process the message in its initial, untransformed state. To ensure that Mule sends this initial-state message to the dead letter queue, Mule saves the message payload, in an `originalMessage` variable. Mule uses this variable to recover the initial-state message when an exception occurs.
 
-[source]
+[source,xml]
 ----
 <flow name="OriginalMessageRouting">
         <jms:inbound-endpoint queue="in">
@@ -76,7 +76,7 @@ In this second case, rather than processing the message in its transformed state
 
 Mule can execute different actions depending on the type of exception that a message throws. This is analogous to content-based routing. However, in this case, Mule determines a route for a message based on the type of exception it throws, rather than its payload.
 
-[source]
+[source,xml]
 ----
 <flow name="RouteByExceptionType">
         <jms:inbound-endpoint queue="in">
@@ -109,7 +109,7 @@ Mule can execute different actions depending on the type of exception that a mes
 
 Mule can catch an exception, then create an error message to return to the caller in a synchronous request-response scenario. The HTTP listener has built in support for this, through the `error-response-builder` child element.
 
-[source]
+[source,xml]
 ----
 <http:listener-config name="HttpListenerConfiguration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
 <flow name="CatchAndReturnError">
@@ -131,7 +131,7 @@ Mule can catch an exception, then create an error message to return to the calle
 
 Alternatively, you could achieve the same results by configuring your exception strategy like below:
 
-[source]
+[source,xml]
 ----
 <catch-exception-strategy>
             <set-payload value="The request cannot be processed, the error is #[exception.getSummaryMessage()]"/>
@@ -149,7 +149,7 @@ Alternatively, you could achieve the same results by configuring your exception 
 
 When an error occurs, Mule can rollback transactions, then send failure notifications to a system administrator. In this case, Mule rolls back the transaction, then uses an SMTP connector to send a failure notification email.
 
-[source]
+[source,xml]
 ----
 <flow name="RollbackTransactionAndSendEmail">
  
@@ -180,7 +180,7 @@ When an error occurs, Mule can rollback transactions, then send failure notifica
 
 Mule can prevent a flow from accepting any more messages after certain types of errors occur. For example, when external service becomes unavailable (i.e. goes offline), every message processing attempt will fail until the unavailable resource is restored. In this case, Mule can shut down the flow to prevent it from attempting to process any more messages.
 
-[source]
+[source,xml]
 ----
 <http:request-config name="request-config" host="localhost"
 port="808"/>

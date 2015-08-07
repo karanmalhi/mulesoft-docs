@@ -61,7 +61,7 @@ For example, if you want to consume the OpenWeatherMap API, http://openweatherma
 * The scope is limited to a few resources, including *weather*, *forecast*, etc., and the only method that is available on those resource is *GET*
 * The sample API requests available in the documentation reveal that, if you want to retrieve the information about the current weather in **London, UK**, your API request looks like this: 
 
-[source]
+[source,xml]
 ----
 http://api.openweathermap.org/data/2.5/weather?q=London,uk
 ----
@@ -104,7 +104,7 @@ Note that if the API you are calling requires link:#ConsumingaRESTAPI-Workingwit
 ....
 [tab,title="XML Editor"]
 ....
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="api.openweathermap.org" port="80"  doc:name="HTTP Request Configuration"/>
      
@@ -120,7 +120,7 @@ Note that if the API you are calling requires link:#ConsumingaRESTAPI-Workingwit
 
 The response, in this example, is a JSON with the following structure:
 
-[source]
+[source,xml]
 ----
 {
   "coord": {
@@ -173,14 +173,14 @@ If this API had and associated RAML file, you could reference it in the configur
 
 In the example above, the request was hardcoded in the URL: 
 
-[source]
+[source,xml]
 ----
 http://api.openweathermap.org/data/2.5/weather?q=London,uk
 ----
 
 Most use cases require that the call to the API change dynamically based on some data in the message. For example, in the following GET request example, the call instructs Mule to extract the city name from the payload of the message. 
 
-[source]
+[source,xml]
 ----
 http://api.openweathermap.org/data/2.5/weather?q=#[payload.city]
 ----
@@ -206,7 +206,7 @@ If you're referencing a RAML file in your Connector Configuration, once you sele
 ....
 [tab,title="XML Editor"]
 ....
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="api.openweathermap.org" port="80"  doc:name="HTTP Request Configuration"/>
 <flow name="basic_tutorialFlow1">
@@ -222,7 +222,7 @@ If you're referencing a RAML file in your Connector Configuration, once you sele
 
 In more complex cases, you might want to query a different resource depending on data in your message properties or in variables that you set earlier in your flow.  For example:
 
-[source]
+[source,xml]
 ----
 http://api.someservice.com/#[flowVars['resource_path']]?#[flowVars['query_param']]=#[flowVars['query_param_value']]
 ----
@@ -243,7 +243,7 @@ This sample configuration assumes that you have configured a flow variable earli
 ....
 Insert a `set-property` element in your flow before your HTTP connector and configure it to set the `http.method` property. If set, Mule uses this property to override the method attribute set on the HTTP connector.
 
-[source]
+[source,xml]
 ----
 <set-property propertyName="http.method" value="#[flowVars['method-override']]" doc:name="Property"/>
 ----
@@ -305,7 +305,7 @@ If you're referencing a RAML file in your Connector Configuration, once you sele
 ....
 [tab,title="XML Editor"]
 ....
-[source]
+[source,xml]
 ----
 <http:request config-ref="HTTP_Request_Configuration" path="/data/2.5/weather " method="GET" doc:name="HTTP">
             <http:request-builder>
@@ -316,7 +316,7 @@ If you're referencing a RAML file in your Connector Configuration, once you sele
 
 Note that you can also configure the value of the custom header using a MEL expression if you want to define the value dynamically (see image below).
 
-[source]
+[source,xml]
 ----
 <http:request config-ref="HTTP_Request_Configuration" path="/data/2.5/weather " method="GET" doc:name="HTTP">
             <http:request-builder>
@@ -327,7 +327,7 @@ Note that you can also configure the value of the custom header using a MEL expr
 
 You can also use a link:/documentation/display/current/Configuring+Properties[property placeholder], then define the value in your **mule-app.properties** file.
 
-[source]
+[source,xml]
 ----
 <http:request config-ref="HTTP_Request_Configuration" path="/data/2.5/weather " method="GET" doc:name="HTTP">
             <http:request-builder>
@@ -349,7 +349,7 @@ If the REST API you are consuming requires incoming requests arrive via HTTPS, y
 
 First, you must create a keystore file to certify the communication. This can be done using the keytool provided by Java, found in the bin directory of your Java installation. Navigate to this directory on your machine using the command line, then execute the following command to create a keystore file:
 
-[source]
+[source,xml]
 ----
 keytool -genkey -alias mule -keyalg RSA -keystore keystore.jks
 ----
@@ -376,7 +376,7 @@ image:/documentation/download/attachments/122752041/keystore.png?version=1&modif
 ....
 [tab,title="XML Editor or Standalone"]
 ....
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="api.openweathermap.org" port="80"  doc:name="HTTP Request Configuration">
     <tls:context>
@@ -421,7 +421,7 @@ image:/documentation/download/attachments/122752041/define-props.png?version=1&m
 ....
 Add the user and password attributes to your `http:outbound-endpoint` configuration, as shown below.
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="api.openweathermap.org" port="80"  doc:name="HTTP Request Configuration">
     <http:basic-authentication username="myUsername" password="myPassword"/>
@@ -430,7 +430,7 @@ Add the user and password attributes to your `http:outbound-endpoint` configurat
 
 Rather than hardcode the values of your credentials, you can define them as link:/documentation/display/current/Configuring+Properties[property placeholders].
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="api.openweathermap.org" port="80"  doc:name="HTTP Request Configuration">
     <http:basic-authentication username="${service.username}" password="${service.password}"/>
@@ -439,7 +439,7 @@ Rather than hardcode the values of your credentials, you can define them as link
 
 Open (or create, if you don't have one) the `mule-app.properties` file in your application's `src/main/app` folder, then define the properties in the file:
 
-[source]
+[source,xml]
 ----
 service.username=myusername
 service.password=mypassword
@@ -478,7 +478,7 @@ The *ETag*, or entity tag, is HTTP's cache control mechanism. APIs that support 
 ....
 The following example illustrates how to configure a global `http:polling-connector`.
 
-[source]
+[source,xml]
 ----
 <http:polling-connector name="HTTP_Polling" cookieSpec="netscape" validateConnections="true" pollingFrequency="1000" sendBufferSize="0" receiveBufferSize="0" receiveBacklog="0" clientSoTimeout="10000" serverSoTimeout="10000" socketSoLinger="0" checkEtag="false" discardEmptyContent="false" doc:name="HTTP Polling"/>
  

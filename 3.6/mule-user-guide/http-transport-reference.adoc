@@ -79,14 +79,14 @@ Legend
 
 == Namespace and Syntax
 
-[source]
+[source,xml]
 ----
 http://www.mulesoft.org/schema/mule/http
 ----
 
 XML schema location
 
-[source]
+[source,xml]
 ----
 http://www.mulesoft.org/schema/mule/http/3.6/mule-http.xsd
 ----
@@ -101,7 +101,7 @@ http://theUser:secret@theHost:port/path?query
 
 *XML Version*
 
-[source]
+[source,xml]
 ----
 <http:endpoint host="theHost" port="8080" path="/path" user="theUser"
  password="secret"/>
@@ -127,7 +127,7 @@ http://theUser:secret@theHost:port/path?query
 
 To create a HTTP server you just need to create a flow with an inbound HTTP endpoint:
 
-[source]
+[source,xml]
 ----
 <flow name="testComponent">
     <http:inbound-endpoint name="clientEndpoint" address="http://localhost:8080/moon"/>
@@ -139,7 +139,7 @@ This with accept incoming HTTP requests on ` http://localhost:8080/moon ` and ec
 
 To make a client invocation of an HTTP endpoint you need to configure an outbound endpoint on your flow or you can use the Mule client to invoke an HTTP endpoint directly in your code.
 
-[source]
+[source,xml]
 ----
 <flow name="OutboundDelete">
     <vm:inbound-endpoint path="doDelete"
@@ -151,7 +151,7 @@ To make a client invocation of an HTTP endpoint you need to configure an outboun
 
 Or from within your code:
 
-[source]
+[source,xml]
 ----
 MuleClient client = muleContext.getClient();
 MuleMessage result = client.send("http://localhost:8080/foo", "");
@@ -159,7 +159,7 @@ MuleMessage result = client.send("http://localhost:8080/foo", "");
 
 Finally, you can reference an endpoint by name from your Mule configuration in the Mule client. Using the previous example, you can create a global HTTP endpoint from the flow or code:
 
-[source]
+[source,xml]
 ----
 <http:endpoint name="deleteEndpoint" host="localhost" port="8080" path="foo"
             method="DELETE" exchange-pattern="one-way" />
@@ -169,7 +169,7 @@ Finally, you can reference an endpoint by name from your Mule configuration in t
 </flow>
 ----
 
-[source]
+[source,xml]
 ----
 MuleClient client = muleContext.getClient();
 MuleMessage result = client.send("deleteEndpoint", "");
@@ -181,7 +181,7 @@ Global endpoints allow you to remove actual addresses from your code and flows s
 
 You can use the link:/documentation/display/current/HTTPS+Transport+Reference[HTTPS Transport Reference] to create secure connections over HTTP. If you want to secure requests to your HTTP endpoint, the HTTP connector supports HTTP Basic/Digest authentication methods (as well as the Mule generic header authentication). To configure HTTP Basic, you configure a link:/documentation/display/current/Configuring+Security[Security Endpoint Filter] on an HTTP endpoint.
 
-[source]
+[source,xml]
 ----
 <http:inbound-endpoint address="http://localhost:4567">
   <spring-sec:http-security-filter realm="mule-realm" />
@@ -194,7 +194,7 @@ You must configure the security manager on the Mule instance against which this 
 
 The default behavior of the HTTP connector is to return, among other things, the X_MULE_SESSION header as part of every HTTP response. The content of this header is a base64-encoded Java serialized object. As such, if you decode the value and look at the plain text, you can view all the names and values of the properties stored in the Mule session. To tighten security, you can prevent Mule from adding this header when it encounters an endpoint that references this connector by including the following code. 
 
-[source]
+[source,xml]
 ----
 <http:connector name="NoSessionConnector">
 <service-overrides
@@ -217,7 +217,7 @@ http://user:password@mycompany.com/secure
 
 If you want to send cookies along on your outgoing request, simply configure them on the endpoint:
 
-[source]
+[source,xml]
 ----
 <set-property value="#[['customCookie':'yes']]" propertyName="cookies" doc:name="Property" />
 
@@ -230,7 +230,7 @@ The HTTP transport supports polling an HTTP URL, which is useful for grabbing pe
 
 To configure the HTTP Polling receiver, you include an HTTP polling-connector configuration in your Mule configuration:
 
-[source]
+[source,xml]
 ----
 <http:polling-connector name="PollingHttpConnector" pollingFrequency="30000"
            reuseAddress="true" />
@@ -238,7 +238,7 @@ To configure the HTTP Polling receiver, you include an HTTP polling-connector co
 
 To use the connector in your endpoints, use:
 
-[source]
+[source,xml]
 ----
 <http:inbound-endpoint user="marie" password="marie" host="localhost" port="61205"
            connector-ref="PollingHttpConnector" />
@@ -272,7 +272,7 @@ When making a new HTTP client request, Mule filters out any existing HTTP reques
 
 If you do want to include HTTP headers, you can specify them as properties on the outbound endpoint as follows:
 
-[source]
+[source,xml]
 ----
 <http:outbound-endpoint address="http://localhost:9002/events"
                         connector-ref="HttpConnector" contentType="image/png">
@@ -282,7 +282,7 @@ If you do want to include HTTP headers, you can specify them as properties on th
 
 or use Message Properties Transformer, as follows:
 
-[source]
+[source,xml]
 ----
 <message-properties-transformer scope="outbound">
     <add-message-property key="Accept" value="*.*"/>
@@ -296,7 +296,7 @@ or use Message Properties Transformer, as follows:
 
 The HTTP request URL is available in the Mule header. You can access this using the expression `#[message.inboundProperties['http.request']]`. For example, if you want to redirect the request to a different server based on a filter, you can build the target URL as shown below:
 
-[source]
+[source,xml]
 ----
 <http:outbound-endpoint address="http://localhost:8080#[message.inboundProperties['http.request']" />
 ----
@@ -310,7 +310,7 @@ See the HTTP protocol specification for detailed information about status codes 
 
 The following example flow listens on the local address `http://localhost:8080/mine` and sends a response with the redirection code instructing the client to go to http://mule.mulesoft.org/.
 
-[source]
+[source,xml]
 ----
 <http:inbound-endpoint address="http://localhost:8080/mine" exchange-pattern="request-response"/>
 <set-property propertyName="http.status" value="307"/>
@@ -328,7 +328,7 @@ If you configure a property as a child element of an inbound endpoint in Anypoin
 
 To follow redirects when making an outbound HTTP call, use the `followRedirect` attribute:
 
-[source]
+[source,xml]
 ----
 <http:outbound-endpoint address="http://com.foo/bar" method="GET" exchange-pattern="request-response" followRedirects="true"/>
 ----
@@ -337,14 +337,14 @@ To follow redirects when making an outbound HTTP call, use the `followRedirect` 
 
 If no response is received for a set period of time, the connector will cease its attempts. By default, this time period is 1000 milliseconds, but you can set another value through the parameter `responseTimeout`.
 
-[source]
+[source,xml]
 ----
 <http:outbound-endpoint address="http://com.foo/bar" method="GET" exchange-pattern="request-response" responseTimeout="5000"/>
 ----
 
 If you set `responseTimeout` to 0, you will disable the timeout entirely.
 
-[source]
+[source,xml]
 ----
 <http:outbound-endpoint address="http://com.foo/bar" method="GET" exchange-pattern="request-response" responseTimeout="0"/>
 ----
@@ -359,7 +359,7 @@ on your inbound endpoint to return the message properties as a hash map of name-
 
 For example:
 
-[source]
+[source,xml]
 ----
 <http:inbound-endpoint ...>
   <http:body-to-parameter-map-transformer />
@@ -372,7 +372,7 @@ GET parameters posted to an HTTP inbound endpoint are automatically available in
 
 For example, the following flow creates a simple HTTP server:
 
-[source]
+[source,xml]
 ----
 <flow name="flows1Flow1">
     <http:inbound-endpoint host="localhost" port="8081"  encoding="UTF-8"/>
@@ -390,7 +390,7 @@ Results in a message payload of `/echo?reverb=4&flange=2` and two additional inb
 
 You can access these headers using expressions such as the following, which can be used in filters and routers, or injected into code:
 
-[source]
+[source,xml]
 ----
 #[header:INBOUND:reverb]
 ----
@@ -399,7 +399,7 @@ You can access these headers using expressions such as the following, which can 
 
 The HTTP connector can be used as a web server to deliver static content such as images, HTML, JavaScript, CSS files etc. To enable this, configure a flow with an HTTP static-resource-handler:
 
-[source]
+[source,xml]
 ----
 <flow name="main-http">
     <http:inbound-endpoint address="http://localhost:8080/static"/>
@@ -453,7 +453,7 @@ The following provides some common usage examples that helps you get an understa
 
 *Filtering HTTP Requests*
 
-[source]
+[source,xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -475,7 +475,7 @@ The following provides some common usage examples that helps you get an understa
 
 *Polling HTTP*
 
-[source]
+[source,xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
@@ -515,7 +515,7 @@ The following provides some common usage examples that helps you get an understa
 
 *Setting Custom Headers*
 
-[source]
+[source,xml]
 ----
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -563,7 +563,7 @@ The following provides some common usage examples that helps you get an understa
 
 *WebServer - Static Content*
 
-[source]
+[source,xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -583,7 +583,7 @@ The following provides some common usage examples that helps you get an understa
 
 *Setting Cookies on a Request*
 
-[source]
+[source,xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:spring="http://www.springframework.org/schema/beans"
@@ -649,7 +649,7 @@ Allows Mule to communicate over HTTP. All parts of the HTTP spec are covered by 
 
 For example:
 
-[source]
+[source,xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -748,7 +748,7 @@ An inbound HTTP endpoint exposes a service over HTTP, essentially making it an H
 
 For example:
 
-[source]
+[source,xml]
 ----
 <http:inbound-endpoint host="localhost" port="63081" path="services/Echo" keepAlive="true"/>
 ----
@@ -786,7 +786,7 @@ The HTTP outbound endpoint allows Mule to send requests to external servers or M
 
 For example:
 
-[source]
+[source,xml]
 ----
 <http:outbound-endpoint host="localhost" port="8080" method="POST"/>
 ----
@@ -824,7 +824,7 @@ Configures a 'global' HTTP endpoint that can be referenced by services. Services
 
 For example:
 
-[source]
+[source,xml]
 ----
 <http:endpoint name="serverEndpoint1" host="localhost" port="60199" path="test1" />
 ----
