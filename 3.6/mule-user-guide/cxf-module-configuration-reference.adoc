@@ -1,4 +1,5 @@
 = CXF Module Configuration Reference
+:keywords: cxf, soap connector
 
 This page provides reference information about the elements and attributes you can configure for the link:/documentation/display/current/CXF+Module+Reference[CXF Module Reference] .
 
@@ -6,51 +7,55 @@ This page provides reference information about the elements and attributes you c
 
 === Attributes of <configuration...>
 
+[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
+|===
 Name
-
+|
 Type
-
+|
 Required
-
+|
 Default
-
+|
 Description
-
+|
 configurationLocation
-
+|
 string
-
+|
 no
-
+|
 The location of a CXF configuration file, if any needs to be supplied.
-
+|
 enableMuleSoapHeaders
-
+|
 boolean
-
+|
 no
-
+|
 true
-
+|
 Whether or not CXF should write Mule SOAP headers which pass along the correlation and ReplyTo information. This is true by default, but the Mule SOAP headers are only triggered in situations where there is an existing correlation ID and the ReplyTo header is set. (As of 2.2.1)
-
+|
 initializeStaticBusInstance
-
+|
 boolean
-
+|
 no
-
+|
 true
-
+|
 Initialize the static CXF Bus with a Bus configured to use Mule for all transports. This will affect any CXF generated clients that you run standalone. Defaults to true.
-
+|
 name
-
+|
 string
-
+|
 no
-
+|
 _cxfConfiguration
+|||
+|===
 
 === Child Elements of <configuration...>
 
@@ -59,7 +64,6 @@ _cxfConfiguration
 |Name |Cardinality |Description
 |===
 
- +
 
 == Jaxws service
 
@@ -83,65 +87,66 @@ _cxfConfiguration
 
 === Child Elements of <jaxws-service...>
 
+[width="100%",cols="30%,30%,30%",options="header",]
+|===
 Name
-
+|
 Cardinality
-
+|
 Description
-
+|
 schemaLocations
-
+|
 0..1
-
+||
 ws-security
-
+|
 0..1
-
+|
 Configuration to enable WS-Security
-
+|
 properties
-
+|
 0..1
-
+|
 Additional properties for this service.
-
+|
 abstract-databinding
-
+|
 0..1
-
+|
 The databinding implementation that should be used. By default, this is JAXB for the JAX-WS frontend and Aegis for the simple frontend. A placeholder for arbitrary extensions as children of the 'mule' element. Other transports and modules can extend this if they need to add global elements to the configuration (but consider the more specific elements like abstract-connector first).
-
+|
 features
-
+|
 0..1
-
+|
 Any CXF features you want to apply to the client/server. See the CXF documentation for more information on features.
-
+|
 inInterceptors
-
+|
 0..1
-
+|
 Additional incoming interceptors for this service.
-
+|
 inFaultInterceptors
-
+|
 0..1
-
+|
 Additional incoming fault interceptors.
-
+|
 outInterceptors
-
+|
 0..1
-
+|
 Additional outgoing interceptors.
-
+|
 outFaultInterceptors
-
+|
 0..1
-
+|
 Additional outgoing fault interceptors.
-
- +
+|===
 
 == Jaxws client
 
@@ -164,57 +169,60 @@ Additional outgoing fault interceptors.
 
 === Child Elements of <jaxws-client...>
 
+[width="100%",cols="30%,30%,30%",options="header",]
+|===
 Name
-
+|
 Cardinality
-
+|
 Description
-
+|
 ws-security
-
+|
 0..1
-
+|
 properties
-
+|
 0..1
-
+|
 Additional properties for this service.
-
+|
 abstract-databinding
-
+|
 0..1
-
+|
 The databinding implementation that should be used. By default, this is JAXB for the JAX-WS frontend and Aegis for the simple frontend. A placeholder for arbitrary extensions as children of the 'mule' element. Other transports and modules can extend this if they need to add global elements to the configuration (but consider the more specific elements like abstract-connector first).
-
+|
 features
-
+|
 0..1
-
+|
 Any CXF features you want to apply to the client/server. See the CXF documentation for more information on features.
-
+|
 inInterceptors
-
+|
 0..1
-
+|
 Additional incoming interceptors for this service.
-
+|
 inFaultInterceptors
-
+|
 0..1
-
+|
 Additional incoming fault interceptors.
-
+|
 outInterceptors
-
+|
 0..1
-
+|
 Additional outgoing interceptors.
-
+|
 outFaultInterceptors
-
+|
 0..1
-
+|
 Additional outgoing fault interceptors.
+|===
 
 == Common CXF Elements
 
@@ -233,6 +241,39 @@ Following are the sub-elements you can set on CXF service and client. For furthe
 
 === Interceptors Example
 
+[source,xml]
+----
+<cxf:jaxws-client serviceClass="com.mulesoft.example.HelloWorld"
+                  operation="sayHello" port="HelloWorldPort">
+    <cxf:inInterceptors>
+        <spring:bean class="org.apache.cxf.interceptor.LoggingInInterceptor"/>
+    </cxf:inInterceptors>
+    <cxf:outInterceptors>
+        <spring:bean class="org.apache.cxf.interceptor.LoggingOutInterceptor"/>
+    </cxf:outInterceptors>
+</cxf:jaxws-client>
+----
+
 === Databinding Example
 
+[source,xml]
+----
+<cxf:simple-service>
+    <cxf:aegis-databinding>
+            <spring:property name="configuration">
+                 <spring:bean class="org.apache.cxf.aegis.type.TypeCreationOptions" />
+            </spring:property>
+    </cxf:aegis-databinding>
+</cxf:simple-service>
+----
+
 === Features Example
+
+[source,xml]
+----
+<cxf:jaxws-service serviceClass="com.mulesoft.mule.example.security.Greeter">
+    <cxf:features>
+        <spring:bean class="org.mule.module.cxf.feature.PrettyLoggingFeature" />
+    </cxf:features>
+</cxf:jaxws-service>
+----
