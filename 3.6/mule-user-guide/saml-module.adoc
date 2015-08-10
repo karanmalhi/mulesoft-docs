@@ -1,4 +1,5 @@
 = SAML Module
+:keywords: anypoint studio, esb, saml, security, federated
 
 *_Enterprise_*
 
@@ -23,7 +24,7 @@ The use the SAML module, the `mule-module-saml` JAR file must be in a location o
 
 To use the features of the SAML module, add the SAML module namespace to your Mule configuration file as follows:
 
-[source]
+[source, xml]
 ----
 <mule xmlns:saml="http://www.mulesoft.org/schema/mule/ee/saml"
       xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/saml http://www.mulesoft.org/schema/mule/ee/saml/current/mule-saml-ee.xsd">
@@ -34,7 +35,7 @@ To use the features of the SAML module, add the SAML module namespace to your Mu
 
 Next, you configure the SAML security manager as shown below. The following example starts off with the definition of the SAML security manager and its accompanying security provider. The security provider specifies the default security realm to use by security filters if none is specified. This is especially useful in case you have only one security realm.
 
-[source]
+[source, xml]
 ----
 <saml:security-manager>
   <saml:saml-security-provider name="samlSecurityProvider" default-realm="senderVouches">
@@ -57,7 +58,7 @@ In this example, two security realms are defined. One uses the sender vouches SA
 
 Once you've defined a security manager, you can configure security filters on CXF connectors as shown in the examples below. The first example does not specify a security realm, so the default realm is used. Both filters specify the same certificate that is used to verify the SAML assertions as issued by the assertion provider.
 
-[source]
+[source, xml]
 ----
 <saml:cxf-security-filter certificate-alias="mulesaml"/>
  
@@ -80,7 +81,7 @@ For a more detailed description of these profiles and the use cases when they're
 
 Since SAML is used for single sign-on, authentication of the user is assumed to have already occurred, and the SAML token simply contains one or more *subjects*, which provide some information understood by other systems. In this case we will configure our flow to require a SAML subject of `AllowGreetingServices`. To our inbound connector we add a `SAMLVerifyInterceptor` with a callback, which will check for the correct SAML subject:
 
-[source]
+[source, xml]
 ----
 <spring:bean class="org.mule.module.saml.cxf.SAMLVerifyInterceptor">
      <spring:property name="callback">
@@ -91,7 +92,7 @@ Since SAML is used for single sign-on, authentication of the user is assumed to 
 </spring:bean>
 ----
 
-[source]
+[source, java]
 ----
 public class VerifyAuthorization implements SAMLVerifyCallback
 {
@@ -108,7 +109,7 @@ samlAuthentication) throws SecurityException
 
 When the expected SAML token is added to the WS-Security header of the message, it looks like this:
 
-[source]
+[source, xml]
 ----
 <Assertion xmlns="urn:oasis:names:tc:SAML:1.0:assertion"
 xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion"

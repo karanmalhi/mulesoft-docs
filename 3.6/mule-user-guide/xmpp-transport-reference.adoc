@@ -1,4 +1,5 @@
 = XMPP Transport Reference
+:keywords: anypoint studio, esb, xmpp, jabber
 
 The XMPP transport receives and sends Mule messages over the Extensible Messaging and Presence Protocol (XMPP), which is also known as Jabber.
 
@@ -62,16 +63,53 @@ Maven Artifact
 
 XML namespace:
 
+[source]
+----
+http://www.mulesoft.org/schema/mule/xmpp
+----
+
 XML schema location:
 
+[source]
+----
+http://www.mulesoft.org/schema/mule/xmpp/3.6/mule-xmpp.xsd
+----
 Endpoint syntax:
+
+[source]
+----
+
+----
 
 . Raw URLs:
 +
-. Transport-specific endpoints in XML:  +
+[source]
+----
+xmpp://MESSAGE/theUser@jabber.server.com
+xmpp://CHAT/theUser@jabber.server.com
+xmpp://GROUPCHAT/theGroupChat
+----
+. Transport-specific endpoints in XML:
++
+[source, xml]
+----
+<xmpp:inbound-endpoint type="MESSAGE" from="theUser@jabber.server.com"/>
+<xmpp:outbound-endpoint type="MESSAGE" recipient="theUser@jabber.server.com"/>
+
+<xmpp:inbound-endpoint type="CHAT" from="theUser@jabber.server.com"/>
+<xmpp:outbound-endpoint type="CHAT" recipient="theUser@jabber.server.com"/>
+
+<xmpp:inbound-endpoint type="GROUPCHAT" from="theGroupChat" nickname="muley"/>
+<xmpp:outbound-endpoint type="GROUPCHAT" recipient="theGroupChat" nickname="muley"/>
+----
 +
 
 Connector and endpoint syntax:
+
+[source, xml]
+----
+<xmpp:connector name="xmpp" host="localhost" user="theUser" password="secret"/>
+----
 
 == Filters
 
@@ -109,9 +147,54 @@ The XMPP transport does not support transactions as the XMPP protocol is not tra
 
 == Example Configurations
 
+
 *Receive Messages in a Flow*
+[source, xml]
+----
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xmpp="http://www.mulesoft.org/schema/mule/xmpp"
+    xsi:schemaLocation="
+      http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.6/mule.xsd
+      http://www.mulesoft.org/schema/mule/xmpp http://www.mulesoft.org/schema/mule/xmpp/3.6/mule-xmpp.xsd">
+
+    <xmpp:connector name="xmppConnector" host="localhost" user="theUser" password="secret"/>
+
+    <flow name="receiveMessage">
+        <xmpp:inbound-endpoint type="MESSAGE" from="other@jabber.server.com"/>
+        <component class="com.mycompany.mule.JabberMessageHandler"/>
+    </flow>
+</mule>
+----
 
 *Simple Jabber Chat Client*
+[source, xml]
+----
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      xmlns:xmpp="http://www.mulesoft.org/schema/mule/xmpp"
+      xmlns:stdio="http://www.mulesoft.org/schema/mule/stdio"
+      xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.6/mule.xsd
+        http://www.mulesoft.org/schema/mule/xmpp http://www.mulesoft.org/schema/mule/xmpp/3.6/mule-xmpp.xsd
+        http://www.mulesoft.org/schema/mule/stdio http://www.mulesoft.org/schema/mule/stdio/3.6/mule-stdio.xsd">
+
+    <xmpp:connector name="xmppConnector" host="localhost" user="theUser" password="secret"/>
+
+    <flow name="stdio2xmpp">
+        <stdio:inbound-endpoint system="IN"/>
+        <xmpp:outbound-endpoint type="CHAT" recipient="otheruser@localhost"/>
+    </flow>
+
+    <flow name="xmpp2stdio">
+        <xmpp:inbound-endpoint type="CHAT" from="otheruser@localhost"/>
+        <xmpp:xmpp-to-object-transformer/>
+        <stdio:outbound-endpoint system="OUT"/>
+    </flow>
+</mule>
+----
 
 *Note*: In this code example, `spring-beans-current.xsd` is a placeholder. To locate the correct version, see http://www.springframework.org/schema/beans/.
 
@@ -121,7 +204,7 @@ The XMPP transport does not support transactions as the XMPP protocol is not tra
 
 = XMPP Transport
 
- +
+
  The XMPP transport connects Mule to an XMPP (Jabber) server.
 
 == Connector
@@ -245,6 +328,14 @@ http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/xmpp/packag
 == Maven
 
 This transport is part of the following maven module:
+[source, xml]
+----
+<dependency>
+  <groupId>org.mule.transports</groupId>
+  <artifactId>mule-transport-xmpp</artifactId>
+  <version>3.6.0</version>
+</dependency>
+----
 
 == Best Practices
 

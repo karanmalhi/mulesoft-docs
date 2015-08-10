@@ -1,5 +1,7 @@
-= PeopleSoft Connector  +
- _Premium_
+= PeopleSoft Connector
+:keywords: anypoint studio, esb, connector, endpoint, peoplesoft
+
+_Premium_
 
 == Introduction
 
@@ -165,7 +167,7 @@ mvn install:install-file -Dfile=psjoa.jar -DgroupId=peoplesoft -DartifactId=psjo
 Click the following link to learn more about third-party JARs: http://maven.apache.org/guides/mini/guide-3rd-party-jars-local.html._ _
 .. Based on the command above, add the following dependency to your project's **pom.xml**:
 +
-[source]
+[source, xml]
 ----
 <dependency>            
 <groupId>peoplesoft</groupId>
@@ -275,7 +277,7 @@ image:/documentation/download/attachments/124879388/PS_0007_globalelement_whitel
 
 Ensure you have included the PeopleSoft namespaces in your configuration file.
 
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -295,7 +297,7 @@ Follow these steps to configure a PeopleSoft connector in your application.
 
 . Create a global element for PeopleSoft configuration using the following global configuration code:
 +
-[source]
+[source, xml]
 ----
 <peoplesoft:config name="PeopleSoft" server="${mule.peoplesoft.server}" username="${mule.peoplesoft.username}" password="${mule.peoplesoft.password}" doc:name="PeopleSoft">
 ----
@@ -311,7 +313,7 @@ Follow these steps to configure a PeopleSoft connector in your application.
 |===
 . Configure your Component Interface. Find the ** _<peoplesoft:component-interface-ids-white-list ref="#[payload]"/>_ internal tag and replace it with the following:
 +
-[source]
+[source, xml]
 ----
 <peoplesoft:component-interface-ids-white-list>
 <peoplesoft:component-interface-ids-white-list>
@@ -467,7 +469,7 @@ CI_POSITION_DATA#Save
 
 . Add a  `peoplesoft:config` global element to your project, then configure its attributes according to the table below.
 +
-[source]
+[source, xml]
 ----
 <peoplesoft:config name="PeopleSoft" server="${mule.peoplesoft.server}" username="${mule.peoplesoft.username}" password="${mule.peoplesoft.password}" doc:name="PeopleSoft">
 ----
@@ -484,7 +486,7 @@ CI_POSITION_DATA#Save
 +
 Configure your People Component Interface in the Mule application. To do so, find the `<peoplesoft:component-interface-ids-white-list ref="#[payload]"/>` internal tag and replace it with the following:
 +
-[source]
+[source, xml]
 ----
 <peoplesoft:component-interface-ids-white-list>
 <peoplesoft:component-interface-ids-white-list>
@@ -495,7 +497,7 @@ YOUR_COMPONENT_INTERFACE_NAME
 +
 .  Begin the flow with a File endpoint, configuring the endpoint according to the table below. 
 +
-[source]
+[source, xml]
 ----
 <file:inbound-endpoint path="src/test/resources" responseTimeout="10000" doc:name="employee-position.csv"> <file:filename-regex-filter pattern="employee-position.csv" caseSensitive="true"/> </file:inbound-endpoint>
 ----
@@ -508,7 +510,7 @@ YOUR_COMPONENT_INTERFACE_NAME
 |===
 . Add a Data Mapper to the flow to map the data in the file to Position Data Component Interface.
 +
-[source]
+[source, xml]
 ----
 <data-mapper:transform doc:name="Employee Position Data to CI_POSITION_DATA"/>
 ----
@@ -517,7 +519,7 @@ Leave the DataMapper without configuring for now, as it is easier to do so after
 . Now, add `<foreach doc:name="For Each">` to the flow. 
 . Add the `peoplesoft:invoke-operation` element now to save the new employee position data to the *Position Data Component Interface* in your PeopleSoft instance.
 +
-[source]
+[source, xml]
 ----
 <peoplesoft:invoke-operation config-ref="PeopleSoft" type="CI_POSITION_DATA#Save" doc:name="Save Employee Position Data to CI_POSITION_DATA"> <peoplesoft:params ref="#[payload]"/> </peoplesoft:invoke-operation>
 ----
@@ -540,13 +542,13 @@ In the Child Element `peoplesoft:params` include the following parameter:
 . Add a `json:object-to-json-transformer` element to convert the response from PeopleSoft into a Json object, after each record in saved in PeopleSoft CI_POSITION_DATA. 
 . Add a logger element to print the responses from PeopleSoft in Mule Console.
 +
-[source]
+[source, xml]
 ----
 <logger message="Response from Peoplesoft is: #[payload]" level="INFO" doc:name="Logger"/>
 ----
 . Close the foreach scope, then add another logger element outside the foreach to print a message in the Studio Console after all the data in the file is saved in PeopleSoft.
 +
-[source]
+[source, xml]
 ----
 <logger message="Data transfer completed." level="INFO" doc:name="Logger"/>
 ----
@@ -559,7 +561,7 @@ In the Child Element `peoplesoft:params` include the following parameter:
 .. Click the blank space on the canvas to save the changes.
 . Return to the XML view in Studio. Add a logger element after the datamapper element to print the data that is being passed to PeopleSoft on the Studio Console.
 +
-[source]
+[source, xml]
 ----
 <logger message="Output from Datamapper is #[payload]" level="INFO" doc:name="Logger"/>
 ----
@@ -570,7 +572,7 @@ In the Child Element `peoplesoft:params` include the following parameter:
 
 == Example Code
 
-[source]
+[source, xml]
 ----
 <mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:peoplesoft="http://www.mulesoft.org/schema/mule/peoplesoft" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"

@@ -1,4 +1,5 @@
 = NetSuite Connector
+:keywords: anypoint studio, esb, connector, endpoint, netsuite
 
 *_Standard_ *
 
@@ -89,7 +90,7 @@ Default
 ....
 Ensure that you include the NetSuite namespaces in your configuration file.
 
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -110,7 +111,7 @@ Follow these steps to configure a NetSuite connector in your application:
 . Create a global NetSuite configuration outside and above your flows, using the following global configuration code:
 +
 
-[source]
+[source, xml]
 ----
 <!-- Simple configuration -->
 <netsuite:config name="Netsuite" email="Your NetSuite email" password="Your NetSuite password" account="Your Netsuite account name" roleId="The id of your NetSuite role" doc:name="Netsuite">
@@ -212,7 +213,7 @@ image:/documentation/download/attachments/122751662/NetSuiteDemoFlow.png?version
 image:/documentation/download/attachments/122751662/HTTPSettings.png?version=1&modificationDate=1426787664604[image]
 +
 
-. Add a *Set Payload* transformer after the HTTP connector to process the message payload. Configure the transformer as shown below. +
+. Add a *Set Payload* transformer after the HTTP connector to process the message payload. Configure the transformer as shown below.
 +
 image:/documentation/download/attachments/122751662/setpayload.jpg?version=1&modificationDate=1410252287411[image] 
 +
@@ -287,7 +288,7 @@ Type
 . Add a *netsuite:config* element to your project, then configure its attributes according to the  table below.
 +
 
-[source]
+[source, xml]
 ----
 <netsuite:config name="NetSuite" email="email@youremail.com" password="netsuite_password" account="netsuite_account" roleId="netsuite_role" doc:name="Netsuite">
             </netsuite:config>
@@ -307,7 +308,7 @@ Type
 .  Create a Mule flow with an HTTP endpoint, configuring the endpoint as follows:  
 +
 
-[source]
+[source, xml]
 ----
 <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" path="accountWithCustomFields" doc:name="HTTP"/>
 ----
@@ -324,7 +325,7 @@ Type
 . Add a *set-payload* element to set the message payload in the flow.
 +
 
-[source]
+[source, xml]
 ----
 <set-payload value="#[['name':message.inboundProperties['name'],'lastname':message.inboundProperties['lastname'],'e-mail':message.inboundProperties['email'],'externalId':message.inboundProperties['externalId']]]" doc:name="Set Payload"/>
 ----
@@ -332,7 +333,7 @@ Type
 . Add a **data-mapper** element to pass the message payload to NetSuite.
 +
 
-[source]
+[source, xml]
 ----
 <data-mapper:transform config-ref="Map_To_EMPLOYEE" doc:name="Map To EMPLOYEE"/>
 ----
@@ -340,7 +341,7 @@ Type
 . Add a *netsuite:add-record* element to your flow as follows:
 +
 
-[source]
+[source, xml]
 ----
 <netsuite:add-record config-ref="Netsuite" doc:name="Netsuite Add Record" recordType="EMPLOYEE"/>
 ----
@@ -367,7 +368,7 @@ Type
 . Add a *json:object-to-json-transformer* element to the flow to capture the response from the NetSuite connector and display it as an HTTP response. 
 +
 
-[source]
+[source, xml]
 ----
 <json:object-to-json-transformer doc:name="Object to JSON"/>
 ----
@@ -390,7 +391,7 @@ Keep in mind that for this example code to work, you must manually configure the
 * Role ID
 ====
 
-[source]
+[source, xml]
 ----
 <mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite"
     xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"

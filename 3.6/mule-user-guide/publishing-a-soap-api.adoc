@@ -1,5 +1,10 @@
 = Publishing a SOAP API
 
+:keywords: cxf
+
+[NOTE]
+When sending requests to an external web service, the recommended approach is to use the link:https://developer.mulesoft.com/docs/display/current/Web+Service+Consumer[Web Service Consumer]﻿ rather than the CXF Module.
+
 The *CXF Component* facilitates the publication of **SOAP APIs **within a Mule flow.
 
 Mule leverages Apache's open-source http://cxf.apache.org/docs/a-simple-jax-ws-service.html[CXF framework] to build APIs. You can create a CXF API in Studio by configuring a CXF component in your Mule flow to perform any of the following CXF operations related to publishing a SOAP API:
@@ -154,7 +159,7 @@ Alternatively, you can use a browser extension such as https://chrome.google.co
 . Create an` http:listener `in a new flow.
 +
 
-[source]
+[source, xml]
 ----
 <http:listener config-ref="listener-config" path="/" doc:name="HTTP Connector"/>
 ----
@@ -170,7 +175,7 @@ Alternatively, you can use a browser extension such as https://chrome.google.co
 . Create a global configuration element for the HTTP listener, outside the flow
 +
 
-[source]
+[source, xml]
 ----
 <http:listener-config name="listener-config" host="localhost" port="8081"/>
 ----
@@ -186,7 +191,7 @@ Alternatively, you can use a browser extension such as https://chrome.google.co
 . Add a `cxf:proxy-service` element after the HTTP listener.
 +
 
-[source]
+[source, xml]
 ----
 <cxf:proxy-service doc:name="SOAP" payload="body" port="myAPI" service="myAPI" wsdlLocation="myAPI.wsdl"/>
 ----
@@ -209,7 +214,7 @@ The output of this component is a byte array who's content depends upon the valu
 . Create a `flow-ref` after your CXF component. This reference will redirect the requests to another flow, where the actual business logic of your API is carried out. Keep in mind that whatever happens in this second flow, the returned output must match the output declared by the WSDL.
 +
 
-[source]
+[source, xml]
 ----
 <flow-ref name="business-logic_flow" doc:name="Flow Reference"/>
 ----
@@ -226,7 +231,7 @@ The output of this component is a byte array who's content depends upon the valu
 As stated earlier, rather than fitting into a single Java class, your API's business logic may involve the use of several elements, such as flow controls, transformers, HTTP calls to Web services, etc. Through these elements, you can model, then configure your flow to perform the operations your SOAP API must support.
 +
 
-[source]
+[source, xml]
 ----
 <flow name="business-logic_flow" doc:name="business-logic_flow">
      <!-- your business logic here -->
@@ -237,7 +242,7 @@ As stated earlier, rather than fitting into a single Java class, your API's busi
 . If you want direct access to the payload in your business-logic flow, you must pass the message through a `mulexml:xml-to-dom-transformer`.
 +
 
-[source]
+[source, xml]
 ----
 <mulexml:xml-to-dom-transformer doc:name="XML to DOM"/>
 ----
@@ -266,7 +271,7 @@ For this code to be executable, you must include, in your project:
 * your unique business logic in the business logic flow
 ====
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  
@@ -367,7 +372,7 @@ Alternatively, you can use a browser extension such as https://chrome.google.co
 . Create an` http:listener `in a new flow.
 +
 
-[source]
+[source, xml]
 ----
 <http:listener config-ref="listener-config" path="/" doc:name="HTTP Connector"/>
 ----
@@ -384,7 +389,7 @@ Alternatively, you can use a browser extension such as https://chrome.google.co
 . Create a global configuration element for the HTTP listener, outside the flow
 +
 
-[source]
+[source, xml]
 ----
 <http:listener-config name="listener-config" host="localhost" port="8081"/>
 ----
@@ -400,7 +405,7 @@ Alternatively, you can use a browser extension such as https://chrome.google.co
 . Add a `cxf:jaxws-service` element after the HTTP Listener. At runtime, the output of this component is a POJO.
 +
 
-[source]
+[source, xml]
 ----
 <cxf:jaxws-service doc:name="SOAP"  port="myService" service="myService" wsdlLocation="myAPI.wsdl"/>
 ----
@@ -418,7 +423,7 @@ Alternatively, you can use a browser extension such as https://chrome.google.co
 . Create a `flow-ref` after your CXF component. This reference will redirect the requests to another flow, where the actual business logic of your API is carried out. Keep in mind that whatever happens in this second flow, the returned output must match the output declared by the WSDL.
 +
 
-[source]
+[source, xml]
 ----
 <flow-ref name="business-logic_flow" doc:name="Flow Reference"/>
 ----
@@ -456,7 +461,7 @@ For this code to be executable, you must include, in your project:
 * your unique business logic in the business logic flow
 ====
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  
@@ -571,7 +576,7 @@ If you already have a WSDL file for your API, you can import it, then automatica
 . Create an` http:listener `in a new flow.
 +
 
-[source]
+[source, xml]
 ----
 <http:listener config-ref="listener-config" path="/" doc:name="HTTP Connector"/>
 ----
@@ -588,7 +593,7 @@ If you already have a WSDL file for your API, you can import it, then automatica
 . Create a global configuration element for the HTTP listener, outside the flow
 +
 
-[source]
+[source, xml]
 ----
 <http:listener-config name="listener-config" host="localhost" port="8081"/>
 ----
@@ -623,7 +628,7 @@ cxf:jaxws-service doc:name="SOAP"  port="myService" service="myService"  servi
 . Create a `flow-ref` after your CXF component. This reference will redirect the requests to another flow, where the actual business logic of your API will be carried out. Keep in mind that whatever happens in this second flow, the returned output must match the output declared by the WSDL. +
 +
 
-[source]
+[source, xml]
 ----
 <flow-ref name="business-logic_flow" doc:name="Flow Reference"/>
 ----
@@ -640,7 +645,7 @@ cxf:jaxws-service doc:name="SOAP"  port="myService" service="myService"  servi
 As stated earlier, rather than fitting into a single Java class, your API's business logic may involve the use of several elements, such as flow controls, transformers, HTTP calls to Web services, etc. Through these elements, you can model, then configure your flow to perform the operations your SOAP API must support.
 +
 
-[source]
+[source, xml]
 ----
 <flow name="business-logic_flow" doc:name="business-logic_flow">
          <!-- your business logic here -->
@@ -669,7 +674,7 @@ For this code to be executable, you must include, in your project:
 * your unique business logic in the business logic flow
 ====
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  

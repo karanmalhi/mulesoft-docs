@@ -1,4 +1,5 @@
 = Salesforce Connector
+:keywords: anypoint studio, esb, connector, endpoint, salesforce
 
 *Examples*: https://www.mulesoft.com/exchange#!/?types=connector&sortBy=name[Anypoint Exchange]
 
@@ -36,7 +37,7 @@ http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd"
 
 For example:
 
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -70,7 +71,7 @@ After you download and install the connector, use the following steps to make th
 
 . Add the repository information to your project's pom.xml file:
 +
-[source]
+[source, xml]
 ----
  <repositories>
      <repository>
@@ -91,7 +92,7 @@ After you download and install the connector, use the following steps to make th
 . Add the module as a dependency to your project for Release:
 +
 
-[source]
+[source, xml]
 ----
 <dependency>
     <groupId>org.mule.modules</groupId>
@@ -103,7 +104,7 @@ After you download and install the connector, use the following steps to make th
 Or for Latest:
 +
 
-[source]
+[source, xml]
 ----
 <dependency>
     <groupId>org.mule.modules</groupId>
@@ -113,7 +114,7 @@ Or for Latest:
 ----
 . If you plan to use this module inside a Mule application, you need to add it to the packaging process. That way the final Zip file which contains your flows and Java code also contains this module and its dependencies. Add a special inclusion to the configuration of the Mule Maven plugin for this module as follows:
 +
-[source]
+[source, xml]
 ----
 <plugin>
     <groupId>org.mule.tools</groupId>
@@ -173,7 +174,7 @@ image:/documentation/download/attachments/122752073/SFDConfig.png?version=1&modi
 
 *Input Reference* is an XMLStreamReader - Create from XML representing the input of the method selected (similar to the input of a SOAP operation):
 
-[source]
+[source, xml]
 ----
 <soap:testSOAPMethod>
     <soap:name>John</soap:name>
@@ -223,7 +224,7 @@ insert pushTopic;
 
 You can either use the *create* operation or the exclusive **publish-topic** operation as follows:
 
-[SOURCE]
+[source, xml]
 ----
 <sfdc:publish-topic name="AccountUpdates" query="SELECT Id FROM Account"/>
 ----
@@ -232,7 +233,7 @@ You can either use the *create* operation or the exclusive **publish-topic**�
 
 After you create a topic, you can start receiving events by subscribing to the topic. The `subscribe-topic` acts like an inbound endpoint and it can be used as such.
 
-[source]
+[source, xml]
 ----
 <flow name="accountUpdatesSubscription">
     <!-- INBOUND ENDPOINT -->
@@ -250,7 +251,7 @@ Every time our subscription to `AccountUpdates` receives an event it executes th
 
 The event that gets pushed down the flows contains information about the Salesforce data that has changed, how it changes, and when. Usually the raw JSON that the subscription receives looks something like this:
 
-[source]
+[source, java]
 ----
 "channel": "/topic/AccountUpdates",
   "data": {
@@ -297,7 +298,7 @@ Our connector simplifies the model heavily making it very transparent and really
 
 Creating objects in bulk is as easy as creating objects without the bulk portion of it. Let's do a quick recap as to how the regular create works:
 
-[source]
+[source, xml]
 ----
 <sfdc:create type="Account">
     <sfdc:objects>
@@ -317,7 +318,7 @@ That Mule config extract creates an SObject of type Account with these propertie
 
 The Bulk version of the create operation is named _create-bulk_ and shares the exact same signature.
 
-[source]
+[source, xml]
 ----
 <sfdc:create-bulk type="Account">
     <sfdc:objects>
@@ -468,7 +469,7 @@ Depending upon its function in your application (streaming data, polling for dat
 
 The following example invokes an Apex method. Salesforce has a custom object called **CustomOrder_c**, which has two custom fields *ProductName_c* and **ProductValue_c**. An Apex class is deployed in Salesforce using the *Deploy metadata* operation.
 
-[source]
+[source, java]
 ----
 global class CustomOrderUtils {
   webService static void createOrder(String productOrdered, String orderValue) {
@@ -513,7 +514,7 @@ image:/documentation/download/attachments/122752073/SFDCuseCaseEx.png?version=1&
 +
 . Add as input to the DataMapper this JSON:
 +
-[source]
+[source, java]
  ----
  {
     "orderValue" : "50000",
@@ -535,7 +536,7 @@ image:/documentation/download/attachments/122752073/SFDCflows.png?version=1&modi
 
 === Code Example
 
-[source]
+[source, xml]
 ----
 <mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
     xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"

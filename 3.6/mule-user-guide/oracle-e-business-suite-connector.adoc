@@ -1,4 +1,5 @@
 = Oracle E-Business Suite Connector
+:keywords: anypoint studio, esb, connector, endpoint, oracle, ebusiness, ebs
 
 _Premium_
 
@@ -145,7 +146,7 @@ Sometimes, it is necessary to create more than one global configuration. It depe
 ....
 Ensure you have included the Oracle EBS namespaces in your configuration file.
 
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
 xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
@@ -163,7 +164,7 @@ Follow these steps to configure a Oracle EBS connector in your application:
 . Create a global Oracle EBS configuration outside and above your flows, using the following global configuration code.
 +
 
-[source]
+[source, xml]
 ----
 <oracle-ebs:config-name name="OracleEBS__ConnectionManagement" username="${oracle.username}" password="${oracle.password}" host="${oracle.host}" port="${oracle.port}" responsibilityName="${oracle.responsibilityName}" responsibilityApplName="${oracle.responsibilityApplName}" doc:name="OracleEBS: ConnectionManagement">
 ----
@@ -332,7 +333,7 @@ image:/documentation/download/attachments/125305793/plus.png?version=1&modificat
 . Add an oracle:config global element to your project, then configure its attributes as follows:
 +
 
-[source]
+[source, xml]
 ----
 <oracle-ebs:config-name name="OracleEBS__ConnectionManagement" username="${oracle.username}" password="${oracle.password}" host="${oracle.host}" port="${oracle.port}" responsibilityName="${oracle.responsibilityName}" responsibilityApplName="${oracle.responsibilityApplName}" doc:name="OracleEBS: ConnectionManagement">
 ----
@@ -340,7 +341,7 @@ image:/documentation/download/attachments/125305793/plus.png?version=1&modificat
 . Configure your Oracle EBS custom PL/SQL web services in the Mule application. To do so, find the `<oracle-ebs:custom-pl-sql-name-list>` internal tag and replace it with the following:
 +
 
-[source]
+[source, xml]
 ----
 <oracle-ebs:custom-pl-sql-name-list>
             <oracle-ebs:custom-pl-sql-name-list>FND_WEB_SEC</oracle-ebs:custom-pl-sql-name-list>
@@ -350,7 +351,7 @@ image:/documentation/download/attachments/125305793/plus.png?version=1&modificat
 . Begin the flow with a HTTP endpoint, configuring the endpoint as follows:
 +
 
-[source]
+[source, xml]
 ----
 <http:listener config-ref="HTTP_Listener_Configuration" path="/get" allowedMethods="GET" doc:name="HTTP"/>
 ----
@@ -358,7 +359,7 @@ image:/documentation/download/attachments/125305793/plus.png?version=1&modificat
 . Add a Data Mapper to the flow to map the data in the input parameters for the custom PL/SQL operation.
 +
 
-[source]
+[source, xml]
 ----
 <data-mapper:transform config-ref="Map_To_Xml_InputParameters_"
           input-ref="#[message.inboundProperties[&quot;http.query.params&quot;]]"
@@ -368,7 +369,7 @@ image:/documentation/download/attachments/125305793/plus.png?version=1&modificat
 . Add the oracle:invoke-operation element now to validate login in your Oracle EBS instance. 
 +
 
-[source]
+[source, xml]
 ----
 <oracle-ebs:invoke-p-l-s-q-l config-ref="OracleEBS" doc:name="Testing custom PL/SQL operation" type="FND_WEB_SEC#VALIDATE_LOGIN"/>
 ----
@@ -376,7 +377,7 @@ image:/documentation/download/attachments/125305793/plus.png?version=1&modificat
 . Add  a DOM to XML Transformer.
 +
 
-[source]
+[source, xml]
 ----
 <mulexml:dom-to-xml-transformer doc:name="DOM to XML"/>
 ----
@@ -384,7 +385,7 @@ image:/documentation/download/attachments/125305793/plus.png?version=1&modificat
 . Add  a logger component and set message attribute value to _### EBS Test #[payload]_
 +
 
-[source]
+[source, xml]
 ----
 <logger message="### EBS Test #[payload]" level="INFO" doc:name="Logger"/>
 ----
@@ -392,7 +393,7 @@ image:/documentation/download/attachments/125305793/plus.png?version=1&modificat
 . Add a Catch Exception Strategy and add logger inside it. Configure the logger message attribute with *#* _[payload]_, and set the level to _ERROR**.**_
 +
 
-[source]
+[source, xml]
 ----
 <catch-exception-strategy doc:name="Catch Exception Strategy">
             <logger message="Error: #[payload]" level="ERROR" doc:name="Logger"/>
@@ -405,7 +406,7 @@ image:/documentation/download/attachments/125305793/plus.png?version=1&modificat
 
 == Example Code
 
-[source]
+[source, xml]
 ----
 <mule xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:oracle-ebs="http://www.mulesoft.org/schema/mule/oracle-ebs" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"

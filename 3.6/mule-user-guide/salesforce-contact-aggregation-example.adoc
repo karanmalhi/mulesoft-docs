@@ -1,4 +1,5 @@
 = Salesforce Contact Aggregation Example
+:keywords: anypoint studio, esb, connector, endpoint, salesforce
 
 This example application uses the link:/documentation/display/current/Salesforce+Connector[Salesforce connector] to query contacts from two separate Salesforce instances and determine which contacts are present in both instances. The section immediately below describes the functions of each of the flows in the application. The section further below describes the configuration of the Salesforce Global Connector Configuration through which the Mule application establishes a connection to Salesforce.
 
@@ -18,7 +19,7 @@ image:/documentation/download/attachments/122752072/contact_aggr_flows.png?versi
 
 Invoked by the *triggerFlow* (configured in a separate mflow file in the application), the mainFlow begins processing the message triggerFlow accepted via HTTP request. The mainFlow consists of four *Flow Ref* scopes, which successively call the four subflows in the application. The flow also references a link:/documentation/display/current/Catch+Exception+Strategy[catch exception strategy] to handle exceptions thrown. At runtime, the mainFlow begins by calling the *gatherDataFlow*, explained below the example.
 
-[source]
+[source, xml]
 ----
 <mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp"
     xmlns:http="http://www.mulesoft.org/schema/mule/http"
@@ -66,7 +67,7 @@ image:/documentation/download/attachments/122752072/gatherDataFlow.png?version=1
 [tab,title="XML Editor or Standalone"]
 ....
 
-[source]
+[source, xml]
 ----
 <sub-flow name="gatherDataFlow" doc:name="gatherDataFlow">
         <enricher source="#[payload]" target="#[flowVars['contactsFromOrgA']]" doc:name="Store result in FlowVar 'contactsFromOrgA'">
@@ -106,7 +107,7 @@ The table below lists the configuration for the Salesforce connector ("instance 
 [tab,title="Standalone XML"]
 ....
 
-[source]
+[source, xml]
 ----
 <sfdc:query config-ref="SalesforceA" query="dsql:SELECT Name, Email, Id  FROM Contact" doc:name="query all contacts from SalesForce instance A"/>
 ----
@@ -125,7 +126,7 @@ In this flow, a custom Java component searches merged contact list produced by a
 
 Next, a link:/documentation/display/current/Datamapper+User+Guide+and+Reference[DataMapper transformer] maps the Java object to a CSV file which the flow then transforms to a string. The flow passes the message, now a string of duplicated email addresses back to the mainFlow. The mainFlow proceeds to send the message to the *outboundFlow* (configured in a separate mflow file in the application) to email the results to a pre-defined address.
 
-[source]
+[source, xml]
 ----
 <mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:smtp="http://www.mulesoft.org/schema/mule/smtp"
     xmlns:http="http://www.mulesoft.org/schema/mule/http"

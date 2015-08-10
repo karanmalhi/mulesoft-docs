@@ -1,4 +1,5 @@
 = Sending and Receiving Mule Events in Spring
+:keywords: anypoint studio, esb, spring, mule events
 
 You can configure Spring beans to publish events to Mule and configure Spring event listeners to receive Mule events. This page describes how to set up the configuration.
 
@@ -6,15 +7,13 @@ You can configure Spring beans to publish events to Mule and configure Spring ev
 
 Spring provides a simple mechanism for sending and receiving events between beans. To receive an event, a bean implements http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/context/ApplicationListener.html[ApplicationListener], which has a single method:
 
-[width="100%",cols=",",options="header"]
-|===
-^|*ApplicationListener.java*
+*ApplicationListener.java*
 
-a|[source]
+[source]
 ----
 public void onEvent(ApplicationEvent event);
 ----
-|===
+
 
 To publish events to listeners, you call the http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/context/ApplicationEventPublisher.html#publishEvent(org.springframework.context.ApplicationEvent)[publishEvent()] method on the ApplicationContext. This will publish the same event to every listener in the context. You can also plug in custom event handlers to the application context.
 
@@ -22,7 +21,7 @@ To publish events to listeners, you call the http://static.springframework.org/s
 
 To start receiving Mule events, you create a bean based on MuleEventMulticaster in your Mule configuration file. This class is an http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/context/event/ApplicationEventMulticaster.html[Application Event Multicaster] that enables Spring beans to send and receive Mule events. You also add one or more endpoints on which to receive events:
 
-[source]
+[source, xml]
 ----
 xmlns:spring="http://www.springframework.org/schema/beans"
 ...
@@ -46,11 +45,8 @@ The inbound endpoints can be any valid link:/documentation/display/current/Endpo
 
 You can have beans subscribe only to relevant events. The MuleSubscriptionEventListener includes two methods for getting and setting an array of endpoints on which the bean will receive events.
 
-[width="100%",cols=",",options="header"]
-|===
-^|*TestSubscriptionBean.java*
-
-a|[source]
+*TestSubscriptionBean.java*
+[source, java]
 ----
 package org.mule.module.spring.events;
 public class TestSubscriptionEventBean extends TestMuleEventBean implements MuleSubscriptionEventListener
@@ -70,7 +66,7 @@ public class TestSubscriptionEventBean extends TestMuleEventBean implements Mule
 
 You configure this bean like any other bean:
 
-[source]
+[source, xml]
 ----
 xmlns:spring="http://www.springframework.org/schema/beans"
 ...
@@ -89,7 +85,7 @@ xmlns:spring="http://www.springframework.org/schema/beans"
 
 Publishing events is just as easy as receiving them. You use the standard http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/context/ApplicationEventPublisher.html#publishEvent(org.springframework.context.ApplicationEvent)[publishEvent()] method on the application context. Your bean can get a reference to the application context by implementing http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/context/ApplicationContextAware.html[ApplicationContextAware]or by querying MuleApplicationEvent. 
 
-[source]
+[source, java]
 ----
 //Create a new MuleEvent.
 Object message = new String("This is a test message");
