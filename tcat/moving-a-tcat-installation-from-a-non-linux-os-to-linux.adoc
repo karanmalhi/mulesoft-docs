@@ -1,48 +1,49 @@
 = Moving a Tcat Installation from a Non-Linux OS to Linux
+:keywords: tcat, linux, migrate, jvm
 
 This page discusses how to move an already-installed Tcat Server installation directory tree from a server running an operating system other than Linux to another server machine that runs Linux. This information applies to the following Linux distributions: Red Hat, CentOS, Fedora, Ubuntu, Debian, Debian variants, and SUSE variants.
 
-With a simple Tcat Server installation, where not much has changed from the stock Tcat Server installation, and the webapps are part of Tcat's `$CATALINA_HOME` tree, you can recursively copy that Tcat installation tree across to the Linux machine. You will then need to do the following steps (you need to be root user):
+With a simple Tcat Server installation, where not much has changed from the stock Tcat Server installation, and the webapps are part of Tcat's `$CATALINA_HOME` tree, you can recursively copy that Tcat installation tree across to the Linux machine. Then follow these steps (you need to be root user):
 
-. If you run Tcat on a Java runtime that didn't come with Tcat, you should install the same Java brand and version runtime on the destination Linux server. It is best to use _exactly_ the same release version of Java on the destination machine as you had on the original machine.
+. If you run Tcat on a Java runtime that didn't come with Tcat, install the same Java brand and version runtime on the destination Linux server. It is best to use _exactly_ the same release version of Java on the destination machine as you had on the original machine.
 . Before changing anything else, unregister the server you're moving from Tcat's console.
 . Shut down the instance you're about to move.
 . Recursively copy all of your files to the destination Linux machine. Preferably, you should attempt to preserve file ownerships, groups, and permissions, in the process of copying the installation tree.
 . Make sure that you create (or verify the existence of) the user and group you want to run the Tcat JVM as. We suggest you use the same user and group names that you were using on the previous machine.
 . Make sure that the owner and group of the files makes sense for the user you're going to run it as on Linux. Usually, we run it as user 'tomcat', where the group can be either 'tomcat' or 'root'. You may want to use these commands to change the owner ID and the group ID:
-
++
 [source]
 ----
- # cd /opt/TcatServer6# find . -uid 46 -exec chown tomcat {} \;# find . -gid 5000 -exec chgrp tomcat {} \;
+# cd /opt/TcatServer6# find . -uid 46 -exec chown tomcat {} \;# find . -gid 5000 -exec chgrp tomcat {} \;
 ----
-
-. You should symlink the Linux init script into place, if you have root / administrator privileges, like this:
-
++
+. Symlink the Linux init script into place, if you have root / administrator privileges, like this:
++
 [source]
 ----
- # ln -s /opt/TcatServer6/bin/tcat6 /etc/init.d/tcat6
+# ln -s /opt/TcatServer6/bin/tcat6 /etc/init.d/tcat6
 ----
-
-. You should tell Linux to start the tcat6 service on reboots. +
++
+. You should tell Linux to start the tcat6 service on reboots.
  On Red Hat, CentOS, Fedora, and SUSE / openSUSE:
-
++
 [source]
 ----
- # chkconfig tcat6 --level 2345 on
+# chkconfig tcat6 --level 2345 on
 ----
-
++
 On Ubuntu, Debian, and Debian variants:
-
++
 [source]
 ----
- # update-rc.d tcat6 defaults
+# update-rc.d tcat6 defaults
 ----
-
++
 . Edit your Tcat's `conf/Catalina/localhost/tcat-env.conf` file, if there is one, and make sure that all of the paths and the settings are valid for Linux. If this proves to be too difficult, you can alternatively delete or move this file out of the way.
 . Make sure to configure other back-end machines to allow communicating with the destination Linux server. This includes any back-end machines or servers that the deployed webapps must connect to or communicate with, such as SMTP servers, database servers, and messaging servers.
 . Make sure that the `webapps/agent/WEB-INF/truststore.jks` file does not exist. If it exists, delete it.
-. Delete or move the log files from the `logs/` directory so that Tcat will write fresh logs on the destination Linux machine.
-. At this point, Tcat should run fine on Linux. http://www.mulesoft.org/documentation/display/TCAT/Installation#Installation-StartingandStoppingTcatServer[Try starting it]. Look through the log files and verify that there are no unexpected exceptions.
+. Delete or move the log files from the `logs/` directory so that Tcat  writes fresh logs on the destination Linux machine.
+. At this point, Tcat should run fine on Linux. link:/docs/display/TCAT/Installation#Installation-StartingandStoppingTcatServer[Try starting it]. Look through the log files and verify that there are no unexpected exceptions.
 . From the Tcat console, register the server instance.
 . Try triggering a server restart from the Tcat console – this should succeed.
 
