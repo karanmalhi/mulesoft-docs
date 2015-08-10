@@ -1,4 +1,5 @@
 = MuleSoft Enterprise Java Connector for SAP
+:keywords: anypoint studio, esb, connector, endpoint, sap
 
 _*Premium*_
 
@@ -147,7 +148,7 @@ Within the Schema location URL, you can replace the alias *current* with a speci
 
 ===== Connector Syntax:
 
-[source]
+[source, xml]
 ----
 <sap:connector name="SapConnector" jcoClient="100" jcoUser="User"
      jcoPasswd="Password" jcoLang="en" jcoAsHost="host" jcoSysnr="00"
@@ -158,7 +159,7 @@ Within the Schema location URL, you can replace the alias *current* with a speci
 
 ====== Inbound Endpoint
 
-[source]
+[source, xml]
 ----
 <sap:inbound-endpoint name="idocServer" type="idoc" rfcType="trfc"
      jcoConnectionCount="5" jcoGwHost="yoursapgw.company.com" jcoProgramId="send_idoc"
@@ -167,7 +168,7 @@ Within the Schema location URL, you can replace the alias *current* with a speci
 
 ====== Outbound endpoint
 
-[source]
+[source, xml]
 ----
 <sap:outbound-endpoint name="idocSender" type="idoc" connector-ref="SapConnector"
                        exchange-pattern="request-response"/>
@@ -199,7 +200,7 @@ The `sap:connector` element allows the configuration of JCo connection paramet
 
 === Configuration Example
 
-[source]
+[source, xml]
 ----
 <sap:connector name="SapConnector" jcoClient="100" jcoUser="User" jcoPasswd="Password"
     jcoLang="en" jcoAsHost="host" jcoSysnr="00" jcoTrace="true" jcoPoolCapacity="3"
@@ -236,7 +237,7 @@ http://sld-host.company.com/sdl/ds[http://sld-host.company.com:80/sdl/ds]
 
 === Example
 
-[source]
+[source, xml]
 ----
 <sap:connector name="SapConnector" jcoClient="100" jcoUser="User" jcoPasswd="Password"
                jcoLang="en" jcoAsHost="host" jcoSysnr="00" jcoTrace="true"
@@ -279,7 +280,7 @@ You can use link:/documentation/display/current/Mule+Expression+Language+MEL[Mul
 
 Example of an Inbound Endpoint Address:
 
-[source]
+[source, xml]
 ----
 <sap:inbound-endpoint
    address="sap://TEST_USER:secret@localhost?type=function&amp;rfcType=trfc&amp;jcoClient=100&amp;jcoSysnr=00&amp;jcoPoolCapacity=10&amp;jcoPeakLimit=10&amp;jcoGwHost=localhost&amp;jcoGwService=gw-service&amp;jcoProgramId=program_id&amp;jcoConnectionCount=2"/>
@@ -287,7 +288,7 @@ Example of an Inbound Endpoint Address:
 
 Example of an Outbound Endpoint Address:
 
-[source]
+[source, xml]
 ----
 <sap:outbound-endpoint
    address="sap://TEST_USER:secret@localhost?type=function&amp;rfcType=trfc&amp;jcoClient=100&amp;jcoSysnr=00&amp;jcoPoolCapacity=10&amp;jcoPeakLimit=10"/>
@@ -357,7 +358,7 @@ The SAP inbound endpoint acts as an RFC server or IDoc server. The JCo server ne
 
 *Example*
 
-[source]
+[source, xml]
 ----
 <sap:inbound-endpoint exchange-pattern="request-response" type="function" rfcType="srfc"
     jcoGwHost="gateway-host" jcoGwService="gateway-service" jcoProgramId="program_id"
@@ -387,7 +388,7 @@ To configure a IDoc Server, you need to complete the following steps:
 
 *A Sample IDoc Server Configuration*
 
-[source]
+[source, xml]
 ----
 <mule>
     ...
@@ -428,7 +429,7 @@ After the flow executes and if the SAP inbound endpoint is request-response, the
 
 *A Sample BAPI RFC Server Configuration*
 
-[source]
+[source, xml]
 ----
 <mule>
     ...
@@ -467,7 +468,7 @@ To configure an in-memory TID Store successfully, you must understand the follow
 . The `rfcType` in the `<sap:inbound-endpoint .../>` should be *trfc* or *qrfc*.
 . Configuring the child element `<sap:default-in-memory-tid-store/>` is optional, since the in-memory handler is the option by default.
 +
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -516,7 +517,7 @@ The child element of `<sap:mule-object-store-tid-store>` can be any of the suppo
 
 This example illustrates how to configure a MySQL-based JDBC object store.
 
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -649,7 +650,7 @@ Since SAP Connector version *2.1.0* users can dynamically set connection user an
 
 *A Sample SAP Outbound Endpoint Configuration*
 
-[source]
+[source, xml]
 ----
 <sap:outbound-endpoint exchange-pattern="request-response" type="function" rfcType="qrfc"
     queueName="QRFC_QUEUE_NAME" functionName="BAPI_FUNCTION_NAME"
@@ -658,7 +659,7 @@ Since SAP Connector version *2.1.0* users can dynamically set connection user an
 
 *A Sample SAP Outbound Endpoint Configuration to retrieve the Metadata for a BAPI (since version 2.1.0)*
 
-[source]
+[source, xml]
 ----
 <sap:outbound-endpoint exchange-pattern="request-response" type="function-metadata"  functionName="BAPI_FUNCTION_NAME"/>
 ----
@@ -675,7 +676,7 @@ The outbound endpoint expects a Mule Message carrying any of the following paylo
 
 The *payload* can be transformed from a link:#MuleSoftEnterpriseJavaConnectorforSAPReference-XMLDefinition[XML string or stream] into a SapObject with the following transformers:
 
-[source]
+[source, xml]
 ----
 <!-- IDocs -->
 <sap:xml-to-idoc/>
@@ -731,7 +732,7 @@ You can also use the `<object-to-xml/>` transformer to get the XML representatio
 . The function output is transformed into a XML document.
 . If the execution of the BAPI by SAP produces an error, an exception is raised from the outbound endpoint (because `evaluateFunctionResponse` is true).
 
-[source]
+[source, xml]
 ----
 <mule>
     ...
@@ -757,7 +758,7 @@ You can also use the `<object-to-xml/>` transformer to get the XML representatio
 . The name of the BAPI function to be executed is _BAPI_PO_CREATE1_
 . Inside the definition, you can see various Mule Expressions
 
-[source]
+[source, xml]
 ----
 <mule>
     ...
@@ -807,7 +808,7 @@ There are different ways to send an IDoc:
 . The outbount endpoint is configured with the `address` attribute.
 . The transformer `<sap:xml-to-idoc />` receives a *Stream*, then transforms it into a SAP Object that the endpoint can process.
 
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:spring="http://www.springframework.org/schema/beans" xmlns:sap="http://www.mulesoft.org/schema/mule/sap"
@@ -873,7 +874,7 @@ Also recall that in HA configurations that the payload should be serializable. T
 
 *Mule 3.6.0+*
 
-[source]
+[source, xml]
 ----
 <sap:connector name="SapConnector" jcoAsHost="${sap.jcoAsHost}"
     jcoUser="${sap.jcoUser}" jcoPasswd="${sap.jcoPasswd}" jcoSysnr="${sap.jcoSysnr}"
@@ -896,7 +897,7 @@ Also recall that in HA configurations that the payload should be serializable. T
 
 *Mule 3.4.x and Before*
 
-[source]
+[source, xml]
 ----
 <sap:connector name="SapConnector" jcoAsHost="${sap.jcoAsHost}"
     jcoUser="${sap.jcoUser}" jcoPasswd="${sap.jcoPasswd}" jcoSysnr="${sap.jcoSysnr}"
@@ -925,7 +926,7 @@ The SAP transport, which is based on JCo, doesn't support distributed transactio
 
 The SAP outbound endpoint supports the child element transaction:
 
-[source]
+[source, xml]
 ----
 <sap:transaction action="ALWAYS_BEGIN" bapiTransaction="true|false"/>
 ----

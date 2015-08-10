@@ -1,4 +1,5 @@
 = Microsoft SharePoint 2013 Connector
+:keywords: anypoint studio, esb, connector, endpoint, microsoft, sharepoint, share point, intranet
 
 Microsoft SharePoint is a web application platform for content and document management, intranet portals, collaboration, extranets, websites, and enterprise search. 
 
@@ -367,11 +368,11 @@ To attach a file to a list item, use the ResolveObject operation as shown in thi
 <flow name="sp-testFlow2">
   <http:listener config-ref="HTTP_Listener_Configuration" path="/at" doc:name="HTTP"/>
   <set-variable variableName="FileNameToAttach" value="CHANGELOG.md" doc:name="Set FileNameToAttach"/>
-  
+
   <sharepoint:list-item-query config-ref="Microsoft_SharePoint__NTLM_Connection" query="dsql:SELECT ID,Title FROM 82b2a455-3faf-4162-8276-63a1093fcc7e WHERE Title = 'test-list-item-1'" doc:name="Read List Item"/>
   <set-variable variableName="ListItemUrl" value="#[payload.next() .__metadata.uri]" doc:name="SetListItemUri from list item query result"/>
   <set-payload value="#[groovy:new FileInputStream('C:\\temp\\' + flowVars.FileNameToAttach)]" doc:name="Set file to attach as inputstream in payload"/>
-  
+
   <sharepoint:resolve-object config-ref="Microsoft_SharePoint__NTLM_Connection" url="#[flowVars.ListItemUrl]/AttachmentFiles/add(FileName='#[flowVars.FileNameToAttach]')" resolveRequestType="Create" doc:name="create attachment"/>
   <json:object-to-json-transformer doc:name="Object to JSON"/>
 </flow>

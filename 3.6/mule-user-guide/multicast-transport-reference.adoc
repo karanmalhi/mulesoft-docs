@@ -1,4 +1,5 @@
 = Multicast Transport Reference
+:keywords: anypoint studio, esb, connector, endpoint, multicast, transport
 
 The http://en.wikipedia.org/wiki/Multicast[Multicast] transport allows sending messages to or receiving messages from groups of multicast sockets. It is implemented on top of link:/documentation/display/current/UDP+Transport+Reference[UDP] and is highly scalable since knowledge of the receivers is not required.
 
@@ -64,21 +65,23 @@ XML namespace:
 
 [source]
 ----
-
+xmlns:multicast="http://www.mulesoft.org/schema/mule/multicast"
 ----
 
 XML schema location:
 
 [source]
 ----
-
+http://www.mulesoft.org/schema/mule/multicast http://www.mulesoft.org/schema/mule/multicast/3.6/mule-multicast.xsd
 ----
 
 Connector syntax:
 
-[source]
+[source, xml]
 ----
-
+<multicast:connector name="mcConnector" receiveBufferSize="1024" sendBufferSize="1024"
+               timeout="0" keepSendSocketOpen="false" broadcast="false"
+               timeToLive="127" loopback="true'/>
 ----
 
 Endpoint syntax:
@@ -87,15 +90,16 @@ You can define your endpoints 2 different ways:
 
 . Prefixed endpoint:
 +
-[source]
+[source,xml]
 ----
-
+<multicast:inbound-endpoint host="localhost" port="65433"/>
 ----
 
 . Non-prefixed URI:
 +
-[source]
+[source, xml<multicast:connector name="multicastConnector"/>]
 ----
+<inbound-endpoint address="multicast://localhost:65433"/>
 
 ----
 
@@ -136,9 +140,9 @@ To use Multicast endpoints:
 . Define one or more connectors for Multicast endpoints. +
 .. Create a Multicast connector:
 +
-[source]
+[source, xml]
 ----
-
+<multicast:connector name="multicastConnector"/>
 ----
 
 . Create Multicast endpoints.
@@ -152,9 +156,16 @@ Multicast endpoints are always one-way.
 
 *Copy Datagrams From One Port to Another in a Flow*
 
-[source]
+[source, xml]
 ----
+<multicast:connector name="connector"/> ❶
 
+<flow name="copy">
+    <multicast:inbound-endpoint host="224.0.0.0" port="4444" exchange-pattern="one-way"/> ❷
+    <pass-through-router>
+        <multicast:outbound-endpoint host="224.0.0.0" port="5555" exchange-pattern="one-way" /> ❸
+    </pass-through-router>
+</flow>
 ----
 
 The connector ❶ uses all default properties. The inbound endpoint ❷ receives multicasting datagrams and copies them to the outbound endpoint ❸, which copies them to a different multicasting group.
@@ -175,9 +186,6 @@ Multicast connector attributes:
 |*timeToLive* |How long the packet stays active. This is a number betweeen 1 and 225 |System default
 |===
 
-== Configuration Reference
-
-=== Element Listing
 
 = Multicast Transport
 
@@ -189,27 +197,30 @@ The Multicast transport can dispatch Mule events using IP multicasting.
 
 === Attributes of <inbound-endpoint...>
 
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
 Name
-
+|
 Type
-
+|
 Required
-
+|
 Default
-
+|
 Description
-
+|
 host
-
+|
 string
-
+|
 no
-
+|
 port
-
+|
 port number
-
+|
 no
+|===
 
 === Child Elements of <inbound-endpoint...>
 
@@ -222,27 +233,30 @@ no
 
 === Attributes of <outbound-endpoint...>
 
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
 Name
-
+|
 Type
-
+|
 Required
-
+|
 Default
-
+|
 Description
-
+|
 host
-
+|
 string
-
+|
 no
-
+|
 port
-
+|
 port number
-
+|
 no
+|===
 
 === Child Elements of <outbound-endpoint...>
 
@@ -255,27 +269,30 @@ no
 
 === Attributes of <endpoint...>
 
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
 Name
-
+|
 Type
-
+|
 Required
-
+|
 Default
-
+|
 Description
-
+|
 host
-
+|
 string
-
+|
 no
-
+|
 port
-
+|
 port number
-
+|
 no
+|===
 
 === Child Elements of <endpoint...>
 
@@ -298,7 +315,7 @@ http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/multicast/p
 
 The Multicast Module can be included with the following dependency:
 
-[source]
+[source, xml]
 ----
 <dependency>
   <groupId>org.mule.transports</groupId>

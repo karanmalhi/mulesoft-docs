@@ -1,4 +1,5 @@
 = MSMQ Connector User Guide
+:keywords: anypoint studio, esb, connector, endpoint, msmq, microsoft, message queuing
 
 The Microsoft Message Queuing (MSMQ) connector uses a typical client-server architecture with two tiers, the connector or client running in the Mule ESB, and the Windows Gateway running on the server side. The latter exposes an HTTP Web API for sending or receiving messages from MSMQ.
 
@@ -15,7 +16,7 @@ For more information, see the link:/documentation/display/current/Windows+Gatewa
 
 Unreadable messages are moved to the `invalid-queue-name` subqueue. You can change this queue’s name using the Windows Gateway service configuration file. You can also change the timeout for invalid messages for when a payload of a message is parsed with an incorrect formatter.
 
-[source]
+[source, xml]
 ----
 <!-- The name of the invalid messages sub-queue -->
 <add key="invalid-queue-name" value="Invalid"/>
@@ -32,7 +33,7 @@ image:/documentation/download/attachments/124125509/FlowConfiguration.png?versio
 
 This setting appears in the XML as:
 
-[source]
+[source, xml]
 ----
 <flow name="myMSMQFlow" doc:name="myMSMQFlow" processingStrategy="synchronous">
 ----
@@ -135,15 +136,16 @@ In a scenario with a two-phase commit protocol, the messages read from the main 
 Among different methods, MSMQ messages provide two properties that are useful to grant reliability of information:
 
 * *timeToReachQueue*. The maximum number of seconds a message can take to reach the MSMQ server after it's received in the gateway. The default is to not time out (InfiniteTimeout).
-* *timeToBeReceived. * The number of seconds a message can stay in the queue before it dequeues for a third party application. The default is to not time out (InfiniteTimeout).
+* *timeToBeReceived*. The number of seconds a message can stay in the queue before it dequeues for a third party application. The default is to not time out (InfiniteTimeout).
 
 image:/documentation/download/attachments/124125483/MSMQmessageTimeouts2.png?version=1&modificationDate=1424299916787[image]
 
- *Note*:  If either property times out, the message moves to the dead-letter queue.
+[NOTE]
+If either property times out, the message moves to the dead-letter queue.
 
 Specifying values for the properties:
 
-[source]
+[source, xml]
 ----
 <msmq:send
     config-ref="MSMQ"
@@ -169,7 +171,7 @@ Mule-Api-Version: 1
 
 Configure the token on the connector and also in the Gateway configuration file. The following shows how the token is configured on both sides:
 
-[source]
+[source, xml]
 ----
 <msmq:config name="MSMQ" doc:name="MSMQ" accessToken="test-token" rootQueueName=".\private$\qout" serviceAddress="localhost:9333">
  <msmq:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
@@ -221,7 +223,7 @@ The Windows Gateway service does not use an MSMQ formatter unless it is specifie
 
 The following example illustrates how to set the formatter in an MSMQ connector:
 
-[source]
+[source, xml]
 ----
 <msmq:receive config-ref="MSMQ" doc:name="MSMQ (Streaming)" pollingPeriod="3000" messageFormatter="ActiveXMessageFormatter" />
 ----
@@ -351,7 +353,7 @@ For example: `66785f20-a2f3-42a3-bdcd-9ac5a937ac52\1`
 
 The following example shows how the “set-payload” component sets the label for an MSMQ message.
 
-[source]
+[source, xml]
 ----
 <set-property propertyName="msmq-label" value="message_from_mule" doc:name="Label"/>
 ----
@@ -490,7 +492,7 @@ This sample receives incoming requests via HTTP connector, and sends the request
 . Create a new Mule project from *File* > *New* > *Mule Project*. You can set name to cloudhub-test. Click *Finish*.
 . Go to Configuration XML tab and replace existing code with the following:
 +
-[source]
+[source, xml]
 ----
 <mule xmlns:msmq="http://www.mulesoft.org/schema/mule/msmq" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
     xmlns:spring="http://www.springframework.org/schema/beans" version="CE-3.6.1"
