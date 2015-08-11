@@ -1,4 +1,5 @@
 = Windows Gateway Services Guide
+:keywords: anypoint studio, esb, connector, endpoint, windows gateway
 
 Windows Gateway Services provides functionality used by the MuleSoft Microsoft Dynamics CRM and MSMQ connectors.
 
@@ -38,7 +39,7 @@ The install location for the Windows Service is `c:\Program Files(x86)\Anypoint
 
 The executable starts a new web server at port 9333, which only accepts secure connections using HTTPS. You can change the port number and the authentication token for the gateway in the `Mule.SelfHost.exe.config` configuration file:
 
-[source]
+[source,xml]
 ----
 <appSettings>
     <!-- Configure the service to listen on the following address. -->
@@ -84,7 +85,7 @@ Configure the token on the connector and also in the Gateway configuration file.
 
 ==== Connector Configuration
 
-[source]
+[source,xml]
 ----
 <msmq:config name="MSMQ" doc:name="MSMQ" accessToken="test-token" rootQueueName=".\private$\qout" serviceAddress="localhost:9333">
   <msmq:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
@@ -93,7 +94,7 @@ Configure the token on the connector and also in the Gateway configuration file.
 
 ==== Gateway Configuration
 
-[source]
+[source,xml]
 ----
 <appSettings>   
     <add key="mule-auth-token" value="test-token"/>
@@ -112,7 +113,7 @@ When using user authentication, the queue in any connector type is marked to req
 
 The Windows Gateway service leverages the built-in .NET tracing system. The basic premise is simple, tracing messages are sent through switches to listeners, which are tied to a specific storage medium. The listeners for the trace source used by the connector are available in the configuration file:
 
-[source]
+[source,xml]
 ----
 <sharedListeners>
    <add name="console" type="System.Diagnostics.ConsoleTraceListener" />
@@ -144,7 +145,7 @@ The Windows Gateway is configured by default to log everything, which is the *V
 
 You can configure the levels at switch level in the configuration file:
 
-[source]
+[source,xml]
 ----
 <switches>
     <add name="Mule.Msmq" value="Verbose" />
@@ -159,7 +160,7 @@ In ETW, there are applications publishing events in queues (or providers) and ot
 
 The tracing system in .NET includes a trace listener for ETW, `EventProviderTraceListener`, which you can configure with a session identifier, which ETW uses to collect traces:
 
-[source]
+[source,xml]
 ----
 <sharedListeners>
    <add name="etw"type="System.Diagnostics.Eventing.EventProviderTraceListener, System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" initializeData="{47EA5BF3-802B-4351-9EED-7A96485323AC}"/>

@@ -1,4 +1,5 @@
 = Web Service Consumer
+:keywords: anypoint studio, studio, mule esb, connector, endpoint, web service, soap, wsdl
 
 When developing applications with Mule, users often need to be able to consume a SOAP Web service to acquire data from an external source. In the best case scenario, you can use an existing *Anypoint Connector* in your Mule application to connect to a specific service provider, such as Zuora or Avalara. However, where no service-specific connector exists to facilitate the connection, the quickest, easiest way to consume a Web service from within a Mule application is to use the *Web Service Consumer*.
 
@@ -86,14 +87,14 @@ image:/documentation/download/attachments/122752084/wsc_local.png?version=1&modi
 . Above all the flows in your application, add a global ` ws:consumer-config ` element to your application. Configure its attributes according to the code sample below to define how to connect to the Web service you intend to consume. For a full list of elements, attributes and default values, consult  link:#[Web Service Consumer Reference] . +
 +
 
-[source]
+[source,xml]
 ----
 <ws:consumer-config name="Web_Service_Consumer1" wsdlLocation="src/main/resources/sample_wsdl_2.txt" service="StockQuoteService" port="StockQuotePort" serviceAddress="http://example.com/stockquote" doc:name="Web Service Consumer"/>
 ----
 
 . Add a ` ws:consumer ` element to a flow in your application. Configure its attributes according to the code sample below to define the global Web Service Consumer to reference, and the operation to perform with a request to the Web service. For a full list of elements, attributes and default values, consult  link:#[Web Service Consumer Reference] . +
   
-[source]
+[source,xml]
 ----
 <ws:consumer doc:name="Web Service Consumer" config-ref="Web_Service_Consumer1" operation="GetLastTradePrice"/>
 ----
@@ -152,7 +153,7 @@ image:/documentation/download/attachments/122752084/properties+soap.jpg?version=
 
 [tab,title="XML Editor"]
 ....
-[source]
+[source,xml]
 ----
 <set-property propertyName="soap.myProperty" value="#[payload]" doc:name="Property"/>
 ----
@@ -162,7 +163,7 @@ image:/documentation/download/attachments/122752084/properties+soap.jpg?version=
 [WARNING]
 When configuring the header manually, the value you pass should have the structure of an XML element, it shouldn't be a plain pair of key and value. Using a set property element, for example, the value of the property must contain the enclosing XML tags, like so
 
-[source]
+[source,xml]
 ----
 <set-property propertyName="soap.ThisCanLiterallyBeAnything" value="<ns2:authentication xmlns:ns2="http://guidewire.com/ws/soapheaders&quot;&gt;&lt;ns2:username&gt;su&lt;/ns2:username&gt;&lt;ns2:password&gt;gw&lt;/ns2:password&gt;&lt;/ns2:authentication&gt;" doc:name="Property"/>
 <set-property propertyName="soap.Authorization"
@@ -172,7 +173,7 @@ doc:name="Property"/>
 
 The example above results in generating the following SOAP message:
 
-[source]
+[source,xml]
 ----
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
     <soap:Header>
@@ -282,7 +283,7 @@ In the Web Service Consumer's Global Element, add a reference to an `http-reque
 
 [tab,title="XML Editor"]
 ....
-[source]
+[source,xml]
 ----
 <http:request-config host="localhost" port="${port}" name="customConfig">
         <http:basic-authentication username="user" password="pass" />
@@ -322,7 +323,7 @@ image:/documentation/download/attachments/122752084/ssl+tls.png?version=1&modifi
 . Add an link:/documentation/display/current/HTTP+Connector[HTTP Connector] global element in your project, configure it with the necessary security attributes
 +
 
-[source]
+[source,xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" protocol="HTTPS" doc:name="HTTP_Request_Configuration"/>       
         <tls:context>
@@ -334,7 +335,7 @@ image:/documentation/download/attachments/122752084/ssl+tls.png?version=1&modifi
 
 . In your `ws:consumer-config` element, include a `connectorConfig` attribute to reference to this HTTP connector configuration element:
 
-[source]
+[source,xml]
 ----
 <ws:consumer-config name="Web_Service_Consumer" wsdlLocation="tshirt.wsdl.xml" service="TshirtService" port="TshirtServicePort" serviceAddress="http://tshirt-service.qa2.cloudhub.io/tshirt-service" connectorConfig="HTTP_Request_Configuration"/>
 ----
@@ -347,7 +348,7 @@ In order to set alternate HTTP settings, instead of referencing an instance the 
 
 If none of the two reference attributes are specified, a default instance of the new HTTP connector is used. For backwards compatibility, you can change this behavior and make an instance of the deprecated HTTP Transport the default configuration.  There's a global configuration property that has been added in Mule runtime 3.6, that allows you to change this default behavior:
 
-[source]
+[source,xml]
 ----
 <configuration>
         <http:config useTransportForUris="true"/>
@@ -366,7 +367,7 @@ image:/documentation/download/attachments/122752084/final+flow.png?version=1&mod
 
 [tab,title="XML Editor or Standalone"]
 ....
-[source]
+[source,xml]
 ----
 <mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
  
