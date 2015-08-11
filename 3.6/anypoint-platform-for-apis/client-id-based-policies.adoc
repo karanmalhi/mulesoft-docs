@@ -1,10 +1,11 @@
 = Client ID Based Policies
+:keywords: sla, api, portal, raml
 
 This page describes the configuration and runtime application instructions for the three Client ID based policies for the Anypoint Platform for APIs:
 
-* *link:#ClientIDBasedPolicies-clientid[Client ID enforcement]*
-* link:#ClientIDBasedPolicies-ratelimiting[*Rate Limiting - SLA Based*]
-* *link:#ClientIDBasedPolicies-throttling[Throttling - SLA Based]*
+* *<<Client ID enforcement>>*
+* *<<Rate Limiting - SLA Based>>*
+* *<<Throttling - SLA Based>>*
 
 If you wish to track application access to your API or enforce SLA limits, you must:
 
@@ -86,7 +87,7 @@ There you can view details about your pending and processed requests and manage 
 
 If you're implementing a Client ID based policy, all of the requests made to your API must contain a *Client ID* and a *Client* *Secret*. By default, these values are expected to arrive as query parameters, by the names *client_id* and **client_secret**, this is expressed by the following link:/documentation/display/current/Mule+Expression+Language+Basic+Syntax[Mule expressions]:
 
-[source,xml]
+[source,xml,linenums]
 ----
 #[message.inboundProperties['http.query.params']['client_id']]
 
@@ -112,18 +113,18 @@ If your API exposes a http://raml.org[RAML] definition that users may need to re
 As established, applying one of these Client ID policies implies that all requests coming to your API need to include both a Client ID and Client Secret (which by default are both expected to be query parameters). This required information must be explicit in the RAML of your API, as users that turn to it for reference will otherwise find that their requests are rejected.
 
 The recommended way of doing this is to create a *trait* at the start of your RAML definition and then reference this trait in every operation of your API. Your trait might look like this:
-[source,ruby]
+[source,ruby,linenums]
 ----
 traits:
   - rate-limited:
       queryParameters:
        client_id:
-        type: string 
+        type: string
       client_secret:
         type: string
 ----
 And then you can apply this trait in each individual operation like this:
-[source,ruby]
+[source,ruby,linenums]
 ----
 /products:
   get:

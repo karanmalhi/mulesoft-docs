@@ -1,4 +1,5 @@
 = Managing Internal Links in API Proxies
+:keywords: api, proxy, links, gateway, manager
 
 If your API returns URLs that provide apps with internal links to other parts of the API, your API proxy application should be configured to modify those internal links with proxy substitutes, thereby continuing to manage traffic to and from the API through the proxy, where it can be governed by API Manager.
 
@@ -22,9 +23,10 @@ Keep in mind that proxy implementation will vary according to the needs of your 
 == Instructions
 
 The following instructions provide an example configuration in Anypoint Studio that assumes that the API's response payload includes one or more internal links to the API. 
-
-=== Studio Visual Editor [TAB]
-
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
 . The links that must be changed are in the payload returned by your API. Make this payload easier to scan by transforming it into a string. Add an *Object to String* Transformer after the outbound endpoint that communicates with your API. +
 
 +
@@ -51,14 +53,13 @@ Through this query, whenever the API returns a link to content in your API's dom
 In case your API may output payloads of different formats, add a link:/documentation/display/current/Choice+Flow+Control+Reference[Choice Router] to treat each case accordingly:
 
 image:/documentation/download/attachments/122751786/choice.png?version=1&modificationDate=1392391431959[image]
-
-====
-
-=== XML Editor [TAB]
+....
+[tab,title="XML Editor"]
+....
 
 . The links that must be changed are in the payload returned by your API.  Make this payload easier to scan by transforming it into a string. Add an `object-to-string-transformer` right after the outbound endpoint to your API.
 +
-[source,xml]
+[source,xml,linenums]
 ----
 <object-to-string-transformer doc:name="Object to String"/>
 ----
@@ -70,7 +71,7 @@ image:/documentation/download/attachments/122751786/choice.png?version=1&modific
 |===
 . Once the payload is converted into a string, a simple Groovy expression can replace the original base URI of the links for the proxy's domain.  Add an *Expression* component into the flow, after the Object to String Transformer.
 +
-[source,xml]
+[source,xml,linenums]
 ----
 <expression-component doc:name="Replace BaseUri in payload">
     <![CDATA[
@@ -90,9 +91,10 @@ Through this query, whenever the API returns a link to content in your API's dom
 +
 [TIP]
 In case your API may output payloads of different formats, add a link:/documentation/display/current/Choice+Flow+Control+Reference[Choice Router] router to treat each case accordingly.
-
+....
+------
 == Full Code Example
-[source,xml]
+[source,xml,linenums]
 ----
 <https:outbound-endpoint exchange-pattern="request-response" method="POST" address="https://myapi.com#[message.inboundProperties['http.request']]" doc:name="Request to API"/>
 <choice doc:name="Choice">

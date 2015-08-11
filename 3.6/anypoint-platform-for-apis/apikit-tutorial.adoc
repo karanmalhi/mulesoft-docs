@@ -1,5 +1,5 @@
 = APIkit Tutorial
-
+:keywords: apikit, raml, gateway, runtime, tutorial, api
 The tutorial outlined in this document demonstrates the functionality of APIkit, and how you can use it to build REST APIs. After setting yourself up to meet a few dev-environment prerequisites, you can step through the quick tutorial to build yourself a working API.
 
 == Assumptions
@@ -92,7 +92,7 @@ The table below briefly describes the elements within the Root and Body of the e
  `mediaType` +
  `documentation  `
 | Offers information about the API (i.e. metadata), including the name and version of the API, its location (baseUri), media type, and documentation that describes the API in plain language.
-|[source,ruby]
+|[source,ruby,linenums]
 ----
 title: Remote Vending API
 version: v1.0
@@ -104,7 +104,7 @@ mediaType: application/json
 | `resource`
 | Defines the entity which houses the information to be retrieved, added, updated or deleted. Preceded by a forward slash "/".
 .2+^.^|
-[source,ruby]
+[source,ruby,linenums]
 ----
 /sales:
   type: collection
@@ -129,7 +129,7 @@ mediaType: application/json
 | `schemas`
 | Describes criteria against which requests to the API will be validated. Schemas are resource-action pairing specific (i.e. each schemas definition describes the expected input or output for a particular kind of call – GET, POST – to a particular resource).
 |
-[source,ruby]
+[source,ruby,linenums]
 ----
 schemas:
   - postsale: \|
@@ -151,7 +151,7 @@ schemas:
 
 | `resourceTypes`
 | Defines a "template" definition of a resource that can be referenced by any specific resource definition in the API. Referencing a type within a resource definition obviates the need for repetitively defining every detail of every resource.
-|[source,ruby]
+|[source,ruby,linenums]
 ----
 resourceTypes:
   - collection:
@@ -171,7 +171,7 @@ resourceTypes:
 
 | `traits`
 | Defines a "template" definition of an action (i.e. method) that can be referenced by any specific action definition in the API. Referencing a trait within an action definition obviates the need for repetitively defining every detail of every action.
-| [source,xml]
+| [source,xml,linenums]
 ----
 traits:
   - filterable:
@@ -217,16 +217,18 @@ When you click *Finish* to open your new project, magic happens! Studio uses the
 
 Studio generated a simple, standard *Main flow* with an HTTP endpoint, an APIkit Router, and reference to the APIkit exception strategy mappings. 
 
-===== Studio Visual Editor [TAB]
-
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
 image:/documentation/download/attachments/122752391/apikitmainflow.png?version=1&modificationDate=1399311841169[image]
 
 [NOTE]
 Note that APIkit also supports Jetty endpoints. If you wish to use Jetty, manually replace the HTTP endpoint with a Jetty endpoint.
-
-===== XML Editor [TAB]
-
-[source,xml]
+....
+[tab, title="XML Editor"]
+....
+[source,xml,linenums]
 ----
 
 <flow name="main">
@@ -236,9 +238,11 @@ Note that APIkit also supports Jetty endpoints. If you wish to use Jetty, manual
 </flow>
 ----
 
+
 [NOTE]
 Note that APIkit also supports Jetty endpoints. If you wish to use Jetty, manually replace the HTTP endpoint with a Jetty endpoint.
-
+....
+------
 ==== Backend Flows
 
 Studio generated *Backend flows* for each resource-action pairing in the RAML file, each pre-populated with one or more message processors.
@@ -246,15 +250,17 @@ Studio generated *Backend flows* for each resource-action pairing in the RAML f
 * Notice that the name of each flow corresponds to the resource-action pairing. For example, the flow named `get:/machines:apiConfig` maps to the resource `/machines` and its nested `get:` action.
 * Further, notice that each flow contains message processors which perform "mock" activities based upon the content of the *example* *response* included with each resource-action pairing in the RAML file. 
 
-When initially generated, the message processors in each backend flow are configured to accept requests and mock the expected action upon a resource. For example, the message processors in the auto-generated `get:/machines:apiConfig` flow simply set a property on the message, then set the payload of a message to display a hard-coded list of vending machines (according the example in the RAML file) to the caller. 
-
-===== Studio Visual Editor [TAB]
-
+When initially generated, the message processors in each backend flow are configured to accept requests and mock the expected action upon a resource. For example, the message processors in the auto-generated `get:/machines:apiConfig` flow simply set a property on the message, then set the payload of a message to display a hard-coded list of vending machines (according the example in the RAML file) to the caller.
+ 
+[tabs]
+------
+[tab, title="Studio Visual Editor"]
+....
 image:/documentation/download/attachments/122752391/backend.png?version=1&modificationDate=1382556704802[image]
-
-===== Studio XML Editor [TAB]
-
-[source,xml]
+....
+[tab,title="Studio XML Editor"]
+....
+[source,xml,linenums]
 ----
     <flow name="get:/sales:api-config">
         <set-payload value="{&#xA;    &quot;count&quot; : 2,&#xA;    &quot;sales&quot; : [&#xA;      {&#xA;        &quot;dateAndTime&quot; : &quot;2013-10-22 16:17:00&quot;,&#xA;        &quot;value&quot; : 450,&#xA;        &quot;machineId&quot; : &quot;ZX4102&quot;,&#xA;        &quot;productId&quot; : &quot;Cad-CB1012&quot;&#xA;      },&#xA;      {&#xA;        &quot;dateAndTime&quot; : &quot;2013-10-22 16:17:00&quot;,&#xA;        &quot;value&quot; : 150,&#xA;        &quot;machineId&quot; : &quot;ZX5322&quot;,&#xA;        &quot;productId&quot; : &quot;CC-LB1&quot;&#xA;      }&#xA;    ],&#xA;    &quot;totalValue&quot; : 600&#xA;}" doc:name="Set Payload"/>
@@ -269,12 +275,17 @@ image:/documentation/download/attachments/122752391/backend.png?version=1&modifi
         <set-payload value="#[NullPayload.getInstance()]" doc:name="Set Payload"/>
     </flow>
 ----
+....
+------
 
 ==== Generated Exception Strategies
 Studio generated several global *exception strategy mappings* that the Main flow references to send error responses in HTTP-status-code-friendly format. Defined at a global level within the project's XML config, this standard set of exception strategy mappings ensure that anytime a backend flow throws an exception, the API responds to the caller with an HTTP-status code and corresponding plain-language message. Read more about link:/documentation/display/current/APIkit+Beyond+the+Basics#APIkitBeyondtheBasics-ExceptionStrategies[exception strategies for APIkit].
 
-===== XML Editor [TAB]
-[source,xml]
+[tabs]
+------
+[tab,title="XML Editor"]
+....
+[source,xml,linenums]
 ----
 <apikit:mapping-exception-strategy name="api-apiKitGlobalExceptionMapping">
         <apikit:mapping statusCode="404">
@@ -304,16 +315,18 @@ Studio generated several global *exception strategy mappings* that the Main flow
         </apikit:mapping>
     </apikit:mapping-exception-strategy>
 ----
+....
+------
 
 ==== Configuring Details
 
 . In the main flow, double-click the *APIkit Router* to open its properties editor in the console. In the APIkit Router properties, notice that you have the option of using a drop-down menu to adjust the *Router configuration*. Because you used Studio to auto-generate a skeletal structure of the backend flows that will support the requests sent to your API, you need not use this feature to customize the mapping between resource, action and backend flow; Studio has defined the mapping for you automatically. Read more details on link:/documentation/display/current/APIkit+Beyond+the+Basics#APIkitBeyondtheBasics-CustomMapping[custom mapping].
-. In the main flow, double-click the *HTTP connector* to open its properties editor in the console, then click the *Advanced* tab. Notice that Studio has populated the *Address* field with a default value. Change the default value of Address to match the baseUri in the RAML file: ` http://localhost:8081/remote-vending/api `
+. In the main flow, double-click the *HTTP connector* to open its properties editor in the console, then click the *Advanced* tab. Notice that Studio has populated the *Address* field with a default value. Change the default value of Address to match the baseUri in the RAML file: `http://localhost:8081/remote-vending/api`
 +
 
 image:/documentation/download/attachments/122752391/apikitt-http.png?version=1&modificationDate=1399313253161[image]
 +
-[source,xml]
+[source,xml,linenums]
 ----
 <http:inbound-endpoint address="http://localhost:8081/remote-vending/api" doc:name="HTTP" exchange-pattern="request-response"/>
 ----

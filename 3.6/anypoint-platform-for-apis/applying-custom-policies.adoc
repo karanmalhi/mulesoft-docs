@@ -1,4 +1,5 @@
 = Applying Custom Policies
+:keywords: policy, pointcut, yaml, xml
 
 If your APIs need to implement a policy that isn't covered by the default set of policies in the platform, you can create your own custom policy and then apply it to your API.
 
@@ -69,7 +70,7 @@ True if multiple values can be assigned
 
 ==== Integer
 
-[source, ruby]
+[source, ruby, linenums]
 ----
 configuration:
  - propertyName: aint
@@ -85,7 +86,7 @@ configuration:
 
 ==== Timeunit
 
-[source, ruby]
+[source, ruby, linenums]
 ----
 configuration:
  - propertyName: atimeunit
@@ -99,7 +100,7 @@ configuration:
 
 ==== Boolean
 
-[source, ruby]
+[source, ruby, linenums]
 ----
 configuration:
  - propertyName: aboolean
@@ -112,7 +113,7 @@ configuration:
 ----
 ==== String
 
-[source, ruby]
+[source, ruby, linenums]
 ----
 configuration:
  - propertyName: astring
@@ -126,7 +127,7 @@ configuration:
 
 Here's an example of a YAML file that describes the interface of an IP White List policy:
 
-[source, ruby]
+[source, ruby, linenums]
 ----
 ---
 id: ip-whitelist
@@ -163,7 +164,7 @@ configuration:
 
 The policy configuration is an XML file that defines the actual processes that carry out the implementation of the policy. Structured similarly to a Mule app, but content must be wrapped in the following tags:
 
-[source,xml]
+[source,xml,linenums]
 ----
 <policy>
 </policy>
@@ -209,7 +210,7 @@ Besides the `<before></before>` and `<after></after>` tags, you can also add `
 ====
 *So what elements can you include within these tags to execute processes?*
 
-Refer to the link:/documentation/display/current/Mule+User+Guide[Mule User Guide] for straight forward reference material and detailed descriptions of each of the available building blocks that Mule has to offer.
+Refer to the link:/documentation/display/current/Mule+User+Guide[Mule User Guide] for straightforward reference material and detailed descriptions of each of the available building blocks that Mule has to offer.
 
 Or read link:/documentation/display/current/Elements+in+a+Mule+Flow[Elements in a Mule Flow] for an introduction to the topic.
 ====
@@ -219,7 +220,7 @@ Or read link:/documentation/display/current/Elements+in+a+Mule+Flow[Elements in
 Anywhere in any of these structures you can reference the dynamic properties of your policy. There's a default set of properties that all policy definitions can access, and additionally you can also reference properties that are defined in your Policy Template YAML file.
 
 To reference a property, simply type its name enclosed in two curly brackets like so:
-[source,xml]
+[source,xml,linenums]
 ----
 {{propertyName}}
 ----
@@ -243,11 +244,11 @@ In addition to these default properties, you are also free to specify new ones i
 
 ==== Using Pointcuts
 
-Currently, *it's mandatory that your custom policy contains a pointcut declaration.* Pointcuts control the scope of the policy's application, they use regular expressions to indicate what flows in the application will be affected by the policy.
+Currently, *it's mandatory that your custom policy contain a pointcut declaration.* Pointcuts control the scope of the policy's application, they use regular expressions to indicate what flows in the application will be affected by the policy.
 
 If you're going to apply your policy to APIs that are deployed through the Anypoint Platform for APIs, then we strongly recommend that you set your pointcut to the default properties `apiName` and `apiVersion`, which guarantees that your policy it will be applied to only the API on which you're activating the policy. This is what your pointcut should look like:
 
-[source,xml]
+[source,xml,linenums]
 ----
 <pointcut>
        <api-platform-gw:api-pointcut apiName="{{ apiName }}" apiVersion="{{ apiVersionName }}"/>
@@ -271,7 +272,7 @@ In a pointcut you can reference the following kinds of elements:
 
 If several elements are specified inside a single pointcut, then they will be implemented as if you were using an AND expression +
 
-[source,xml]
+[source,xml,linenums]
 ----
 <pointcut>
    <resource uriTemplateRegex="/items/.*" />
@@ -284,7 +285,7 @@ If several elements are specified in separate pointcut parent elements, then the
 ===== Reference Apps
 
 
-[source,xml]
+[source,xml,linenums]
 ----
 <pointcut>
    <app regex=".*" />
@@ -292,7 +293,7 @@ If several elements are specified in separate pointcut parent elements, then the
 ----
 
 ===== Reference Endpoints
-[source,xml]
+[source,xml,linenums]
 ----
 <pointcut>
    <endpoint regex=".*" />
@@ -302,7 +303,7 @@ If several elements are specified in separate pointcut parent elements, then the
 
 Example using values from properties:
 
-[source,xml]
+[source,xml,linenums]
 ----
 <pointcut>
     <endpoint regex="http://localhost:${http.port}/gateway/.*" />
@@ -312,7 +313,7 @@ Example using values from properties:
 
 This is also valid:
 
-[source,xml]
+[source,xml,linenums]
 ----
 <pointcut>
    <endpoint regex="http\:\/\/localhost:${http.port}\/gateway\/.*" />
@@ -328,7 +329,7 @@ If http.port is defined at application level, you’ll have a parse exception wh
 
 ===== Reference Resources
 
-[source,xml]
+[source,xml,linenums]
 ----
 <pointcut>
    <resource methodRegex=".*" />
@@ -341,7 +342,7 @@ For example: `<resource methodRegex=”P.*” />` will apply to all POST, PUT a
 
 Example using defaults
 
-[source,xml]
+[source,xml,linenums]
 ----
 <pointcut>
    <resource uriTemplateRegex=".*" />
@@ -353,7 +354,7 @@ In this example you can specify the path from the basedUri specified on the raml
 
 Example filtering first level of resources:
 
-[source,xml]
+[source,xml,linenums]
 ----
 <pointcut>
     <resource uriTemplateRegex="/items/.*" />
@@ -367,7 +368,7 @@ Although you can use any message processor that is available in Mule to build yo
 
 Below is a basic skeleton structure that you can use as a starting point when building your custom policy:
 
-[source,xml]
+[source,xml,linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <policy xmlns="http://www.mulesoft.org/schema/mule/policy"
@@ -398,11 +399,11 @@ Note that you don't need to have *both* a before and after tag, you can choose t
 
 ==== Full Example of a Policy Configuration File
 
-Below is an example of a policy configuration file that implements an IP whitelist filter. It matches the YAML example displayed above, both are needed to create this policy. Notice how in this XML file references several variables – enclosed in \{\{ brackets }} –, which are defined in the YAML fle.
+Below is an example of a policy configuration file that implements an IP whitelist filter. It matches the YAML example displayed above, both are needed to create this policy. Notice how this XML file references several variables – enclosed in {{ brackets }} –, which are defined in the YAML file.
 
 The IP whitelist filter policy adds a validation that requires all requests to contain a valid IP Address based on a valid list of IPs  configured.
 
-[source,xml]
+[source,xml,linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <policy online="true"

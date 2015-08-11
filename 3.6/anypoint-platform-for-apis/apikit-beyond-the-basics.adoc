@@ -1,4 +1,5 @@
 = APIkit Beyond the Basics
+:keywords: apikit, rest, raml, load balancer
 
 Beyond the link:/documentation/display/current/APIkit+Basic+Anatomy[Basic Anatomy of APIkit], there are a few features and functionalities worth exploring a little deeper. This document highlights these elements, describing why they may be useful when building a REST API.
 
@@ -15,8 +16,11 @@ For example, the message processors in the auto-generated `get:/machines:apiCon
 [TIP]
 Notice that the name of each flow corresponds to the resource-action pairing. For example, the flow named `get:/machines:apiConfig` maps to the resource `/machines` and its nested `get:` action.
 
-=== RAML code [TAB]
-[source]
+[tabs]
+------
+[tab,title="RAML code"]
+....
+[source,yaml,linenums]
 ----
 /machines:
   type: base
@@ -44,9 +48,11 @@ Notice that the name of each flow corresponds to the resource-action pairing. F
                 ]
             }
 ----
+....
 
-=== Backend Flow [TAB]
-[source,xml]
+[tab, title="Backend Flow"]
+....
+[source,xml,linenums]
 ----
 
 <flow name="get:/machines:apiConfig" doc:name="get:/machines:apiConfig">
@@ -54,6 +60,8 @@ Notice that the name of each flow corresponds to the resource-action pairing. F
     <set-payload value="{&#xA;    &quot;count&quot; : 3,&#xA;    &quot;machines&quot; : [&#xA;      {&#xA;        &quot;id&quot; : &quot;ZX4102&quot;,&#xA;        &quot;location&quot; : &quot;Starbucks, 442 Geary Street, San Francisco, CA 94102&quot;&#xA;      },&#xA;      {&#xA;        &quot;id&quot; : &quot;ZX5322&quot;,&#xA;        &quot;location&quot; : &quot;Starbucks, 462 Powell Street, San Francisco, CA 94102&quot;&#xA;      },&#xA;      {&#xA;        &quot;id&quot; : &quot;ZX6792&quot;,&#xA;        &quot;location&quot; : &quot;Cafe La Taza, 470 Post Street, San Francisco, CA 94102&quot;&#xA;      }&#xA;    ]&#xA;}" doc:name="Set Payload"/>
 </flow>
 ----
+....
+------
 
 The reason APIkit auto-generates skeletal backend flows is two-fold:
 
@@ -114,7 +122,7 @@ Suppose that you're constructing a flow for a combination of resource + action +
 
 image:/documentation/download/attachments/122752392/logger.jpg?version=1&modificationDate=1413568660594[image]
 
-For another example, suppose you're building a flow for a type of request that includes a JSON body, and that you want to map this JSON structure into a different one that matches what you use in your backend. By dropping a DataMapper component as the first element on your flow, you will see that the input fields of the DataMapper are automatically populated with the known payload of the Mule message, which is the JSON in the request's body, infered from the RAML definition.
+For another example, suppose you're building a flow for a type of request that includes a JSON body, and that you want to map this JSON structure into a different one that matches what you use in your backend. By dropping a DataMapper component as the first element on your flow, you will see that the input fields of the DataMapper are automatically populated with the known payload of the Mule message, which is the JSON in the request's body, inferred from the RAML definition.
 
 image:/documentation/download/attachments/122752392/datamapper.jpg?version=1&modificationDate=1413562796931[image]
 
@@ -128,7 +136,7 @@ When you begin a new APIkit project, Studio auto-generates a main flow and sever
 
 By default, Studio generates five exception strategy mappings which handle five widely-used HTTP status code responses. See code below. 
 
-[source,xml]
+[source,xml,linenums]
 ----
 <apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping">
         <apikit:mapping statusCode="404">
@@ -168,15 +176,19 @@ You can adjust or add to the five default exception strategy mappings as needed.
 
 You have no need to manually adjust the auto-generated exception strategies or manually reference them within the flows. However, if you have manually created your main flow (refer to link:#APIkitBeyondtheBasics-Backend-FirstDesign[section below]), you must also manually create, then reference the exception strategy mappings. To reference the `apikit:mapping-exception-strategy`, including all the exception mappings you created, add a *Reference Exception Strategy* to your main flow (see below).
 
-=== Studio Visual Editor [TAB]
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
 
 image:/documentation/download/attachments/122752392/apikitflow.png?version=1&modificationDate=1413495740791[image]
 
 image:/documentation/download/attachments/122752392/refexcstrat.png?version=1&modificationDate=1413495741272[image]
+....
 
-=== XML Editor [TAB]
-
-[source,xml]
+[tab,title="XML Editor"]
+....
+[source,xml,linenums]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081"/>
     <flow name="main" doc:name="main">
@@ -185,6 +197,9 @@ image:/documentation/download/attachments/122752392/refexcstrat.png?version=1&mo
         <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
     </flow>
 ----
+....
+
+------
 
 == Backend-First Design
 
@@ -224,8 +239,10 @@ There are two circumstances in which you must customize the mapping of your *res
 
 This mapping functionality exists within the **APIkit router.** 
 
-==== Studio Visual Editor [TAB]
-
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
 . Within your APIkit project, build a new flow with a request-response HTTP (or Jetty) connector, and an APIkit router. +
 
 +
@@ -254,12 +271,13 @@ image:/documentation/download/attachments/122752392/mapping2.png?version=1&modif
 
 
 . Repeat steps 4-5 for each resource-action pairing in your API Definition file (i.e. RAML file).
+....
 
-==== XML Editor [TAB]
-
+[tab,title="XML Editor"]
+....
 . To your project, above all the flows, add a global *`apikit:config`* element, configuring the attributes according to the table below.
 +
-[source,xml]
+[source,xml,linenums]
 ----
 <apikit:config name="Router" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router">
 </apikit:config>
@@ -275,7 +293,7 @@ image:/documentation/download/attachments/122752392/mapping2.png?version=1&modif
 |===
 . Add an `apikit:flow mapping` child element to the `apikit:config` element. Configure the attributes according to the table below to map the 1:1:1 relationship of *Resource* : *Action* : *Flow* so that calls to a particular resource using a particular method route appropriately to the backend flow that performs the activity.
 +
-[source,xml]
+[source,xml,linenums]
 ----
 <apikit:config name="Router" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router">
         <apikit:flow-mapping resource="/machines" action="get" flow-ref="get:/machines:apiConfig"/>
@@ -292,7 +310,7 @@ image:/documentation/download/attachments/122752392/mapping2.png?version=1&modif
 . Repeat step 2 for each resource-action pairing in your API Definition file (i.e. RAML file).
 . To your project, add a new flow called main. Into the flow, insert a request-response *HTTP connector*, and an *APIkit router*. In the APIkit router, include an attribute called *`config-ref`* with a value that identifies the global mapping element you created above.
 +
-[source,xml]
+[source,xml,linenums]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081"/>
     <flow name="main" doc:name="main">
@@ -300,6 +318,8 @@ image:/documentation/download/attachments/122752392/mapping2.png?version=1&modif
         <apikit:router config-ref="apiConfig" doc:name="APIkit Router"/>
     </flow>
 ----
+....
+------
 
 == Tightening the Interface with External Files
 
@@ -309,8 +329,11 @@ For example, where you might define a schema in the root of your RAML file so th
 
 Read more about `!includes` in the https://github.com/raml-org/raml-spec/blob/master/02_includes.md[RAML spec].
 
-=== Defined in Master [TAB]
-[source,ruby]
+[tabs]
+------
+[tab,title="Defined in Master"]
+....
+[source,ruby,linenums]
 ----
 #%RAML 0.8
 ---
@@ -338,10 +361,10 @@ schemas:
         }
       }
 ----
-
-=== Defined in External File [TAB]
-
-[source,ruby]
+....
+[tab,title="Defined in External File"]
+....
+[source,ruby,linenums]
 ----
 #%RAML 0.8
 ---
@@ -352,6 +375,8 @@ mediaType: application/json
 
 external: !include schemas.txt
 ----
+....
+------
 
 == APIkit and Load Balancers
 
@@ -433,7 +458,7 @@ To host the console in a separate flow:
 . Configure the HTTP connector to be request-response, with a URI of your choice where you want to access the console. 
 . If you selected a URI with a _different host and/or port_ than you use in your router flow, add a `cors:validate` element to your router flow. Do this in the XML configuration view, adding the `cors:validate` element as shown below.
 +
-[source,xml]
+[source,xml,linenums]
 ----
 <flow name="routerFlow" doc:name="routerFlow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="api" doc:name="HTTP Connector"/>
@@ -449,7 +474,7 @@ The `cors:validate` element allows the console to access the router configurati
 +
 image:/documentation/download/attachments/122752392/consoleflow.png?version=1&modificationDate=1413495740895[image]
 +
-[source,xml]
+[source,xml,linenums]
 ----
 <flow name="apiFlow1" doc:name="apiFlow1">
         <http:listener config-ref="HTTP_Listener_Configuration" path="consoletest" doc:name="HTTP Connector"/>
