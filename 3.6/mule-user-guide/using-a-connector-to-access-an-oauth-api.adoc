@@ -1,4 +1,5 @@
 = Using a Connector to Access an OAuth API
+:keywords: anypoint studio, studio, mule esb, oauth, authentication, oauth 2
 
 Mule offers a sizable collection of connectors that you can insert into flows and use in a plug-and-play fashion. In some cases, these connectors make use of an OAuth security protocol to manage user identities. In these cases, using the connector involves a few additional steps. This document outlines the steps to configure a connector to use OAuth so as to communicate with an OAuth API.
 
@@ -150,7 +151,7 @@ image:/documentation/download/attachments/122752086/sfdc-exception.png?version=1
 . Configure a global Salesforce (OAuth) element according to the table below.
 +
 
-[source]
+[source,xml]
 ----
 <sfdc:config-with-oauth name="salesforce" consumerKey="[insert key]" consumerSecret="[insert secret]" doc:name="Salesforce (OAuth)">
  </sfdc:config-with-oauth>
@@ -197,7 +198,7 @@ You can configure your connector to define the behavior of a connector when a us
 |*EXCEPTION* |(_Default_) Throws an exception advising the user that an OAuth token is required
 |===
 
-[source]
+[source,xml]
 ----
 <sfdc:config-with-oauth name="salesforce" consumerKey="[insert key]" consumerSecret="[insert secret]" doc:name="Salesforce (OAuth)" onNoToken="[STOP_FLOW]">
     <sfdc:oauth-callback-config domain="localhost" remotePort="8081" path="callback"/>
@@ -311,7 +312,7 @@ Should a connectors require scope configuration, Studio includes the scopes as c
 |*display* |PAGE
 |===
 
-[source]
+[source,xml]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081"/>
 <flow name="OAuthTestFlow1" doc:name="OAuthTestFlow1">
@@ -372,14 +373,14 @@ image:/documentation/download/attachments/122752086/connectorauthorized.png?vers
 ....
 . Add a `logger` element into your flow, including a `message` attribute, the value of which indicates the Logger's output.
 
-[source]
+[source,xml]
 ----
 <logger message="The connector has been properly authorized." level="INFO" doc:name="Logger"/>
 ----
 
 ==== Full Example
 
-[source]
+[source,xml]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081"/>
 <flow name="OAuthTestFlow1" doc:name="OAuthTestFlow1">
@@ -404,7 +405,7 @@ The following list explains each of these behaviors.
 . Mule uses the connector's config name by default. If your config looks like the example below, the Object Store variable that keeps track of Token IDs also uses the name **Box_Connector**. This functionality is available whether running on CloudHub, or in single-tenant mode on premises.
 +
 
-[source]
+[source,xml]
 ----
 <box:config name="Box_Connector" clientId="123" clientSecret="123" doc:name="Box"  >
     <box:oauth-callback-config domain="localhost" localPort="8081" path="box_callback" remotePort="8081"/>
@@ -434,7 +435,7 @@ image:/documentation/download/attachments/122752086/box-ge.png?version=1&modific
 ....
 [tab,title="XML Editor or Standalone"]
 ....
-[source]
+[source,xml]
 ----
 <box:config name="Box_Connector" clientId="123" clientSecret="123" doc:name="Box"  >
     <box:oauth-callback-config domain="localhost" localPort="8081" path="box_callback" remotePort="8081" defaultAccessTokenId="#[message.inboundProperties.tenantId]"/>
@@ -451,7 +452,7 @@ image:/documentation/download/attachments/122752086/box-ge.png?version=1&modific
 +
 . Set an operation in an `AccessTokenId` attribute to override everything else for this operation. Keep in mind that this attribute only affects the current operation; other operations for the same connector use the default operation unless otherwise specified. 
 
-[source]
+[source,xml]
 ----
 <flow name="flow1">
     <box:authorize accessTokenId="#[flowVars.myTenantId]"/>
