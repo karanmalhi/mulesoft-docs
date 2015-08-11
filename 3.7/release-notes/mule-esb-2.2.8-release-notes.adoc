@@ -1,0 +1,133 @@
+= Mule ESB 2.2.8 Release Notes
+:keywords: release notes, esb
+
+
+This is a maintenance release for Mule ESB 2.2.x Enterprise line, mostly around bug fixes, but it also incorporate some enhancements in Mule.
+
+== Current Release Version
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|  |Enterprise Edition |Community Edition
+|ESB |x | 
+|Management +
+ Console |x | 
+|===
+
+== Support for class hierarchy on the exception patterns
+
+Before you had to explicitly define all the exceptions (or pattern that would match them) in the exception-pattern to commit or rollback a transaction. With this enhancement, you can now use your exception class hierarchy to commit or rollback. For example you have the following exception class hierarchy:
+
+image:/documentation/download/attachments/122752547/Exceptionhierarchy.jpg?version=1&modificationDate=1334700149544[image]
+
+If you want to rollback on any InvalidRequestException, on previous versions you had to put in the exception-pattern all exceptions or a pattern that would match them all. Now you can just put InvalidRequestException and all the children classes will match it, as now we check if it's an instance of. Here is an example on how you can make this work, by adding a '+'at the end of the fully qualified exception.
+
+[source,xml]
+----
+<default-connector-exception-strategy>
+<rollback-transaction exception-pattern="java.lang.IllegalArgumentException+"/>
+...
+</default-connector-exception-strategy>
+----
+
+Here you can read more about http://www.mulesoft.org/documentation/display/MULE2USER/Error+Handling[Error Handling] in Mule ESB
+
+== Support for Custom JMX Authenticator
+
+Before the JMX Agent only supported simple password authentication (SimplePasswordAuthenticator). Now you can define your own JMX Autheticator on the JMX config like in the example below.
+[source,xml]
+----
+<spring:bean name="customJMXAuthenticator" class="org.mule.management.config.ManagementCustomJMXAuthenticatorTestCase$CustomJMXAuthenticator" />
+<management:jmx-default-config jmxAuthenticator-ref="customJMXAuthenticator"/>
+----
+Here you can read more about http://www.mulesoft.org/documentation/display/MULE2USER/JMX+Management[JMX Management] in Mule
+
+== Exception Strategy can stop the Service
+
+We added a new property in the default service exception strategy (org.mule.service.DefaultServiceExceptionStrategy) to be able to stop the service to ensure it will not continue processing messages. This is useful in case you want to stop processing messages after a particular exception is thrown (DB server is down for example) to prevent unnecessary load on the se rver retrying the messages. Once you solved the underlying cause for the exception (start the DB server), you can resume the service through the JMX console. Here is a simple example on how you can achieve this.
+[source,xml]
+----
+<default-service-exception-strategy stopMessageProcessing="true">
+...
+</default-service-exception-strategy>
+----
+Here you can read more about http://www.mulesoft.org/documentation/display/MULE2USER/Error+Handling[Error Handling] in Mule ESB
+
+== Caching of JNDI entry for JMS queue location
+
+We added a way to configure the JNDI resolver to use to look for your JMS queue location. Now you have the SimpleJndiNameResolver and the new CachedJndiNameResolver. The cache will store the queue location internally and will not try to resolve it every time the queue location is needed. To read more about this visit the http://www.mulesoft.org/documentation/display/MULE2USER/JMS+Transport#JMSTransport-LookingUpJMSObjectsfromJNDI[JMS Transport page]
+
+== Supported Platforms and Deployments
+
+Mule Management Console supports the following platforms:
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|Application Server |Management Console |Agent
+|Tcat/Tomcat (5.5 and 6.x) |Yes |Yes
+|JBoss (4.x, 5, 5.1.0) |Yes |Yes
+|Mule Standalone 2.2.6 |N/A |Yes
+|WebSphere 7.0 |Yes |Yes
+|WebLogic version 11g (10.3.3.0) |Yes |Yes
+|===
+
+== Known Issues
+
+=== ESB Issues
+
+[cols=",",]
+|====
+|Key |Summary
+|EE-1257 |Mule cannot "see" the license when there is a space in MULE_HOME (e.g., "Program Files"). Workaround: MULE_HOME must not have a space in it (e.g. "Program Files").
+|EE-2271 |Default install folder in Mac OS X and linux contains spaces
+|MMC-833 |On Servers a registered server does not display Cluster icon.
+|====
+
+== Fixed Issues
+
+=== ESB and MMC Fixes
+
+[cols=",",]
+|======
+|Key |Summary
+|EE-1978 |XA transactions are not committed if Mule uses more than one WMQ connector
+|EE-2127 |Need custom strategy to select the .mule location
+|EE-2163 |REST service with variable number of parameters is not bound correctly when the first call has some <null> values
+|EE-2181 |FTP Transport - out of memory error.
+|MULE-1631 |Mule won't launch with space in path
+|EE-1948 |Improve ThreadPoolFactory discovery mechanism
+|EE-1985 |jdbc:maps-to-xml-transformer is not fully compatible with jdbc:inbound-endpoint
+|EE-2105 |How to handle java.io.FileNotFoundException in mule
+|EE-2109 |Initial Tx binding issue with the new Native MQ Transport
+|EE-2125 |Outbound CXF endpoint ignores configured URL and uses soap:address from WSDL
+|EE-2144 |Add SSL support to the WMQ Native Transport
+|EE-2191 |Sybase Stored procedure does not correctly manage results when it returns updateCounts and resultsets
+|EE-2217 |CXF proxy does not propagate root cause of an exception.
+|EE-2234 |Cross Site Scripting Vulnerability in Mule Standalone Server
+|MULE-5353 |Axis outbound connections leak memory
+|MULE-5507 |Problems when using JMS with LDAP
+|MULE-5513 |CXF proxy does not propagate root cause of an exception.
+|EE-1891 |Endpoint security filters should implement org.mule.api.routing.filter.Filter
+|EE-1969 |The exception pattern in exception strategy should support class hierarchy
+|EE-1999 |TransactedPollingJmsReceiver does not invoke retry policy when queue name is incorrect or queue does not exist
+|EE-2062 |Support for Custom JMXAuthenticator
+|EE-2103 |Setting a JDBC parameter value to null fails on Derby DB when using abbreviate parameter definition
+|EE-2195 |Sybase Stored procedure does not correctly manage column aliases
+|MULE-4925 |Allow MessagePropertiesTransformer to remove many message properties at once (either by wildcards or regex)
+|MULE-5273 |JDBC connector insert fails when using Abbreviate parameter in 2.2.7, works in 2.2.6
+|MULE-5313 |CXF proxy fails if WSDL and serviceName is configured and WSDL includes headers
+|MULE-5327 |Improve ThreadPoolFactory discovery mechanism
+|MULE-5332 |return-argument in expression filter does not accept xpath-node
+|MULE-5467 |Creating a config file with eight (8) <collection-aggregator-router>s prevents mule from completing startup sequence
+|MULE-5468 |Sybase Stored procedure/queries does not correctly manage column aliases
+|MULE-5470 |Service exception strategy should be able to stop the endpoint receivers
+|EE-2135 |Update Tanuki Wrapper to latest version
+|EE-2141 |Mule fails to install as a service when path is > 102 characters
+|MULE-1367 |Make JmxAuthenticator configurable for JMX remote management
+|MULE-1891 |Allow Pattern flags in RegExFilter
+|MULE-4909 |Refactor SPI dicovery mechanism to be more generic
+|MULE-5358 |IMAP Connector throw an NPE Exception if property deleteReadMessages="false"
+|MULE-5462 |MalformedObjectNameException when registring services with names that contain a ':'
+|MULE-5511 |xpath-node evaluator throws an exception if the input type is org.w3c.dom.Document
+|MULE-5546 |Add sequence router
+|======

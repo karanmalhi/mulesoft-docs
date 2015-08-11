@@ -1,0 +1,65 @@
+= API Gateway 2.0 and Newer Version FAQ
+
+=== Why is this a major release, as opposed to a minor release, of the API Gateway?
+
+MuleSoft uses major versions to introduce larger improvements and changes as well as changes that affect backwards compatibility. This release of the API Gateway has undergone a change to it’s underlying HTTP stack to align with the ESB 3.7 stack as well as to provide custom policies. With these two major changes, the release version was set to major.
+
+=== What's new in API Gateway 2.0?
+
+The following functionality is only available for the 2.0 (and newer) versions of the API Gateway:
+
+* External AES OAuth 2.0 and associated policy.
+* HTTP NIO strategy and associated generated proxies.
+* Java 8 based runtime.
+
+=== What's new in API Gateway 2.0 that's not compatible with previous versions?
+
+These important areas changed in this version of the API Gateway:
+
+. *API proxies and applications* - In API Gateway 2.0 we have upgraded the HTTP transport to match the one used within the ESB 3.7 runtime. This transport has a pure NIO strategy support that we use in the generation of proxies. The new transport brings two important benefits in API Gateway use cases:
+* *Connections* - The number of connections to a single Gateway instance can be much larger.
+* *Threads* - The need for tuning the number of execution threads when tuning for performance goes away as only a handful of threads can handle all proxy traffics given their non-blocking nature.
++
+
+This change signifies that you need to migrate all previously generated proxies and applications before running on the new API Gateway 2.0 runtime if their APIs are to remain managed. See link:/docs/display/current/Migration+Guide+to+API+Gateway+2.0.0+or+later[Migration Guide to API Gateway 2.0.0 or later] for how to perform the migration.
+
+. Policy definition and processing - Policy definitions have been modified to include a new ID and policyName field as per this example:
++
+
+[source]
+----
+<policy xmlns="http://www.mulesoft.org/schema/mule/policy" ...
+  online="true" id="8298" policyName="Rate Limiting SLA Based">
+</policy>
+----
+
+This information is necessary so that policies can work in a fully on-prem configuration so as to allow for enriched analytics data to be emitted to third-party targets.
+
+The impact of this change is as follows:
+
+* *Out-of-the-box policies* - All policies have been modified accordingly with the release and continue to work with both the 1.x and 2.0 version of the Gateway in full capacity (except for the new external AES token validation policies which can only work with the 2.0 version of the API Gateway).
+
+*  *Custom policies* - Custom policies continue to work as before with one exception: When an API Gateway is upgraded to version 2.0, applied custom policies cannot report policy violation events to the Analytics system. To remedy this, modify custom policies with a policyName field as per the following example:
++
+
+[source]
+----
+<policy xmlns="http://www.mulesoft.org/schema/mule/policy" ...
+  online="true" id="{{policyId}}" policyName="My custom policy name">
+</policy>
+----
+
+After you extend  a custom policy with the policyName field, it only works with API Gateway 2.0. Use a phased approach and register a new instance of the custom policy. Older version of the policy can remain active if APIs use an older version of the Gateway.  
+
+=== Why are generated proxies different in API Gateway 2.0 versus 1.3.x and older?
+
+Proxies generated for API Gateway 2.0 use the Mule 3.6 link:/docs/display/current/HTTP+Listener+Connector[HTTP Listener Connector] and the NIO strategy to provide optimal performance. The use of the listener connector means that the actual port number used by the proxy is not configured at proxy configuration time, but that is set at the Gateway tier. This is the reason behind the informational note that appears in the API proxy generation screen:
+
+The API Gateway 2.0 distribution has by default two HTTP listener connector based shared domains - one for HTTP, with a port setting of 8081, and one for HTTPS with a port setting of 443.
+
+=== How do I migrate existing API proxies or applications from previous versions to API Gateway 2.0?
+
+There are two migration paths for existing managed APIs:
+
+. **API uses an unmodified, generated proxy** - Use link:/docs/display/current/Migration+Guide+to+API+Gateway+2.0.0+or+later[the migration tool provided with the API Gateway 2.0 distribution] to migrate all of your existing proxies to be API Gateway 2.0 compliant.
+. **API uses a custom built Mule application or a modified, generated proxy** - Change your Mule application or custom proxy, and change the HTTP inbound endpoint to use an  link:/docs/display/current/HTTP+Listener+Connector[HTTP Listener Connector].

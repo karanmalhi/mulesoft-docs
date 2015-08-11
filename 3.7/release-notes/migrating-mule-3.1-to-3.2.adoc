@@ -1,0 +1,80 @@
+= Migrating Mule 3.1 to 3.2
+
+:keywords: release notes, esb
+
+
+== Java Runtime Level
+
+Starting with Mule 3.2.0, Java 6 is required for both to build and to run Mule. User and third-party JARs compiled with earlier versions of Java will continue to work with Mule.
+
+== Maven Level
+
+Starting with Mule 3.2.0, http://maven.apache.org/download.html[Maven version 3] is required to build Mule.
+
+=== Acegi Module
+
+The Acegi module is superseded by the Spring security module and has been deprecated. Starting with Mule 3.2, the Acegi module is no longer contained in any Mule distribution. See link:/documentation/display/current/Upgrading+from+Acegi+to+Spring+Security[Upgrading from Acegi to Spring Security] for details on migrating the security module.
+
+== Configuration Changes
+
+The syntax for grouping message processors and calling flows has been clarified:
+
+* <processor-chain> should be used only to group message processors within other constructs such as routers. Globally configured processor-chains are deprecated and will be removed in a future release.
+* <sub-flow> has been introduced to represent a globally configured group of message processors that will be called synchronously through <flow-ref>.
+* Flows, when called using <flow-ref>, follow their specified processing strategy. If not specified, the processing strategy defaults to `asynchronous-queued`. This is a change from previous behavior, in which flows were processed synchronously if called using <flow-ref>. In order to have the private flows behaving synchronously by default, as they did in previous versions, they have to be redefined as sub-flows
+* <flow> no longer takes a threading-profile as a child element. Use <processing-strategy> instead.
+
+== Behavior Changes
+
+As described in link:#MigratingMule3.1to3.2-ConfigurationChanges[Configuration Changes], <flow-ref> no longer forces synchronous processing of the referenced flow. To get synchronous behavior, either specify `processingStrategy="synchronous"` on the target flow or use a sub-flow.
+
+== API Changes
+
+* The `org.mule.construct.SimpleFlowConstruct` class has been renamed to `org.mule.construct.Flow`.
+* The `org.mule.exception.DefaultServiceExceptionStrategy` class has been split into these new classes: `org.mule.exception.DefaultMessagingExceptionStrategy` and `org.mule.exception.DefaultSystemExceptionStrategy`
+* The `org.mule.module.pgp.LazyInputStream` class has been renamed to `org.mule.module.pgp.LazyTransformedInputStream`
+* The `org.mule.module.pgp.OutputStreamWriter` class has been renamed to `org.mule.module.pgp.StreamTransformer`
+
+== Schema Changes
+
+=== Schema Location Changes
+
+The version that should be used in schema locations is **3.2**. Starting with this version, you can also use *current* – this should simplify moving from a legacy version of Mule to a newer one.
+
+*Mule 3.2 Schema Location*
+[source,xml]
+----
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf"
+  xsi:schemaLocation="
+    http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd
+    http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/3.2/mule-cxf.xsd">
+
+</mule>
+----
+*Mule current Schema Location*
+[source,xml]
+----
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf"
+  xsi:schemaLocation="
+    http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+    http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd">
+
+</mule>
+----
+
+[NOTE]
+The *current* schema location will be resolved to the schema bundled locally in the Mule ESB runtime in which the application is running.
+
+== Deprecated/Removed
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Affects |Change
+|EJB Transport |Deprecated
+|iBeans Transport |Removed. Cloud Connectors are the new incarnation of iBeans. Only Cloud Connectors are supported going forward.
+|`mule-cluster-ee.xsd` |Removed. See link:#MigratingMule3.1to3.2-SchemaChanges[Schema Changes]. No cluster-specific configuration exists in Mule ESB 3.2
+|===

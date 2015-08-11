@@ -1,0 +1,39 @@
+= XML Issues in Mule ESB
+:keywords: release notes, xml
+
+Released November 21, 2014
+
+On 11/13/14, David Jorm reported two issues related to XML handling in Mule ESB. We analyzed both issues and provide a response below.
+
+== Report
+
+The two issues were reported as follows:
+
+==== RCE via XStream Deserialization
+
+Mule uses XStream 1.4.2. The XML-to-object transformer is vulnerable to http://www.securityfocus.com/bid/64760[CVE-2013-7285]. A remote attacker can send messages to an XML-to-object transformer and can achieve remote code execution (RCE). For more information, contact http://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Customer Support.]  
+
+==== XXE in JXPathExpressionEvaluator
+
+`xml/src/main/java/org/mule/module/xml/expression/JXPathExpressionEvaluator.java` includes:
+
+----
+
+ document = XMLUtils.toW3cDocument(message.getPayload());
+----
+
+`XMLUtils.toW3cDocument` does not disable external entities, so the message payload could include an XXE attack.
+
+== Evaluation and Response
+
+==== RCE via XStream Deserialization
+
+This issue is less about Mule ESB specifically, and more about how the referenced component is used. Mule ESB provides building blocks that can be used to write applications. The blocks that use xstream convert an XML document to any arbitrary object. The vulnerability exploits the fact than if an untrusted xml is converted, that xml could be crafted so that a special type of class gets deserialized (for example, a proxy that proxies a process execution class with values to execute any process).
+
+XStream version 1.4.7 blacklists deserializing an EventHandler class which is the case exhibited in the exploit, but it is just a mitigation, as many other frameworks provide similar classes.
+
+The main point is that the problem is primarily in the improper use of the message processor, and upgrading to 1.4.7+ will just mitigate this specific vector. The real solution is that applications built on Mule ESB should not blindly transform any input without sanitizing it first -- _which is true for any app_.
+
+==== Solution
+
+We will add security advice in the documentation for these 4 transformers, and upgrade to XStream 1.4.7 for Mule 3.6. We expect a patch to be available this quarter. +
