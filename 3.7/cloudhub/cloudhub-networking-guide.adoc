@@ -1,0 +1,89 @@
+= CloudHub Networking Guide
+
+== Overview
+
+CloudHub provides a variety of tools to architect your integrations and APIs so that they are maintainable, secure, and scalable. This guide covers the basic network architecture, DNS, and firewall rules.
+
+image:/docs/download/attachments/122752489/CloudHub+Networking+Guide.jpg?version=5&modificationDate=1432151814423[image]
+
+== Load Balancing
+
+CloudHub provides a load balancing service for all integrations. This service does round robin load distribution across workers, allowing workers to scale linearly as they receive more requests as well as providing transparent switchover when an application is upgraded (see zero downtime upgrades for more information).
+
+Each application deployed on CloudHub has a *CNAME* record that refers to the load balancer -  example: `myapp.cloudhub.io`. Mule applications deployed on CloudHub must listen on `0.0.0.0` and ports assigned by CloudHub for HTTP and HTTPS. The load balancer then forwards requests from port 80 and 443 (SSL) to these ports on the Mule worker. These ports can be referenced via the expressions `${http.port}` and `${https.port}`, respectively. Here is an example of a Mule configuration that utilizes this to expose an HTTPS endpoint:
+
+[source]
+----
+<https:endpoint address="http://0.0.0.0:${https.port}"/>
+----
+
+*Note*: Currently  `${http.port}` and `${https.port}` are set to 8081 and 8082. While applications can have hard coded ports, CloudHub might introduce new configuration options in the future which would require that these be set to specific values. It is therefore recommended that you set these correctly to maintain compatibility in the future.
+
+== DNS Records
+
+ The following DNS records are exposed for your CloudHub applications:
+
+[width="100a",cols="50a,50a",options="header"]
+|===
+|*myapp.cloudhub.io* |Load balancer. Ports 80 and 443 forward to  `${http.port}` and `${https.port}` respectively.
+|*mule-worker-myapp.cloudhub.io* |The external IP address of the Mule workers. HTTP services are exposed on: `${http.port}` and `${https.port}`
+|*mule-worker-internal-myapp.cloudhub.io* |The internal IP address of the Mule workers. The IPs for this DNS record are only accessible within a customer's private VPC. *These IPs are not accessible for workers running in the MuleSoft shared VPC.* Public HTTP services are exposed on `${http.port}` and `${https.port}.` Internal HTTP services are exposed on ports 8091/8092.
+|===
+
+In certain situations, you may want to know an application’s internal IPs:
+
+* When communicating with the worker directly within the customer's VPC without sending data over the public internet
+* When you wish to setup your own load balancer (see below)
+
+These IP addresses can be accessed through the `mule-worker-internal-myapp.cloudhub.io` record, from within the customer's VPC. If you access the workers directly, any load distribution benefits from the CloudHub load balancing layer are lost.
+
+== Firewall Rules and Port Access
+
+The only two ports exposed externally are `${http.port}` and `${https.port}` . If you wish to access other ports, you can do so through a VPC.
+
+If you wish to expose HTTP services only inside a VPC, these services can be exposed on ports 8091 and 8092, which are open by default on the internal network. In this case, these services will not be accessible on the public IPs or the load-balancer, ensuring that they will be accessed securely.
+
+Additional ports can be open inside the VPC, for example, for JMX based monitoring. To do this, please file a support ticket with the requested ports you would like to be opened.
+
+== IP Ranges and Static IPs
+
+As CloudHub deploys on Amazon EC2, IP addresses are chosen from the Amazon EC2 IP pool. For a list of these ranges, please consult http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html[their documentation] .
+
+CloudHub supports allocating a static IP for applications so that they can be whitelisted for other services. To enable a static IP for your application, please request one via the http://www.mulesoft.org/documentation/display/current/Community+and+Support#CommunityandSupport-Support[support portal] .  Once a static IP has been allocated for your application, it will be visible under the application deployment tab.
+
+Static IPs are not supported for private IP addresses inside a VPC.
+
+[WARNING]
+If your application is deleted, the static IP is lost and you must request a new one.
+
+See the http://www.mulesoft.org/documentation/display/current/FAQ#FAQ-Technical/Troubleshooting[Cloudhub FAQs] for more things to consider when assigning Static IPs
+
+== Regional Services
+
+Depending on what region you deploy your application in, the DNS record and the load balancer for your integration may change. The following table summarizes what DNS record are available for your application for each region:
+
+[width="100a",cols="50a,50a",options="header"]
+|===
+|DNS Record |Regions
+|*myapp.cloudhub.io* |
+US West, US East
+
+All other regions
+
+|*myapp.eu.cloudhub.io* |Europe
+|*myapp.au.cloudhub.io* |
+Singapore
+
+Australia
+
+|===
+
+Deploying to a region also affects your internal and external worker DNS address. For example, if you deploy in Europe, the DNS records for internal and external IPs are *mule-worker-myapp.eu.cloudhub.io* and **mule-worker-internal-myapp.eu.cloudhub.io**.
+
+== Custom Load Balancing Configurations
+
+Under certain circumstances you may want to set up a custom load balancing layer for your Mule workers. For example, if you want to provide a custom domain name or SSL certificates.
+
+Traffic can be routed from your load balancer to CloudHub workers through the internal or external DNS record for your workers. This record contains an IP address for every worker in the application. Your load balancer must support dynamic DNS resolution for this approach to work. It is recommended that you set your DNS timeout to between 20-60 seconds so that any DNS changes are propagated quickly and minimize impact.
+
+Zero downtime deploys are not fully supported in this situation. If you set your DNS timeout low enough, you should not notice any interruptions in services while updating workers. However, since CloudHub is not aware of your load balancer setup, it cannot check to see if the DNS record has been updated and if requests are being propagated correctly. This means there is a small window where it is theoretically possible for service to be interrupted.

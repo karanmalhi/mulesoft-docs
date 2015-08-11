@@ -1,0 +1,260 @@
+= Installing the Trial Version of MMC
+
+MuleSoft offers a http://www.mulesoft.com/management-console-mule-esb[trial version of the Mule Management Console] for evaluation. The trial version is limited in some functionality and is not appropriate for production deployments. For information about installing the production version of MMC, please refer instead to link:/docs/display/35X/Installing+the+Production+Version+of+MMC[Installing the Production Version of MMC]. 
+
+== Assumptions
+
+This document assumes that you have downloaded the current version of MuleSoft's http://www.mulesoft.com/management-console-mule-esb[bundled runtime download] – ESB with Mule Management Console (MMC). (For information about installing the production version of MMC, please refer instead to link:/docs/display/35X/Installing+the+Production+Version+of+MMC[Installing the Production Version of MMC].)
+
+== Downloading the Trial Version of MMC
+
+. Go to http://www.mulesoft.com/management-console-mule-esb, then click *Download*.
+. Fill out the registration form.
+. On the Enterprise trial page, click the appropriate button to download the Runtime bundle for your operating system.
+
+image:/docs/download/attachments/122750976/muleesb35trial.png?version=1&modificationDate=1421450361504[image]
+
+. Extract the file. The file will expand to a directory containing the files and subdirectories listed below.
+
+`mmc.3.5.0`
+`mule-enterprise-3.5.0`
+`shutdown.bat`
+`shutdown.sh`
+`startup.bat`
+`startup.sh`
+`status.sh`
+
+The first two are directories; the rest are scripts that perform functions that are specified in their filenames.
+
+. To start MMC and Mule ESB, follow these steps:
+
+.. Open a terminal, then `cd` to the unzipped directory where the scripts reside.
+.. Launch the startup script appropriate for your operating system: `startup.sh` for Unix, Mac or Linux; and `startup.bat` for Windows.
+
+[source]
+----
+cd mmc-distribution-mule-console-bundle-<version>
+./startup.sh
+----
+
+[WARNING]
+Always run the scripts from the directory they reside on. The scripts contain relative paths and will not work properly if you run them from another directory.
+
+[TIP]
+You can also launch the Unix startup scripts with custom parameters, such as special listening ports. For details, see link:#InstallingtheTrialVersionofMMC-params[Script Parameters] below. The Windows script will automatically use port 8585 for Tomcat and 7777 for Mule.
+
+. If on Unix, the startup script will prompt you for the listening port for Mule ESB. Enter the desired port, or press Enter to accept the default, 7777. On Windows, the startup script does not prompt you for the Mule port, since it always uses the default, 7777.
+
+. The startup script will launch an embedded Tomcat server (listening on port 8585 by default) and deploy MMC to it. Then, it will start Mule ESB. During startup, your terminal console will fill with startup messages. After startup is complete, the script will finish and you will regain your terminal prompt. The last few messages indicate successful startup.
+
+[source]
+----
+$ ./startup.sh
+Please enter the desired port for Mule [Default 7777]:
+ 
+Starting MMC, please wait...
+ 
+Tomcat started.
+Apr 22, 2014 1:56:21 PM org.apache.catalina.core.AprLifecycleListener init
+INFO: The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: /usr/lib/jvm/java-6-openjdk-amd64/jre/lib/amd64/server:/usr/lib/jvm/java-6-openjdk-amd64/jre/lib/amd64:/usr/lib/jvm/java-6-openjdk-amd64/jre/../lib/amd64:/usr/java/packages/lib/amd64:/usr/lib/jni:/lib:/usr/lib
+Apr 22, 2014 1:56:22 PM org.apache.coyote.AbstractProtocol init
+INFO: Initializing ProtocolHandler ["http-bio-8585"]
+Apr 22, 2014 1:56:22 PM org.apache.coyote.AbstractProtocol init
+...
+INFO  2014-04-22 13:58:05,654 [WrapperListener_start_runner] org.eclipse.jetty.server.AbstractConnector: Started SelectChannelConnector@0.0.0.0:7777
+INFO  2014-04-22 13:58:05,657 [WrapperListener_start_runner] com.mulesoft.mmc.agent.AgentCoreExtension: Mule Agent Core Extension listening on (0.0.0.0:7777)
+INFO  2014-04-22 13:58:05,699 [WrapperListener_start_runner] org.mule.module.launcher.ArchiveDeployer: ================== New Exploded Artifact: default
+INFO  2014-04-22 13:58:05,819 [WrapperListener_start_runner] org.mule.module.launcher.application.DefaultMuleApplication:
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ New app 'default'                                        +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+./startup.sh: line 135: 23319 Terminated              tail -f logs/catalina.out  (wd: ~/mule.installations/mmc-distribution-mule-console-bundle-3.5.0-SNAPSHOT/mmc-3.5.0-SNAPSHOT/apache-tomcat-7.0.52)
+./startup.sh: line 135: 23470 Terminated              tail -f mule-enterprise-3.5.0-M4/logs/mule_ee.log
+ 
+Mule Started
+Mule running as PID=23911
+Tomcat and MMC running as PID=23332
+Finished starting Mule and MMC. Please go to http://localhost:8585/mmc-3.5.0
+----
+
+. At this point, Mule ESB and MMC are up and running. To log in to MMC, open a Web browser and go to the URL indicated in the last line of the startup messages. In the example shown above, this would be `http://localhost:8585/mmc-3.5.0`.
+. You will be greeted by the MMC welcome screen, shown below. Log in with username `admin`, password `admin`.
+
+image:/docs/download/attachments/122750976/mmc_welcome_screen.png?version=1&modificationDate=1421450361768[image]
+
+
+. Congratulations, you've installed and launched the Mule Management Console! See the links in the link:#InstallingtheTrialVersionofMMC-GoFurther[Go Further] section to learn more about MMC.
+
+image:/docs/download/attachments/122750976/MMC-landingpage.png?version=1&modificationDate=1421450362987[image]
+
+[CAUTION]
+Do not move the startup, shutdown and status scripts from their original location. They contain references to relative paths and will not work if you move them.
+
+== Obtaining Help
+
+The startup, shutdown and status scripts accept several parameters. For a listing of these parameters, run the desired script from the command line with the `-h` (or `--help`) option. For example, `./startup.sh -h`.
+
+For details on script parameters, see the link:#InstallingtheTrialVersionofMMC-params[Script Parameters] section below.
+
+== Script Parameters
+
+=== Common Parameters
+
+The help parameter is common to all of the scripts.
+
+[width="10a",cols=",50a"50a,options="header"]
+|===
+|Parameter |Description
+|`-h` or `--help` |Provide a help message, then exit.
+|===
+
+=== Unix Scripts
+
+==== `startup.sh`
+
+Launches an instance of Mule Enterprise and an instance of MMC inside a Tomcat app server; then pairs Mule and MMC automatically.
+
+[width="90a",cols="33a,33a,33a",options="header"]
+|===
+|Parameter |Description |Example
+|`-port <port>`
+`--port <port>`
+|Set the port for Mule ESB. If not specified, the script requests to confirm the default port, 7777. |
+`./startup.sh -p 5154`
+`./startup.sh --port 5154`
+|===
+
+==== Sample Output (partial)
+
+[source]
+----
+$ ./startup.sh
+Please enter the de sired port for Mule [Default 7777]:
+ 
+Starting MMC, please wait...
+ 
+Tomcat started.
+Apr 22, 2014 1:56:21 PM org.apache.catalina.core.AprLifecycleListener init
+INFO: The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: /usr/lib/jvm/java-6-openjdk-amd64/jre/lib/amd64/server:/usr/lib/jvm/java-6-openjdk-amd64/jre/lib/amd64:/usr/lib/jvm/java-6-openjdk-amd64/jre/../lib/amd64:/usr/java/packages/lib/amd64:/usr/lib/jni:/lib:/usr/lib
+Apr 22, 2014 1:56:22 PM org.apache.coyote.AbstractProtocol init
+INFO: Initializing ProtocolHandler ["http-bio-8585"]
+Apr 22, 2014 1:56:22 PM org.apache.coyote.AbstractProtocol init
+...
+INFO  2014-04-22 13:58:05,654 [WrapperListener_start_runner] org.eclipse.jetty.server.AbstractConnector: Started SelectChannelConnector@0.0.0.0:7777
+INFO  2014-04-22 13:58:05,657 [WrapperListener_start_runner] com.mulesoft.mmc.agent.AgentCoreExtension: Mule Agent Core Extension listening on (0.0.0.0:7777)
+INFO  2014-04-22 13:58:05,699 [WrapperListener_start_runner] org.mule.module.launcher.ArchiveDeployer: ================== New Exploded Artifact: default
+INFO  2014-04-22 13:58:05,819 [WrapperListener_start_runner] org.mule.module.launcher.application.DefaultMuleApplication:
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ New app 'default'                                        +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+./startup.sh: line 135: 23319 Terminated              tail -f logs/catalina.out  (wd: ~/mule.installations/mmc-distribution-mule-console-bundle-3.5.0-SNAPSHOT/mmc-3.5.0-SNAPSHOT/apache-tomcat-7.0.52)
+./startup.sh: line 135: 23470 Terminated              tail -f mule-enterprise-3.5.0-M4/logs/mule_ee.log
+ 
+Mule Started
+Mule running as PID=23911
+Tomcat and MMC running as PID=23332
+Finished starting Mule and MMC. Please go to http://localhost:8585/mmc-3.5.0
+----
+
+==== `shutdown.sh`
+
+Shuts down any instances of Mule and/or MMC running on Tomcat.
+
+[width="90a",cols="33a,33a,33a",options="header"]
+|===
+|Parameter |Description |Example
+|`--components <mule>,<mmc>` |
+Specify which component(s) to shut down. Valid options are `mule` and `mmc`. If not specified, the script prompts you with the following options:
+
+. Shut down Mule and MMC (default)
+. Shut down MMC only
+. Shut down Mule only
+
+|
+`./shutdown.sh --components mmc`
+
+`./shutdown.sh --components mmc,mule`
+|===
+
+===== Sample Output
+
+[source]
+----
+$ ./shutdown.sh
+Please choose what to do [1/2/3]:
+1) Shut down Mule and MMC [Default]
+2) Shut down MMC only
+3) Shut down Mule only
+1
+Shutting down MMC and stoping Mule, please wait...
+Shutting down MMC...
+ 
+Using CATALINA_BASE:   /home/pedro/mule.installations/mmc-distribution-mule-console-bundle-3.5.0-SNAPSHOT/mmc-3.5.0-SNAPSHOT/apache-tomcat-7.0.52
+Using CATALINA_HOME:   /home/pedro/mule.installations/mmc-distribution-mule-console-bundle-3.5.0-SNAPSHOT/mmc-3.5.0-SNAPSHOT/apache-tomcat-7.0.52
+Using CATALINA_TMPDIR: /home/pedro/mule.installations/mmc-distribution-mule-console-bundle-3.5.0-SNAPSHOT/mmc-3.5.0-SNAPSHOT/apache-tomcat-7.0.52/temp
+Using JRE_HOME:        /usr
+Using CLASSPATH:       /home/pedro/mule.installations/mmc-distribution-mule-console-bundle-3.5.0-SNAPSHOT/mmc-3.5.0-SNAPSHOT/apache-tomcat-7.0.52/bin/bootstrap.jar:/home/pedro/mule.installations/mmc-distribution-mule-console-bundle-3.5.0-SNAPSHOT/mmc-3.5.0-SNAPSHOT/apache-tomcat-7.0.52/bin/tomcat-juli.jar
+MULE_HOME is set to /mnt/sdb/home/pedro/mule.installations/mmc-distribution-mule-console-bundle-3.5.0-SNAPSHOT/mule-enterprise-3.5.0-M4
+Stopping Mule Enterprise Edition...
+Waiting for Mule Enterprise Edition to exit...
+Waiting for Mule Enterprise Edition to exit...
+Stopped Mule Enterprise Edition.
+----
+
+==== `status.sh`
+
+Shows whether Mule or MMC are running, and lists their PIDs if appropriate.
+
+This script has no options other than the `-h` or `--help` option.
+
+===== Sample Output
+
+[source]
+----
+$ ./status.sh
+MMC is running as PID=23332.
+Mule Enterprise Edition is running as PID=23911.
+----
+
+=== Windows Scripts
+
+[NOTE]
+The `status` script is not available for Windows.
+
+==== `startup.bat`
+
+Launches an instance of Mule Enterprise and an instance of MMC inside a Tomcat app server; then pairs Mule and MMC automatically. This script has no options other than the `-h` or `--help` option.
+
+By default, the script uses port 7777 for Mule and 8585 for Tomcat. Before launching, the script checks to see that these ports are not in use. If the ports are being used, the script exits with an error message.
+
+==== `shutdown.bat`
+
+Shuts down any instances of Mule and/or MMC running on Tomcat.
+
+[width="90a",cols="33a,33a,33a",options="header"]
+|===
+|Parameter |Description |Example
+|`--components <mule>,<mmc>` a|
+Specify which component(s) to shut down. Valid options are `mule` and `mmc`. If not specified, the script prompts you with the following options:
+
+. Shut down Mule and MMC (default)
+. Shut down MMC only
+. Shut down Mule only
+
+ a|
+`shutdown.bat --components mmc`
+
+`shutdown.bat --components mmc,mule`
+|===
+
+== Message Logging
+
+The messages output by the startup and shutdown scripts are replicated and stored in logs:
+
+* For Tomcat and MMC: `<INSTALL_DIR>/mmc-3.5.0/apache-tomcat-7.0.5/logs`
+* For Mule ESB: `<INSTALL_DIR>/mule-enterprise-3.5.0/logs`
+
+== See Also
+
+* Get familiar with the link:/docs/display/35X/Orientation+to+the+Console[MMC console]
+* Learn the basics of using MMC with the link:/docs/display/35X/MMC+Walkthrough[MMC Walkthrough]

@@ -1,52 +1,13 @@
 = Enabling LDAP Authentication
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/check.png[image] |This page applies to version 3.3 of the Mule Management Console, which we refer to throughout the document as “the console”, or "the Mule console". For information on enabling LDAP on version 3.2.x of the console, click http://www.mulesoft.org/documentation-3.2/display/mmc/Enabling+Authentication+Through+LDAP[here].
+[TIP]
+This page applies to version 3.3 of the Mule Management Console, which we refer to throughout the document as “the console”, or "the Mule console". For information on enabling LDAP on version 3.2.x of the console, click http://www.mulesoft.org/documentation-3.2/display/mmc/Enabling+Authentication+Through+LDAP[here].
 
-|===
+[NOTE]
+The Mule Management Console provides REST APIs for link:/docs/display/33X/Using+the+Management+Console+API[programmatic access to much of the console’s functionality], including cluster management, applications, flows and deployments. You can also use the REST API to configure link:/docs/display/33X/Using+the+Management+Console+API[automated replication of LDAP user groups].
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |The Mule Management Console provides REST APIs for link:/docs/display/33X/Using+the+Management+Console+API[programmatic access to much of the console’s functionality], including cluster management, applications, flows and deployments. You can also use the REST API to configure link:/docs/display/33X/Using+the+Management+Console+API[automated replication of LDAP user groups].
-
-|===
-
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/warning.png[image] |The Lightweight Directory Access Protocol (LDAP), is a public standard that facilitates distributed directories (such as network user privilege information) over the Internet Protocol (IP). The many available LDAP servers include free-use open source projects. The particulars of installing, running and configuring LDAP servers fall outside the scope of this document; however, this document does provide an example of a simple LDAP configuration, including basic instructions for installing and running an LDAP server on a Linux system.
-
-|===
-
- Table of Contents
-
-link:#EnablingLDAPAuthentication-EnablingLDAPAuthentication[Enabling LDAP Authentication]
-
-link:#EnablingLDAPAuthentication-Overview[Overview]
-
-link:#EnablingLDAPAuthentication-ObtainLDAPparameters[Obtain LDAP parameters]
-
-link:#EnablingLDAPAuthentication-SetupusersandgroupsonLDAP[Set up users and groups on LDAP]
-
-link:#EnablingLDAPAuthentication-EnablingLDAPontheconsole[Enabling LDAP on the console]
-
-* link:#EnablingLDAPAuthentication-EnablingtheLDAPSpringProfile[Enabling the LDAP Spring Profile]
-* link:#EnablingLDAPAuthentication-CreatingtheLDAPConfigurationFile[Creating the LDAP Configuration File]
-
-link:#EnablingLDAPAuthentication-ImplementingtheSetup[Implementing the Setup]
-
-* #EnablingLDAPAuthentication-MethodOne:AuthenticatingConsoleUsers[Method One: Authenticating Console Users]
-* #EnablingLDAPAuthentication-MethodTwo:AuthenticatingConsoleUsers[Method Two: Authenticating Console Users]
-
-#EnablingLDAPAuthentication-ExampleExample:ASimpleLDAPSetup[Example: A Simple LDAP Setup]
-
-* link:#EnablingLDAPAuthentication-TheEnvironment[The Environment]
-* link:#EnablingLDAPAuthentication-DownloadinginstallingOpenLDAPDownloadingandinstallingtheOpenLDAPserver[Downloading and installing the OpenLDAP server]
-* link:#EnablingLDAPAuthentication-DownloadingandinstallingtheApacheDirectoryStudioLDAPbrowserDownloadingandinstallingtheApacheDirectoryStudioLDAPbrowser[Downloading and installing the Apache Directory Studio LDAP browser]
-* link:#EnablingLDAPAuthentication-NetworkConfiguration[Network Configuration]
-* link:#EnablingLDAPAuthentication-ConfiguringtheLDAPServerConfiguringtheLDAPServer[Configuring the LDAP Server]
-* #EnablingLDAPAuthentication-PopulatingtheLDAPdatabasebyimportinganLDIFfileAlternativeMethodofPopulatingtheLDAPDatabase:ImportinganLDIFfile[Alternative Method of Populating the LDAP Database: Importing an LDIF file]
-* link:#EnablingLDAPAuthentication-BasicLoggingofLDAPEvents[Basic Logging of LDAP Events]
+[WARNING]
+The Lightweight Directory Access Protocol (LDAP), is a public standard that facilitates distributed directories (such as network user privilege information) over the Internet Protocol (IP). The many available LDAP servers include free-use open source projects. The particulars of installing, running and configuring LDAP servers fall outside the scope of this document; however, this document does provide an example of a simple LDAP configuration, including basic instructions for installing and running an LDAP server on a Linux system.
 
 == Overview
 
@@ -54,7 +15,7 @@ You can configure a Mule console to leverage an LDAP server for user authenticat
 
 The following table lists user and group information, specifying where it is stored and managed:
 
-[width="100%",cols="50%,50%",options="header",]
+[width="100a",cols="50a,50a",options="header"]
 |===
 |Information |Management and Storage
 |User names and passwords |LDAP database
@@ -93,7 +54,7 @@ User groups must be created on LDAP, and _also on the console_. As described lin
 
 The following table lists user- and group-related tasks, specifying whether they are performed on the console or the LDAP server (or both).
 
-[width="100%",cols="34%,33%,33%",options="header",]
+[width="100",cols="33,33,33",options="header"]
 |===
 |Description |Performed on the console |Performed on the LDAP server
 |Create users |  |X
@@ -124,12 +85,18 @@ Complete the following steps:
 . Navigate to the following directory: `<Mule install path>/apps/mmc/webapps/mmc/WEB-INF`
 . Locate the file `web.xml`. 
 . Open it with your favorite text editor, then locate the following line:
-+
+
+[source]
+----
+<param-name>spring.profiles.active</param-name>
+----
+
 . Modify the next line to include the LDAP Spring profile as a value: 
-+
-+
- +
- +
+
+[source]
+----
+<param-value>tracking-h2,ldap</param-value>
+----
 
 === Creating the LDAP Configuration File
 
@@ -137,18 +104,29 @@ Complete the following steps:
 
 . Navigate to the `classpath` directory: `<Mule install path>/apps/mmc/webapps/mmc/WEB-INF/classes`
 . Create a file called `mmc-ldap.properties`. This will be the LDAP configuration file.
-+
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |For Tomcat, the classpath directory is `/lib`.
 
-|===
+[NOTE]
+For Tomcat, the classpath directory is `/lib`.
 . Include in this configuration file all the required parameters, substituting the values specific to your environment into the listing below:
-+
+
+[source]
+----
+providerURL=ldap://192.168.1.14:389/
+userDn=cn=mmc,dc=company,dc=com
+password=mmcadmin
+usernameAttribute=uid
+userSearchBaseContext=ou=people,dc=company,dc=com
+userSearchFilterExpression=(uid={0})
+userSearchBase=ou=people,dc=company,dc=com
+userSearchAttributeKey=objectclass
+userSearchAttributeValue=person
+roleDn=ou=groups,dc=company,dc=com
+groupSearchFilter=(member={0})
+----
 
 The following table describes the properties set through the configuration file:
 
-[width="100%",cols="50%,50%",options="header",]
+[width="100a",cols="50a,50a",options="header"]
 |===
 |Property |Description
 |`providerURL` |URL, including listening port, of the LDAP server
@@ -177,6 +155,7 @@ You can configure user and group search parameters to suit the structure of the 
 
 The console automatically assigns full administrative privileges to any user belonging to the group `Administrators`, so on login, you have full administrative privileges on the console. You can then create other groups on the console and assign the desired permissions. You preform all further user configuration, such as adding/removing users from groups, on the LDAP server. After this, you may remove the `Administrators` group from the LDAP server if you desire.
 
+////
   Click for the above procedure in detail
 
 ==== Using the Console’s Administrator Role to Set Up Groups
@@ -204,6 +183,7 @@ image:/docs/download/attachments/87687457/Dashboard.jpg?version=1&modificationDa
 You can now create new groups, and modify the permissions of existing groups. To do so, click *Manage Users and Permissions* on the Dashboard, or click *Administration*, then *User Groups*.
 
 After creating/modifying groups to your desired configuration, you may remove the `Administrators` group from the LDAP server if desired.
+////
 
 === Method Two: Authenticating Console Users
 
@@ -252,17 +232,22 @@ The OpenLDAP server and the client programs are available in separate packages, 
 
 To install both packages, run the following command as root:
 
+[source]
+----
+apt-get install slapd ldap-utils
+----
+
+////
  Running commands as root on some Debian-based systems
 
-[cols=",",]
-|====
-|image:/docs/images/icons/emoticons/check.png[image] a|
-
+[TIP]
+====
 On some Debian-based systems such as Ubuntu or its derivatives, the usual procedure to run commands as root is to issue: `sudo <command>`
 
 Alternatively, you can become root by running (as a user properly authorized in the `/etc/sudoers` file) the following command: `sudo su -`
+====
 
-|====
+////
 
 Another way to install OpenLDAP is to use a package manager such as `synaptic`, which provides a graphical interface to the system's package database. `synaptic` is usually installed by default, and available on the system menu under *System* > *Synaptic Package Manager*. In `synaptic`, select the packages `slapd` and `ldap-utils`, then apply the changes.
 
@@ -272,13 +257,15 @@ Apache Directory Studio is a free and open source, Eclipse-based LDAP browser an
 
 Installing Apache Directory Studio is very simple — just uncompress and unpack the install file and run the program binary. Installation instructions for each supported platform can be found http://directory.apache.org/studio/static/users_guide/apache_directory_studio/download_install.html[here].
 
+////
  Uncompressing and unpacking gzipped tar files
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/check.png[image] |The Apache Studio installer file for linux is a gzipped tar file (`.tar.gz`). Most Linux file managers, such as `Nautilus` or `Thunar`, provide a way to uncompress and unpack these files using a graphical interface, usually by right-clicking the file and selecting *Open with Archive Manager* or a similar option. To decompress and unpack the file on the command line, navigate to the directory where the file was downloaded and run the following command: `tar zxvf <file>`
+[TIP]
+====
+The Apache Studio installer file for linux is a gzipped tar file (`.tar.gz`). Most Linux file managers, such as `Nautilus` or `Thunar`, provide a way to uncompress and unpack these files using a graphical interface, usually by right-clicking the file and selecting *Open with Archive Manager* or a similar option. To decompress and unpack the file on the command line, navigate to the directory where the file was downloaded and run the following command: `tar zxvf <file>`
+====
 
-|===
+////
 
 === Network Configuration
 
@@ -304,40 +291,67 @@ To verify that the `slapd` daemon is running, open a terminal and issue the foll
 
 If the daemon is running, the command will return something like the following:
 
+[source]
+----
+openldap  1172  0.0  0.1 256916  4840 ?        Ssl  11:39   0:00 /usr/sbin/slapd -h ldap:/// ldapi:/// -g openldap -u openldap -F /etc/ldap/slapd.d
+----
+
 When the above appears, stop the daemon by issuing the following command as root: `service slapd stop`
 
 Finally, verify that it has effectively stopped, by re-issuing the `ps aux` command.
 
 ==== Modifying slapd's default parameters file
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/check.png[image] |When you modify configuration files, you should backup the original file. For example, make a copy called `<file>.bak` or `<file>.orig` in the same directory.
-
-|===
-
+[TIP]
+When you modify configuration files, you should backup the original file. For example, make a copy called `<file>.bak` or `<file>.orig` in the same directory.
 After stopping the `slapd` daemon, open the file `/etc/default/slapd` with a text editor. Find and replace the following entries, as shown below:
 
-. Find the line that begins with `SLAPD_CONF`, and re-write it to read: `SLAPD_CONF=/etc/ldap/ldap.conf` +
- +
- This tells the `slapd` daemon to read its configuration from the system-wide LDAP configuration file, `/etc/ldap/ldap.conf`, which we will modify in the following step.
-. Find the line that begins with `SLAPD_PIDFILE`, and re-write it to read: `(SLAPD_PIDFILE=/var/run/slapd.pid` +
- +
- This tells the daemon to write the its *Process Identification Number* (PID) to the file `/var/run/slapd.pid`. The daemon will not start without this setting.
-. Find the line that begins with `SLAPD_SERVICES`, and re-write it to read: `SLAPD_SERVICES="ldap://0.0.0.0:389/"` +
- +
- This instructs the daemon to listen on port `389` (the default port) on all network interfaces.
+. Find the line that begins with `SLAPD_CONF`, and re-write it to read: `SLAPD_CONF=/etc/ldap/ldap.conf`
+This tells the `slapd` daemon to read its configuration from the system-wide LDAP configuration file, `/etc/ldap/ldap.conf`, which we will modify in the following step.
+. Find the line that begins with `SLAPD_PIDFILE`, and re-write it to read: `(SLAPD_PIDFILE=/var/run/slapd.pid`
+This tells the daemon to write the its *Process Identification Number* (PID) to the file `/var/run/slapd.pid`. The daemon will not start without this setting.
+. Find the line that begins with `SLAPD_SERVICES`, and re-write it to read: `SLAPD_SERVICES="ldap://0.0.0.0:389/"`
+
+This instructs the daemon to listen on port `389` (the default port) on all network interfaces.
 
 ==== Modify the System-wide LDAP Configuration File
 
 . Backup the contents of the file `/etc/ldap/ldap.conf`.
 . Replace the contents of the file with the contents listed below. (You will need to replace the contents of the `rootpw` field with your own password or hash.)
 
+[source]
+----
+#
+# LDAP Defaults
+#
+ 
+# See ldap.conf(5) for details
+# This file should be world readable but not world writable.
+ 
+loglevel 256
+ 
+include /etc/ldap/schema/core.schema
+include /etc/ldap/schema/cosine.schema
+include /etc/ldap/schema/inetorgperson.schema
+include /etc/ldap/schema/openldap.schema
+include /etc/ldap/schema/misc.schema
+include /etc/ldap/schema/collective.schema
+include /etc/ldap/schema/dyngroup.schema
+ 
+modulepath /usr/lib/ldap
+moduleload back_bdb.la
+ 
+database bdb
+suffix "dc=company,dc=com"
+rootdn "cn=Manager,dc=company,dc=com"
+rootpw {MD5}n2Hfn6TPhHfYzebqdqm1XA==
+----
+
 This is a basic configuration file with only one database, which we've setup for this example.
 
 The following table describes LDAP configuration file parameters:
 
-[width="100%",cols="50%,50%",options="header",]
+[width="100a",cols="50a,50a",options="header"]
 |===
 |Item |Description
 |`loglevel` |Specifies logging detail. Level 256 logs connection, operation and results statistics. On this system, by default `slapd` logs to `/var/log/syslog`.
@@ -349,12 +363,11 @@ The following table describes LDAP configuration file parameters:
 |`rootpw` |The password for the database root user. In this case, the file stores an MD5 hash of the password. Passwords can be stored in clear text, but this is a security risk since this configuration file is world-readable. Password hashes can be generated with the `slappasswd command`, as explained below.
 |===
 
+////
  How to generate a hash for the database root user password (optional)
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/check.png[image] a|
-
+[TIP]
+====
 As shown link:#EnablingLDAPAuthentication-System-wideLDAPconfigurationfile[above], the LDAP configuration file stores the user name and password for the root user of the database. The password can be stored in clear text; however, this constitutes a security risk, since the LDAP configuration file is world-readable. To generate a hash for the password, run the following command: `slappasswd -h <scheme> -s <secret>`
 
 `<scheme>` is an RFC 2307 scheme such as \{MD5}, \{CRYPT} or \{SSHA} (the default), and `<secret>` is the secret to hash. If invoked with no arguments, the command prompts for the secret and outputs the resulting \{SSHA} hash.
@@ -362,14 +375,42 @@ As shown link:#EnablingLDAPAuthentication-System-wideLDAPconfigurationfile[above
 The output of this command should be similar to the following: \{`MD5}Xr4ilOzQ4PCOq3aQ0qbuaQ==`
 
 This output can be copy-pasted into the LDAP configuration file for the `rootpw` field.
+====
 
-|===
+////
 
 ==== Test the LDAP server
 
 To test the LDAP server, open a connection to the server and perform a search. To do this, issue the following command:
 
+[source]
+----
+ldapsearch -x -b '' -s base '(objectclass=*)' namingContexts
+----
+
 For this example, the command should return the following output:
+
+[source]
+----
+# extended LDIF
+#
+# LDAPv3
+# base <> with scope baseObject
+# filter: (objectclass=*)
+# requesting: namingContexts
+#
+ 
+#
+dn:
+namingContexts: dc=company,dc=com
+ 
+# search result
+search: 2
+result: 0 Success
+ 
+# numResponses: 2
+# numEntries: 1
+----
 
 ==== Create LDAP database entries
 
@@ -377,17 +418,40 @@ At this point, the LDAP server is running and an empty database has been created
 
 Create a text file with the following text:
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] |It is essential to check spacing when working with LDIF files. Be sure to leave only one blank line between entries (and no spaces or tabs in blank lines), and no spaces or tabs at the beginning or end of any line of text.
+[source]
+----
+dn: dc=company,dc=com
+objectclass: dcObject
+objectclass: organization
+o: My Company
+dc: company
+ 
+dn: cn=Manager,dc=company,dc=com
+objectclass: organizationalRole
+cn: Manager
+----
 
-|===
+[IMPORTANT]
+It is essential to check spacing when working with LDIF files. Be sure to leave only one blank line between entries (and no spaces or tabs in blank lines), and no spaces or tabs at the beginning or end of any line of text.
 
 Now, create the initial database entries with the command:
+
+[source]
+----
+ldapadd -x -D "cn=Manager,dc=company,dc=com" -W -f <file>
+----
 
 The command will prompt you for the root user's password. Enter the password that you set in the system-wide LDAP configuration file.
 
 This command should return the following output:
+
+[source]
+----
+Enter LDAP Password:
+adding new entry "dc=company,dc=com"
+ 
+adding new entry "cn=Manager,dc=company,dc=com"
+----
 
 At this point, the database root user, with DN “cn=Manager,dc=company,dc=com”, has been defined.
 
@@ -398,7 +462,7 @@ We log in with this user in order to populate the database.
 There are two methods for populating the LDAP database: manually defining each database object by means of a graphical user interface, or writing an LDIF file with the database object definitions, then importing the file into LDAP. This example describes both methods:
 
 link:#EnablingLDAPAuthentication-PopulatingtheLDAPdatabaseusingaGUI[Populating the LDAP database using a GUI (Apache Studio)] +
- link:#EnablingLDAPAuthentication-PopulatingtheLDAPdatabasebyimportinganLDIFfile[Populating the LDAP database by importing an LDIF file]
+link:#EnablingLDAPAuthentication-PopulatingtheLDAPdatabasebyimportinganLDIFfile[Populating the LDAP database by importing an LDIF file]
 
 ===== Populating the LDAP database using a GUI (Apache Studio)
 
@@ -406,23 +470,35 @@ link:#EnablingLDAPAuthentication-PopulatingtheLDAPdatabaseusingaGUI[Populating t
 
 Navigate to the directory where you decompressed the Apache Studio gzipped tar file. Open a terminal window and type:
 
+[source]
+----
+cd <Apache Studio directory>
+----
+
 For example:
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/check.png[image] |When using the terminal, pressing the Tab key will usually auto-complete the folder and file names.
+[source]
+----
+cd ApacheDirectoryStudio-linux-x86_64-1.5.3.v20100330/
+----
 
-|===
+[TIP]
+When using the terminal, pressing the Tab key will usually auto-complete the folder and file names.
 
 Once in the directory, issue the following command:
+
+[source]
+----
+./ApacheDirectoryStudio
+----
 
 Apache Studio's Welcome screen (usually a blank screen) appears.
 
 In order to begin populating the database, you must first create a connection to the database, which you accomplish by completing the following steps:
 
-. Open the *LDAP* menu, then click on *New Connection*. The *Network Parameter* window pops up. +
- +
- image:/docs/download/attachments/87687457/1-conn.parameters.png?version=1&modificationDate=1339514009545[image]
+. Open the *LDAP* menu, then click on *New Connection*. The *Network Parameter* window pops up.
+
+image:/docs/download/attachments/87687457/1-conn.parameters.png?version=1&modificationDate=1339514009545[image]
 
 . Fill in the required fields:
 * *Connection name*: Specify any meaningful name. For this example, we use `local`.
@@ -431,19 +507,30 @@ In order to begin populating the database, you must first create a connection to
 * *Encryption method*: `No encryption`.
 . To test the connection, click on *Check Network Parameter*, then click *Next*.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/check.png[image] a|
-
+[TIP]
+====
 If you experience connection problems while trying to establish a connection to an LDAP server on a different host, issue a telnet command to port `389` on the LDAP host by running the following command: `telnet <host> <port>`
+====
 
 For example:
 
+[source]
+----
+telnet 192.168.1.14 389
+----
+
 If the connection is successful, output should resemble the following:
 
-On the other hand, a `Connection refused` error indicates that nothing is listening on the specified port. Any other result may indicate a network issue, such as a firewall between your machine and the LDAP host.
+[source]
+----
+syrah:~$ telnet 127.0.0.1 389
+Trying 127.0.0.1...
+Connected to 127.0.0.1.
+Escape character is '^]'.
+----
 
-|===
+On the other hand, a `Connection refused` error indicates that nothing is listening on the specified port. Any other result may indicate a network issue, such as a firewall between your machine and the LDAP host.
+====
 
 After setting network parameters, the wizard takes you to the *Authentication* window:
 
@@ -451,8 +538,8 @@ image:/docs/download/attachments/87687457/2-auth_user.png?version=1&modification
 
 Enter the required information:
 
-*Authentication Method*: `Simple authentication`. +
- *Bind DN or user*: The root user of the database, as defined on the LDAP configuration file and created with the LDIF import described above. In this case, **cn=Manager,dc=company,dc=com**. +
+*Authentication Method*: `Simple authentication`.
+ *Bind DN or user*: The root user of the database, as defined on the LDAP configuration file and created with the LDIF import described above. In this case, *cn=Manager,dc=company,dc=com*.
  *Bind password*: The password for the database root user, as defined on the LDAP configuration file.
 
 Click *Check Authentication* to verify authentication, then click *Finish*.
@@ -467,28 +554,27 @@ We create two organizational units (ou): *groups*, for storing group definitions
 
 . In the *LDAP Browser* pane, right-click the domain entry for the database, **dc=company,dc=com**.
 . On the pop-up menu, click *New*, then select *New Entry*.
-. In the *Entry Creation Method* window, click *Create entry from scratch*, then click *Next*. The wizard takes you to the *Object Classes* window: +
- +
- image:/docs/download/attachments/87687457/5-create_obj_wizard-ob_classes.png?version=1&modificationDate=1339514180322[image]
+. In the *Entry Creation Method* window, click *Create entry from scratch*, then click *Next*. The wizard takes you to the *Object Classes* window:
 
-. In the *Available object classes* input box, begin typing *OrganizationalUnit*. The search box automatically selects available objects that match your search. +
- +
- image:/docs/download/attachments/87687457/6-create_obj_wizard-ob_classes.png?version=1&modificationDate=1339514187128[image]
+image:/docs/download/attachments/87687457/5-create_obj_wizard-ob_classes.png?version=1&modificationDate=1339514180322[image]
+
+. In the *Available object classes* input box, begin typing *OrganizationalUnit*. The search box automatically selects available objects that match your search.
+
+image:/docs/download/attachments/87687457/6-create_obj_wizard-ob_classes.png?version=1&modificationDate=1339514187128[image]
 
 . Click *OrganizationalUnit*.
-. Click *Add*, then click *Next*. The next window is the *Distinguished Name* window: +
- +
- image:/docs/download/attachments/87687457/7-create_obj_wizard-DN.png?version=1&modificationDate=1339514192640[image]
+. Click *Add*, then click *Next*. The next window is the *Distinguished Name* window:
+
+image:/docs/download/attachments/87687457/7-create_obj_wizard-DN.png?version=1&modificationDate=1339514192640[image]
 
 . In the *RDN* field, enter *ou*, then press *Enter*.
 . In the *=* field, enter *groups*. When you do so, the *DN Preview* window fills automatically with the *Distinguished Name* of the entry you are creating, in this case `ou=groups,dc=company,dc=com`.
-. Click *Next*. The wizard takes you to the *Attributes* pop-up window: +
- +
- image:/docs/download/attachments/87687457/8-create_obj_wizard-attrs.png?version=1&modificationDate=1339514197234[image] +
+. Click *Next*. The wizard takes you to the *Attributes* pop-up window:
 
- +
- The window displays the list of attributes of the object just created.
-.Click *Finish* to write the changes to the LDAP database. An object of type OrganizationalUnit called `groups`, with DN `ou=groups,dc=company,dc=com`, is created, and it appears in the *LDAP Browser* pane.
+image:/docs/download/attachments/87687457/8-create_obj_wizard-attrs.png?version=1&modificationDate=1339514197234[image]
+
+The window displays the list of attributes of the object just created.
+. Click *Finish* to write the changes to the LDAP database. An object of type OrganizationalUnit called `groups`, with DN `ou=groups,dc=company,dc=com`, is created, and it appears in the *LDAP Browser* pane.
 
 Repeat the above process, creating a new OrganizationalUnit object called *people*.
 
@@ -496,7 +582,7 @@ Repeat the above process, creating a new OrganizationalUnit object called *peopl
 
 At this point, the LDAP database contains the root user plus two empty organizational units called `groups` and `people`. We next create the entries for three users, all under the `people` organizational unit.
 
-[width="100%",cols="50%,50%",options="header",]
+[width="100a",cols="50a,50a",options="header"]
 |===
 |User |User's function in this configuration
 |mmc |Allow the console to authenticate _itself_ on LDAP, to gain read access to the database. The credentials for this user are stored in the console's LDAP configuration file, `mmc-ldap.properties`.
@@ -524,21 +610,21 @@ The `mmc` user has been created with the following attributes:
 
 You must add two more attributes:
 
-uid: `mmc` +
- userPassword: `mmc123`
+uid: `mmc`
+userPassword: `mmc123`
 
-. To add these attributes, click the *New Attribute* icon (highlighted below). +
- +
- image:/docs/download/attachments/87687457/9-create_obj_wizard-user_attrs.png?version=1&modificationDate=1339514202128[image]
+. To add these attributes, click the *New Attribute* icon (highlighted below).
+
+image:/docs/download/attachments/87687457/9-create_obj_wizard-user_attrs.png?version=1&modificationDate=1339514202128[image]
 
 . In the *Attribute Type* window input box, type `uid` (or select *uid* from the drop-down menu by clicking the arrow to the right of the input box).
 . Click *Next*, then *Finish*.
 . Type *mmc*, then press *Enter*.
 . Click on the *New Attribute* icon again, then type or select *userPassword*.
 . Click *Next*.
-. In the *Options* window, click *Finish*. +
- +
- image:/docs/download/attachments/87687457/10-create_obj_wizard-user_pass.png?version=1&modificationDate=1339514208811[image]
+. In the *Options* window, click *Finish*.
+
+image:/docs/download/attachments/87687457/10-create_obj_wizard-user_pass.png?version=1&modificationDate=1339514208811[image]
 
 . When prompted for the new password, type *mmc123* (or another password of your choice; you will have to specify this same password in the console's `mmc-ldap.properties` file) in the *Enter New Password* field.
 . In the *Select Hash Method* menu, select *Plaintext*, then click *OK*.
@@ -567,6 +653,11 @@ As you can see, group membership is not stored with the user's definition, but w
 
 When a user logs in to the console, the console first asks the LDAP server to verify the user name and password, and then requests a list of the groups that the user belongs to. The parameters for this search are defined in the following line on the `mmc-ldap.properties` file:
 
+[source]
+----
+groupSearchFilter=(member={0})
+----
+
 ===== Creating and defining a test user and group
 
 Following the procedures outlined above, create a user called *testuser1* and a group called *testgroup*, with `testuser1` as member of the group.
@@ -574,6 +665,20 @@ Following the procedures outlined above, create a user called *testuser1* and a 
 ==== Configure the console for LDAP
 
 Follow the procedure outlined link:#EnablingLDAPAuthentication-EnablingLDAPontheconsole[above] to Enable LDAP on the console. For this example, the contents of the `mmc-ldap.properties` file are as follows:
+
+[source]
+----
+providerURL=ldap://127.0.0.1:389/
+userDn=cn=mmc,ou=people,dc=company,dc=com
+password=mmc123
+userSearchBaseContext=ou=people,dc=company,dc=com
+userSearchFilterExpression=(uid={0})
+userSearchBase=ou=people,dc=company,dc=com
+userSearchAttributeKey=objectclass
+userSearchAttributeValue=person
+roleDn=ou=groups,dc=company,dc=com
+groupSearchFilter=(member={0})
+----
 
 ===== Test console logins
 
@@ -587,18 +692,18 @@ Create a group called *testgroup*:
 
 . Navigate to the *Manage* pane on the left-hand side of the screen.
 . Click *User Groups*.
-. Click *New*on the right hand of the screen, then enter:
+. Click *New* on the right hand of the screen, then enter:
 * group *Name*
 * *Description* (if desired)
 * set the permissions.
 
 For this test group, set the following permissions:
 
-*Applications - View* +
- *Deployments - View* +
- *Flows - View* +
- *Tracking - View* +
- *Files - View* +
+*Applications - View*
+ *Deployments - View*
+ *Flows - View*
+ *Tracking - View*
+ *Files - View* 
  *Servers - View*
 
 *Server Group Permissions*: All
@@ -611,11 +716,8 @@ image:/docs/download/attachments/87687457/13-mmc-limited_dashboard.png?version=1
 
 You can create new users and groups on LDAP and assign members to the groups. Then, on the console, set the desired permissions for each group. You can then remove the `Administrators` group from LDAP, if desired.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/warning.png[image] |After modifying the LDAP database, restart the console to allow it to re-read the contents of the LDAP database.
-
-|===
+[WARNING]
+After modifying the LDAP database, restart the console to allow it to re-read the contents of the LDAP database.
 
 === Alternative Method of Populating the LDAP Database: Importing an LDIF file
 
@@ -623,12 +725,100 @@ To automatically create database objects in LDAP, you first define the objects i
 
 Below you will find the LDIF file for all of the database user and group objects created in this example. If you wish to automatically replicate this user and group configuration into your LDAP database, copy-paste the below code into a plain text file, then import the file with the command:
 
+[source]
+----
+ldapadd -x -D "cn=Manager,dc=company,dc=com" -W -f <file>
+----
+
 You may wish to modify the `userPassword` values before importing.
 
 LDIF file contents:
+
+[source]
+----
+dn: ou=groups,dc=company,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: groups
+ 
+dn: ou=people,dc=company,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: people
+ 
+dn: cn=Administrators,ou=groups,dc=company,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: Administrators
+member: cn=admin,ou=people,dc=company,dc=com
+ 
+dn: cn=admin,ou=people,dc=company,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
+cn: admin
+sn: admin
+uid: admin
+userPassword: mmcadmin
+ 
+dn: cn=Developers,ou=groups,dc=company,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: Developers
+member: cn=admin,ou=people,dc=company,dc=com
+ 
+dn: cn=testuser1,ou=people,dc=company,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
+cn: testuser1
+sn: testuser1
+uid: testuser1
+userPassword: testuser1123
+ 
+dn: cn=testgroup,ou=groups,dc=company,dc=com
+objectClass: groupOfNames
+objectClass: top
+cn: testgroup
+member: cn=testuser1,ou=people,dc=company,dc=com
+ 
+dn: cn=mmc,ou=people,dc=company,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
+cn: mmc
+sn: mmc
+uid: mmc
+userPassword: mmc123
+----
 
 === Basic Logging of LDAP Events
 
 By default, the LDAP server logs events to `/var/log/syslog`. In case of authentication issues, check this log for details.
 
 Below is an extract of the log, showing events logged by `slapd` when a user logs into the console. There are two `BIND` operations (user authentications) to the LDAP server; the first occurs when the console starts and authenticates itself (See: the second and third lines in the extract below). After establishing the context base for searching, LDAP searches for `user admin`, authenticates the user, then searches for the groups the user belongs to.
+
+[source]
+----
+Jun  6 17:02:21 syrah slapd[1099]: conn=1007 fd=15 ACCEPT from IP=127.0.0.1:34467 (IP=0.0.0.0:389)
+Jun  6 17:02:21 syrah slapd[1099]: conn=1007 op=0 BIND dn="cn=mmc,ou=people,dc=company,dc=com" method=128
+Jun  6 17:02:21 syrah slapd[1099]: conn=1007 op=0 BIND dn="cn=mmc,ou=people,dc=company,dc=com" mech=SIMPLE ssf=0
+Jun  6 17:02:21 syrah slapd[1099]: conn=1007 op=0 RESULT tag=97 err=0 text=
+Jun  6 17:02:21 syrah slapd[1099]: conn=1007 op=1 SRCH base="ou=people,dc=company,dc=com" scope=2 deref=3 filter="(uid=admin)"
+Jun  6 17:02:21 syrah slapd[1099]: <= bdb_equality_candidates: (objectClass) not indexed
+Jun  6 17:02:21 syrah slapd[1099]: <= bdb_equality_candidates: (uid) not indexed
+Jun  6 17:02:21 syrah slapd[1099]: conn=1007 op=1 SEARCH RESULT tag=101 err=0 nentries=1 text=
+Jun  6 17:02:21 syrah slapd[1099]: conn=1008 fd=16 ACCEPT from IP=127.0.0.1:34468 (IP=0.0.0.0:389)
+Jun  6 17:02:21 syrah slapd[1099]: conn=1008 op=0 BIND dn="cn=admin,ou=people,dc=company,dc=com" method=128
+Jun  6 17:02:21 syrah slapd[1099]: conn=1008 op=0 BIND dn="cn=admin,ou=people,dc=company,dc=com" mech=SIMPLE ssf=0
+Jun  6 17:02:21 syrah slapd[1099]: conn=1008 op=0 RESULT tag=97 err=0 text=
+Jun  6 17:02:21 syrah slapd[1099]: conn=1008 op=1 SRCH base="cn=admin,ou=people,dc=company,dc=com" scope=0 deref=3 filter="(objectClass=*)"
+Jun  6 17:02:21 syrah slapd[1099]: conn=1008 op=1 SEARCH RESULT tag=101 err=0 nentries=1 text=
+Jun  6 17:02:21 syrah slapd[1099]: conn=1008 op=2 UNBIND
+Jun  6 17:02:21 syrah slapd[1099]: conn=1008 fd=16 closed
+Jun  6 17:02:21 syrah slapd[1099]: conn=1007 op=2 SRCH base="ou=groups,dc=company,dc=com" scope=2 deref=3 filter="(member=cn=admin,ou=people,dc=company,dc=com)"
+Jun  6 17:02:21 syrah slapd[1099]: conn=1007 op=2 SRCH attr=cn objectClass javaSerializedData javaClassName javaFactory javaCodeBase javaReferenceAddress javaClassNames javaRemoteLocation
+----

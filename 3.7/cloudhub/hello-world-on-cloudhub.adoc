@@ -1,0 +1,150 @@
+
+= Hello World on CloudHub
+
+This Hello World tutorial helps you come up to speed quickly with CloudHub. It introduces both CloudHub and Anypoint™ Studio, the free development tool. You can see how easy it is to build your first project, create an Anypoint Platform organization for CloudHub, and then deploy your project to the cloud. Be sure to first take a look at link:/docs/display/current/CloudHub+at+a+Glance[CloudHub at a Glance] – a brief guide that introduces some of the basic CloudHub and Anypoint Studio concepts.
+
+Completing this tutorial should take about 20 minutes. You can accomplish the following:
+
+* Download and install Anypoint Studio
+* Build a simple Hello World project
+* Create an Anypoint Platform organization for CloudHub
+* Upload, deploy, and run your project
+
+== Downloading and Installing Anypoint Studio
+
+You will need to install the latest version of Anypoint Studio, which you can download here: https://www.mulesoft.org/download-mule-esb-community-edition[Anypoint Studio Download]
+
+Once the download is complete, follow the operating-specific instructions shown on the download page to install Anypoint Studio.
+
+== Creating a New Anypoint Studio Project
+
+In the following steps, you build a simple Anypoint Studio project that creates a HTTP server within your project, and once deployed to CloudHub, echoes "Hello World" in a browser web page.
+
+1.  The first time you start Anypoint Studio, you see a Welcome page. If this is the case, you can simply click *Create a Project* to launch the new project wizard. +
+ 
+2.  If you had already launched Anypoint Studio and closed the Welcome page, you can launch the new project wizard by clicking on *File* > *New* > *Mule Project* from the Studio menus. +
+ +
+image:/docs/download/thumbnails/124879013/image2014-10-21+16%3A46%3A18.png?version=1&modificationDate=1426600224422[image] +
+ +
+3.  The new project wizard opens. In the Name field, type *`Basic Tutorial`* as the project name. Click **Finish**. +
+ +
+image:/docs/download/attachments/124879013/studio+to+cloudhub1.png?version=1&modificationDate=1426600224576[image] +
++
+
+[TIP]
+You can explore additional setup screens by clicking **Next**, but for most Anypoint Studio projects, you can accept all defaults by clicking on the *Finish* button.
+
+4.  After a few moments, the new Hello World project opens in the Package Explorer panel in Anypoint Studio. Note that the flows node is open and an empty canvas is provided for building your first flow.
++
+image:/docs/download/attachments/124879013/blank+canvas.png?version=1&modificationDate=1426600224087[image] +
++
+ 
+[TIP]
+This is the default Anypoint Studio configuration. It includes various panels, or views, that can be arranged, expanded, and minimized. The Package Explorer View is located to the left of the "canvas". The Palette is located to the right of the canvas, and include categories for Connectors, Scopes, Components, etc. Initially only the Connectors and Scope categories are open; you may wish to click on category titles to view the various components within the Palette. Some categories (such as Transformers and Filters) have many components. They are accessible by using the scroll bars within their category.
+
+== Building the Project
+
+Follow these steps to build the Mule flow using the canvas and the Palette containing message processors:
+
+1.  Locate the Connectors category in the Palette, scroll down or search for the *HTTP* connector, click it once, and drag it onto the canvas. Since this is the first building block you are assembling on the canvas, you can place it anywhere by releasing your mouse while hovering over the canvas. The building block automatically positions itself to the left of the canvas as the first item in the flow.
++
+
+[TIP]
+You can also click once on the HTTP building block in the Palette, release your mouse, and then click once in the canvas to place the endpoint. This is an alternative placement method to drag-and-drop.
++
+
+image:/docs/download/attachments/124879013/add+http.png?version=1&modificationDate=1426600223972[image] +
+ 
+2.  Next configure the HTTP Connector by accessing its configuration menus. Click the HTTP Connector that you just placed on the canvas. The console displays a properties editor. +
+ 
+3.  For this element to work, you must reference an abstract element called a **Connector Configuration**, which contains several of the high level necessary configuration properties. One single Connector Configuration element can be referenced by as many HTTP connectors as you like. Create a new Connector Configuration element by clicking the green plus sign next to the Connector Configuration field. +
+ +
+image:/docs/download/attachments/124879013/http1.png?version=1&modificationDate=1426600224379[image] +
+ 
+4.  A new window opens up. Fill in the two required fields: *Host* and **Port**. Set the *Host* to **0.0.0.0**. To allow CloudHub to dynamically allocate your application when it deploys, use a property placeholder for your port. In the General tab, change the value of **Port** to:   *`${http.port`}*
++
+[width="100%",cols="50%,50%",options="header",]
+|=======================================
+a|
+Field
+
+ a|
+Value
+
+|*Name* |*`HTTP_Listener_Configuration`*
+|*Host* |*`0.0.0.0`*
+|*Port* |*`${http.port`}*
+|=======================================
+5. Click *Ok* to close this dialogue. Notice how the Connector Configuration field now contains a reference to the element you just created. You can edit it further by clicking the `edit` icon. Leave the Path field as the default "`/`" value.
++
+[width="100%",cols="50%,50%",options="header",]
+|=========
+a|
+Field
+
+ a|
+Value
+
+|*Path* |/
+|=========
+6.  Because you've included a property placeholder in the Port field, set the value of that property in the `mule-app.properties` file before continuing. In your Package Explorer, open the node **src/main/app**, and double-click the `mule-app.properties` file to open it. Once there, type *`http.port=8081`* and save the file. Now CloudHub is able to read this property and dynamically allocate the port for your application when it deploys. For more information about property placeholders, see link:/docs/display/current/Configuring+Properties[Configuring Properties]. +
+ 
+7.  The application requires one more component in its flow: a Set Payload Transformer. Open the Transformers category in the Palette (by clicking on the category header). Scroll down or search for **Set Payload**, and then drag this transformer onto the canvas. Release it just to the right of the HTTP Endpoint as shown below. +
+ +
+image:/docs/download/attachments/124879013/add+set+payload.png?version=2&modificationDate=1433505527187[image] +
+ 
+8.  When you release your mouse, Anypoint Studio positions the Set Payload Transformer next to the HTTP Endpoint with a series of arrows. The arrows signify the direction of the "payload" messages within the flow. +
+ 
+9.  Now double-click the new Set Payload Transformer that you just placed on the canvas. This opens its configuration menu. Enter  *`Hello World`*  in the *Value* field. Click the save icon** **to apply your changes. +
+ +
+image:/docs/download/attachments/124879013/helloworldpayload.png?version=1&modificationDate=1426600224369[image] +
+ 
+10. Save your project by clicking **File** > **Save**.
+
+You have now built a working Mule application! Although a simple application, this demonstrates with only two components how Anypoint Studio leverages a wealth of technology with simple drag-and-drop placement.
+
+Next we create an Anypoint Platform organization for CloudHub, upload the project, and then deploy it.
+
+== Creating an Anypoint Platform Organization for CloudHub
+
+To deploy this application to CloudHub, you first need to create an organization in the Anypoint Platform. After you've created your account, you can use CloudHub for one month with a single resource unit, or "worker". If you need additional resources or would like to continue using CloudHub, you can sign up for a paid subscription.
+
+1.  Go to http://anypoint.mulesoft.com to create an organization if you do not already have one. Otherwise, sign in using your credentials for your existing Anypoint Platform account. +
+ 
+2.  Enter your information, choose a username and password, and click **Create account**. Your new organization is created along with a user account. The resulting user account automatically becomes the administrator for the organization.
+
+After you create your Anypoint Platform account, you are directed to the landing page that describes CloudHub and the Anypoint Platform for APIs. From the top menu, click the *CloudHub* link to go to the CloudHub dashboard.
+
+== Deploying and Running Your Project
+
+To deploy your application to CloudHub, return to Anypoint Studio, and follow these steps:
+
+1.  Note that your project has a node in the Package Explorer. Right-click on the project node, *`basic_tutorial`* , and then click **CloudHub** > *Deploy to CloudHub* from the cascading menu. +
+ +
+image:/docs/download/attachments/124879013/deploy+to+cloudhub.png?version=1&modificationDate=1426600224225[image] +
+  +
+ 
+2.  If this is your first time deploying in this way, a popup menu asks you to provide your login credentials for CloudHub. Studio stores your credentials and uses them automatically the next time you deploy to CloudHub. You can manage these credentials through the Studio *Preferences* menu, in *Anypoint Studio* > **Authentication**.
+3.  After you sign in, the Deploy to CloudHub menu opens. Choose a unique domain in which to deploy the application. In this case, we enter *helloworld* (however, you can choose your own unique domain of up to 42 characters in length). When you choose a unique domain name, a green confirmation check mark displays. Select an *Environment* and a **Mule Version**. +
+ **Note**: After you add your domain name, the Mule Version fills in automatically. Change the value to *3.6.1* or newer. Click **Finish**. +
+ +
+image:/docs/download/attachments/124879013/studio+to+cloudhub2.png?version=2&modificationDate=1433505179642[image] +
+  +
+ 
+4.  Anypoint Studio packages, uploads, and deploys your application to CloudHub. +
+ 
+5.  Browse to the URL of *_yourdomain_.cloudhub.io* (also shown in the pop-up window above). You should see your application running on CloudHub! (Deployment may take a few minutes.)
++
+
+image:/docs/download/attachments/124879013/CH_HelloWorld_displayed.png?version=2&modificationDate=1431974469897[image] +
++
+
+[TIP]
+Visit http://anypoint.mulesoft.com/[http://anypoint.mulesoft.com] to manage your application, access its dashboard, view logs and alerts, and more.
+
+You have now successfully created a new Anypoint Studio application and deployed it to your new CloudHub account!
+
+== See Also
+
+* Take the next step in the CloudHub Getting Started Guide: link:/docs/display/current/Getting+Started+with+Connectors[Getting Started with Connectors].
+* Learn the link:/docs/display/current/Anypoint+Studio+Essentials[Anypoint Studio Essentials].

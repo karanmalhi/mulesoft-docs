@@ -1,4 +1,3 @@
- 
 
 = Servers
 
@@ -8,58 +7,59 @@ This document, as well as the rest of the documents that make up the link:/docs/
 
  Index of operations
 
-[width="99%",cols="20%,16%,16%,16%,16%,16%",]
+[width="100a",cols="20a,20a,20a,20a,20a"]
 |===
-|*Assumptions:* a|
-[width="100%",cols="50%,50%",]
-|===
-|Host |localhost
-|===
-
- a|
-[width="100%",cols="50%,50%",]
-|===
-|Port |8080
-|===
-
- a|
-[width="100%",cols="50%,50%",]
-|===
-|Deployed app |mmc.war
-|===
-
- a|
-[width="100%",cols="50%,50%",]
-|===
-|User/Password |admin/admin
-|===
-
- | 
+|*Assumptions:* |
+[width="100a",cols="50a,50a"]
+!===
+!Host !localhost
+!===
+|
+[width="100a",cols="50a,50a"]
+!===
+!Port !8080
+!===
+|
+[width="100a",cols="50a,50a"]
+!===
+!Deployed app !mmc.war
+!===
+|
+[width="100a",cols="50a,50a"]
+!===
+!User/Password !admin/admin
+!=== 
 |===
 
 For a detailed description of the format used in this document, consult link:/docs/display/33X/Using+the+Management+Console+API[Content Organization and Conventions].
 
 */api/servers*
 
-[width="100%",cols="34%,33%,33%",]
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*POST*
-
- a|
-
-===== PAIR/REGISTER
-
- a|
-link:#Servers-top[To top ↑]
-
+|*POST* |PAIR/REGISTER
+|link:#Servers-top[To top ↑]
 |===
 
 Pairs a new Server.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== JSON
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+{
+  "name" : "Test",
+  "agentUrl" : "http://localhost:7777/mmc-support",
+  "groups" : ["0bc8932b-8463-46cd-9a1f-77060756c5c0"]
+}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |name |String |The name of the newly registered server |—
@@ -69,19 +69,65 @@ Pairs a new Server.
 
 ===== Using CURL on Windows
 
+[source]
 ----
  curl --basic -u admin:admin -d "{ \"name\" : \"Test\", \"agentUrl\" : \"http://localhost:7777/mmc-support\", \"groupIds\":[\"0bc8932b-8463-46cd-9a1f-77060756c5c0\"] }" --header "Content-Type: application/json" http://localhost:8080/mmc/api/servers
 ----
 
 ===== Using CURL on Linux
 
+[source]
 ----
  curl --basic -u admin:admin -d '{ "name" : "Test", "agentUrl" : "http://localhost:7777/mmc-support", "groupIds":["0bc8932b-8463-46cd-9a1f-77060756c5c0"] }' --header 'Content-Type: application/json' http://localhost:8080/mmc/api/servers
 ----
 
+....
+[tab,title="Response"]
+....
+
 ===== JSON
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+{
+  "name":"Test",
+  "id":"local$f151c1cb-634a-4da5-baba-806ee4a09464",
+  "version":"3.3.0",
+  "groups":
+    [
+      {
+        "name":"Production",
+        "href":"http://localhost:8080/mmc/api/serverGroups/0bc8932b-8463-46cd-9a1f-77060756c5c0"
+      }
+    ],
+  "status":"OK",
+  "href":"http://localhost:8080/mmc/api/servers/local$f151c1cb-634a-4da5-baba-806ee4a09464",
+  "runningServices":-1,
+  "hostIp":"172.16.20.131",
+  "agentUrl":"https://localhost:7777/mmc-support",
+  "muleServerId":"00_mmc-agent",
+  "started":"Thu Aug 16 12:18:39 ART 2012",
+  "agents":
+    [
+      {
+        "name":"mmc-support",
+        "description":"Mule ESB Enterprise Support (0.0.0.0:7777)"
+      },
+      {
+        "name":"_muleClusterSupportAgent",
+        "description":"Clustering Agent"
+      },
+      {
+        "name":"jmx-agent",
+        "description":"JMX Agent"
+      }
+    ],
+  "pausedServices":-1,
+  "stoppedServices":-1
+}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |name |String |The name of the newly registered server |—
@@ -104,7 +150,11 @@ Pairs a new Server.
 |stoppedServices |Integer |Number of stopped services on the server |—
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*201* |Server successfully paired/registered
 |*400* |Policies do not allow adding the specified server/ Invalid Agent URL/ Name must be supplied/ Server URL must be supplied/ A server with that name already exists
@@ -112,30 +162,38 @@ Pairs a new Server.
 |*500* |Error while pairing the Server
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-[width="100%",cols="34%,33%,33%",]
+....
+------
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*GET*
-
- a|
-
-===== LIST ALL
-
- a|
-link:#Servers-top[To top ↑]
-
+|*GET* |LIST ALL |link:#Servers-top[To top ↑]
 |===
 
 Lists all available Servers.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+GET http://localhost:8080/mmc/api/servers[?group={serverGroupId}]
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverGroupId |String |(Optional) ID of a Server Group. If specified, only servers belonging to that Server Group are displayed. If not specified, results are not filtered |—
@@ -143,13 +201,63 @@ Lists all available Servers.
 
 ===== Using CURL
 
+[source]
 ----
  curl --basic -u admin:admin http://localhost:8080/mmc/api/servers
 ----
 
+....
+[tab,title="Response"]
+....
+
 ===== JSON
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+{
+  "total":1,
+  "data":
+    [
+      {
+        "name":"Test",
+        "id":"local$a89eb3d0-68b9-44a0-9f6b-712b0895f469",
+        "version":"3.3.0",
+        "groups":
+          [
+            {
+              "name":"Production",
+              "href":"http://localhost:8080/mmc/api/serverGroups/0bc8932b-8463-46cd-9a1f-77060756c5c0"
+            }
+          ],
+        "status":"OK",
+        "href":"http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469",
+        "runningServices":4,"hostIp":"172.16.20.131",
+        "agentUrl":"https://localhost:7777/mmc-support",
+        "muleServerId":"00_mmc-agent",
+        "started":"Thu Aug 16 12:18:39 ART 2012",
+        "agents":
+          [
+            {
+              "name":"mmc-support",
+              "description":"Mule ESB Enterprise Support (0.0.0.0:7777)"
+            },
+            {
+              "name":"_muleClusterSupportAgent",
+              "description":"Clustering Agent"
+            },
+            {
+              "name":"jmx-agent",
+              "description":"JMX Agent"
+            }
+          ],
+        "pausedServices":0,
+        "stoppedServices":0
+      }
+    ]
+}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |total |Integer |Number of available registered servers |—
@@ -173,39 +281,51 @@ Lists all available Servers.
 |stoppedServices |Integer |Number of stopped services on the server |data
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*401* |Unauthorized user
 |*404* |A server group with that ID was not found
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-*/api/server/\{serverId}*
+....
+------
 
-[width="100%",cols="34%,33%,33%",]
+#*/api/server/\{serverId}*#
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*GET*
-
- a|
-
-===== LIST
-
- a|
-link:#Servers-top[To top ↑]
-
+|*GET* |LIST |link:#Servers-top[To top ↑]
 |===
 
 Lists details for a specific Server.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+GET http://localhost:8080/mmc/api/servers[?group={serverGroupId}]
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of the server to be listed. Invoke link:#Servers-listAll[LIST ALL] to obtain it |—
@@ -213,21 +333,65 @@ Lists details for a specific Server.
 
 ===== Using CURL on Windows
 
+[source]
 ----
-------------------------------------------- curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$97e3c184-09ed-423e-a5a5-9b94713a9e36
+ curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$97e3c184-09ed-423e-a5a5-9b94713a9e36
 ----
--------------------------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
----------------------------------------------- curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$97e3c184-09ed-423e-a5a5-9b94713a9e36' 
+ curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$97e3c184-09ed-423e-a5a5-9b94713a9e36'
 ----
-----------------------------------------------
+
+....
+[tab,title="Response"]
+....
 
 ===== JSON
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+{
+  "name":"Test",
+  "id":"local$a89eb3d0-68b9-44a0-9f6b-712b0895f469",
+  "version":"3.3.0",
+  "groups":
+    [
+      {
+        "name":"Production",
+        "href":"http://localhost:8080/mmc/api/serverGroups/0bc8932b-8463-46cd-9a1f-77060756c5c0"
+      }
+    ],
+  "status":"OK",
+  "href":"http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469",
+  "runningServices":4,
+  "hostIp":"172.16.20.131",
+  "agentUrl":"https://localhost:7777/mmc-support",
+  "muleServerId":"00_mmc-agent",
+  "started":"Thu Aug 16 12:18:39 ART 2012",
+  "agents":
+    [
+      {
+        "name":"mmc-support",
+        "description":"Mule ESB Enterprise Support (0.0.0.0:7777)"
+      },
+      {
+        "name":"_muleClusterSupportAgent",
+        "description":"Clustering Agent"
+      },
+      {
+        "name":"jmx-agent",
+        "description":"JMX Agent"
+      }
+    ],
+  "pausedServices":0,
+  "stoppedServices":0
+}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |name |String |The name of the newly registered server |—
@@ -250,36 +414,48 @@ Lists details for a specific Server.
 |stoppedServices |Integer |Number of stopped services on the server |—
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*401* |Unauthorized user
 |*404* |A server with that ID was not found
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-[width="100%",cols="34%,33%,33%",]
+....
+------
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*DELETE*
-
- a|
-
-===== UNPAIR/UNREGISTER
-
- a|
-link:#Servers-top[To top ↑]
-
+|*DELETE* |UNPAIR/UNREGISTER |link:#Servers-top[To top ↑]
 |===
 
 Unpairs/unregister a specific Server.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+DELETE http://localhost:8080/mmc/api/servers/{serverId}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |Id of the server to be unpaired/unregistered. Invoke link:#Servers-listAll[LIST ALL] to obtain it |—
@@ -287,21 +463,31 @@ Unpairs/unregister a specific Server.
 
 ===== Using CURL on Windows
 
+[source]
 ----
------------------------------------------------------ curl --basic -u admin:admin -X DELETE http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469
+ curl --basic -u admin:admin -X DELETE http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469
 ----
------------------------------------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
-------------------------------------------------------- curl --basic -u admin:admin -X DELETE 'http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469'
+ curl --basic -u admin:admin -X DELETE 'http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469'
 ----
--------------------------------------------------------
+
+....
+[tab,title="Response"]
+....
 
 ===== JSON
 
-[width="100%",cols="50%,50%",]
+`200 OK`
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*401* |Unauthorized user
@@ -309,32 +495,46 @@ Unpairs/unregister a specific Server.
 |*500* |Error while unregistering the server
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-*/api/servers/\{serverId}*
+....
+------
 
-[width="100%",cols="34%,33%,33%",]
+#*/api/servers/\{serverId}*#
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*PUT*
-
- a|
-
-===== UPDATE
-
- a|
-link:#Servers-top[To top ↑]
-
+|*PUT* |UPDATE |link:#Servers-top[To top ↑]
 |===
 
 Updates a specific Server.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== JSON
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+{
+  "name": "New Server Name",
+  "groups":
+    [
+      "local$1b8ee6e2-043c-403c-b404-af3aa74d6f92", "local$1b8ee6e5-047c-403c-b404-af3aa74d6f59"
+    ]
+}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |name |String |New name for the Server |—
@@ -343,21 +543,65 @@ Updates a specific Server.
 
 ===== Using CURL on Windows
 
+[source]
 ----
---------------- curl --basic -u admin:admin -X PUT -d "{ \"name\" : \"New Server Name\", \"groups\":[{\"href\":\"0bc8932b-8463-46cd-9a1f-77060756c5c0\"}]}" --header "Content-Type: application/json" http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469
+ curl --basic -u admin:admin -X PUT -d "{ \"name\" : \"New Server Name\", \"groups\":[{\"href\":\"0bc8932b-8463-46cd-9a1f-77060756c5c0\"}]}" --header "Content-Type: application/json" http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469
 ----
----------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
------- curl --basic -u admin:admin -X PUT -d '{"name" : "New Server Name", "groups":[{"href":"0bc8932b-8463-46cd-9a1f-77060756c5c0"}]}' --header 'Content-Type: application/json' 'http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469'
+ curl --basic -u admin:admin -X PUT -d '{"name" : "New Server Name", "groups":[{"href":"0bc8932b-8463-46cd-9a1f-77060756c5c0"}]}' --header 'Content-Type: application/json' 'http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469'
 ----
-------
+
+....
+[tab,title="Response"]
+....
+
+[source]
+----
+{
+  "name":"New Server Name",
+  "id":"local$a89eb3d0-68b9-44a0-9f6b-712b0895f469",
+  "version":"3.3.0",
+  "groups":
+    [
+      {
+        "name":"Production",
+        "href":"http://localhost:8080/mmc/api/serverGroups/0bc8932b-8463-46cd-9a1f-77060756c5c0"
+      }
+    ],
+  "status":"OK",
+  "href":"http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469",
+  "runningServices":4,
+  "hostIp":"172.16.20.131",
+  "agentUrl":"https://localhost:7777/mmc-support",
+  "muleServerId":"00_mmc-agent",
+  "started":"Thu Aug 16 12:18:39 ART 2012",
+  "agents":
+    [
+      {
+        "name":"mmc-support",
+        "description":"Mule ESB Enterprise Support (0.0.0.0:7777)"
+      },
+      {
+        "name":"_muleClusterSupportAgent",
+        "description":"Clustering Agent"
+      },
+      {
+        "name":"jmx-agent",
+        "description":"JMX Agent"
+      }
+    ],
+  "pausedServices":0,
+  "stoppedServices":0
+}
+----
 
 ===== JSON
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |name |String |The name of the newly registered server |—
@@ -379,7 +623,11 @@ Updates a specific Server.
 |stoppedServices |Integer |Number of stopped services on the server |—
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*401* |Unauthorized user
@@ -387,32 +635,40 @@ Updates a specific Server.
 |*500* |Error while updating server
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-*/api/servers/\{serverId}/applications*
+....
+------
 
-[width="100%",cols="34%,33%,33%",]
+#*/api/servers/\{serverId}/applications*#
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*GET*
-
- a|
-
-===== LIST APPLICATIONS
-
- a|
-link:#Servers-top[To top ↑]
-
+|*GET* |LIST APPLICATIONS |link:#Servers-top[To top ↑]
 |===
 
 Lists all available deployed applications on a specific Server.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+GET http://localhost:8080/mmc/api/servers/{serverId}/applications
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of a Server |—
@@ -420,21 +676,70 @@ Lists all available deployed applications on a specific Server.
 
 ===== Using CURL on Windows
 
+[source]
 ----
------------------------------------------------------------- curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469/applications    
+ curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469/applications
 ----
-------------------------------------------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
--------------------------------------------------------------- curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469/applications'    
+ curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469/applications'
 ----
---------------------------------------------------------------
+
+....
+[tab,title="Response"]
+....
 
 ===== JSON
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+{
+  "total":3,
+  "data":[
+    {
+      "name":"mule-example-hello",
+      "status":"STARTED",
+      "configResources": ["mule-config.xml"],
+      "appProperties":
+        {
+          "app.home":"C:\\mule-enterprise-standalone\\apps\\mule-example-hello",
+          "app.name":"mule-example-hello"
+        },
+      "redeploymentEnabled":true,
+      "parentFirstClassLoader":false
+    },
+    {
+      "name":"00_mmc-agent",
+      "status":"STARTED",
+      "configResources":["mule-config.xml"],
+      "appProperties":
+        {
+          "app.home":"C:\\mule-enterprise-standalone\\apps\\00_mmc-agent",
+          "app.name":"00_mmc-agent"
+        },
+      "redeploymentEnabled":false,
+      "parentFirstClassLoader":false
+    },
+    {
+      "name":"default",
+      "status":"STARTED",
+      "configResources":["mule-config.xml"],
+      "appProperties":
+        {
+          "app.home":"C:\\mule-enterprise-standalone\\apps\\default",
+          "app.name":"default"
+        },
+      "redeploymentEnabled":true,
+      "parentFirstClassLoader":false
+    }
+  ]
+}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |total |Integer |Number of applications currently deployed |—
@@ -449,37 +754,44 @@ Lists all available deployed applications on a specific Server.
 |parentFirstClassLoader |Boolean |[DEPRECATED] |data
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-*/api/servers/\{serverId}/restart*
+....
+------
 
-[width="100%",cols="34%,33%,33%",]
+#*/api/servers/\{serverId}/restart*#
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*POST*
-
- a|
-
-===== PERFORM RESTART
-
- a|
-link:#Servers-top[To top ↑]
-
+|*POST* |PERFORM RESTART |link:#Servers-top[To top ↑]
 |===
 
 Restarts a Server.
 
-Error rendering macro 'deck' : java.lang.NullPointerException
+[source]
+----
+POST http://localhost:8080/mmc/api/servers/{serverId}/restart
+----
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+#Error rendering macro 'deck' : java.lang.NullPointerException#
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of a registered server |—
@@ -487,54 +799,60 @@ Error rendering macro 'deck' : java.lang.NullPointerException
 
 ===== Using CURL on Windows
 
+[source]
 ----
------------------------------------------------------ curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469/restart  
+ curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469/restart
 ----
------------------------------------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
-------------------------------------------------------- curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469/restart'  
+ curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469/restart'
 ----
--------------------------------------------------------
 
-Error rendering macro 'deck' : java.lang.NullPointerException
+[source]
+----
+200
+----
 
-[width="100%",cols="50%,50%",]
+#Error rendering macro 'deck' : java.lang.NullPointerException#
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*500* |Internal server error
 |===
 
-[width="100%",cols="50%,50%",]
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-Error rendering macro 'deck' : java.lang.NullPointerException
+#Error rendering macro 'deck' : java.lang.NullPointerException#
 
 */api/servers/\{serverId}/stop*
 
-[width="100%",cols="34%,33%,33%",]
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*POST*
-
- a|
-
-===== PERFORM STOP
-
- a|
-link:#Servers-top[To top ↑]
-
+|*POST* |PERFORM STOP |link:#Servers-top[To top ↑]
 |===
 
 Stops a Server.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+POST http://localhost:8080/mmc/api/servers/{serverId}/stop
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of a registered server |—
@@ -542,54 +860,75 @@ Stops a Server.
 
 ===== Using CURL on Windows
 
+[source]
 ----
--------------------------------------------------- curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469/stop  
+ curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469/stop
 ----
---------------------------------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
----------------------------------------------------- curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469/stop'  
+ curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$a89eb3d0-68b9-44a0-9f6b-712b0895f469/stop'
 ----
-----------------------------------------------------
+
+....
+[tab,title="Response"]
+....
 
 ===== JSON
 
-[width="100%",cols="50%,50%",]
+[source]
+----
+200
+----
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*500* |Internal server error
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
+....
+------
+
 == Server Files
 
-*/api/server/\{serverId}/files*
+#*/api/server/\{serverId}/files*#
 
-[width="100%",cols="34%,33%,33%",]
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*GET*
-
- a|
-
-===== LIST FILES
-
- a|
-link:#Servers-top[To top ↑]
-
+|*GET* |LIST FILES |link:#Servers-top[To top ↑]
 |===
 
 Lists files on a specific Server.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+GET http://localhost:8080/mmc/api/servers/{serverId}/files
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of the server to be listed. Invoke link:#Servers-listAll[LIST ALL] to obtain it |—
@@ -597,147 +936,120 @@ Lists files on a specific Server.
 
 ===== Using CURL on Windows
 
+[source]
 ----
------------------------------------------------------ curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/files    
+ curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/files
 ----
------------------------------------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
-------------------------------------------------------- curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/files'    
+ curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/files'
 ----
--------------------------------------------------------
+
+....
+[tab,title="Response"]
+....
 
 ===== JSON
 
-Key
+[source]
+----
+{
+  "total":12,
+  "data":
+    [
+      {
+        "name":".mule",
+        "size":4096,
+        "absolutePath":"C:\\mule-enterprise-standalone\\.mule",
+        "directory":true,
+        "lastModified":1345835067600,
+        "friendlySize":"",
+        "userCanExecute":true,
+        "userCanRead":true,
+        "userCanWrite":true,
+        "friendlyName":".mule/"
+      },
+    "..."
+      {
+        "name":"README.txt",
+        "size":4559,
+        "absolutePath":"C:\\mule-enterprise-standalone\\README.txt",
+        "directory":false,
+        "lastModified":1339032294000,
+        "friendlySize":"4 KB",
+        "userCanExecute":true,
+        "userCanRead":true,
+        "userCanWrite":true,
+        "friendlyName":"README.txt"
+      }
+    ]
+}
+----
 
-Type
+[width="100a",cols="25a,25a,25a,25a",options="header"]
+|===
+|Key |Type |Summary |Child of
+|total |Integer |Number of detected files and folders at root folder level |—
+|data |Array |List of files and folders detected at root folder level |—
+|name |String |Name of the file |data
+|size |Integer |Size of the file in bytes |
+|absolutePath |String |Absolute path of the file/folder |-
+|directory |Boolean |True if the entry is a directory |-
+|lastModified |Long |Last modified time since epoch |-
+|friendlySize |String |Human readable size of the file |-
+|userCanExecute |Boolean |True if User can execute the file |-
+|userCanRead |Boolean |True if User can read the file |-
+|friendlyName |String |Friendly name of the file |-
+|===
 
-Summary
+....
+[tab,title="Common Return codes"]
+....
 
-Child of
-
-total
-
-Integer
-
-Number of detected files and folders at root folder level
-
-—
-
-data
-
-Array
-
-List of files and folders detected at root folder level
-
-—
-
-name
-
-String
-
-Name of the file
-
-—
-
-size
-
-Integer
-
-Size of the file in bytes
-
-absolutePath
-
-String
-
-Absolute path of the file/folder
-
-—
-
-directory
-
-Boolean
-
-True if the entry is a directory
-
-—
-
-lastModified
-
-Long
-
-Last modified time since epoch
-
-—
-
-friendlySize
-
-String
-
-Human readable size of the file
-
-—
-
-userCanExecute
-
-Boolean
-
-True if User can execute the file
-
-—
-
-userCanRead
-
-Boolean
-
-True if User can read the file
-
-—
-
-friendlyName
-
-String
-
-Friendly name of the file
-
-—
-
-[width="100%",cols="50%,50%",]
+[width="100a",cols="50a,50a"]
 |===
 |200 |The operation was successful
 |404 |The location does not exist
 |405 |Unauthorized user
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-*/api/server/\{serverId}/files/\{relative path to file}*
+....
+------
 
-[width="100%",cols="34%,33%,33%",]
+#*/api/server/\{serverId}/files/\{relative path to file}*#
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*GET*
-
- a|
-
-===== LIST FILE
-
- a|
-link:#Servers-top[To top ↑]
-
+|*GET* |LIST FILE |link:#Servers-top[To top ↑]
 |===
 
 Get a specific file from a specific Server.
 
-=====  SYNTAX
+[tabs]
+------
+[tab,title="Request"]
+....
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+===== SYNTAX
+
+[source]
+----
+GET http://localhost:8080/mmc/api/servers/{serverId}/files/{relativePathToFile}[?metadata=true]
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of the server to be listed. Invoke link:#Servers-listAll[LIST ALL] to obtain it |—
@@ -747,21 +1059,45 @@ Get a specific file from a specific Server.
 
 ===== Using CURL on Windows
 
+[source]
 ----
--------------------------------------------------------------- curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/bin/mule    
+ curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/bin/mule
 ----
---------------------------------------------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
---------------------------------------------------------------- curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/bin/mule'   
+ curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/bin/mule'
 ----
----------------------------------------------------------------
+
+....
+[tab,title="Response"]
+....
 
 ===== JSON
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+Metadata=false
+[Actual file]
+ 
+Metadata=true:
+{
+  "name":"mule",
+  "size":20237,
+  "absolutePath":"C:\\mule-enterprise-standalone\\bin\\mule",
+  "directory":false,
+  "lastModified":1345598472000,
+  "friendlySize":"19 KB",
+  "userCanExecute":true,
+  "userCanRead":true,
+  "userCanWrite":true,
+  "friendlyName":"mule"
+}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |name |String |Name of the file |—
@@ -776,40 +1112,52 @@ Get a specific file from a specific Server.
 |friendlyName |String |Friendly name of the file |—
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*404* |The location does not exist
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-*/api/server/\{serverId}/files/\{relative path to file to be created}*
+....
+------
 
-[width="100%",cols="34%,33%,33%",]
+#*/api/server/\{serverId}/files/\{relative path to file to be created}*#
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*POST*
-
- a|
-
-===== CREATE REMOTE FILE
-
- a|
-link:#Servers-top[To top ↑]
-
+|*POST* |CREATE REMOTE FILE |link:#Servers-top[To top ↑]
 |===
 
 Creates a new file in the specified server and folder. +
- The source of the new file can be an existing file, or inline content. +
- EOL from the source is converted to the native representation of the platform where the agent is running.
+The source of the new file can be an existing file, or inline content. +
+EOL from the source is converted to the native representation of the platform where the agent is running.
+
+[tabs]
+------
+[tab,title="Request"]
+....
 
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+POST http://localhost:8080/mmc/api/server/{serverId}/files/{relative path to file to be created}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of a registered server |—
@@ -818,64 +1166,74 @@ Creates a new file in the specified server and folder. +
 
 ===== Using CURL on Windows
 
+[source]
 ----
+ curl --basic -u admin:admin -v --header "Content-Type:application/octet-stream" --data-binary "@test.xml" http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/logs/fileOnLogsFolder.txt
 ----
-----
-------------------------- curl --basic -u admin:admin -v --header "Content-Type:application/octet-stream" --data-binary "@test.xml" http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/logs/fileOnLogsFolder.txt  
-----
-----
-----
--------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
+ curl --basic -u admin:admin -v --header 'Content-Type:application/octet-stream' --data-binary '@test.xml' 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/logs/fileOnLogsFolder.txt'
 ----
-----
---------------------------- curl --basic -u admin:admin -v --header 'Content-Type:application/octet-stream' --data-binary '@test.xml' 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/logs/fileOnLogsFolder.txt'  
-----
-----
-----
----------------------------
 
 * "test.xml" is the source file in the example. You can provide full path or file name. In the last case, the file should be placed at the same folder than the one containing the curl executable.
 * "@" is mandatory when specifying the source file is you want to copy the file contents. If "@"is not specified, then the new file being created will have the inline content itself as source (e.g. test.xml in this case).
 * "fileOnLogsFolder.txt" in the example is the file to be created on the specified folder.
 
+....
+[tab,title="Response"]
+....
+
 ===== JSON
 
-[width="100%",cols="50%,50%",]
+`200`
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*500* |Internal error
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-[width="100%",cols="34%,33%,33%",]
+....
+------
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*PUT*
-
- a|
-
-===== UPDATE/REPLACE REMOTE FILE
-
- a|
-link:#Servers-top[To top ↑]
-
+|*PUT* |UPDATE/REPLACE REMOTE FILE |link:#Servers-top[To top ↑]
 |===
 
 Replaces a target file with the provided source file (or inline content) on the specified server and folder.
 
 EOL from source is converted to a native representation of the platform where the agent is running.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+PUT http://localhost:8080/mmc/api/server/{serverId}/files/{relative path to file to be replaced}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of a registered server |—
@@ -884,33 +1242,35 @@ EOL from source is converted to a native representation of the platform where th
 
 ===== Using CURL on Windows
 
+[source]
 ----
+ curl --basic -u admin:admin -X PUT --header "Content-Type:application/octet-stream" --data-binary "@test.xml" http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/logs/fileOnLogsFolder.txt
 ----
-----
------------------------------ curl --basic -u admin:admin -X PUT --header "Content-Type:application/octet-stream" --data-binary "@test.xml" http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/logs/fileOnLogsFolder.txt  
-----
-----
-----
------------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
+ curl --basic -u admin:admin -X PUT --header 'Content-Type:application/octet-stream' --data-binary '@test.xml' 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/logs/fileOnLogsFolder.txt'
 ----
-----
-------------------------------- curl --basic -u admin:admin -X PUT --header 'Content-Type:application/octet-stream' --data-binary '@test.xml' 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/logs/fileOnLogsFolder.txt'  
-----
-----
-----
--------------------------------
 
 * "test.xml" is the source file in the example. You can provide full path or file name. In the last case, the file should be placed at the same folder than the one containing the curl executable.
 * "@" is mandatory when specifying the source file is you want to copy the file contents. If "@"is not specified, then the new file being created will have the inline content itself as source (e.g. test.xml in this case).
 * In the example above, "fileOnLogsFolder.txt" is the file to be replaced on the specified folder.
 
+....
+[tab,title="Response"]
+....
+
 ===== JSON
 
-[width="100%",cols="50%,50%",]
+`200`
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*404* |File not found
@@ -918,30 +1278,38 @@ EOL from source is converted to a native representation of the platform where th
 |*500* |Could not upload file
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-[width="100%",cols="34%,33%,33%",]
+....
+------
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*DELETE*
-
- a|
-
-===== DELETE REMOTE FILE
-
- a|
-link:#Servers-top[To top ↑]
-
+|*DELETE* |DELETE REMOTE FILE |link:#Servers-top[To top ↑]
 |===
 
 Deletes a target file on the specified server and folder.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+DELETE http://localhost:8080/mmc/api/server/{serverId}/files/{relative path to file to be deleted}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of a registered server |—
@@ -950,59 +1318,78 @@ Deletes a target file on the specified server and folder.
 
 ===== Using CURL on Windows
 
+[source]
 ----
+ curl --basic -u admin:admin -X DELETE http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/logs/fileOnLogsFolder.txt
 ----
----------------------- curl --basic -u admin:admin -X DELETE http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/logs/fileOnLogsFolder.txt  
-----
-----
-----------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
+ curl --basic -u admin:admin -X DELETE 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/logs/fileOnLogsFolder.txt'
 ----
------------------------- curl --basic -u admin:admin -X DELETE 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/files/logs/fileOnLogsFolder.txt'  
-----
-----
-------------------------
 
 * "fileOnLogsFolder.txt" in the example is the file to be deleted on the specified folder.
 
+....
+[tab,title="Response"]
+....
+
 ===== JSON
 
-[width="100%",cols="50%,50%",]
+`200`
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
+....
+------
+
 == Server Flows
 
-*/api/server/\{serverId}/flows*
+#*/api/server/\{serverId}/flows*#
 
-[width="100%",cols="34%,33%,33%",]
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
+|
 *GET*
-
- a|
-
-===== LIST FLOWS
-
- a|
+|
+LIST FLOWS
+|
 link:#Servers-top[To top ↑]
-
 |===
 
 Lists available flows on a specific Server.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+GET http://localhost:8080/mmc/api/servers/{serverId}/flows[?refreshStats=TRUE|FALSE]
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of the server to be listed. Invoke link:#Servers-listAll[LIST ALL] to obtain it |—
@@ -1011,21 +1398,65 @@ Lists available flows on a specific Server.
 
 ===== Using CURL on Windows
 
+[source]
 ----
------------------------------------------------------ curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/flows    
+ curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/flows
 ----
------------------------------------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
-------------------------------------------------------- curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/flows'    
+ curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$97e3c184-09ed-423e-a5a5-9b94713a9e36/flows'
 ----
--------------------------------------------------------
+
+....
+[tab,title="Response"]
+....
 
 ===== JSON
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+{
+  "total":4,
+  "data":
+    [
+      {
+        "id":"local$35443304-3a90-43f3-a26e-df3eaf03936e/Hello World",
+        "type":"flow",
+        "status":"RUNNING",
+        "serverId":"local$35443304-3a90-43f3-a26e-df3eaf03936e",
+        "auditStatus":"DISABLED",
+        "flowId":
+          {
+            "name":"Hello World",
+            "fullName":"Hello World [mule-example-hello]",
+            "application":"mule-example-hello",
+            "definedInApplication":true
+          },
+        "asyncEventsReceived":0,
+        "executionErrors":0,
+        "fatalErrors":0,
+        "inboundEndpoints":
+          [
+            "http://localhost:8888","servlet://name","vm://greeter"
+          ],
+        "syncEventsReceived":0,
+        "totalEventsReceived":0,
+        "averageProcessingTime":0,
+        "minProcessingTime":0,
+        "maxProcessingTime":0,
+        "totalProcessingTime":0,
+        "processedEvents":0,
+        "favorite":false
+      },
+      "..."
+    ]
+}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |total |Integer |Number of available flows detected on the specified Server |—
@@ -1054,39 +1485,51 @@ Lists available flows on a specific Server.
 |favorite |Boolean |True if identified as favorite flow |data
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*404* |The specified server is currently down
 |*500* |Error while listing flows
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-*/api/server/\{serverId}/flows/\{flowName}/\{applicationName}/start*
+....
+------
 
-[width="100%",cols="34%,33%,33%",]
+#*/api/server/\{serverId}/flows/\{flowName}/\{applicationName}/start*#
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*POST*
-
- a|
-
-===== PERFORM FLOW START
-
- a|
-link:#Servers-top[To top ↑]
-
+|*POST* |PERFORM FLOW START |link:#Servers-top[To top ↑]
 |===
 
 Starts a specific flow.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+POST http://localhost:8080/mmc/api/servers/{serverId}/flows/{flowName}/{applicationName}/start
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of the server to be listed. Invoke link:#Servers-listAll[LIST ALL] to obtain it |—
@@ -1096,65 +1539,78 @@ Starts a specific flow.
 
 ===== Using CURL on Windows
 
+[source]
 ----
+ curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/start
 ----
---------------------------------- curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/start  
-----
-----
----------------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
+ curl --basic -u admin:admin -X POST 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/start'
 ----
------------------------------------ curl --basic -u admin:admin -X POST 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/start'  
-----
-----
------------------------------------
+
+....
+[tab,title="Response"]
+....
 
 ===== JSON
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/warning.png[image] a|
+[source]
+----
+The flow started successfully
+----
 
+[WARNING]
+====
 If flow is already started, the following message is returned:
 
-|===
+`{"message":"Error while starting flow"}`
+====
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*404* |Flow doesn't exist
 |*500* |Error while starting flow
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-*/api/server/\{serverId}/flows/\{flowName}/\{applicationName}/stop*
+....
+------
 
-[width="100%",cols="34%,33%,33%",]
+#*/api/server/\{serverId}/flows/\{flowName}/\{applicationName}/stop*#
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*POST*
-
- a|
-
-===== PERFORM FLOW STOP
-
- a|
-link:#Servers-top[To top ↑]
-
+|*POST* |PERFORM FLOW STOP |link:#Servers-top[To top ↑]
 |===
 
 Stops a specific flow.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+`POST http://localhost:8080/mmc/api/servers/{serverId}/flows/{flowName}/{applicationName}/stop`
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of the server to be listed. Invoke link:#Servers-listAll[LIST ALL] to obtain it |—
@@ -1164,67 +1620,80 @@ Stops a specific flow.
 
 ===== Using CURL on Windows
 
+[source]
 ----
+ curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/stop
 ----
--------------------------------- curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/stop  
-----
-----
---------------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
+ curl --basic -u admin:admin -X POST 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/stop'
 ----
---------------------------------- curl --basic -u admin:admin -X POST 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/stop' 
-----
-----
----------------------------------
+
+....
+[tab,title="Response"]
+....
 
 ===== JSON
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/warning.png[image] a|
+`The flow stopped succesfully`
 
+[WARNING]
+====
 If flow is already stopped the following message is returned:
 
-|===
+`{"message":"Error while starting flow"}`
+====
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*404* |Flow doesn't exist
 |*500* |Error while stopping flow
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
+....
+------
+
 == Server Flows Endpoints
 
-*/api/server/\{serverId}/\{flowName}/\{applicationName}/endpoints*
+#*/api/server/\{serverId}/\{flowName}/\{applicationName}/endpoints*#
 
-[width="100%",cols="34%,33%,33%",]
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*GET*
-
- a|
-
-===== LIST FLOWS ENDPOINTS
-
- a|
-link:#Servers-top[To top ↑]
-
+|*GET* |LIST FLOWS ENDPOINTS |link:#Servers-top[To top ↑]
 |===
 
 Lists available endpoints belonging to specific flows.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+GET http://localhost:8080/mmc/api/servers/{serverId}/flows/{flowName}/{applicationName}/endpoints
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of the server to be listed. Invoke link:#Servers-listAll[LIST ALL] to obtain it |—
@@ -1234,31 +1703,71 @@ Lists available endpoints belonging to specific flows.
 
 ===== Using CURL on Windows
 
+[source]
 ----
+ curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/endpoints
 ----
-------------------------------- curl --basic -u admin:admin http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/endpoints    
-----
-----
--------------------------------
 
 ===== Using CURL on Linux
 
+[source]
 ----
+ curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/endpoints'
 ----
---------------------------------- curl --basic -u admin:admin 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/endpoints'    
-----
-----
----------------------------------
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/check.png[image] |If flow name contain spaces, replace them by "%20" when typing the URL to locate the resource.
+[TIP]
+If flow name contain spaces, replace them by "%20" when typing the URL to locate the resource.
 
-|===
+....
+[tab,title="Response"]
+....
 
 ===== JSON
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+{
+  "total":3,
+  "data":
+    [
+      {
+        "address":"http://localhost:8888",
+        "id":"endpoint.http.localhost.8888",
+        "type":"http",
+        "status":"started",
+        "connector":"connector.http.mule.default",
+        "filtered":false,
+        "routedMessages":0,
+        "synchronous":true,
+        "tx":false
+      },
+      {
+        "address":"name",
+        "id":"endpoint.servlet.name",
+        "type":"servlet",
+        "status":"started",
+        "connector":"connector.servlet.mule.default",
+        "filtered":false,
+        "routedMessages":0,
+        "synchronous":true,
+        "tx":false
+      },
+      {
+        "address":"greeter",
+        "id":"endpoint.vm.greeter",
+        "type":"VM",
+        "status":"started",
+        "connector":"connector.VM.mule.default",
+        "filtered":false,
+        "routedMessages":0,
+        "synchronous":true,
+        "tx":false
+      }
+    ]
+}
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |total |Integer |Number of endpoint detected |—
@@ -1274,39 +1783,51 @@ Lists available endpoints belonging to specific flows.
 |tx |Boolean |True if the endpoint handles transactions |data
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*404* |The specified flow does not exist
 |*500* |Error while getting endpoints
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-*/api/server/\{serverId}/flows/\{flowName}/\{applicationName}/endpoints/\{endpointId}/start*
+....
+------
 
-[width="100%",cols="34%,33%,33%",]
+#*/api/server/\{serverId}/flows/\{flowName}/\{applicationName}/endpoints/\{endpointId}/start*#
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*POST*
-
- a|
-
-===== PERFORM FLOW ENDPOINT START
-
- a|
-link:#Servers-top[To top ↑]
-
+|*POST* |PERFORM FLOW ENDPOINT START |link:#Servers-top[To top ↑]
 |===
 
 Starts a specific endpoint.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+[source]
+----
+POST http://localhost:8080/mmc/api/servers/{serverId}/flows/{flowName}/{applicationName}/endpoints/{endpointId}/start
+----
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of a registered server |—
@@ -1317,29 +1838,36 @@ Starts a specific endpoint.
 
 ===== Using CURL on Windows
 
+[source]
 ----
+ curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/endpoints/endpoint.http.localhost.8888/start
 ----
-----
-------- curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/endpoints/endpoint.http.localhost.8888/start  
-----
-----
-----
--------
 
 ===== Using CURL on Linux
 
+[source]
 ----
+ curl --basic -u admin:admin -X POST 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/endpoints/endpoint.http.localhost.8888/start'
 ----
-----
---------- curl --basic -u admin:admin -X POST 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/endpoints/endpoint.http.localhost.8888/start'  
-----
-----
-----
----------
+
+....
+[tab,title="Response"]
+....
 
 ===== JSON
 
-[width="100%",cols="50%,50%",]
+[source]
+----
+[
+  "endpoint.http.localhost.8888"
+]
+----
+
+....
+[tab,title="Common Return codes"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*404* |Flow doesn't exist
@@ -1347,32 +1875,37 @@ Starts a specific endpoint.
 |*500* |Error while starting endpoints
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
-*/api/server/\{serverId}/flows/\{flowName}/\{applicationName}/endpoints/\{endpointId}/stop*
+....
+------
 
-[width="100%",cols="34%,33%,33%",]
+#*/api/server/\{serverId}/flows/\{flowName}/\{applicationName}/endpoints/\{endpointId}/stop*#
+
+[width="100a",cols="33a,33a,33a"]
 |===
-a|
-*POST*
-
- a|
-
-===== PERFORM FLOW ENDPOINT STOP
-
- a|
-link:#Servers-top[To top ↑]
-
+|*POST* |PERFORM FLOW ENDPOINT STOP |link:#Servers-top[To top ↑]
 |===
 
 Stops a specific endpoint.
 
+[tabs]
+------
+[tab,title="Request"]
+....
+
 ===== SYNTAX
 
-[width="100%",cols="25%,25%,25%,25%",options="header",]
+`POST http://localhost:8080/mmc/api/servers/{serverId}/flows/{flowName}/{applicationName}/endpoints/{endpointId}/stop`
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
 |===
 |Key |Type |Summary |Child of
 |serverId |String |ID of a registered server |—
@@ -1383,29 +1916,36 @@ Stops a specific endpoint.
 
 ===== Using CURL on Windows
 
+[source]
 ----
+ curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/endpoints/endpoint.http.localhost.8888/stop
 ----
-----
------- curl --basic -u admin:admin -X POST http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/endpoints/endpoint.http.localhost.8888/stop  
-----
-----
-----
-------
 
 ===== Using CURL on Linux
 
+[source]
 ----
+ curl --basic -u admin:admin -X POST 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/endpoints/endpoint.http.localhost.8888/stop'
 ----
+
+....
+[tab,title="Response"]
+....
+
+[source]
 ----
--------- curl --basic -u admin:admin -X POST 'http://localhost:8080/mmc/api/servers/local$24600824-af33-4394-8e39-93f9fcf4faae/flows/Hello%20World/mule-example-hello/endpoints/endpoint.http.localhost.8888/stop'  
+[
+  "endpoint.http.localhost.8888"
+]
 ----
-----
-----
---------
+
+....
+[tab,title="Common Return codes"]
+....
 
 ===== JSON
 
-[width="100%",cols="50%,50%",]
+[width="100a",cols="50a,50a"]
 |===
 |*200* |The operation was successful
 |*404* |Flow doesn't exist
@@ -1413,10 +1953,14 @@ Stops a specific endpoint.
 |*500* |Error while stopping endpoints
 |===
 
-[width="100%",cols="50%,50%",]
+....
+[tab,title="MMC version"]
+....
+
+[width="100a",cols="50a,50a"]
 |===
 |From |3.2.2
 |===
 
- +
- +
+....
+------

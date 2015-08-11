@@ -1,0 +1,40 @@
+
+= Managing Application Data Storage with Object Stores
+
+CloudHub includes application data storage for each CloudHub application which is accessible through Mule's link:/docs/display/current/Mule+Object+Stores[ObjectStore] functionality. This storage can be used to store anything, but two of its main uses are:
+
+* Storing synchronization state:  Your application may need to keep track of the last synchronized record, so that the next time it synchronizes, it can resume where it left off.
+* OAuth tokens:  OAuth enabled connectors can store tokens inside an ObjectStore with a few lines of configuration code.
+
+Your application can also store custom integration data as well, within the limits outlined below.
+
+== Storing and Retrieving Data
+
+The easiest way to work with application data inside from your Mule flows is by using the http://mulesoft.github.com/mule-module-objectstore/mule/modules.html[Object Store module]. It provides functions to store, retrieve, list, and remove data from the CloudHub ObjectStore.
+
+To install this Module into Anypoint Studio, link:/docs/display/current/Installing+Extensions[follow these instructions] and select the Object Store module for installation.
+
+=== Storing OAuth data
+
+Each connector contains instructions on how to use the ObjectStore module to store and retrieve OAuth tokens. See the "Saving and Restoring State" section in the http://mulesoft.github.com/linkedin-connector/mule/linkedin-config.html#config[LinkedIn connector configuration] documentation for an example.
+
+== Viewing Application Data
+
+To view application data, click the *Application Data* tab when viewing your application. This tab contains a list of keys and values. To search your keys, simply type the key name in the search bar.
+
+image:/docs/download/attachments/131039247/applicationdata.png?version=2&modificationDate=1433994360230[image]
+
+== Semantics and Storage Limits
+
+The CloudHub object store provides read-after-write consistency and the last write wins in terms of updates. 
+
+Additionally, it places these limits on your data:
+
+* A maximum of 100,000 keys per application
+* A 768 byte key size
+* A 1 MB value size
+* 1 GB of data per application
+
+== Advanced Information
+
+Internally, Mule has several different types of object stores. CloudHub provides an implementation of the user defined object store. This is for runtime information about your application, such as those use cases mentioned above. If you wish to access this object store directly, it can be found internally in the Mule Registry under the **`_defaultUserObjectStore`**. The Object Store module and connectors use this store to store all their data by default.

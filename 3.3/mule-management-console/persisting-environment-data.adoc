@@ -1,120 +1,40 @@
 = Persisting Environment Data
 
-* #PersistingEnvironmentData-ConfigurationFile:mmc.properties[Configuration File: `mmc.properties`]
-* #PersistingEnvironmentData-ConfigurationFile:applicationContext.xml[Configuration File: `applicationContext.xml`]
-* #PersistingEnvironmentData-ConfigurationFile:jackrabbit-repo.xml[Configuration File: jackrabbit-repo.xml]
-* #PersistingEnvironmentData-Configurationfile:scheduler.properties[Configuration file: scheduler.properties]
-
-link:#PersistingEnvironmentData-PostgresSetup[Postgres Setup]
-
-link:#PersistingEnvironmentData-Tools.1[Tools]
-
-link:#PersistingEnvironmentData-InstallingPostgreSQL[Installing PostgreSQL]
-
-link:#PersistingEnvironmentData-Creatingthedatabaseuser[Creating the database user]
-
-* #PersistingEnvironmentData-UsingpgAdminIII:[Using pgAdmin III:]
-
-link:#PersistingEnvironmentData-Creatingthenewdatabase[Creating the new database]
-
-* #PersistingEnvironmentData-UsingpgAdminIII:.1[Using pgAdmin III:]
-
-link:#PersistingEnvironmentData-Verifyingthenewdatabase[Verifying the new database]
-
-* link:#PersistingEnvironmentData-Creatingthetables[Creating the tables]
-
-link:#PersistingEnvironmentData-SettingupMMCforusewithPostgres[Setting up MMC for use with Postgres]
-
-* link:#PersistingEnvironmentData-DriverforMMCrunasMuleapp.1[Driver for MMC run as Mule app]
-* link:#PersistingEnvironmentData-DriverforMMCrunasaWebapp[Driver for MMC run as a Web app]
-* #PersistingEnvironmentData-ConfigurationFile:mmc.properties.1[Configuration File: `mmc.properties`]
-* #PersistingEnvironmentData-ConfigurationFile:applicationContext.xml.1[Configuration File: `applicationContext.xml`]
-* #PersistingEnvironmentData-ConfigurationFile:jackrabbit-repo.xml.1[Configuration File: `jackrabbit-repo.xml`]
-* #PersistingEnvironmentData-ConfigurationFile:scheduler.properties[Configuration File: `scheduler.properties`]
-
-link:#PersistingEnvironmentData-MySQLSetup[MySQL Setup]
-
-link:#PersistingEnvironmentData-Tools.2[Tools]
-
-link:#PersistingEnvironmentData-CreatingtheDatabase[Creating the Database]
-
-link:#PersistingEnvironmentData-CreatingtheDatabaseUser.1[Creating the Database User]
-
-link:#PersistingEnvironmentData-CreatingtheTables.1[Creating the Tables]
-
-link:#PersistingEnvironmentData-SettingUpMMCForUseWithMySQL[Setting Up MMC For Use With MySQL]
-
-link:#PersistingEnvironmentData-ObtainingMySQLDrivers[Obtaining MySQL Drivers]
-
-* link:#PersistingEnvironmentData-DriverforMMCrunasMuleapp.2[Driver for MMC run as Mule app]
-* link:#PersistingEnvironmentData-DriverforMMCrunasaWebapp.1[Driver for MMC run as a Web app]
-* #PersistingEnvironmentData-Configurationfile:%C2%A0mmc.properties[Configuration file: `mmc.properties`]
-* #PersistingEnvironmentData-Configurationfile:applicationContext.xml[Configuration file: `applicationContext.xml`]
-* #PersistingEnvironmentData-Configurationfile:jackrabbit-repo.xml[Configuration file: `jackrabbit-repo.xml`]
-* #PersistingEnvironmentData-Configurationfile:%C2%A0scheduler.properties[Configuration file: `scheduler.properties`]
-
-link:#PersistingEnvironmentData-ConnectingtoaRemoteMySQLServer[Connecting to a Remote MySQL Server]
-
-* link:#PersistingEnvironmentData-RemoteDatabaseConnections[Remote Database Connections]
-* link:#PersistingEnvironmentData-RemoteAccessPrivileges[Remote Access Privileges]
-
-link:#PersistingEnvironmentData-DisasterRecovery[Disaster Recovery]
-
-link:#PersistingEnvironmentData-Postgres[Postgres]
-
-* #PersistingEnvironmentData-Scenario:[Scenario:]
-* link:#PersistingEnvironmentData-BackinguptheDatabase[Backing up the Database]
-* link:#PersistingEnvironmentData-RestoringtheDatabase[Restoring the Database]
-
-link:#PersistingEnvironmentData-Oracle[Oracle]
-
-* link:#PersistingEnvironmentData-Databasebackupprocedure[Database backup procedure]
-* link:#PersistingEnvironmentData-Databaserestoreprocedure[Database restore procedure]
-
 Out of the box, the Mule Management Console stores persistent state data (created alerts, deployments, dashboard portlets configuration, etc.) on an embedded database. If the server hosting the console experiences catastrophic failure, this persistent data is lost. You can avoid this by configuring the console to use an external database to store persistent state data. Following a catastrophic failure of the console host, you can set up the console on another host, then configure it to use the same database as the previous instance.
 
 Currently you can persist environment data in Oracle, Postgres or MySQL databases.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |The embedded database files for the Mule console reside at: `<MMC installation path>/.mule/mmc/mmc-data/db` +
+[NOTE]
+====
+The embedded database files for the Mule console reside at: `<MMC installation path>/.mule/mmc/mmc-data/db`
 
- After you configure MMC to use an external database to store its persistent data, do not delete the `mmc-data` folder. The `db` subfolder will not be used anymore, but the `repository`, `version` and `workspaces` subfolders will be in use by Java Content Repository (JCR) internal settings.
-|===
+After you configure MMC to use an external database to store its persistent data, do not delete the `mmc-data` folder. The `db` subfolder will not be used anymore, but the `repository`, `version` and `workspaces` subfolders will be in use by Java Content Repository (JCR) internal settings.
+====
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/warning.png[image] |Do not confuse MMC state info with Business Events persistence. They are two independent systems, not related to each other. Refer to a detailed description of link:/docs/display/current/Business+Events[Business Events].
+[WARNING]
+Do not confuse MMC state info with Business Events persistence. They are two independent systems, not related to each other. Refer to a detailed description of link:/docs/display/current/Business+Events[Business Events].
 
-|===
-
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/check.png[image] |It is also possible to use an external database to store Mule event tracking information, which is normally stored using Business Events. Click link:#[here] for details.
-
-|===
+[TIP]
+It is also possible to use an external database to store Mule event tracking information, which is normally stored using Business Events. Click link:#[here] for details.
 
 == Oracle Setup
 
 === Tools
 
-* SQL Developer: +
+* SQL Developer:
 ** Download the http://www.oracle.com/technetwork/developer-tools/sql-developer/downloads/index.html[latest version]
 ** Consult the http://docs.oracle.com/cd/E25259_01/doc.31/e26419/toc.htm[installation guide for Linux, Mac OS X and Windows]
-* Oracle Database Express Edition 11.x: +
+* Oracle Database Express Edition 11.x:
 ** Download the http://www.oracle.com/technetwork/products/express-edition/downloads/index.html[latest version]
 ** Consult the http://docs.oracle.com/cd/E17781_01/index.htm[installation guide for Linux (x86-64) and Windows]
 ** Browse the http://www.oracle.com/pls/db112/homepage[full documentation library]
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] a|
-
-*Important!* +
+[IMPORTANT]
+====
+*Important!*
 
 Do not attempt to run SQL Developer with JDK 1.7.**. Even though the SQL installation guide lists “JDK 1.6.0_11 or later” as suitable for installation, attempting to run SQL Developer with JDK 1.7.** results in a warning message and malformed SQL code from SQL Developer.
-
-|===
+====
 
 === Installing SQL Developer
 
@@ -124,11 +44,8 @@ Follow the simple instructions provided by the documentation listed link:#Persi
 
 Oracle Express provides a straightforward graphical installer for Windows and an .rpm package for Linux. Follow the instructions provided by the documentation listed link:#PersistingEnvironmentData-Tools[above].
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |Both Windows and Linux require you to have administrator privileges in order to install Oracle Express.
-
-|===
+[NOTE]
+Both Windows and Linux require you to have administrator privileges in order to install Oracle Express.
 
 === Configuration Files
 
@@ -138,21 +55,17 @@ For Linux, these files typically reside at: `/u01/app/oracle/product/11.2.0/xe/n
 
 On Windows, `listener.ora` and `tnsnames.ora` typically reside at: `C:\oraclexe\app\oracle\product\11.2.0\server\network\admin`
 
+////
  Click to view the listener.ora listing
 
  Click for a listing of tnsnames.ora
+////
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |For the `HOST` value, MuleSoft recommends a static IP address (for example, `192.168.1.10`), or the `0.0.0.0` address. Mulesoft further recommends against using `localhost` or a hostname for `HOST`.
+[NOTE]
+For the `HOST` value, MuleSoft recommends a static IP address (for example, `192.168.1.10`), or the `0.0.0.0` address. Mulesoft further recommends against using `localhost` or a hostname for `HOST`.
 
-|===
-
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] |Be aware that, if the file `slqnet.ora` exists (usually in `/app/oracle/product/11.2.0/xe/network/admin`), it may contain some options which have been known to cause problems. For example, unless you are fine-tuning the database, you should disable NFS security integration with `SQLNET.AUTHENTICATION_SERVICES = (NONE)`.
-
-|===
+[IMPORTANT]
+Be aware that, if the file `slqnet.ora` exists (usually in `/app/oracle/product/11.2.0/xe/network/admin`), it may contain some options which have been known to cause problems. For example, unless you are fine-tuning the database, you should disable NFS security integration with `SQLNET.AUTHENTICATION_SERVICES = (NONE)`.
 
 === Creating the Database User
 
@@ -169,29 +82,26 @@ If SQL developer asks for the full Java path, enter the full path (or navigate t
 * Windows: `C:\Program Files\Java\jdk1.6.0_31\bin`
 
 . Create a new database connection:
-. Display the `New / Select Database connection` dialog box by clicking the *Connections* tab in the left-hand pane, right-clicking *Connections*, then selecting *New Connection*.
-. In the connection *Name* field, enter: `mmc_persistency_status`
-. In the *Username* field, enter: `SYSTEM`
-. In the *Password* field, enter the SYSTEM password that you issued during the Oracle Express installation process.
-. In the *Hostname* field, ensure that the hostname is correct. (It will be `localhost`, if Oracle is installed on the local machine).
-. In the *SID* field, enter `xe`
+.. Display the `New / Select Database connection` dialog box by clicking the *Connections* tab in the left-hand pane, right-clicking *Connections*, then selecting *New Connection*.
+.. In the connection *Name* field, enter: `mmc_persistency_status`
+.. In the *Username* field, enter: `SYSTEM`
+.. In the *Password* field, enter the SYSTEM password that you issued during the Oracle Express installation process.
+.. In the *Hostname* field, ensure that the hostname is correct. (It will be `localhost`, if Oracle is installed on the local machine).
+.. In the *SID* field, enter `xe`
 . Click *Test* to verify the connection. After testing, verify that `Status: Success` appears near the bottom of the dialog box.
 . Click *Save* to save the connection settings you have specified.
 . Click *Connect*, then expand the connection elements menu by clicking the plus sign next to the name of your connection on the *Connections* tab.
 . Right click *Other Users,* then select *Create User* to display the *Create/Edit User* dialog box.
 . Complete the fields with the required information. The following provide sample guidance:
-* User Name: `MMC_STATUS`
-* New Password: `mmc123`
-* Default Tablespace: `USERS`
-* Temporary Tablespace: `TEMP`
-* Roles tab: `RESOURCE`, `CONNECT`
-* System Privileges tab: `CREATE TRIGGER`, `CREATE TABLE`, `CREATE SEQUENCE`
-+
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |This setup was tested using an unlimited quota on the USERS tablespace.
+** User Name: `MMC_STATUS`
+** New Password: `mmc123`
+** Default Tablespace: `USERS`
+** Temporary Tablespace: `TEMP`
+** Roles tab: `RESOURCE`, `CONNECT`
+** System Privileges tab: `CREATE TRIGGER`, `CREATE TABLE`, `CREATE SEQUENCE`
 
-|===
+[NOTE]
+This setup was tested using an unlimited quota on the USERS tablespace.
 . Click *Apply*, then click *Close*.
 
 === Setting up the Database
@@ -206,7 +116,8 @@ To create and insert the tables:
 . Locate `tables_oracle.sql`
 . Extract the file to a convenient location, such as your home directory or the `/tmp` directory on a Linux system.
 . Execute `tables_oracle.sql` on the target database, under user `MMC_STATUS`
-+
+
+////
  Click to view how to use the sqlplus utility to execute tables_oracle.sql
 
 . Access the Oracle Express menu and complete one of the following steps, depending on your operating system:
@@ -216,11 +127,12 @@ To create and insert the tables:
 . Run the `tables_oracle.sql` script by entering the following: `start <path to script>/tables_oracle.sql`, which typically resolves to something like `start /tmp/tables_oracle.sql`
 . To exit *sqlplus*, type: `exit`
 +
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |For detailed information about the `sqlplus` command, consult the http://docs.oracle.com/cd/E11882_01/server.112/e16604/qstart.htm#SQPUG002[SQL*Plus Reference Guide].
+[TIP]
+====
+For detailed information about the `sqlplus` command, consult the http://docs.oracle.com/cd/E11882_01/server.112/e16604/qstart.htm#SQPUG002[SQL*Plus Reference Guide].
+====
 
-|===
+////
 
 At this point, the Oracle database is completely defined.
 
@@ -233,11 +145,8 @@ You can obtain appropriate drivers from the following locations:
 * `ojdbc5.jar` (http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html[download JDBC drivers])
 * `quartz-oracle-1.8.5.jar` (http://repo1.maven.org/maven2/org/quartz-scheduler/quartz-oracle/1.8.5/quartz-oracle-1.8.5.jar[download])
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] |The quartz Oracle jar must match the library version provided for quartz (i.e., `quartz-1.8.5.jar`)
-
-|===
+[IMPORTANT]
+The quartz Oracle jar must match the library version provided for quartz (i.e., `quartz-1.8.5.jar`)
 
 ===== Driver for MMC run as Mule app
 
@@ -265,38 +174,55 @@ Locate the file called `mmc.properties`
 
 Edit the file as follows:
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/warning.png[image] |The colons (":") on the connection string should always be escaped, i.e. preceded by a backslash ("\").
+[source]
+----
+script=oracle
+    datasource.username=MMC_STATUS
+    datasource.password=mmc123
+    datasource.url=jdbc\:oracle\:thin\:MMC_STATUS/mmc123@localhost\:1521\:xe
+    datasource.driver=oracle.jdbc.driver.OracleDriver
+    # Existing entries
+    plugin.directory=WEB-INF/plugins
+    console.inactivityTimeout=60
+    mmc.data=./mmc-data 
+----
 
-|===
+[WARNING]
+The colons (":") on the connection string should always be escaped, i.e. preceded by a backslash ("\").
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] a|
-
+[IMPORTANT]
+====
 Make sure that the following line does not appear:
 
-This line would conflict with the parameters for accessing the correct database, resulting in a connection error. If the line is present in the `mmc.properties` file, delete it.
+[source]
+----
+datasource.dbName=${galaxy.data}/db from mmc.properties
+----
 
-|===
+This line would conflict with the parameters for accessing the correct database, resulting in a connection error. If the line is present in the `mmc.properties` file, delete it.
+====
 
 ===== Configuration File: `applicationContext.xml`
 
 In the same directory, locate the file called `applicationContext.xml`. Open it for editing, and look for the bean called `internalDataSource`. Edit it as follows:
 
+[source]
+----
+<bean name="internalDataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+        <property name="driverClass" value="oracle.jdbc.driver.OracleDriver"/>
+        <property name="url" value="jdbc:oracle:thin:MMC_STATUS/mmc123@localhost:1521:xe"/>
+    </bean>
+----
+
 ===== Configuration File: jackrabbit-repo.xml
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] a|
-
+[IMPORTANT]
+====
 For safety, make sure to delete the following files (if listed) before editing `jackrabbit-repo.xml`:
 
 * `jackrabbit-repo-default.xml`
 * `jackrabbit-repo-test.xml`
-
-|===
+====
 
 In the same directory, locate the file `jackrabbit-repo.xml` and open it for editing. Replace the appropiate parameters to use Oracle instead of the default Derby database. A full listing of the modified file is provided below; you may wish to replace your default `jackrabbit-repo.xml` with the contents of this file.
 
@@ -306,35 +232,37 @@ Use the following parameters for the database connection:
 * Password: `mmc123`
 * Schema: `oracle`
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/warning.png[image] |The schema should always be `Oracle`. It defines the database, not the actual schema to be used for storing persistent data. The *Persistence Manager* used is `org.apache.jackrabbit.core.persistence.pool.OraclePersistenceManager.` The *File System* used is `org.apache.jackrabbit.core.fs.db.OracleFileSystem`.
+[WARNING]
+The schema should always be `Oracle`. It defines the database, not the actual schema to be used for storing persistent data. The *Persistence Manager* used is `org.apache.jackrabbit.core.persistence.pool.OraclePersistenceManager.` The *File System* used is `org.apache.jackrabbit.core.fs.db.OracleFileSystem`.
 
-|===
-
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] a|
-
-*Important!* +
+[IMPORTANT]
+====
+*Important!*
 
 When configuring the default workspace and the workspace name itself, ensure that you comply with _one_ of the following conditions:
 
-* assign the same _new_ name to both workspaces (for example `myOracleWorkspace`) +
- +
-_or_ +
- +
+* assign the same _new_ name to both workspaces (for example `myOracleWorkspace`)
+_or_
+
 * delete all subfolders in `$MULE_HOME/.mule/mmc/mmc-data/workspaces`, specially the `default` subfolder
 
 If neither of the above conditions are met, all binary data will be persisted locally instead of on the external database.
+====
 
-|===
-
+////
  Example of jackrabbit-repo.xml
-
+////
 ===== Configuration file: scheduler.properties
 
 Locate the file called `scheduler.properties`. Edit it to look like this:
+
+[source]
+----
+org.quartz.jobStore.isClustered=false
+    org.quartz.jobStore.driverDelegateClass=org.quartz.impl.jdbcjobstore.oracle.OracleDelegate
+    org.quartz.jobStore.useProperties=true
+    org.quartz.scheduler.instanceId=AUTO
+----
 
 == Postgres Setup
 
@@ -357,11 +285,8 @@ We will create user `MMC_STATUS`, using the same permissions as `postgres`, the 
 * Role name: `MMC_STATUS`
 * Password: `mmc123`
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |`postgres` is the super user. User `MMC_STATUS` can operate with fewer permissions than `postgres`, but the minimal set of permissions has not been determined.
-
-|===
+[NOTE]
+`postgres` is the super user. User `MMC_STATUS` can operate with fewer permissions than `postgres`, but the minimal set of permissions has not been determined.
 
 ==== Using pgAdmin III:
 
@@ -390,6 +315,7 @@ Use PostgreSQL’s *psql* command-line utility to log in to database `mmc_persis
 
 `psql postgres –UMMC_STATUS`
 
+////
  Click to view how to run the psql command
 
 By default, the `psql` command can be run by any user on the system. However, Postgres's default installation directory is not usually included in users' PATH environment variable, causing the shell to return a `command not found` error when attempting to run the `psql` command.
@@ -400,6 +326,7 @@ There are several ways to proceed:
 * Set the `PATH` environment variable to include the `<postgres install dir>/bin` directory by running `export PATH=$PATH:<postgres install dir>/bin`
 * Navigate to the directory where `psql` resides (with `cd <postgres install dir>/9.1/bin/`) and run the command as `./psql`
 * Postgres includes a handy shell script to automatically set helpful environment variables such as `PATH`. The script is at `<postgres install dir>/9.1/pg_env.sh`. To set environment variables with the values defined in the script, issue `source <postgres install dir>/9.1/pg_env.sh`
+////
 
 When you run this command, psql should prompt for the user’s password. After typing it, you should get a prompt similar to the following:
 
@@ -409,6 +336,15 @@ This indicates that you have successfully connected to the `mmc_persistency_stat
 
 An example of the full login command and output:
 
+[source]
+----
+mitra:/opt/PostgreSQL/9.1/bin$ ./psql mmc_persistency_status -UMMC_STATUS
+Password for user MMC_STATUS:
+psql.bin (9.1.3)
+Type "help" for help.
+mmc_persistency_status=#
+----
+
 To exit psql, type `\q`, then press Enter.
 
 ==== Creating the tables
@@ -416,6 +352,13 @@ To exit psql, type `\q`, then press Enter.
 On the first run, JCR will automatically create all the tables needed to store persistent MMC information. However, you have to manually create some tables that store Quartz job info; otherwise at some point the following error will occur:
 
 To create and insert the tables:
+
+[source]
+----
+ERROR: relation "qrtz_locks" does not exist
+  Position: 15 [See nested exception: org.postgresql.util.PSQLException: ERROR: relation "qrtz_locks" does not exist
+  Position: 15]]
+----
 
 * Navigate to the directory `<Mule install path>/apps/mmc/webapps/mmc/WEB-INF/classes/quartz`
 * If there is a file named `talbes_postgres.sql`, rename it to `tables_postgres.sql`
@@ -443,33 +386,46 @@ Go to the following directory: `<Mule install path>/mmc/webapps/mmc/WEB-INF/clas
 
 Locate the file called mmc.properties. Edit the file as follows:
 
-[cols=",",]
-|====
-|image:/docs/images/icons/emoticons/warning.png[image] |The colons (":") on the connection string should always be escaped with a backslash ("\").
+[source]
+----
+script=postgres
+    datasource.username=MMC_STATUS
+    datasource.password=mmc123
+    datasource.url=jdbc\:postgresql\://localhost\:5432/mmc_persistency_status
+    datasource.driver=org.postgresql.Driver
+----
 
-|====
+[WARNING]
+The colons (":") on the connection string should always be escaped with a backslash ("\").
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] a|
-
+[WARNING]
+====
 Make sure that the following line does not appear:
 
-This line would conflict with the parameters for accessing the correct database, resulting in a connection error. If the line is present in the `mmc.properties` file, delete it.
+[source]
+----
+datasource.dbName=${galaxy.data}/db from mmc.properties
+----
 
-|===
+This line would conflict with the parameters for accessing the correct database, resulting in a connection error. If the line is present in the `mmc.properties` file, delete it.
+====
 
 ==== Configuration File: `applicationContext.xml`
 
 In the same directory, locate the file called `applicationContext.xml`. Open it for editing, and look for the bean called `internalDataSource`. Edit it as follows:
 
+[source]
+----
+<bean name="internalDataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+        <property name="driverClass" value="org.postgresql.Driver"/>
+        <property name="url" value="jdbc:postgresql://localhost:5432/mmc_persistency_status"/>
+    </bean>
+----
+
 ==== Configuration File: `jackrabbit-repo.xml`
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] |For safety, before editing this file delete the following files (if listed): `jackrabbit-repo-default.xml` and `jackrabbit-repo-test.xml`.
-
-|===
+[IMPORTANT]
+For safety, before editing this file delete the following files (if listed): `jackrabbit-repo-default.xml` and `jackrabbit-repo-test.xml`.
 
 In the same directory, locate the file `jackrabbit-repo.xml` and open it for editing. Replace the appropiate parameters to use Postgres instead of the default Derby database. A full listing of the modified file is provided below; you may wish to replace your default `jackrabbit-repo.xml` with the contents of this file.
 
@@ -481,31 +437,30 @@ Use the following parameters for the database connection:
 * IP: `localhost`
 * Port: `5432` (default at installation)
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/warning.png[image] |The schema should be always `postgresql`. It defines the database, not the actual schema to be used for storing persistent data.
+[WARNING]
+The schema should be always `postgresql`. It defines the database, not the actual schema to be used for storing persistent data.
 
-|===
+[NOTE]
+There is a newer version of `org.apache.jackrabbit.core.persistence.bundle.PostgreSQLPersistenceManage`, called `org.apache.jackrabbit.core.persistence.pool.PostgreSQLPersistenceManage`, but it currently has issues so it is not recommended yet.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |There is a newer version of `org.apache.jackrabbit.core.persistence.bundle.PostgreSQLPersistenceManage`, called `org.apache.jackrabbit.core.persistence.pool.PostgreSQLPersistenceManage`, but it currently has issues so it is not recommended yet.
-
-|===
-
- Example of jackrabbit-repo.xml
+// Example of jackrabbit-repo.xml
 
 ==== Configuration File: `scheduler.properties`
 
 Locate the file called `scheduler.properties`. Edit it to look like this:
 
+[source]
+----
+org.quartz.jobStore.isClustered=false
+    org.quartz.jobStore.driverDelegateClass=org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+    org.quartz.jobStore.useProperties=true
+    org.quartz.scheduler.instanceId=AUTO
+----
+
 MMC is now configured to store its persistent data in the specified Postgres database. Start Mule and login to the MMC normally.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/warning.png[image] |It is possible that, when using the PostgreSQL database, attempting to connect to the MMC will result in a "503 - Service unavailable” error, even if the system is configured correctly. In this case, check the file `<Mule installation path>/logs/mule-app-mmc.log`. Look for a line that contains `PSQLException: FATAL: role "<user>" does not exist`, where <user> is the OS system user running Mule. If you find this line, use pgAdmin III to create a new role with the same name as the OS system user that runs Mule, and assign full admin privileges to this new role (you can follow the same steps as when creating the `MMC_STATUS` role). Restart Mule, and MMC should now start normally.
-
-|===
+[WARNING]
+It is possible that, when using the PostgreSQL database, attempting to connect to the MMC will result in a "503 - Service unavailable” error, even if the system is configured correctly. In this case, check the file `<Mule installation path>/logs/mule-app-mmc.log`. Look for a line that contains `PSQLException: FATAL: role "<user>" does not exist`, where <user> is the OS system user running Mule. If you find this line, use pgAdmin III to create a new role with the same name as the OS system user that runs Mule, and assign full admin privileges to this new role (you can follow the same steps as when creating the `MMC_STATUS` role). Restart Mule, and MMC should now start normally.
 
 == MySQL Setup
 
@@ -532,7 +487,7 @@ Create a new database with the following parameters:
 
 Create a new database user with default permissions and the following parameters:
 
-* **Username:**` MMC_STATUS`
+* **Username:** `MMC_STATUS`
 * **Password:** `mmc123`
 
 === Creating the Tables
@@ -544,40 +499,27 @@ Navigate to the following directory: `$MMC_HOME/webapps/mmc/WEB-INF/classes/qua
 
 Depending on your MySQL server version, execute the appropriate script in the target database,  `mmc_persistency_status`.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/check.png[image] a|
+////
+[TIP]
+====
 
- Creating the database, user and tables with the mysql utility
+Creating the database, user and tables with the mysql utility
 
-. Open a terminal and run the `mysql` utility with the following command. +
- +
-+
+. Open a terminal and run the `mysql` utility with the following command.
 . `mysql` prompts you for root's user password. Enter the password, and you should see the following `mysql` prompt.
-+
 . Enter the following commands in the order in which they appear below. Each command is terminated by a semicolon (;). When you press Enter after each semicolon, the terminal displays a message that begins with `Query OK`, which indicates successful completion of the command.
-+
 . After you exit `mysql`, locate the relevant script for MySQL provided with the Management Console (by default at `$MMC_HOME/webapps/mmc/WEB-INF/classes/quartz`). In your terminal, change to the directory containing the script by running the `cd` command. An example command follows.
-+
 . From this directory, run `mysql` again, this time with the parameters shown below.
-+
 . After you enter the password, you are logged in to database `mmc_persistency_status` as user `MMC_STATUS`.  
 . Run the MySQLscript by issuing the following command.
-+
 . Depending on your MySQL server version, the script name will be `tables_mysql.sql` or `tables_mysql_versions_4_1_and_above.sql`. `mysql` displays a long list of status messages as per the following.
-+
 . The status messages indicate that the tables have been successfully created. To verify, issue the following command (below, top), which yields the following output (below, bottom).
-+
-+
 .To see the contents of a particular table, run the following command.
-+
-++
 The example below includes the command output:
-+
-
 At this point, you've finished configuring MySQL. You can proceed to set up the Management Console to use the database you've just created.
+====
 
-|===
+////
 
 === Setting Up MMC For Use With MySQL
 
@@ -606,43 +548,58 @@ Copy the MySQL jdbc driver, `mysql-connector-java-<version>-bin.jar`, to the fo
 ===== Configuration file: `mmc.properties`
 
 . Access the following directory: `<Mule install path>/mmc/webapps/mmc/WEB-INF/classes/META-INF`.
-. Locate the file named `mmc.properties`, then edit the file as per the following. ++
-+
- +
- +
+. Locate the file named `mmc.properties`, then edit the file as per the following.
 
-[cols=",",]
-|====
-|image:/docs/images/icons/emoticons/information.png[image] |In the above example and in all configuration files in this section, the database URL assumes the default port for MySQL server, 3306. If your MySQL server is listening on a different port, include the port number in the URL, with the following format: `jdbc:mysql://<host>:<port>/<database name>`.
+[source]
+----
+datasource.driver=com.mysql.jdbc.Driver
+datasource.username=MMC_STATUS
+datasource.password=mmc123
+datasource.url=jdbc:mysql://localhost/mmc_persistency_status
+script=mysql
+mmc.data=./mmc-data
+plugin.directory=WEB-INF/plugins
+console.inactivityTimeout=60
+----
 
-|====
+[NOTE]
+In the above example and in all configuration files in this section, the database URL assumes the default port for MySQL server, 3306. If your MySQL server is listening on a different port, include the port number in the URL, with the following format: `jdbc:mysql://<host>:<port>/<database name>`.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] a|
-
+[IMPORTANT]
+====
 Make sure that the following line does not appear:
 
-This line would conflict with the parameters for accessing the correct database, resulting in a connection error. If the line is present in the `mmc.properties` file, delete it.
+[source]
+----
+datasource.dbName=${galaxy.data}/db from mmc.properties
+----
 
-|===
+This line would conflict with the parameters for accessing the correct database, resulting in a connection error. If the line is present in the `mmc.properties` file, delete it.
+====
 
 ===== Configuration file: `applicationContext.xml`
 
 . In the same directory, locate the file named `applicationContext.xml`. 
 . Open it for editing, then look for the bean named `internalDataSource`. Edit it as per the following.
-+
+
+[source]
+----
+<bean name="internalDataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+   <!-- TODO: change this via the configurator -->
+   <property name="driverClass" value="com.mysql.jdbc.Driver"/>
+   <property name="url" value="jdbc:mysql://localhost/mmc_persistency_status"/>
+   <property name="username" value="MMC_STATUS"/>
+   <property name="password" value="mmc123"/>
+</bean>
+----
 
 ===== Configuration file: `jackrabbit-repo.xml`
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] |Before editing this file, delete the following files (if listed): `jackrabbit-repo-default.xml` and `jackrabbit-repo-test.xml`.
-
-|===
+[IMPORTANT]
+Before editing this file, delete the following files (if listed): `jackrabbit-repo-default.xml` and `jackrabbit-repo-test.xml`.
 
 . In the same directory, locate the file `jackrabbit-repo.xml` and open it for editing. 
-. Replace the appropriate parameters to use MySQL instead of the default Derby database. Use the following parameters for the database connection: +
+. Replace the appropriate parameters to use MySQL instead of the default Derby database. Use the following parameters for the database connection:
 * User: `MMC_STATUS`
 * Password: `mmc123`
 * URL: `jdbc:mysql://localhost/mmc_persistency_status`
@@ -652,51 +609,201 @@ This line would conflict with the parameters for accessing the correct database,
 * Port: `3306` (default at installation)
 . Replace the parameters in the appropriate sections, which are displayed in the code snippets below.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/warning.png[image] |The schema should be always `mysql`. It defines the database, not the actual schema to be used for storing persistent data.
+[WARNING]
+The schema should be always `mysql`. It defines the database, not the actual schema to be used for storing persistent data.
 
-|===
+[source]
+----
+...
+<Repository>
+    <!--
+        virtual file system where the repository stores global state
+        (e.g. registered namespaces, custom node types, etc.)
+    -->
+    <FileSystem class="org.apache.jackrabbit.core.fs.db.DbFileSystem">
+        <param name="driver" value="com.mysql.jdbc.Driver"/>
+        <param name="url" value="jdbc:mysql://localhost/mmc_persistency_status"/>
+        <param name="schema" value="mysql"/>
+        <param name="schemaObjectPrefix" value="rep_"/>
+        <param name="user" value="MMC_STATUS"/>
+        <param name="password" value="mmc123"/>
+    </FileSystem>
+...
+----
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] a|
+[source]
+----
+...
+<!--
+        workspace configuration template:
+        used to create the initial workspace if there's no workspace yet
+    -->
+    <Workspace name="Jackrabbit Core">
+        <!--
+            virtual file system of the workspace:
+            class: FQN of class implementing the FileSystem interface
+        -->
+        <FileSystem class="org.apache.jackrabbit.core.fs.db.DbFileSystem">
+            <param name="driver" value="com.mysql.jdbc.Driver"/>
+            <param name="url" value="jdbc:mysql://localhost/mmc_persistency_status"/>
+            <param name="schema" value="mysql"/>
+            <param name="schemaObjectPrefix" value="rep_"/>
+            <param name="user" value="MMC_STATUS"/>
+            <param name="password" value="mmc123"/>
+        </FileSystem>
+...
+----
 
-*Important!* +
+[IMPORTANT]
+====
+*Important!*
 
 When configuring the default workspace and the workspace name itself, ensure that you comply with _one_ of the following conditions:
 
-* assign the same _new_ name to both workspaces (for example `myOracleWorkspace`) +
- +
-OR +
- +
+* assign the same _new_ name to both workspaces (for example `myOracleWorkspace`)
+OR
+
 * delete all subfolders in `$MULE_HOME/.mule/mmc/mmc-data/workspaces`, specifically the `default` subfolder
 
 If neither of the above conditions are met, all binary data persists locally instead of on the external database.
+====
 
-|===
+[source]
+----
+...
+<!--
+            persistence manager of the workspace:
+            class: FQN of class implementing the PersistenceManager interface
+        -->
+        <PersistenceManager class="org.apache.jackrabbit.core.persistence.pool.MysqlPersistenceManager">
+          <param name="schemaObjectPrefix" value="Jackrabbit Core_"/>
+          <param name="url" value="jdbc:mysql://localhost/mmc_persistency_status"/>
+          <param name="externalBLOBs" value="true"/>
+          <param name="schemaCheckEnabled" value="true"/>
+          <param name="user" value="MMC_STATUS"/>
+          <param name="password" value="mmc123"/>
+        </PersistenceManager>
+...
+----
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/check.png[image] a|
-
-*PersistenceManager parameters* +
+[TIP]
+====
+*PersistenceManager parameters*
 
 The `externalBLOBs` boolean parameter defines whether to store binary data (the apps deployed via the Management Console) on the database, or on the filesystem. The default value, `true,` indicates that this data is stored on the filesystem. Set the value to `false` to store the data on the database.
 
 The `schemaCheckEnabled` parameter specifies whether to create additional necessary database tables on Management Console launch. It must always be set to `true`.
+====
 
-|===
+[source]
+----
+...
+<!--
+            Search index and the file system it uses.
+            class: FQN of class implementing the QueryHandler interface
+        -->
+        <SearchIndex class="org.apache.jackrabbit.core.query.lucene.SearchIndex">
+            <param name="path" value="${wsp.home}/index"/>
+            <param name="textFilterClasses"
+                value="org.apache.jackrabbit.extractor.PlainTextExtractor,
+                       org.apache.jackrabbit.extractor.MsExcelTextExtractor,
+                       org.apache.jackrabbit.extractor.MsPowerPointTextExtractor,
+                       org.apache.jackrabbit.extractor.MsWordTextExtractor,
+                       org.apache.jackrabbit.extractor.PdfTextExtractor,
+                       org.apache.jackrabbit.extractor.HTMLTextExtractor,
+                       org.apache.jackrabbit.extractor.XMLTextExtractor,
+                       org.apache.jackrabbit.extractor.RTFTextExtractor,
+                       org.apache.jackrabbit.extractor.OpenOfficeTextExtractor" />
+            <FileSystem class="org.apache.jackrabbit.core.fs.db.DbFileSystem">
+                <param name="driver" value="com.mysql.jdbc.Driver"/>
+                <param name="url" value="jdbc:mysql://localhost/mmc_persistency_status"/>
+                <param name="schema" value="mysql"/>
+                <param name="schemaObjectPrefix" value="rep_"/>
+                <param name="user" value="MMC_STATUS"/>
+                <param name="password" value="mmc123"/>
+            </FileSystem>
+        </SearchIndex>
+...
+----
 
- Example of jackrabbit-repo.xml
+[source]
+----
+...
+<Versioning rootPath="${rep.home}/version">
+        <!--
+            Configures the filesystem to use for versioning for the respective
+            persistence manager
+        -->
+        <FileSystem class="org.apache.jackrabbit.core.fs.db.DbFileSystem">
+            <param name="driver" value="com.mysql.jdbc.Driver"/>
+            <param name="url" value="jdbc:mysql://localhost/mmc_persistency_status"/>
+            <param name="schema" value="mysql"/>
+            <param name="schemaObjectPrefix" value="rep_"/>
+            <param name="user" value="MMC_STATUS"/>
+            <param name="password" value="mmc123"/>
+        </FileSystem>
+...
+----
+
+[source]
+----
+...
+<!--
+            Configures the persistence manager to be used for persisting version state.
+            Please note that the current versioning implementation is based on
+            a 'normal' persistence manager, but this could change in future
+            implementations.
+        -->
+        <PersistenceManager class="org.apache.jackrabbit.core.persistence.pool.MySqlPersistenceManager">
+        <param name="schemaCheckEnabled" value="true"/>
+          <param name="schemaObjectPrefix" value="version_"/>
+          <param name="url" value="jdbc:mysql://localhost/mmc_persistency_status"/>
+          <param name="externalBLOBs" value="true"/>
+          <param name="user" value="MMC_STATUS"/>
+          <param name="password" value="mmc123"/>
+        </PersistenceManager>
+    </Versioning>
+...
+----
+
+[source]
+----
+...
+<!--
+        Search index for content that is shared repository wide
+        (/jcr:system tree, contains mainly versions)
+ 
+        -->
+    <SearchIndex class="org.apache.jackrabbit.core.query.lucene.SearchIndex">
+        <param name="path" value="${rep.home}/repository/index"/>
+        <FileSystem class="org.apache.jackrabbit.core.fs.db.DbFileSystem">
+            <param name="driver" value="com.mysql.jdbc.Driver"/>
+            <param name="url" value="jdbc:mysql://localhost/mmc_persistency_status"/>
+            <param name="schema" value="mysql"/>
+            <param name="schemaObjectPrefix" value="rep_"/>
+            <param name="user" value="MMC_STATUS"/>
+            <param name="password" value="mmc123"/>
+        </FileSystem>
+    </SearchIndex>
+</Repository>
+----
+
+// Example of jackrabbit-repo.xml
 
 ===== Configuration file: `scheduler.properties`
 
 . Locate the file called `scheduler.properties`. 
 . Edit the file according the to the following.
-+
-. The Management Console is now configured to store its persistent data in the specified MySQL database. Start the Management Console and login normally. +
- +
+
+[source]
+----
+org.quartz.jobStore.isClustered=false
+org.quartz.jobStore.driverDelegateClass=org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+org.quartz.jobStore.useProperties=true
+org.quartz.scheduler.instanceId=AUTO
+----
+
+. The Management Console is now configured to store its persistent data in the specified MySQL database. Start the Management Console and login normally.
 
 === Connecting to a Remote MySQL Server
 
@@ -709,47 +816,69 @@ If the MySQL server resides on a remote host, you are most likely unable to conn
 
 . To check that the MySQL server allows remote database connections, locate the MySQL server configuration file, for example `/etc/mysql/my.cnf`. 
 . Search for the following line.
-+
+
+[source]
+----
+bind-address        = 127.0.0.1
+----
+
 . If the line exists, perform the following steps:
 
-. 1.  Stop the MySQL server.
-. Open the configuration file for editing, then comment out the line with a number sign (#), as shown below. +
- +
-+
-. Close the file, then restart the MySQL server.
+.. Stop the MySQL server.
+.. Open the configuration file for editing, then comment out the line with a number sign (#), as shown below.
+
+[source]
+----
+# bind-address      = 127.0.0.1
+----
+
+.. Close the file, then restart the MySQL server.
 
 ==== Remote Access Privileges
 
 . To grant remote database access to your database user, login to MySQL as the MySQL server root user, using the following command.
-+
+
+[source]
+----
+mysql -u root -D mysql -p
+----
+
 . Enter the password for root.
 . Obtain the 41-digit hexadecimal representation of the database user's password (in this case, the password for user MMC_STATUS) by running the following command.
-+
+
+[source]
+----
+SELECT * FROM user WHERE User = '<user>';
+----
+
 . In the output from the previous command, find, then copy the 41-digit hex number, which is preceded by an asterisk.
 . Grant the privileges with the following command.
-+
+
+[source]
+----
+GRANT ALL PRIVILEGES ON <database>.* TO '<user>'@'<host|net>' IDENTIFIED BY PASSWORD '<password>' WITH GRANT OPTION;
+----
+
 . For the `<password>` parameter, paste the 41-digit hex number you copied in the previous step. Tell the MySQL server to reload the grant tables, with the following command.
-+
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/check.png[image] a|
+[source]
+----
+FLUSH PRIVILEGES;
+----
 
- Further details on the GRANT ALL PRIVILEGES command
-
+////
+[TIP]
+====
+Further details on the GRANT ALL PRIVILEGES command
 The value of `<host|net>` can either be a host or network specification. Wildcards are allowed, such as `'MMC_STATUS'@'172.16.0.%'`.
-
 The value of `<password>` is the 41-digit hexadecimal number representing the password. To obtain your user's password, run the following command from the `mysql` prompt.
-
 A complete command example follows.
+====
 
-|===
+[NOTE]
+====
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] a|
-
- Testing the remote connection with the telnet command
+Testing the remote connection with the telnet command
 
 If you are unsure of the MySQL server configuration, _but are certain that you have connectivity to the MySQL server host and port_ (i.e. you are sure there are no routing issues, firewalls, etc. blocking connectivity), then you can use the `telnet` command to do a remote test of the MySQL server.
 
@@ -761,7 +890,9 @@ If connectivity to the MySQL server is fully working, and the server is granting
 
 If you obtain this output, but cannot successfully connect the Management Console to the remote MySQL server, then something is likely wrong with the Management Console configuration. Check the logs in Mule or your Web app server for details.
 
-|===
+====
+
+////
 
 == Disaster Recovery
 
@@ -769,10 +900,8 @@ Out of the box, MMC stores persistent state data in the folder `<Mule install pa
 
 One possible solution is to backup the database to a single file, which can then be copied to another machine. If the need for immediate recovery arises, this file can be used to restore the database to its original state.
 
-[cols=",",]
-|====
-|image:/docs/images/icons/emoticons/forbidden.png[image] a|
-
+[IMPORTANT]
+====
 When you restore MMC to a previous state, please be aware of the following:
 
 * You are restoring MMC state data, which is not related to the persistence of Business Events, which use a completely different mechanism to store data.
@@ -781,8 +910,7 @@ When you restore MMC to a previous state, please be aware of the following:
 ** Server does not exist anymore. Unpair the server.
 ** Another server is using the same IP and port as the original one. Try to identify the original server’s current IP and port, then re-pair.
 ** Server is correctly connected, after the backup, deployed and/or undeployed apps are not shown or are shown incorrectly. Undeploy/Redeploy as needed to eliminate the unreconciled state.
-
-|====
+====
 
 === Postgres
 
@@ -823,17 +951,14 @@ To restore the `mmc.test` database, complete the following steps:
 . On the object browser, make sure that the database called `mmc.test` is defined
 . Make sure that all the tables that may be defined on the database are dropped
 . Right click on `mmc.test`, select *Restore*
-. On the *File Options*tab, select:
+. On the *File Options* tab, select:
 * Filename: `<Database backup file>`
 * Format: `Custom or tar`
 * Rolename: `MMC_STATUS`
 . Click *Restore*.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |This process was tested when MMC was running, but without load.
-
-|===
+[NOTE]
+This process was tested when MMC was running, but without load.
 
 === Oracle
 
@@ -853,11 +978,8 @@ This scenario assumes the following conditions:
 
 ==== Database backup procedure
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/forbidden.png[image] |Tables on the database contain Binary Large Objects (BLOBs). A regular database export using SQL Developer does not export BLOBs contents, so when restoring the database those fields are marked as `NULL`.
-
-|===
+[IMPORTANT]
+Tables on the database contain Binary Large Objects (BLOBs). A regular database export using SQL Developer does not export BLOBs contents, so when restoring the database those fields are marked as `NULL`.
 
 To backup the database, open a terminal and issue the following command:
 
@@ -867,18 +989,13 @@ The file `OracleMMCDB.dmp` will be created in the same folder where the `exp` ut
 
 For help on `exp` command parameters run: `exp help=yes`
 
- Click to view an exp output listing
+// Click to view an exp output listing
 
 ==== Database restore procedure
 
 Open a terminal and run: `imp MMC_STATUS/mmc123 file=OracleMMCDB.dmp full=yes`
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/warning.png[image] |The example assumes that the dump file is located in the same folder as the imp utility. Specify the full path to the `.dmp` file if necessary.
-
-|===
+[WARNING]
+The example assumes that the dump file is located in the same folder as the imp utility. Specify the full path to the `.dmp` file if necessary.
 
 For help on `imp` command parameters run: `imp help=yes`
-
-  Click for a listing of imp output
