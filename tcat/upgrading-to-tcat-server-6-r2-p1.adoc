@@ -1,4 +1,5 @@
 = Upgrading to Tcat Server 6 R2 P1
+:keywords: tcat, upgrade, r2 p1
 
 This page provides important information for users who are upgrading from Tcat Server 6 R2 to the R2 P1 release. Throughout this page, the directory of your Tomcat installation is referred to as `CATALINA_HOME`. For information on what has changed in this release, see the link:/docs/display/TCAT/Release+Notes+Tcat+6+R2[Release Notes Tcat 6 R2].
 
@@ -23,15 +24,16 @@ Before you run the installer, back up your configuration files, like this:
 
 Then, you may run the installer, and install the new Tcat Server release over your existing Tcat Server installation.
 
-Once the installer has finished installing Tcat Server, you may want to use your previous configuration settings from the configuration files that you backed up earlier.
+After the installer  finishes installing Tcat Server, you may want to use your previous configuration settings from the configuration files that you backed up earlier.
 
-If you have not modified the configuration files in the conf/ directory, you should instead start over with the stock configuration files from this new version of Tcat Server, and in that case you do not need to perform the configuration file copying that is shown below.
+If you have not modified the configuration files in the conf/ directory, start over with the stock configuration files from this new version of Tcat Server, and in that case you do not need to perform the configuration file copying that is shown below.
 
-In general, if you have hand-modified any of the configuration files, you should use a diff and merge tool to inspect the differences between your backed up configuration file and the stock Tcat Server 6 R2 P1 copy, and carefully merge your changes into the new copy you'll use. Here is a procedure you can follow:
+In general, if you have hand-modified any of the configuration files, you should use a diff and merge tool to inspect the differences between your backed up configuration file and the stock Tcat Server 6 R2 P1 copy, and carefully merge your changes into the new copy.
+
+Here is a procedure you can follow:
 
 . Restore your previous configuration from the backed up files:
 +
-
 [source]
 ----
 # cp ~/tomcat-users.xml $CATALINA_HOME/conf/tomcat-users.xml
@@ -39,32 +41,29 @@ In general, if you have hand-modified any of the configuration files, you should
 # cp ~/catalina.properties $CATALINA_HOME/conf/catalina.properties
 # cp ~/logging.properties $CATALINA_HOME/conf/logging.properties
 ----
-
++
 . Make sure your `conf/catalina.properties` has a common.loader definition that looks like this:
 +
-
 [source]
 ----
 common.loader=${catalina.base}/lib,${catalina.base}/lib/*.jar,${catalina.home}/lib,${catalina.h
 ----
-
++
 . Copy your backed up `server.xml` into place:
 +
-
 [source]
 ----
 # cp ~/server.xml $CATALINA_HOME/conf/server.xml
 ----
-
++
 . Edit your server.xml to include this `<Listener>` among the listener elements near the top of server.xml (the order in which the listener elements are listed in the file does not matter):
 +
-
 [source]
 ----
 <!-- Prevent memory leaks due to use of particular java/javax APIs-->
   <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
 ----
-
++
 . Use a diff tool to merge in any changes from your backed up `catalina.policy` and `web.xml` files.
 . Modify / edit your `agent.properties` file in all of your agent web applications so that it reports that its version number is "6.2.1". On non-Windows operating systems, you can use the following sed command to do that:
 +
@@ -73,11 +72,11 @@ common.loader=${catalina.base}/lib,${catalina.base}/lib/*.jar,${catalina.home}/l
 ----
 # sed -i.bak -e 's/6\.2\.0/6.2.1/g' $CATALINA_HOME/webapps/agent/WEB-INF/agent.properties
 ----
-
++
 . Start your Tomcat or Tcat Server instance.
-. Clear your web browser cache, and log into the Tcat Server console. Once you are logged in, look for "Copyright 2010 MuleSoft, Inc." in the footer. If you're still seeing "Copyright 2009", it is likely that your web browser's cache is still showing you an older copy of the console web application.
+. Clear your web browser cache, and log into the Tcat Server console. Once you are logged in, look for "Copyright 2015 MuleSoft, Inc." in the footer. If you're still seeing an earlier year, it is likely that your web browser's cache is still showing you an older copy of the console web application.
 
-If you are using LDAP or the EC2 plugin, you must perform some manual steps as described at the end of this page.
+If you are using LDAP or the EC2 plugin, you must perform the manual steps as described at the end of this page.
 
 == Manually Upgrading
 
@@ -86,35 +85,34 @@ To manually upgrade using the R2 P1 installation ZIP file, you take the followin
 . Stop your Tomcat or Tcat Server instance.
 . Copy your existing Tomcat installation directory to a backup file. For example, on non-Windows operating systems, type:
 +
-
 [source]
 ----
 # cp -a $CATALINA_HOME $CATALINA_HOME.bak
 ----
-
++
 . Remove the previous version of the Tcat Server console and agent webapps from your `webapps/` directory:
 +
-
 [source]
 ----
 # cd $CATALINA_HOME/webapps
 # rm -r console console.war agent agent.war
 ----
-
++
 . Extract the R2 P1 installation ZIP file over your existing Tcat Server installation. For example, on non-Windows operating systems, type:
 +
-
 [source]
 ----
 # cd /opt
 # unzip ~/TcatServer-6.2.1.zip
 ----
-
++
 . If you have not modified the configuration files in the conf/ directory, you should instead start over with the stock configuration files from this new version of Tcat Server, and in that case you do not need to perform the configuration file copying that is shown below.
-In general, if you have hand-modified any of the configuration files, you should use a diff and merge tool to inspect the differences between your backed up configuration file and the stock Tcat Server 6 R2 P1 copy, and carefully merge your changes into the new copy you'll use. Here is a procedure you can follow:
++
+In general, if you have hand-modified any of the configuration files, you should use a diff and merge tool to inspect the differences between your backed up configuration file and the stock Tcat Server 6 R2 P1 copy, and carefully merge your changes into the new copy you use.
++
+Here is a procedure you can follow:
 Restore your previous configuration from the backed up files:
 +
-
 [source]
 ----
 # cp ~/tomcat-users.xml $CATALINA_HOME/conf/tomcat-users.xml
@@ -122,83 +120,74 @@ Restore your previous configuration from the backed up files:
 # cp ~/catalina.properties $CATALINA_HOME/conf/catalina.properties
 # cp ~/logging.properties $CATALINA_HOME/conf/logging.properties
 ----
-
++
 . Make sure your `conf/catalina.properties` has a common.loader definition that looks like this:
 +
-
 [source]
 ----
 common.loader=${catalina.base}/lib,${catalina.base}/lib/*.jar,${catalina.home}/lib,${catalina.home}/lib/*.jar
 ----
-
++
 . Copy your backed up `server.xml` into place:
 +
-
 [source]
 ----
 # cp ~/server.xml $CATALINA_HOME/conf/server.xml
 ----
-
++
 . Edit your server.xml to include this `<Listener>` among the listener elements near the top of server.xml (the order in which the listener elements are listed in the file does not matter):
 +
-
 [source]
 ----
 <!-- Prevent memory leaks due to use of particular java/javax APIs-->
   <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
 ----
-
++
 . Use a diff tool to merge in any changes from your backed up `catalina.policy` and `web.xml` files.
 . Modify / edit your agent.properties file in all of your agent web applications so that it reports that its version number is "6.2.1". On non-Windows operating systems, you can use the following sed command to do that:
 +
-
 [source]
 ----
 # sed -i.bak -e 's/6\.2\.0/6.2.1/g' $CATALINA_HOME/webapps/agent/WEB-INF/agent.properties
 ----
-
++
 . Copy your agent's `truststore.jks` file into the new installation:
 +
-
 [source]
 ----
 $ cp $CATALINA_HOME.bak/webapps/agent/WEB-INF/truststore.jks CATALINA_HOME/webapps/agent/WEB-INF/
 ----
-
++
 . Modify / edit your `agent.properties` file in all of your agent web applications so that it reports that its version number is "6.2.1". On non-Windows operating systems, you can use the following sed command to do that:
 +
-
 [source]
 ----
 # sed -i.bak -e 's/6\.2\.0/6.2.1/g' $CATALINA_HOME/webapps/agent/WEB-INF/agent.properties
 ----
-
++
 . If your original installation created a directory named `galaxy-data` anywhere other than in the root of your `CATALINA_HOME` directory, move it to the root of your `CATALINA_HOME` directory now. For example:
 +
-
 [source]
 ----
 $ mv $CATALINA_HOME/bin/galaxy-data $CATALINA_HOME/galaxy-data
 ----
-
++
 . Clear out your `work` and `temp` directories. For example:
 +
-
 [source]
 ----
 $ rm -rf $CATALINA_HOME/temp/* $CATALINA_HOME/work/*
 ----
-
++
 . Set the proper ownership and group for the runtime tree (you must have superuser privileges to perform this step). For example:
 +
-
 [source]
 ----
 # chown -R tomcat:tomcat $CATALINA_HOME
 ----
-
++
 . Start your Tomcat or Tcat Server instance.
-. Clear your web browser cache, and log into the Tcat Server console. Once you are logged in, look for "Copyright 2010 MuleSoft, Inc." in the footer. If you're still seeing "Copyright 2009", it is likely that your web browser's cache is still showing you an older copy of the console web application.
+. Clear your web browser cache, and log into the Tcat Server console. Once you are logged in, look for "Copyright 2015 MuleSoft, Inc." in the footer. If you're still seeing an earlier year, it is likely that your web browser's cache is still showing you an older copy of the console web application.
 
 If you are using LDAP or the Amazon EC2 plugin, see the directions below on how to complete the upgrade.
 
