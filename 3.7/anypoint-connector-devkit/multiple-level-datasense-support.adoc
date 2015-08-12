@@ -1,4 +1,5 @@
 = Multiple Level DataSense Support
+:keywords: devkit, datasense, multiple level, multi-level
 
 As seen before, Mule DataSense is a feature that allows you to displays the metadata of entities included in a service in a friendly manner. In its original form, DataSense uses a single key to identify the entity for which the MetaData has to be retrieved. This single-key approach might be a restriction for complex cases, where the entities to be describe through MetaData are identified in a nested way, with more than one identifiers and that most of the time work in a closely related way, creating a selection tree based on the previously selected key.
 
@@ -25,7 +26,7 @@ Implementing a MetaDataCategory that uses multi-level keys, implies the followin
 
 For cases where the default keySeparator "||" can be a valid combination inside the keyId's to be used, then the @MetaDataKeyRetriever can be configured with a custom keySeparator to be used when levels are concatenated
 
-[source]
+[source,java]
 ----
 @MetaDataCategory
 public class CustomSeparatorComposedKeyCategory {
@@ -95,7 +96,7 @@ public class CustomSeparatorComposedKeyCategory {
 
 @MetaDataKeyParam must declare a *labels* attribute, declaring a label for each DataSense level to be shown in Studio as a drop-down. Labels is the "name" of the drop-down.
 
-[source]
+[source,java]
 ----
 @Processor
 @MetaDataScope( CustomSeparatorComposedKeyCategory.class )
@@ -126,13 +127,13 @@ In the following example, the expected IDs output is:
 south||arg||bsas, south||arg||tucu, north||usa||nyc, north||usa||ca
 ----
 
-Three drop-downs will be displayed in Anypoint Studio, as shown in the previous screenshots:
+Three drop-downs display in Anypoint Studio, as shown in the previous screenshots:
 
 * The top one shows "South America" and "North America". 
 * Depending on the first selection, the second one shows "Argentina" or "United States" as options.
 * The third drop-down shows "Buenos Aires" and "Tucuman" when Argentina is selected in the second drop-down, or "San Francisco" and "Los Angeles", if United States is selected in the second drop-down. 
 
-[source]
+[source.java]
 ----
 return ComposedMetaDataKeyBuilder.getInstance()
 .newKeyCombination()
@@ -154,14 +155,14 @@ Similar to the first fluent approach, the partial Level's definition will enable
 
 In this example, the expected IDs output is:
 
-[source]
+[source,java]
 ----
 id1||common1, id1||common2, id1||sub1, 
 id2||common1, id2||common2, id1||sub1, 
 id3||common1, id3||common2, id3||sub2, id3||sub3
 ----
 
-[source]
+[source,java]
 ----
 // Partial Level definition
 MetaDataKeyLevel commonIds = new DefaultMetaDataKeyLevel();
@@ -195,7 +196,7 @@ return ComposedMetaDataKeyBuilder.getInstance()
 
 Build each node separately, and merge them all together in the final build. All the keys being built are stored in the builder and concatenated once the build is executed:
 
-[source]
+[source,java]
 ----
 ComposedMetaDataKeyBuilder metaDataKeyBuilder = ComposedMetaDataKeyBuilder.getInstance();
  
@@ -239,7 +240,7 @@ image:/docs/download/attachments/132351886/full_dropdown_sample.png?version=1&mo
 
 In the XML, this key is placed as a single string, where each level is separated for the previously mentioned keySeparator.
 
-[source]
+[source,xml]
 ----
 <sample-connector:operation config-ref=”config” myKey="north@@usa@@ca"/>
 ----
