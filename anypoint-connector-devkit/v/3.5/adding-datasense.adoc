@@ -40,7 +40,7 @@ In either case, metadata retrieval requires that you include two annotated metad
 * `@MetadataKeyRetriever` retrieves a list of all the entity Type names from the connected service
 * `@MetadataRetriever` uses the list of metadata keys (retrieved by `@MetadataKeyRetriever`) to retrieve the entity composition of each entity Type
 
-[source]
+[source, java]
 ----
 @MetaDataKeyRetriever
 public List<MetaDataKey> getMetadataKeys() {  }
@@ -131,7 +131,7 @@ The *author* element contains the following fields:
 
 . As already stated, the first step is to obtain the metadata from the connector. As the metadata is static, you don't need to make a call the Web service to obtain it, you can just hard-code the information into the connector. Inside your connector class, add a new method annotated with `@MetaDataKeyRetriever`
 +
-[source]
+[source, java]
 ----
 @MetaDataKeyRetriever
     public List<MetaDataKey> getEntities() throws Exception {
@@ -147,7 +147,7 @@ This method returns a list of the entity's names. In this case, it retrieves a l
 
 . The next step is to implement `@MetaDataRetriever` method, which obtains a description of each of the entities returned by the previous method. The return type of this java method MUST be MetaData and it MUST receive one MetaDataKey parameter. In this example, assume that the entity classes of the service exist locally `.Book.class` and `Author.class` can then be directly referenced in your code when describing them. You can call the interface `DefaultMetadataBuilder`, provided by DevKit, to easily build a POJO.
 +
-[source]
+[source, java]
 ----
 @MetaDataRetriever
     public MetaData describeEntity(MetaDataKey entityKey) throws Exception {
@@ -182,7 +182,7 @@ The method must receive the operation's type as a parameter annotated with `@Met
 [WARNING]
 When building connectors for Mule runtimes prior to *3.5.0*, all `@Default` parameters must also be marked with `@Optional`. In newer versions, this second annotation is considered redundant, but it is required on Mule runtime 3.4.2 and older.
 
-[source]
+[source, java]
 ----
 @Processor
     public Object create(@MetaDataKeyParam String entityType, @Default("#[payload]") Object entityData) {
@@ -232,7 +232,7 @@ If you obtain the metadata dynamically through an API call, the `@Connect` metho
 
 . Inside your connector class, add a new method annotated with `@MetaDataKeyRetriever`. (This method is no different from the one implemented with static metadata).
 +
-[source]
+[source, java]
 ----
 @MetaDataKeyRetriever
     public List<MetaDataKey> getEntities() throws Exception {
@@ -246,7 +246,7 @@ If you obtain the metadata dynamically through an API call, the `@Connect` metho
 
 . The next step is to implement `@MetaDataRetriever` method. This obtains a description of each of the entities returned by the previous method. As in the previous example, this method uses the interface `DefaultMetaDataBuilder`, but this time it will be called to build dynamic objects instead of POJOs.
 +
-[source]
+[source, java]
 ----
 @MetaDataRetriever
     public MetaData describeEntity(MetaDataKey entityKey) throws Exception {
@@ -286,7 +286,7 @@ The message processor must receive the operation's type as a parameter annotated
 [WARNING]
 When building connectors for Mule runtimes prior to *3.5.0*, all `@Default` parameters must also be marked with `@Optional`. In newer versions, this second annotation is considered redundant, but it is required on mule runtime 3.4.2 and older.
 
-[source]
+[source, java]
 ----
 @Processor
     public Object create(@MetaDataKeyParam String entityType, @Default("#[payload]") Object entityData) {
@@ -325,7 +325,7 @@ For example, suppose you wish to offer a regular message processor and, addition
 
 The example below displays a `@MetaDataCategory` class that contains both methods, and resides in a separate java file. In this default class, both `@MetaDataKeyRetriever` and `@MetaDataRetriever` methods are the same as in the previous example. You must establish a link between this class and your connector module; the most common way of doing this is to `@Inject` your connector class as shown below.
 
-[source]
+[source, java]
 ----
 @MetaDataCategory
 public class DefaultCategory {
@@ -373,7 +373,7 @@ public class DefaultCategory {
 
 Then, define a second group for a different message processor that can access different metadata as shown below.
 
-[source]
+[source, java]
 ----
 @MetaDataCategory
 public class AdvancedCategory {
