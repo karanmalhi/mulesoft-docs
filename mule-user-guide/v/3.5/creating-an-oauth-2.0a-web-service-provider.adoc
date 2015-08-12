@@ -100,7 +100,7 @@ To define OAuth provider resources, complete the steps listed below.
 . Within your Web service project in Mule, create a *Spring bean* called **`ss-authentication manager`**, in which you define the **`authentication-provider`**. It will essentially be a database of the users that are allowed.
 +
 
-[source]
+[source, xml]
 ----
 <spring:beans>
         <ss:authentication-manager id="resourceOwnerAuthenticationManager"> 
@@ -120,7 +120,7 @@ Refer to the link:/docs/download/attachments/122752340/client_validation.png?ver
 . Within your Web service project in Mule, create a *security manager* element which references the authentication manager. (In the context of an OAuth Web service, the authentication manager is the security provider.)
 +
 
-[source]
+[source, xml]
 ----
 <mule-ss:security-manager>
         <mule-ss:delegate-security-provider name="resourceOwnerSecurityProvider" delegate-ref="resourceOwnerAuthenticationManager"/>
@@ -202,7 +202,7 @@ Default value: `FALSE`
 URIs for accessing endpoints are be built following the structure below:
 `http://localhost:<port>/<path>`
 
-[source]
+[source, xml]
 ----
 <oauth2-provider:config
         name="oauth2Provider"
@@ -221,14 +221,14 @@ URIs for accessing endpoints are be built following the structure below:
 
 . Add a global `oauth2-provider:config` to your Mule application, at the top of your XML config file, outside all flows.
 +
-[source]
+[source, xml]
 ----
 <oauth2-provider:config/>
 ----
 +
 Add attributes to the global element according to the table below. The Required column indicates an attribute is required for validating a client app and resource owner. (Refer to example code below.)
 +
-[source]
+[source, xml]
 ----
 <oauth2-provider:config
         name="oauth2Provider"
@@ -318,7 +318,7 @@ To implement authorization code, clients need to define the following pieces of 
 
 Below is a simple typical configuration of an oauth2 module with an authorization code client:
 
-[source]
+[source, xml]
 ----
 <oauth2-provider:config
         name="oauth2Provider"
@@ -349,7 +349,7 @@ Below is a simple typical configuration of an oauth2 module with an authorizatio
 
 *Click to see a full working Mule flow that includes this configuration*
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  
@@ -457,7 +457,7 @@ The *implicit grant type* is not as secure as the authorization code grant type.
 
 Below is a simple typical configuration of an OAuth2 module with an implicit grant client:
 
-[source]
+[source, xml]
 ----
 <oauth2-provider:config
         name="oauth2Provider"
@@ -488,7 +488,7 @@ Below is a simple typical configuration of an OAuth2 module with an implicit gra
 
 *Click to see a full working Mule flow that includes this configuration*
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  
@@ -574,7 +574,7 @@ The *resource owner password credentials grant type* is less secure than both th
 
 Below is a simple typical configuration of an OAuth2 module with resource owner password credentials:
 
-[source]
+[source, xml]
 ----
 <oauth2-provider:config
         name="oauth2Provider"
@@ -605,7 +605,7 @@ Below is a simple typical configuration of an OAuth2 module with resource owner 
 
 *Click to see a full working Mule flow that includes this configuration*
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  
@@ -705,7 +705,7 @@ The *client credentials grant type* is the least secure of all the four types de
 
 Below is a simple typical configuration of an OAuth2 module with client credentials:
 
-[source]
+[source, xml]
 ----
 <oauth2-provider:config
         name="oauth2Provider"
@@ -736,7 +736,7 @@ Below is a simple typical configuration of an OAuth2 module with client credenti
 
 *Click to see a full working Mule flow that includes this configuration*
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  
@@ -869,7 +869,7 @@ During registration, a client indicates which are its valid redirect URIs. When 
 +
 See the code example below. Notice that Mule creates a default object store, then loads clients' information into that object store.
 +
-[source]
+[source, xml]
 ----
 <oauth2-provider:config
         ...
@@ -895,7 +895,7 @@ See the code example below. Notice that Mule creates a default object store, the
 +
 .. Add a Spring bean and write Java code to be referenced by it, using the default object store. In order to do this you must use the XML Console. In the example code below, the Spring bean invokes the `initialize` method of the `TweetBookInitializer` Java class. Mule generates the value of the default object store, then the Spring bean sets that value on the `clientRegistration `property.
 +
-[source]
+[source, xml]
 ----
 <spring:bean class="org.mule.modules.security.examples.oauth2.TweetBookInitializer"
                      init-method="initialize"
@@ -945,7 +945,7 @@ public class TweetBookInitializer
 . Use one of three following methods to store client IDs and secrets.
 .. Add an **`oauth2-provider:client-create`** element to the flow in your Mule application which will accept and store client IDs and secrets. See code example below, notice that Mule creates a default object store, then loads the clients' information into that object store.)
 +
-[source]
+[source, xml]
 ----
 <oauth2-provider:create-client clientId="${client_id}" secret="${client_secret}"
                                         type="CONFIDENTIAL" clientName="Mule Bookstore" description="Mule-powered On-line Bookstore">
@@ -993,7 +993,7 @@ During registration, a client indicates which are its valid redirect URIs. When 
 +
 .. Add a Spring bean and write Java code to be referenced by it, using the default object store. In the example code below, the Spring bean invokes the `initialize` method of the `TweetBookInitializer` Java class. Mule generates the value of the default object store, then the Spring bean sets that value on the `clientRegistration `property.
 +
-[source]
+[source, xml]
 ----
 <spring:bean class="org.mule.modules.security.examples.oauth2.TweetBookInitializer"
                      init-method="initialize"
@@ -1091,7 +1091,7 @@ image:/docs/download/attachments/122752340/oauth-deletetokens.png?version=1&modi
 |===
 +
 
-[source]
+[source, xml]
 ----
 <oauth2-provider:delete-client clientId="#[message.inboundProperties.clientId]"/> 
 ----
@@ -1104,7 +1104,7 @@ image:/docs/download/attachments/122752340/oauth-deletetokens.png?version=1&modi
 |*token* |x |A Mule expression indicating the access token to be revoked. Note that by revoking a client's access token, Mule also revokes any refresh tokens associated with the client, and vice versa. See code example below.
 |===
 
-[source]
+[source, xml]
 ----
 <oauth2-provider:revoke-token token="#[message.inboundProperties.access_token]"/> 
 ----
@@ -1116,7 +1116,7 @@ image:/docs/download/attachments/122752340/oauth-deletetokens.png?version=1&modi
 [WARNING]
 Note that if you copy this code into an editor, there are several fields that need to be completed with implementation-specific data.
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  
@@ -1213,7 +1213,7 @@ When set to `TRUE`, if the message processor encounters an invalid token which 
 Default value: `FALSE`.
 |===
 
-[source]
+[source, xml]
 ----
 <flow name="publicProfile" doc:name="publicProfile">
         <http:inbound-endpoint address="http://localhost:8084/tweetbook/api/profile" exchange-pattern="request-response" doc:name="Profile API"/>
@@ -1238,7 +1238,7 @@ Default value: `FALSE`.
 * `validate-client`: to check that the provided client credentials are valid.
 . Configure the attributes of the `oauth2-provider` element as per the table below.
 +
-[source]
+[source, xml]
 ----
 <flow name="publicProfile" doc:name="publicProfile">
         <http:inbound-endpoint address="http://localhost:8084/tweetbook/api/profile" exchange-pattern="request-response" doc:name="Profile API"/>
@@ -1274,7 +1274,7 @@ When set to `TRUE`, if the message processor encounters an invalid token which 
 
 The Oauth2 provider enables you to specify the implementation of the object stores where the clients, the tokens and the refresh tokens are stored. Here is a sample configuration on how to do this with the client store.
 
-[source]
+[source, xml]
 ----
 <spring:bean id="clientsObjectStore" class="org.mule.util.store.InMemoryObjectStore" init-method="initialise" destroy-method="dispose" />
      
@@ -1296,7 +1296,7 @@ The Oauth2 provider enables you to specify the implementation of the object stor
 
 You may use the JDBC Transport or the Mongo DB transport for database-backed client object stores. Similarly, you may define settings for storing the access tokens and the refresh tokens:
 
-[source]
+[source, xml]
 ----
 <spring:bean name="tokenStore" class="org.mule.modules.oauth2.provider.token.ObjectStoreTokenStore">
         <spring:property name="refreshTokenObjectStore" ref="refreshTokenObjectStore" />
@@ -1306,7 +1306,7 @@ You may use the JDBC Transport or the Mongo DB transport for database-backed cli
 
 If you do this, you then need to reference these in the `oauth2-provider`:
 
-[source]
+[source, xml]
 ----
 <oauth2-provider:config
         name="oauth2ProviderRegister"

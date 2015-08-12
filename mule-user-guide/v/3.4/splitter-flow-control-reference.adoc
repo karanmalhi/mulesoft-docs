@@ -37,7 +37,7 @@ Specifies whether Mule should give outgoing messages a correlation ID. Options a
 
 === A Simple Splitter
 
-[source]
+[source, xml]
 ----
 <splitter expression="#[xpath('//item')]" doc:name="Splitter" enableCorrelation="IF_NOT_SET"/>
 ----
@@ -70,7 +70,7 @@ Specifies whether Mule should give outgoing messages a correlation ID. Options a
 [WARNING]
 Note that this example includes the optional child element, `expression-message-info-mapping`. Use this child element only if your aggregation (later in your flow) is extremely customized and the standard correlation id set by Mule does not meet your needs.
 
-[source]
+[source, xml]
 ----
 <splitter expression="#[xpath('//item')]" doc:name="Splitter" enableCorrelation="IF_NOT_SET">
             <expression-message-info-mapping messageIdExpression="#[java.util.UUID.randomUUID().toString()]" correlationIdExpression="#[xpath('//order/@id')]"/>
@@ -131,9 +131,8 @@ image:/docs/download/attachments/122752237/Studio-splitterflow.png?version=1&mod
 +
 Send a Post request to http://localhost:8081/ attaching XML to the body of the message. Sample XML is provided below.
 +
-[source]
+[source, xml]
 ----
-
 <root xmlns:foo="http://www.foo.org/" xmlns:bar="http://www.bar.org">
     <actors>
         <actor id="1">Christian Bale</actor>
@@ -164,7 +163,7 @@ If everything worked well, you should see three messages logged into the console
 ....
 . Add an HTTP inbound endpoint into a new flow, and use the default values for its attributes.
 +
-[source]
+[source, xml]
 ----
 <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" doc:name="HTTP"/>
 ----
@@ -180,7 +179,7 @@ If everything worked well, you should see three messages logged into the console
 
 . Add a Splitter below, to receive messages from the HTTP endpoint. In the *Expression* parameter provide the http://www.freeformatter.com/xpath-tester.html#ad-output[XPath] expression `//actor` , wrapped inside a MEL expression. This XPath expression selects every XML element named 'actor'. The splitter will make each of these (together with its children) into a new message.
 +
-[source]
+[source, xml]
 ----
 <splitter expression="#[xpath('//actor')]" doc:name="Splitter" enableCorrelation="IF_NOT_SET"/>
 ----
@@ -194,7 +193,7 @@ If everything worked well, you should see three messages logged into the console
 |===
 . Include a logger after the splitter to log the entire payload of each message received.
 +
-[source]
+[source, xml]
 ----
 <logger message="#[message.payload]" level="INFO" doc:name="Logger"/>
 ----
@@ -209,7 +208,7 @@ If everything worked well, you should see three messages logged into the console
 
 . The finished flow should look like this:
 +
-[source]
+[source, xml]
 ----
 <flow name="SplitterExampleFlow1" doc:name="SplitterExampleFlow1">
         <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" doc:name="HTTP"/>
@@ -222,7 +221,7 @@ If everything worked well, you should see three messages logged into the console
 . You must now send the HTTP endpoint an HTTP request that includes a body with an attached XML file. MuleSoft recommends using a browser extension such as https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm[Postman] (Google Chrome). +
 Send a Post request to http://localhost:8081/ attaching an XML to the body of the message. Sample XML is provided below.
 +
-[source]
+[source, xml]
 ----
 <root xmlns:foo="http://www.foo.org/" xmlns:bar="http://www.bar.org">
     <actors>
@@ -244,7 +243,7 @@ If everything worked well, you should see three messages logged into the console
 
 === Full Example Code
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  
@@ -301,7 +300,7 @@ image:/docs/download/attachments/122752237/aggregator.png?version=1&modification
 ....
 === A Simple Collection Aggregator
 
-[source]
+[source, xml]
 ----
 <collection-aggregator failOnTimeout="true" doc:name="Collection Aggregator" storePrefix="split_" timeout="60000"/>
 ----
@@ -330,7 +329,7 @@ Note: Attribute not required in Mule Standalone configuration.
 [WARNING]
 Note that this example includes the optional child element, `expression-message-info-mapping`. Use this child element only if your aggregation (later in your flow) is extremely customized and the standard correlation ID set by Mule does not meet your needs.
 
-[source]
+[source, xml]
 ----
 <collection-aggregator failOnTimeout="true" doc:name="Collection Aggregator" storePrefix="split_" timeout="60000">
             <expression-message-info-mapping messageIdExpression="#[java.util.UUID.randomUUID().toString()]" correlationIdExpression="#[xpath('//order/@id')]"/>
@@ -397,7 +396,7 @@ Send a Post request to http://localhost:8081/ attaching XML to the body of the m
 [TIP]
 The easiest way to do this is sending posts via a browser extension such as https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm[Postman] (for Google Chrome) or the http://curl.haxx.se/[curl] command line utility.
 +
-[source]
+[source, xml]
 ----
 <root xmlns:foo="http://www.foo.org/" xmlns:bar="http://www.bar.org">
     <actors>
@@ -422,7 +421,7 @@ You should see four messages logged into the console: the first three should be 
 ....
 . Add a second flow to your project.
 +
-[source]
+[source, xml]
 ----
 <flow name="splitterFlow1" doc:name="splitterFlow1">
      <http:inbound-endpoint exchange-pattern="one-way" host="localhost" port="8082" doc:name="HTTP"/>
@@ -437,7 +436,7 @@ You should see four messages logged into the console: the first three should be 
 
 .. Remove the logger in the first flow, add an identical one inside the second flow.
 +
-[source]
+[source, xml]
 ----
 <flow name="splitterFlow1" doc:name="splitterFlow1">
      <http:inbound-endpoint exchange-pattern="one-way" host="localhost" port="8082" doc:name="HTTP"/>
@@ -452,7 +451,7 @@ You should see four messages logged into the console: the first three should be 
 
 . Link both flows through a couple of VM endpoints, an outbound endpoint in the first flow and an inbound endpoint in the second flow.
 +
-[source]
+[source, xml]
 ----
 <flow name="splitterFlow1" doc:name="splitterFlow1">
      <http:inbound-endpoint exchange-pattern="one-way" host="localhost" port="8082" doc:name="HTTP"/>
@@ -479,7 +478,7 @@ Provide these same attributes for both VM endpoints:
 Once both VMs share the same *Queue Path*, they will be linked. Messages that arrive to the first VM will continue their path out of the second VM. What you have at this point appears to work identically to what you built in the first example. There is, however, one key difference: each fraction of the message will be processed simultaneously rather than in sequence. If you deploy your app to a cluster of servers this will have a big effect on performance.
 . Add a Collection aggregator in the second flow, after the logger.
 +
-[source]
+[source, xml]
 ----
 <collection-aggregator failOnTimeout="false" doc:name="Collection Aggregator"/>
 ----
@@ -496,7 +495,7 @@ Once both VMs share the same *Queue Path*, they will be linked. Messages that ar
 [TIP]
 The easiest way to do this is sending posts via a browser extension such as https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm[Postman] (for Google Chrome), or using the http://curl.haxx.se/[curl] command-line utility.
 +
-[source]
+[source, xml]
 ----
 <root xmlns:foo="http://www.foo.org/" xmlns:bar="http://www.bar.org">
     <actors>
@@ -521,7 +520,7 @@ You should see four messages logged into the console: the first three should be 
 
 === Full Example 1 Code
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  
@@ -573,7 +572,7 @@ The Resequencer will output three distinct messages, so the Aggregator is still 
 [TIP]
 The easiest way to do this is sending posts via a browser extension such as https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm[Postman] (for Google Chrome), or the http://curl.haxx.se/[curl] command-line utility.
 +
-[source]
+[source, xml]
 ----
 <root xmlns:foo="http://www.foo.org/" xmlns:bar="http://www.bar.org">
     <actors>
@@ -595,7 +594,7 @@ With the Resequencer in place, messages now reach the aggregator in the correct 
 ....
 . Add a *Resequencer* Flow Control before the aggregator.
 +
-[source]
+[source, xml]
 ----
 <resequencer failOnTimeout="true" doc:name="Resequencer"/>
 ----
@@ -616,7 +615,7 @@ The Resequencer will output three distinct messages, so the Aggregator is still 
 [TIP]
 The easiest way to do this is sending posts via a browser extension such as https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm[Postman] (for Google Chrome) or the  http://curl.haxx.se/[curl] command-line utility.
 +
-[source]
+[source, xml]
 ----
 <root xmlns:foo="http://www.foo.org/" xmlns:bar="http://www.bar.org">
     <actors>
@@ -639,7 +638,7 @@ With the Resequencer in place, messages now reach the aggregator in the correct 
 
 === Full Example 2 Code
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  

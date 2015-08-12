@@ -41,12 +41,12 @@ public enum Property {
 
 Then the following enums types and flows are valid:
 
-[source]
+[source, xml]
 ----
 <enums:config myProperty="FIRST_NAME"/>
 ----
 
-[source]
+[source, xml]
 ----
 <flow name="setProperties">
     <enums:set-properties>
@@ -58,7 +58,7 @@ Then the following enums types and flows are valid:
 </flow>
 ----
 
-[source]
+[source, xml]
 ----
 <flow name="getPropertyValue">
     <enums:get-property-value property="LAST_NAME"/>
@@ -71,7 +71,7 @@ Under the hood, DevKit generates a Transformer for all the enumerated types that
 
 The generated schema file also adds restrictions so that only matching enumerated values can be used in the xml.  For example, since the possible values for the `Property` enum are `FIRST_NAME`, `LAST_NAME,` and `ADDRESS` then the following is not valid and the validation of the schema will fail:
 
-[source]
+[source, xml]
 ----
 <flow name="getPropertyValue">
     <enums:get-property-value property="COUNTRY"/>
@@ -118,7 +118,7 @@ public class CollectionModule {
 
 And these Spring beans:
 
-[source]
+[source, xml]
 ----
 <spring:bean id="objectA" class="java.lang.String">
         <spring:constructor-arg value="ObjectA"/>
@@ -142,7 +142,7 @@ You can configure the Module any of the following ways.
 
 * Declare the list elements explicitly.
 +
-[source]
+[source, xml]
 ----
 <collection:config>
         <collection:strings>
@@ -154,7 +154,7 @@ You can configure the Module any of the following ways.
 
 * Declare the map elements explicitly. 
 +
-[source]
+[source, xml]
 ----
 <collection:config>
         <collection:map-strings>
@@ -166,7 +166,7 @@ You can configure the Module any of the following ways.
 
 * Like the previous map, use the tag names (`a` and `b`) as keys.
 +
-[source]
+[source, xml]
 ----
 <collection:count-map-of-strings config-ref="configC">
             <collection:map-strings>
@@ -178,7 +178,7 @@ You can configure the Module any of the following ways.
 
 * Declare one element explicitly and use a reference for the other element. 
 +
-[source]
+[source, xml]
 ----
 <collection:config>
         <collection:strings>
@@ -190,7 +190,7 @@ You can configure the Module any of the following ways.
 
 * Instead of declaring the elements of the list, pass a reference to a bean of the same type.
 +
-[source]
+[source, xml]
 ----
 <collection:config name="configA">
         <collection:strings ref="list" />
@@ -209,7 +209,7 @@ Now consider the following `@Processor` method.
 
 The generated message processor can be invoked as follows.
 
-[source]
+[source, xml]
 ----
 <collection:map-of-lists>
             <collection:map>
@@ -221,7 +221,7 @@ The generated message processor can be invoked as follows.
 
 Instead of passing the values of the map by reference, the map itself can also be a reference:
 
-[source]
+[source, xml]
 ----
 <collection:map-of-lists>
             <collection:map ref="#[map-payload:myMap]" />
@@ -274,7 +274,7 @@ DevKit enables you to use such processors, especially when link:/docs/display/3
 
 When an `@Processor` method receives a complex type, DevKit deconstructs the object then constructs a schema that can be used to reconstruct that object. This lets you represent complex type objects with concise, intuitive XML. For example:
 
-[source]
+[source, xml]
 ----
 <ns:receive-a-complex-type>
     <ns:my-complex-type color="red"/>
@@ -308,7 +308,7 @@ public void receiveAComplexType(MyComplexType myComplexType) { ... }
 
 DevKit omits the description field from the generated schema. For example, the snippet below is invalid, because the `@Ignored` `description` attribute is not part of the generated schema. For DevKit's purposes, at the XML level this element does not have a `description` attribute.
 
-[source]
+[source, xml]
 ----
 <ns:receive-a-complex-type>
     <ns:my-complex-type color="red" description=""/>
@@ -325,7 +325,7 @@ DevKit standardizes the way to pass objects by reference. List and Map objects c
 public void receiveAList(List<String> strings) { ... }
 ----
 
-[source]
+[source, xml]
 ----
 <ns:receive-a-list>
   <ns:strings ref="#[payload]"/>
@@ -334,7 +334,7 @@ public void receiveAList(List<String> strings) { ... }
 
 In DevKit, passing a complex object also uses a  `ref` attribute in a child element.
 
-[source]
+[source, xml]
 ----
 <ns:receive-a-complex-type>
     <ns:my-complex-type ref="#[payload]"/>

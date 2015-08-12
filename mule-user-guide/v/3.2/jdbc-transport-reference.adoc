@@ -19,14 +19,14 @@ http://www.mulesoft.org/docs/site/current3/schemadocs/namespaces/http_www_muleso
 
 XML namespace (Community Edition (CE) version):
 
-[source]
+[source, xml]
 ----
 xmlns:jdbc="http://www.mulesoft.org/schema/mule/jdbc"
 ----
 
 XML namespace (Enterprise Edition (EE) version):
 
-[source]
+[source, xml]
 ----
 xmlns:jdbc="http://www.mulesoft.org/schema/mule/ee/jdbc"
 ----
@@ -49,7 +49,7 @@ http://www.mulesoft.org/schema/mule/ee/jdbc http://www.mulesoft.org/schema/mule/
 ====
 *For CE or EE, if you create the Spring bean right in the Mule configuration file, you must include the following namespaces:* +
 
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:jee="http://www.springframework.org/schema/jee"       xmlns:util="http://www.springframework.org/schema/util"       xmlns:jdbc="http://www.mulesoft.org/schema/mule/jdbc"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd       http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/jdbc http://www.mulesoft.org/schema/mule/jdbc/3.2/mule-jdbc.xsd">
 ----
@@ -57,14 +57,14 @@ http://www.mulesoft.org/schema/mule/ee/jdbc http://www.mulesoft.org/schema/mule/
 
 Connector syntax (CE version):
 
-[source]
+[source, xml]
 ----
 <spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardDataSource" destroy-method="shutdown">    <spring:property name="driverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>    <spring:property name="url" value="jdbc:derby:muleEmbeddedDB;create=true"/></spring:bean><jdbc:connector name="jdbcConnector" dataSource-ref="jdbcDataSource" pollingFrequency="10000"                 queryRunner-ref="queryRunner" queryTimeout="10" resultSetHandler-ref="resultSetHandler"                 transactionPerMessage="true"/>
 ----
 
 Connector syntax (EE version):
 
-[source]
+[source, xml]
 ----
 <spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardDataSource" destroy-method="shutdown">    <spring:property name="driverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>    <spring:property name="url" value="jdbc:derby:muleEmbeddedDB;create=true"/></spring:bean><jdbc:connector name="jdbcEeConnector" pollingFrequency="1000" dataSource-ref="jdbcDataSource"                queryRunner-ref="queryRunner" queryTimeout="10" resultSetHandler-ref="resultSetHandler"                transactionPerMessage="true">    <jdbc:ackSqlCommandExecutorFactory ref="ackSqlCommandExecutorFactory"/>    <jdbc:sqlCommandRetryPolicyFactory ref="sqlCommandRetryPolicyFactory"/>    <jdbc:query key="myQuery" value="select * from table"/>    <jdbc:sqlCommandExecutorFactory ref="sqlCommandExecutorFactory"></jdbc:sqlCommandExecutorFactory>    <jdbc:sqlStatementStrategyFactory ref="sqlStatementStrategyFactory"/></jdbc:connector>
 ----
@@ -75,14 +75,14 @@ You can define your endpoints 2 different ways:
 
 . Prefixed endpoint (valid for both CE and EE jdbc endpoints):
 
-[source]
+[source, xml]
 ----
 <jdbc:inbound-endpoint queryKey="selectQuery" name="jdbcInbound" pollingFrequency="10000" queryTimeout="10"                        connector-ref="jdbcConnector" exchange-pattern="one-way">    <jdbc:transaction action="ALWAYS_BEGIN" /></jdbc:inbound-endpoint>
 ----
 
 . Non-prefixed URI:
 
-[source]
+[source, xml]
 ----
 <inbound-endpoint address="jdbc://getTest?type=1"/>
 ----
@@ -91,14 +91,14 @@ Outbound endpoints:
 
 . Prefixed endpoint (valid for both CE and EE jdbc endpoints):
 
-[source]
+[source, xml]
 ----
 <jdbc:outbound-endpoint queryKey="selectCount" exchange-pattern="one-way" connector-ref="jdbcConnector" queryTimeout="10" >    <jdbc:transaction action="ALWAYS_BEGIN"/></jdbc:outbound-endpoint>
 ----
 
 . Non-prefixed URI:
 
-[source]
+[source, xml]
 ----
 <outbound-endpoint address="jdbc://writeTest?type=2"/>
 ----
@@ -136,7 +136,7 @@ Inbound SELECT queries are queries that are executed periodically (according to 
 
 Here is an example:
 
-[source]
+[source, xml]
 ----
 <spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardDataSource" destroy-method="shutdown">  <spring:property name="driverName" value="oracle.jdbc.driver.OracleDriver"/>    <spring:property name="url" value="jdbc:oracle:thin:user/pass@host:1521:db"/></spring:bean>...<jdbc:connector name="jdbcConnector" pollingFrequency="10000" dataSource-ref="jdbcDataSource"> ❷        <jdbc:query key="selectLoadedMules"                    value="SELECT ID, MULE_NAME, RANCH, COLOR, WEIGHT, AGE from mule_source"/></jdbc:connector>...    <flow name="AllMules">        <jdbc:inbound-endpoint queryKey="selectLoadedMules" exchange-pattern="request-response"/> ❶...    </flow>...
 ----
@@ -221,7 +221,7 @@ SQL INSERT, UPDATE, and DELETE statements are specified on outbound endpoints. T
 
 For example, when a message with a java.util.Map payload is sent to a basic insert/update/delete endpoint, the parameters in the statement are bound with corresponding entries in the Map. In the configuration below, if the message contains a Map payload with \{ID=1,TYPE=1,DATA=hello,ACK=0}, the following insert is issued: "INSERT INTO TEST (ID,TYPE,DATA,ACK) values (1,1,'hello',0)".
 
-[source]
+[source, xml]
 ----
 <jdbc:connector name="jdbcConnector" pollingFrequency="10000" dataSource-ref="jdbcDataSource">    <jdbc:query key="outboundInsertStatement"              value="INSERT INTO TEST (ID, TYPE, DATA, ACK) VALUES (#[map-payload:ID],                     #[map-payload:TYPE],#[map-payload:DATA], #[map-payload:ACK])"/></jdbc:connector>...<flow name="ExampleFlow">    <inbound-endpoint address="vm://doInsert"/>    <jdbc:outbound-endpoint queryKey="outboundInsertStatement"/></flow>...
 ----
@@ -255,14 +255,14 @@ Transformer Details:
 
 Also, the XML message payload (passed in or out as a String) must adhere to a particular schema format:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?><xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">  <xs:element name="table">    <xs:complexType>      <xs:sequence>        <xs:element ref="record"/>      </xs:sequence>    </xs:complexType>  </xs:element>  <xs:element name="record">    <xs:complexType>      <xs:sequence>        <xs:element maxOccurs="unbounded" ref="field"/>      </xs:sequence>    </xs:complexType>  </xs:element>  <xs:element name="field">    <xs:complexType>      <xs:simpleContent>        <xs:extension base="xs:NMTOKEN">          <xs:attribute name="name" use="required" type="xs:NCName"/>          <xs:attribute name="type" use="required" type="xs:NCName"/>        </xs:extension>      </xs:simpleContent>    </xs:complexType>  </xs:element></xs:schema>
 ----
 
 Here is an example of a valid XML instance:
 
-[source]
+[source, xml]
 ----
 <table>    <record>   <field name="id" type="java.math.BigDecimal">0</field>  <field name="name" type="java.lang.String">hello</field>    </record></table>
 ----
@@ -271,7 +271,7 @@ The transformer converts each "record" element to a Map of column/value pairs us
 
 The following returns any processed rows in xml format when you go to 'http://localhost:8080/first20' in your browser:
 
-[source]
+[source, xml]
 ----
 <jdbc:connector name="jdbcConnector" dataSource-ref="jdbcDataSource">        <jdbc:query key="selectLoadedMules"                    value="SELECT ID, PROCESSED from mule_source WHERE PROCESSED is null order by ID"/>        <jdbc:query key="selectLoadedMules.ack"          value="update mule_source set PROCESSED='Y'  where ID = #[map-payload:ID]"/>            </jdbc:connector>    <jdbc:maps-to-xml-transformer name="XMLResponseTransformer"/>    <message-properties-transformer name="XMLContentTransformer">        <add-message-property key="Content-Type" value="text/xml"/>    </message-properties-transformer>    <flow name="ReportModel">            <inbound-endpoint address="http://localhost:8080/first20" responseTransformer-refs="XMLResponseTransformer XMLContentTransformer" exchange-pattern="request-response"/>            <jdbc:outbound-endpoint queryKey="selectLoadedMules" exchange-pattern="request-response"/>    </flow>
 ----
@@ -306,7 +306,7 @@ The following table summarizes the properties that can be set on this transforme
 
 This configuration loads a csv file in the 'mule_source' table of a database
 
-[source]
+[source, xml]
 ----
 <jdbc:connector name="jdbcConnector" dataSource-ref="jdbcDataSource">    <jdbc:query key="commitLoadedMules"                value="insert into mule_source                 (ID, MULE_NAME, RANCH, COLOR, WEIGHT, AGE)                 values                 (#[map-payload:ID;int;in], #[map-payload:MULE_NAME], #[map-payload:RANCH], #[map-payload:COLOR], #[map-payload:WEIGHT;int;in], #[map-payload:AGE;int;in])"/></jdbc:connector><file:connector name="fileConnector" autoDelete="false" pollingFrequency="100000000"/><file:endpoint path="/tmp/data" name="get" connector-ref="fileConnector"/><custom-transformer name="ObjectToString" class="org.mule.transformer.simple.ObjectToString"/><jdbc:csv-to-maps-transformer name="CSV2Maps" delimiter="," mappingFile="/tmp/mules-csv-format.xml" ignoreFirstRecord="true"/><flow name="CSVLoader">    <file:inbound-endpoint ref="get" transformer-refs="ObjectToString CSV2Maps">        <file:filename-wildcard-filter pattern="*.csv"/>    </file:inbound-endpoint>    <echo-component/>    <jdbc:outbound-endpoint queryKey="commitLoadedMules"/></flow>
 ----
@@ -318,7 +318,7 @@ An inbound SELECT query is invoked on an inbound endpoint according to a specifi
 . Support synchronous invocation of queries. For example, you can implement the classic use case of a web page that serves content from a database using an HTTP inbound endpoint and an outbound SELECT query endpoint.
 . Allows parameters so that values can be bound to the query at runtime. This requires that the message contain a Map payload containing key names that match the parameter names. For example, the following configuration could be used to retrieve an outbound SELECT query:
 
-[source]
+[source, xml]
 ----
 <jdbc:connector name="jdbcConnector" dataSource-ref="jdbcDataSource">        <jdbc:query key="selectMules"                    value="select * from mule_source where ID between 0 and #[header:inbound:max]"/></jdbc:connector><jdbc:maps-to-xml-transformer name="XMLResponseTransformer"/><message-properties-transformer name="XMLContentTransformer">    <add-message-property key="Content-Type" value="text/xml"/></message-properties-transformer><flow name="ExampleModel">    <inbound-endpoint address="http://localhost:8080/getMules" exchange-pattern="request-response" responseTransformer-refs="XMLResponseTransformer XMLContentTransformer"/>    <jdbc:outbound-endpoint queryKey="selectMules" exchange-pattern="request-response"/></flow>
 ----
@@ -336,7 +336,7 @@ The database rows are transformed into xml which you see in your browser.
 
 Stored procedures are supported on outbound endpoints in Mule. Like any other query, stored procedure queries can be listed in the queries map. Following is an example of how stored procedure queries could be defined:
 
-[source]
+[source, xml]
 ----
 <jdbc:connector name="jdbcConnector" pollingFrequency="10000" dataSource-ref="jdbcDataSource">    <jdbc:query key="storedProc" value="CALL addField()"/></jdbc:connector>
 ----
@@ -345,7 +345,7 @@ To denote that we are going to execute a stored procedure and not a simple SQL q
 
 Parameters to stored procedures can be forwarded by either passing static parameters in the configuration or using the same syntax as for SQL queries (see "Passing in Parameters" below). For example:
 
-[source]
+[source, xml]
 ----
 <jdbc:query key="storedProc1" value="CALL addFieldWithParams(24)"/><jdbc:query key="storedProc2" value="CALL addFieldWithParams(#[map-payload:value])"/><flow name="ExampleModel">    <inbound-endpoint address="http://localhost:8080/get" exchange-pattern="request-response"/>    <jdbc:outbound-endpoint queryKey="storedProc1" exchange-pattern="request-response"/></flow><flow name="ExampleModel">    <inbound-endpoint address="http://localhost:8080/get2" exchange-pattern="request-response"/>    <jdbc:outbound-endpoint address="jdbc://storedProc2?value=25"/></flow>
 ----
@@ -372,7 +372,7 @@ where `$PARAMn` is specified using the following syntax:
 
 For example:
 
-[source]
+[source, xml]
 ----
 <jdbc:query key="SingleCursor"  value="call MULEPACK.TEST_CURSOR(#[mules;resultSet;out])"/>
 ----
@@ -381,7 +381,7 @@ This SQL statement calls a stored procedure TEST_CURSOR in the package of MULEPA
 
 Here is another example:
 
-[source]
+[source, xml]
 ----
 <jdbc:query key="itcCheckMsgProcessedOrNot"value="call #[mules;int;out] := ITCPACK.CHECK_IF_MSG_IS_HANDLED_FNC(487568,#[mules1;string;out],#[mules2;string;out],#[mules3;int;out],#[mules4;string;out])"/>
 ----
@@ -398,7 +398,7 @@ Mule Enterprise provides advanced stored procedure support for outbound endpoint
 
 In Mule Enterprise, you can execute your stored procedures with _out_ and _inout_ scalar parameters. The syntax for such parameters is:
 
-[source]
+[source, xml]
 ----
 <jdbc:query key="storedProc1" value="CALL myProc(#[a], #[b;int;inout], #[c;string;out])"/>
 ----
@@ -413,7 +413,7 @@ If you want to handle the cursor as a `java.sql.ResultSet`, see the "cursorOutpu
 
 If you want to handle the cursor by fetching the `java.sql.ResultSet` to a collection of Map objects, see the "cursorOutputAsMaps" service below, which uses both the "MapLookup" and "ResultSet2Maps" transformers to achieve this result.
 
-[source]
+[source, xml]
 ----
 <jdbc:connector name="jdbcConnector" pollingFrequency="1000" cursorTypeConstant="-10"      dataSource-ref="jdbcDataSource">    <jdbc:query key="SingleCursor"  value="call TEST_CURSOR(#[mules;resultSet;out])"/></jdbc:connector>    <custom-transformer class="org.mule.transformer.simple.MapLookup" name="MapLookup">    <spring:property name="key" value="mules"/>    </custom-transformer>    <jdbc:resultset-to-maps-transformer name="ResultSet2Maps"/>        <flow name="SPModel">           <vm:inbound-endpoint path="returns.maps" responseTransformer-refs="ResultSet2Maps MapLookup"/>    <jdbc:outbound-endpoint queryKey="SingleCursor"/></flow>        <flow name="cursorOutputAsResultSet">    <vm:inbound-endpoint  path="returns.resultset"  responseTransformer-refs="MapLookup"/>    <jdbc:outbound-endpoint queryKey="SingleCursor"/></flow>
 ----
@@ -441,28 +441,28 @@ MuleMessage msg = eventContext.receiveEvent("jdbc://SELECT * FROM TEST", 0);
 
 You can use any JDBC data source library with the JDBC Connector. The "myDataSource" reference below refers to a DataSource bean created in Spring:
 
-[source]
+[source, xml]
 ----
 <jdbc:connector name="jdbcConnector" pollingFrequency="10000" dataSource-ref="myDataSource">        ...</jdbc:connector>
 ----
 
 You can also create a JDBC connection pool so that you don't create a new connection to the database for each message. You can easily create a pooled data source in Spring using http://xapool.ow2.org/[xapool]. The following example shows how to create the Spring bean right in the Mule configuration file.
 
-[source]
+[source, xml]
 ----
 <spring:bean id="pooledDS" class="org.enhydra.jdbc.standard.StandardXADataSource" destroy-method="shutdown">  <spring:property name="driverName" value="oracle.jdbc.driver.OracleDriver"/>  <spring:property name="url" value="jdbc:oracle:thin:user/pass@host:1521:db"/>  <spring:property name="user" value="USER" />  <spring:property name="password" value="PWD" />  <spring:property name="minCon" value="10" />  <spring:property name="maxCon" value="100" /></spring:bean>
 ----
 
 If you need more control over the configuration of the pool, you can use the standard JDBC classes. For example, you could create the following bean in the Spring configuration file (you could also create them in the Mule configuration file by prefixing everything with the Spring namespace):
 
-[source]
+[source, xml]
 ----
 <bean id="c3p0DataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">         <property name="driverClass">             <value>oracle.jdbc.driver.OracleDriver</value>         </property>         <property name="jdbcUrl">             <value>jdbc:oracle:thin:@MyUrl:MySID</value>         </property>         <property name="user">             <value>USER</value>         </property>         <property name="password">             <value>PWD</value>         </property>         <property name="properties">             <props>                 <prop key="c3p0.acquire_increment">5</prop>                 <prop key=" c3p0.idle_test_period">100</prop>                 <prop key="c3p0.max_size">100</prop>                 <prop key="c3p0.max_statements">1</prop>                 <prop key=" c3p0.min_size">10</prop>                 <prop key="user">USER</prop>                 <prop key="password">PWD</prop>             </props>         </property>     </bean>
 ----
 
 You could then reference the `c3p0DataSource` bean in your Mule configuration:
 
-[source]
+[source, xml]
 ----
 <connector name="C3p0Connector" className="org.mule.providers.jdbc.JdbcConnector">   <properties>     <container-property name="dataSource" reference="c3p0DataSource"/>       <map name="queries">         <property name="test1" value="select * from Tablel"/>         <property name="test2" value="call testd(1)"/>       </map>   </properties> </connector>
 ----
@@ -476,7 +476,7 @@ JdbcConnector jdbcConnector = (JdbcConnector) MuleServer.getMuleContext().getReg
 
 To retrieve the data source from a JNDI repository, you would configure the connector as follows:
 
-[source]
+[source, xml]
 ----
 <spring:beans>  <jee:jndi-lookup id="myDataSource" jndi-name="yourJndiName" environment-ref="yourJndiEnv" />  <util:map id="jndiEnv">    <spring:entry key="java.naming.factory.initial" value="yourJndiFactory" />   </util:map></spring:beans>
 ----
@@ -491,21 +491,21 @@ Copy your JDBC client jar to the <MULE_HOME>/lib/user directory of your installa
 
 If you want to include the JDBC transport in your configuration, these are the namespaces you need to define:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:jdbc="http://www.mulesoft.org/schema/mule/jdbc"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/jdbc http://www.mulesoft.org/schema/mule/jdbc/3.2/mule-jdbc.xsd">...
 ----
 
 For the enterprise version of the JDBC transport:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"      xmlns:spring="http://www.springframework.org/schema/beans"      xmlns:jdbc="http://www.mulesoft.org/schema/mule/ee/jdbc"      xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/ee/jdbc http://www.mulesoft.org/schema/mule/ee/jdbc/3.2/mule-jdbc-ee.xsd">...
 ----
 
 Then you need to define a connector:
 
-[source]
+[source, xml]
 ----
 <spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardDataSource" destroy-method="shutdown">    <spring:property name="driverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>    <spring:property name="url" value="jdbc:derby:muleEmbeddedDB;create=true"/></spring:bean><jdbc:connector name="jdbcConnector" dataSource-ref="jdbcDataSource" pollingFrequency="10000"                 queryRunner-ref="queryRunner" queryTimeout="10" resultSetHandler-ref="resultSetHandler"                 transactionPerMessage="true"/>
 ----
@@ -518,14 +518,14 @@ Finally, you define an inbound or outbound endpoint.
 Endpoints look like this:
 Inbound endpoints:
 
-[source]
+[source, xml]
 ----
 <jdbc:inbound-endpoint queryKey="selectQuery" name="jdbcInbound" pollingFrequency="10000" queryTimeout="10"                        connector-ref="jdbcConnector" exchange-pattern="one-way">    <jdbc:transaction action="ALWAYS_BEGIN" /></jdbc:inbound-endpoint>
 ----
 
 Outbound endpoints:
 
-[source]
+[source, xml]
 ----
 <jdbc:outbound-endpoint queryKey="selectCount" exchange-pattern="one-way" connector-ref="jdbcConnector" queryTimeout="10" >    <jdbc:transaction action="ALWAYS_BEGIN"/></jdbc:outbound-endpoint>
 ----
@@ -551,7 +551,7 @@ The following example demonstrates how you would write rows in a database to the
 
 *Writing database rows to their own files*
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:jdbc="http://www.mulesoft.org/schema/mule/jdbc"       xmlns:file="http://www.mulesoft.org/schema/mule/file"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/3.2/mule-file.xsd       http://www.mulesoft.org/schema/mule/jdbc http://www.mulesoft.org/schema/mule/jdbc/3.2/mule-jdbc.xsd">    <!-- This placeholder bean lets you import the properties from the db.properties file. -->    <spring:bean id="property-placeholder" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"> ❶        <spring:property name="location" value="classpath:db.properties"/>     </spring:bean>    <!-- This data source is used to connect to the database using the values loaded from the properties file -->    <spring:bean id="jdbcDataSource"         class="org.enhydra.jdbc.standard.StandardDataSource"        destroy-method="shutdown">        <spring:property name="driverName" value="${database.driver}"/> ❷        <spring:property name="url" value="${database.connection}"/> ❸    </spring:bean>    <jdbc:connector name="jdbcConnector" dataSource-ref="jdbcDataSource" pollingFrequency="5000" transactionPerMessage="false"> ❹        <jdbc:query key="read" value="SELECT id, type, data FROM test3 WHERE type=1"/> ❺        <jdbc:query key="read.ack" value="UPDATE test3 SET type=2 WHERE id=#[map-payload:id]"/> ❻    </jdbc:connector>    <file:connector name="output" outputAppend="true" outputPattern="#[function:datestamp].txt" /> ❼    <flow name="allDbRows">        <jdbc:inbound-endpoint queryKey="read" connector-ref="jdbcConnector"/> ❽        <object-to-string-transformer /> ❾        <file:outbound-endpoint connector-ref="output" path="/tmp/rows"/> ❿    </flow></mule>
 ----
@@ -566,7 +566,7 @@ This example shows how to display database rows in a browser:
 
 *Display database rows in a browser*
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:jdbc="http://www.mulesoft.org/schema/mule/ee/jdbc"       xmlns:file="http://www.mulesoft.org/schema/mule/file"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/3.2/mule-file.xsd       http://www.mulesoft.org/schema/mule/ee/jdbc http://www.mulesoft.org/schema/mule/ee/jdbc/3.2/mule-jdbc-ee.xsd">    <!-- This placeholder bean lets you import the properties from the db.properties file. -->    <spring:bean id="property-placeholder" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">        <spring:property name="location" value="classpath:db.properties"/>    </spring:bean>    <!-- This data source is used to connect to the database using the values loaded from the properties file -->    <spring:bean id="jdbcDataSource"         class="org.enhydra.jdbc.standard.StandardDataSource"        destroy-method="shutdown">        <spring:property name="driverName" value="${database.driver}"/>        <spring:property name="url" value="${database.connection}"/>    </spring:bean>    <jdbc:connector name="jdbcConnector" dataSource-ref="jdbcDataSource">        <jdbc:query key="selectRows"                    value="select * from mule_source where ID between 0 and #[header:inbound:max]"/> ❶    </jdbc:connector>    <jdbc:maps-to-xml-transformer name="XMLResponseTransforer"/> ❷    <message-properties-transformer name="XMLContentTransformer"> ❸        <add-message-property key="Content-Type" value="text/xml"/>    </message-properties-transformer>    <flow name="ExampleModel">        <inbound-endpoint address="http://localhost:8080/rows" exchange-pattern="request-response" responseTransformer-refs="XMLResponseTransformer XMLContentTransformer"/> ❹        <jdbc:outbound-endpoint queryKey="selectRows" exchange-pattern="request-response"/> ❺    </flow></mule>
 ----
@@ -805,7 +805,7 @@ The JDBC transport is implemented by the mule-transport-jdbc module. You can fin
 If you are using Maven to build your application, use the following dependency snippet to include the JDBC transport in your project:
 Community version:
 
-[source]
+[source, xml]
 ----
 <dependency>  <groupId>org.mule.transports</groupId>  <artifactId>mule-transport-email</artifactId>  <version>3.2.0</version></dependency>
 ----
@@ -830,14 +830,14 @@ link:/documentation-3.2/display/32X/Mule-Maven+Dependencies[Mule-Maven Dependenc
 
 Data source configuration has become much simpler. Previously, a data source had to be configured with Spring:
 
-[source]
+[source, xml]
 ----
 <spring:bean id="dataSource" class="org.enhydra.jdbc.standard.StandardDataSource" destroy-method="shutdown">    <spring:property name="driverName" value="com.mysql.jdbc.Driver"/>    <spring:property name="url" value="jdbc:mysql://localhost/mule"/>    <spring:property name="user" value="mysql"/>    <spring:property name="password" value="secret"/></spring:bean>
 ----
 
 Now this is greatly simplified:
 
-[source]
+[source, xml]
 ----
 <jdbc:mysql-data-source name="dataSource" database="mule" user="mysql" password="secret"/>
 ----
@@ -859,7 +859,7 @@ Derby data sources are created as embedded data sources. So the definition of us
 
 Example:
 
-[source]
+[source, xml]
 ----
 <jdbc:derby-data-source name="dataSource" database="mule"/>
 ----
@@ -879,7 +879,7 @@ The following attributes are available on the `derby-data-source` element:
 
 Example:
 
-[source]
+[source, xml]
 ----
 <jdbc:mysql-data-source name="dataSource" database="mule" user="mysql" password="secret"/>
 ----
@@ -902,7 +902,7 @@ The following attributes are available on the `mysql-data-source` element:
 
 Example:
 
-[source]
+[source, xml]
 ----
 <jdbc:oracle-data-source name="dataSource" user="scott" password="tiger"/>
 ----
@@ -925,7 +925,7 @@ The following attributes are available on the `oracle-data-source` element:
 
 Example:
 
-[source]
+[source, xml]
 ----
 <jdbc:postgresql-data-source name="dataSource" database="mule" user="postgres" password="secret"/>
 ----

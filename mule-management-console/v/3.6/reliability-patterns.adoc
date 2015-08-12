@@ -49,7 +49,7 @@ The following table lists the advantages and disadvantages of using VM, JMS, and
 
 Here is a code example that shows what a complete reliability pattern would look like (that is, including the reliable acquisition flow and application logic flow). In this example, the reliable acquisition flow part of the reliability pattern is HTTP-to-VM. Note that VM file persistency, shown below, does not work on clusters.
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -113,7 +113,7 @@ Some things to notice in particular about the code in the reliable acquisition f
 
 Here is the code for a complete reliability pattern where the the reliable acquisition flow part of the reliability pattern is HTTP-to-JMS.
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -170,7 +170,7 @@ Let's focus on the reliable acquisition flow part of the reliability pattern. Fu
 
 You can change the outbound endpoint in each of the following examples to JMS. Remember to replace the XML namespace and XML schema locations to the ones appropriate for a JMS transport:
 
-[source]
+[source, xml]
 ----
 xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
  
@@ -184,7 +184,7 @@ And replace the outbound endpoints accordingly.
 
 The following code implements a reliable acquisition flow from an FTP inbound endpoint to a JMS outbound endpoint:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -225,7 +225,7 @@ Note also that because we are calling a transformer, we have to allow for the po
 
 The following code implements a reliable acquisition flow from an File inbound endpoint to a JMS outbound endpoint:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -265,7 +265,7 @@ Also notice that the configuration of the file connector specifies `streaming="f
 
 === IMAP to VM
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -310,7 +310,7 @@ Here are a number of things to consider in implementing the reliability pattern:
 * Reliability has performance implications.
 * If the outbound transport in the reliable acquisition flow is not transactional (for example, a flow from file-to-FTP), the only way to ensure message delivery is to turn off threading on the respective connector. To understand this, imagine if an exception occurs while sending the message to the outbound endpoint (this might happen if the FTP server is down). If threading is not turned off, the caller may not notice the exception. That's because the exception occurred in a different thread, and there is no way that one thread can see exceptions that occur in another thread. The following example shows how to turn off threading in the connector:
 
-[source]
+[source, xml]
 ----
 <ftp:connector name="ftpConn">
 <dispatcher-threading-profile doThreading="false"/>

@@ -52,7 +52,7 @@ image:/docs/download/attachments/122752027/googlecontacts1.png?version=1&modific
 . To the connector in your flow, add a `fetchSize` attribute.
 . Set the value of the attribute to an integer to indicate the batch size of objects in a "page". For example, set `fetchSize` to `50` to return information in batches of 50 objects.
 
-[source]
+[source, xml]
 ----
 <flow name="Flow1">
     <google-contacts:get-groups config-ref="google" doc:name="paging" fetchSize="50"/>
@@ -104,7 +104,7 @@ When a message reaches the Google Contacts connector, the Logger outputs a separ
 . Create a *google-contacts* *Global Element,* then define its *Consumer Key* and *Consumer secret*. +
 +
 
-[source]
+[source, xml]
 ----
 <google-contacts:config-with-oauth name="Google_Contacts" consumerKey="" consumerSecret="" doc:name="Google Contacts" applicationName="Mule-GoogleContactsConnector">
     <google-contacts:oauth-callback-config domain="localhost" path="auth" remotePort="8081"/>
@@ -115,7 +115,7 @@ When a message reaches the Google Contacts connector, the Logger outputs a separ
 . Create an *HTTP* connector and set the value of its *Path* to `authenticate`.
 +
 
-[source]
+[source, xml]
 ----
 <http:inbound-endpoint host="localhost" port="8080" path="authenticate" doc:name="HTTP"/>
 ----
@@ -124,7 +124,7 @@ When a message reaches the Google Contacts connector, the Logger outputs a separ
 . Add a *Google Contacts connector* setting its *operation* to `authorize.`
 +
 
-[source]
+[source, xml]
 ----
 <google-contacts:authorize config-ref="Google_Contacts" doc:name="Google Contacts"/> 
 ----
@@ -132,7 +132,7 @@ When a message reaches the Google Contacts connector, the Logger outputs a separ
 . Create a new flow with a new *HTTP* endpoint. Set the value of its *Path* to `get_contacts`, and reference the same configuration element as the other connector.
 +
 
-[source]
+[source, xml]
 ----
 <http:inbound-endpoint host="localhost" port="8080" path="get_contacts" doc:name="HTTP"/>
 ----
@@ -140,14 +140,14 @@ When a message reaches the Google Contacts connector, the Logger outputs a separ
 . Add a new *Google Contacts connector* in the new flow setting its *operation* to `get-contacts` and *fetchSize* to `50`.
 +
 
-[source]
+[source, xml]
 ----
 <google-contacts:get-contacts config-ref="Google_Contacts" doc:name="Google Contacts" fetchSize="50"/>
 ----
 
 . After the Google Contacts connector, add a *Foreach* to the flow, then add a *Logger* as a child element inside Foreach element.
 
-[source]
+[source, xml]
 ----
 <foreach doc:name="For Each">
     <logger message="#[message.payload.getEmailAddresses()]" level="INFO" doc:name="Logger"/>
@@ -173,7 +173,7 @@ This function frees up the resources that auto-paging is using.
 
 You can call both the `size()` and the `close()` functions in any expression that supports MEL. The simple example below illustrates how to call `size()` in a logger so that it records the total amount of objects that the connector is outputting.
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:google-contacts="http://www.mulesoft.org/schema/mule/google-contacts" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
@@ -204,7 +204,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 
 == Complete Example
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:google-contacts="http://www.mulesoft.org/schema/mule/google-contacts" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd

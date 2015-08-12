@@ -18,14 +18,14 @@ public class UserManager {    // a Map of Users keyed by their email    private 
 
 Which is declared as a spring object in our Mule configuration:
 
-[source]
+[source, xml]
 ----
 <spring:bean name="userManager" class="com.mulesoft.mql.example.UserManager"/>
 ----
 
 Next up, we need to configure Mule to talk to Salesforce by adding a configuration for the cloud connector:
 
-[source]
+[source, xml]
 ----
 <salesforce:config name="salesforce"                    username="${salesforce.username}"                    password="${salesforce.password}"                     securityToken="${salesforce.securityToken}"/>
 ----
@@ -48,7 +48,7 @@ join salesforce.query('SELECT Id, Company, MobilePhone FROM Lead WHERE Email = \
 
 And finally, we can put this all together to create a RESTful service which listens on a URL and returns the result of this query as JSON:
 
-[source]
+[source, xml]
 ----
 <mql:query-service name="JoinCompanyAndPhone"  address="http://localhost:9002/users"   query="from userManager.users as user            join salesforce.query('SELECT Id, Company, MobilePhone FROM Lead WHERE Email = \'' + user.email + '\'', 100) as sfuser          select new {               name = user.name,               email = user.email,             company = sfuser[0].?Company,               mobile = sfuser[0].?MobilePhone          }"/>
 ----
