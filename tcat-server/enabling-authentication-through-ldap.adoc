@@ -1,0 +1,93 @@
+= Enabling Authentication Through LDAP
+
+Tcat Server can use an LDAP server to manage users and roles. To configure Tcat Server to use LDAP, you take the following steps:
+
+. <<Set up Tcat Server Roles>>
+. <<Add the LDAP JAR to Your Classpath>>
+. <<Create the LDAP Configuration File>>
+
+The rest of this page describes these steps in detail.
+
+== Set up Tcat Server Roles
+
+If a user has a role (also called a "group") on the LDAP server, and you want to use that same role to manage permissions in Tcat Server, you must also create that role inside Tcat Server and set the appropriate permissions. For instance, if you add the "Developers" role to the LDAP server, you must also create a role with that name in the Tcat Server Administration panel and configure the appropriate permissions.
+
+This can be done one of two ways.
+
+. Create a role called Administrators on the LDAP server. Tcat Server comes with a set of default permissions for users with the Administrators role. Ensure that your user name has the Administrators role, and then log into Tcat Server. You can then create other roles, assign the appropriate permissions, and remove the original Administrators role from the LDAP server.
+
+. Start a Tcat Server instance without LDAP enabled. Create roles in the Tcat Server instance that correspond to your roles on the LDAP server, and then follow the instructions below to enable LDAP.
+
+== Add the LDAP JAR to Your Classpath
+
+The Tcat Server LDAP support JAR file contains the necessary classes for Tcat Server to authenticate against an LDAP server. You can download this file http://repository.muleforge.org/org/mule/galaxy/galaxy-ldap/2.0-M5/galaxy-ldap-2.0-M5.jar[here]. Download the file to the `/WEB-INF/lib` directory under the Tcat Server console web application (`<TCatHome>/webapps/console/WEB-INF/lib`).
+
+== Create the LDAP Configuration File
+
+You must create an LDAP configuration file called `ldap.xml` and place it in `/WEB-INF/classes`. Following is an example template for this file, followed by a description of its properties:
+
+[source]
+----
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+   
+  <bean id="initialDirContextFactory"
+          class="org.acegisecurity.ldap.DefaultInitialDirContextFactory">
+    <constructor-arg value="ldap://host:port/"/>
+    <property name="managerDn"><value>cn=Manager,dc=acme,dc=org</value></property>
+    <property name="managerPassword"><value>password</value></property>
+  </bean>
+   
+  <bean id="userSearch" class="org.acegisecurity.ldap.search.FilterBasedLdapUserSearch">
+    <constructor-arg value="ou=People,dc=acme,dc=org"/>
+    <constructor-arg value="(uid={0})"/>
+    <constructor-arg ref="initialDirContextFactory" />
+    <property name="searchSubtree" value="true"/>
+  </bean>
+   
+  <bean id="userManager"
+        class="org.mule.galaxy.security.ldap.LdapUserManager"
+        init-method="initialize">
+    <property name="initialDirContextFactory" ref="initialDirContextFactory"/>
+    <property name="persisterManager" ref="persisterManager" />
+    <property name="userSearch" ref="userSearch"/>
+    <property name="userMapper" ref="userDetailsMapper"/>
+     
+    <!-- Configure these two properties -->
+    <property name="userSearchBase" value="ou=People,dc=acme,dc=org"/>
+    <property name="userSearchAttributes">
+        <map>
+            <entry key="objectclass" value="inetOrgPerson"/>
+        </map>
+    </property>
+  </bean>
+     
+  <bean id="ldapAuthoritiesPopulator" class="org.mule.galaxy.security.ldap.LdapAuthoritiesPopulator">
+      <constructor-arg ref="initialDirContextFactory" />
+      <constructor-arg value="ou=Groups,dc=acme,dc=org" />
+      <property name="groupSearchFilter" value="uniqueMember={0}"/>
+      <property name="searchSubtree" value="true"/>
+      <property name="rolePrefix" value=""/>
+      <property name="convertToUpperCase" value="false"/>
+      <property name="accessControlManager" ref="accessControlManager"/>
+  </bean>
+   
+</beans>
+----
+
+Following are the properties you set in this file:
+
+* The `managerDn` property of the `initialDirContextFactory` bean. This is the distinguished name (DN) of the user you will use to log in to the LDAP server.
+* The `managerPassword` property of the `initialDirContextFactory` bean. This is the password of the user you will use to log in to the LDAP server.
+* The first `<constructor-arg>` of the `userSearch` bean. This is the base context in which Tcat Server will search for users.
+* The second `<constructor-arg>` of the `userSearch` bean. This is a filter expression used to find entries that match a particular user name. For example, (uid=\{0}) would look for an entry where the uid attribute matches the user name.
+* The `userSearchBase` property of the `userManagerTarget` bean. This is the base context in which Tcat Server will search for users.
+* The `userSearchAttributes` property of the `userManagerTarget` bean. These attributes are used to search for users in the LDAP server.
+* The second `<constructor-arg>` of the `ldapAuthoritiesPopulator` bean. This is the DN of the context you will use to search for roles to which the user belongs.
+* The `groupSearchFilter` property of the \{ldapAuthoritiesPopulator}} bean. This is an expression that finds roles. For instance, "(uniqueMember=\{0})" searches for roles inside of the `groupSearchBase` that have an attribute "uniqueMember" where one of the values is the user name.
+
+link:/docs/display/TCAT/Managing+Users+and+Groups[<< Previous: *Managing Users and Roles*]
+
+link:/docs/display/TCAT/Working+with+Server+Profiles[Next: *Working with Server Profiles* >>]

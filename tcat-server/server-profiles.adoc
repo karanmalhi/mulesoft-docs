@@ -1,0 +1,159 @@
+= Server Profiles
+
+Tcat Server supports a feature named *server profiles* that offers an automated way to apply file changes and environment variable settings changes to one or more Tcat or Tomcat installations, and a central point of administration and storage of these changes.
+
+The main uses for server profiles include:
+
+* *Tomcat configuration management*: centrally manage and deploy a set of Tomcat configuration changes, including any server configuration files and scripts that need to be stored within the Tomcat installation tree. For example you may want to distribute a server.xml and a catalina.properties file together to several Tomcat installations, and automate applying those changes each time you modify these files.
+* *Server startup environment settings*: a consistent, automated, and repeatable mechanism for centrally setting and applying server environment variable settings, including setting JVM startup switches and system properties in the JAVA_OPTS environment variable.
+* *Miscellaneous file deployment*: any files that are not part of a web application, and not part of Tomcat, but must be deployed onto the server may be centrally managed and stored using the Tcat Server console, and deployed into the Tcat or Tomcat installation directory tree using a server profile. For example, if your webapp(s) use a container-managed database connection pool that is built into Tomcat, you will need to place the JDBC driver into Tomcat's lib directory, which is outside of the webapps.
+
+Tcat Server implements a mechanism to deploy, redeploy, and undeploy web application files to one or more servers, but when you need to distribute consistent Tomcat configuration changes to one or more servers, you may use server profiles. In some cases you may need to separate your webapp context configuration from your webapp files, and in that case you may use a server profile to deploy your configuration changes.
+
+You may use Server profile environment variables to add to the beginning or end of any value that each server already has. For example, you may apply a server profile that adds an additional configuration file and also adds a system property definition to the end of the server's JAVA_OPTS environment variable.
+
+== How to Use Server Profiles
+
+Here are steps you may follow to create a new server profile and apply it to your servers:
+
+*Step 1*: Create a workspace to hold your server profile's files and directories
+Click the top-level Repository tab, click the "Profiles" workspace link to navigate into the server profiles workspace, then click the New Workspace button and type in a workspace name for your server profile. This name can be any free-form text name, but it should be short and clearly convey the name of the server profile.
+
+Next, add any files and directories to your server profile by uploading them into your server profile's workspace. Files that you place in the root directory of your workspace will be written to the root of your Tomcat's installation (CATALINA_BASE). So, for example, if you wanted to include a JDBC driver jar file so that it is installed into Tomcat's lib/ directory, create a "lib" directory in the root of your server profile's workspace and then upload the JDBC driver jar into the lib directory.
+
+*Step 2*: Create a server profile, give it a name, and select the workspace you created in step 1
+Click the top-level Administration tab, then click the Server Profiles link on the left (under the "Manage" heading). Next, click New. This will bring up the new server profile form. Type in a name for your server profile – this should be a short name that you want shown in the Tcat console when applying and showing your server profile. Also, type in a description that describes the goal of your server profile, and also important information and notes about its contents, such as the versions of the software it contains, the version(s) of Tomcat it may be applied to, the operating systems it is meant to support, etc. Next, select the workspace that contains your server profile's files and directories. You may click the Save button at the bottom of the form at any time to save your server profile.
+
+*Step 3*: Set any environment variable values in your server profile
+
+Not every server profile will require environment variable settings, but if yours needs any, you may set them by clicking the Add Variable button. Enter the name of the environment variable (without the preceding dollar sign or percent sign) by clicking into the environment variable's name field. Enter the value for the environment variable, keeping in mind that when you apply the server profile to a server, the server may already have this variable set. You may want to reference the server's existing value in your server profile's environment variable value (otherwise your server profile's value is used, and the server's own value is lost). For example you may set JAVA_OPTS to add a JVM startup switch to the end of the existing value of JAVA_OPTS with a value like "$\{JAVA_OPTS} -Xmx2048m". Next, save your server profile by clicking the Save button at the bottom.
+
+*Step 4*: Apply your server profile to your servers
+
+Navigate to the top-level Servers tab, then click the "All" link on the left. This will show you the list of all of your servers. Next, select each of the servers that you wish to apply your new server profile to. You may want to apply it to just one server first, to test it, but later you may apply it to two or more servers at the same time from this screen. Click on the Set Profile button on the top right. This will pull down a list of the server profiles that your console has. Select your new server profile, and it will be applied remotely to each of the servers you selected. Some server profiles require a restart of the server JVM in order for the changes to take effect. For example, if you added environment variable settings, or if you added something that Tomcat must find and load at JVM startup time. If so, click the Restart button to restart the affected servers whenever you are ready for the server profile to take effect. Without restarting the JVM, the files and changes from your server profile are already stored on each of the servers, so these changes will be picked up whenever those files would next be loaded and used.
+
+To see which server profile is applied to a server, select the server and then click on its Settings tab. You may also edit the server's settings and select a server profile there as well.
+
+== Environment Variables
+
+Servers have environment variable settings, and server profiles can have environment variable settings. When Tcat Server applies the server profile to the server, the server profile's environment variable settings are merged into the server's environment variable settings. The merging is done such that there is a way to override the server profile's values at the server level, so that it is possible to have a server profile applied to many servers and have a different environment variable value on one of the servers. The following table shows how Tcat Server merges the environment variables and values when applying a server profile:
+
+[width="80a",cols="33a,33a,33a",options="header"]
+|===
+|Server Profile Env Var Setting |Server's Env Var Setting |Merged Setting
+|(undefined) |MY_VAR=one two |MY_VAR=one two
+|MY_VAR=three |(undefined) |MY_VAR=three
+|MY_VAR=three |MY_VAR=one two |MY_VAR=one two
+|MY_VAR=$\{MY_VAR} three |MY_VAR=one two |MY_VAR=one two three
+|MY_VAR=three $\{MY_VAR} |MY_VAR=one two |MY_VAR=three one two
+|===
+
+The server's environment variable setting takes precedence, but the server profile's value may reference and include the server's value into its own value.
+
+In addition to supporting referencing the server's same-variable value, you may reference other environment variables, JVM system properties, and conditionally set values in your server profile's environment variable values. This makes server profiles more programmable and multi-platform, and allows you to create server profiles that work on different server operating systems, where each operating system needs different settings that depend on the operating system.
+
+The below table shows some examples of environment variable value references that Tcat Server supports (as of version 6.4.2):
+
+[width="99a",cols="50a,50a",options="header"]
+|===
+|Server Profile Env Var Setting |Description
+|$\{java.io.tmpdir} |Replace this reference with the server's system property value.
+|$\{USER} |Replace this reference with the current USER environment variable value.
+|$\{myVariablefoo} |Replace this reference with the system property named "myVariable", or with the environment variable with that name (if any), or with the optional default value of "foo" if neither is defined.
+|$\{os.name=Linuxfoo} |If the os.name system property is set to "Linux", replace this reference with "foo", otherwise replace the reference with a zero-length string. If the system property isn't set, the environment variable is also checked and any value is used for the conditional.
+|$\{myProp!=myValfoo} |If the myProp system property is *not* set to "myVal", replace this reference with "foo", otherwise check the environment variable named "myProp". If the conditional is found to be false, replace the reference with a zero-length string.
+|$\{shell:myVariable} |Convert this reference to a shell reference formatted for the shell of the server's OS, and then write that to the tcat-env.conf file. For example $\{myVariable} on non-Windows OSs and %myVariable% on Windows.
+|===
+
+Supported conditional operators:
+
+[width="10a",cols="50a,50a",options="header"]
+|===
+|Operator |Description
+|=or== |Equals
+|!= |Not Equals
+|-sw |Starts with
+|-ew |Ends with
+|===
+
+In the conditionals, Tcat Server also supports a conditional right hand value of "NULL", meaning a Java null.
+
+BASH variable value substitution syntax like "$\{FOO//bar/baz}" or "$\{FOO//gone/}" is not processed/substituted (unless a system property name or environment variable name happens to match the whole thing!), and is instead returned without modification so that a BASH shell can interpret it later.
+
+The merging and processing of the environment variable references and conditionals occurs at the point when you apply a server profile to a server. When the environment variable settings are saved to the server's tcat-env.conf file, all environment variable settings are formatted for the native shell of the server, and in doing so any file system paths are converted to the shell's native format as well. This, in combination with conditional values, enables server profile environment variable settings to be multi-platform.
+
+== server.xml XML Entity Includes and catalina.properties References
+
+If you need to manage server.xml configurations across several Tomcat installations, and you want to keep the configurations consistent across each installation, you may use server profiles. With a simple Tomcat configuration, you may use the same server.xml file on all of your servers, so you can make a server profile that just contains the conf/server.xml file, and you can edit server.xml in the console's repository and re-publish your server profile to your servers each time you need to change it.
+
+But, with more complex configuration in server.xml, you won't be able to copy the same server.xml file to all servers because there will be some portions of the XML configuration settings that are machine specific. In that case, you may separate machine specific portions of the configuration into a separate file that gets included into server.xml. You could separate it in one of two ways, depending on what you need (only do *one* of the following):
+
+. You can treat your server.xml file as being machine specific, and insert only the portions of the configuration that you're configuring the same for all of your servers. In this case, your server profile would include a file that has a snippet of the server.xml's configuration that is not machine specific.
+. You can treat your server.xml file as being the same for all servers, and all machine specific configuration snippets or values get included from other files. In this case, your server profile would include conf/server.xml, and you would have other configuration files that get included into server.xml that contain the machine specific configuration.
+
+There are two main ways you may separate machine specific content out of server.xml (you can use either or both of these): using XML entity includes to load a separate file that contains a portion of server.xml's configuration, and using catalina.properties to store property values and then reference them in server.xml attribute values.
+
+Here's how to include a file in your Tomcat's server.xml. Edit your server.xml, and at the very top of the file, right after any <?xml> declaration line (that's optional), put the following DOCTYPE declaration to define a file entity:
+
+[source]
+----
+
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE server-xml [
+  <!ENTITY connector1-config SYSTEM "connector1-config.xml">
+]>
+
+----
+
+This markup means that this document's name is "server-xml", and we're defining a new entity named "connector1-config" which the XML parser can find in a file named "connector1-config.xml". You can name your entities anything you want, as long as the parser accepts the characters you use. I suggest just using alpha-numeric characters and dash, to keep it simple. It turns out that if you don't specify an absolute path to the file, the parser will look for the file in the same directory as the file that includes it, so the parser will look in Tomcat's conf/ directory.
+
+But, we haven't yet used the connector XML entity we defined at the top of server.xml. At the point in the file where we want the parser to insert the connector's XML, we need only to write "@connector1-config;" like this:
+
+[source]
+----
+
+<Server ...>
+    <Service ...>
+
+        <!-- See conf/connector1-config.xml for this connector's config. -->
+        &connector1-config;
+
+    </Service>
+</Server>
+
+----
+
+Then, create your conf/connector1-config.xml file and place just the <Connector> element's configuration in it. That way, the connector's configuration is in a separate file. Your server profile may bundle either of these files, and that makes it easy to automate updating just one portion of the configuration to be the same across many servers.
+
+The other way to separate machine specific configuration is to define properties in the conf/catalina.properties file, and then use references to the properties in your server.xml file. For example, you may edit catalina.properties and add this line at the end of the file:
+
+[source]
+----
+
+tomcatHttpPort=8080
+
+----
+
+Then, in server.xml, you may reference it as a variable that gets inserted at Tomcat startup time like this:
+
+[source]
+----
+
+<Server ...>
+    <Service ...>
+
+     <Connector port="${tomcatHttpPort}" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" />
+
+    </Service>
+</Server>
+
+----
+Again, a server profile could include either the catalina.properties file or the template server.xml file, and then the server profile could configure select values in server.xml, or configure larger configuration constructs that must be present and consistent on all servers.
+
+== Importing and Exporting Server Profiles
+
+You may export your own server profiles from the Tcat Server console into a zip file to back it up or to share it with other Tcat Server consoles. Navigate to the server profile's page in the console, and click the Export button. Save your server profile to your local hard drive. You may rename the file, it is a simple zip file. The final file name should contain the name of the server profile (matching the name shown in the console), and the version number of the server profile so that people may use the zip filename to distinguish between different revisions of the same server profile.
+
+You may also import a server profile from a file, to take advantage of automated Tomcat configuration that was created elsewhere. Just navigate to the top-level Administration tab, then click on Server Profiles on the left, then click on either the Import from File or Import from URL buttons.

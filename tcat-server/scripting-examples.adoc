@@ -1,0 +1,289 @@
+= Scripting Examples
+
+This page provides examples of using link:/docs/display/TCAT/Automating+Tasks[scripts].
+
+== Executing custom shell scripts before and after deployment
+
+This script registers itself as a listener for pre and post deployment events. The callback methods are used to call custom shell scripts. Replace your own shell scripts with the ones listed in this example.
+
+[width="99a",cols="99a",options="header"]
+|===
+^|Pre and Post Deployment events
+|
+[source]
+----
+package com.mulesoft.tcat
+import org.mule.galaxy.event.annotation.Async
+import org.mule.galaxy.event.annotation.BindToEvents
+import org.mule.galaxy.event.annotation.OnEvent
+import org.mule.galaxy.event.EventManager;
+import org.springframework.context.ApplicationContext;
+@BindToEvents(value=["com.mulesoft.tcat.PreServerDeploymentEvent","com.mulesoft.tcat.PostServerDeploymentEvent"])
+public class ScriptExecutor {
+    def ApplicationContext applicationContext;
+    def EventManager eventManager;
+
+    public ScriptExecutor(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
+    public void install() {
+        eventManager = applicationContext.getBean("eventManager");
+        // remove the previous listener, if any
+        eventManager.listeners.each {
+            if (it.class.simpleName == "ScriptExecutor") {
+                eventManager.removeListener(it)
+                println "Removed previous listener"
+            }
+        }
+        // add the event listener again
+        eventManager.addListener(this)
+    }
+
+    @Async
+    @OnEvent
+    void onEvent(com.mulesoft.tcat.PreServerDeploymentEvent e) {
+        println "/Users/karanmalhi/tmp/pre_script.sh".execute().text;
+    }
+    @Async
+    @OnEvent
+    void onEvent(com.mulesoft.tcat.PostServerDeploymentEvent e) {
+         println "/Users/karanmalhi/tmp/post_script.sh".execute().text;
+    }
+}
+new ScriptExecutor(applicationContext).install();
+----
+|===
+
+== Redeploying a Named Package
+
+This simple script grabs a package with a particular name and redeploys it using the provisioning service.
+
+[source]
+----
+def provisioningService = applicationContext.getBean("provisioningService")
+def deployment = provisioningService.getDeploymentByName("MyPackage")
+provisioningService.redeploy(deployment.id)
+----
+
+== Automatically Redeploying After an Artifact Update
+
+If you're using the link:/docs/display/TCAT/Maven+Publishing+Plug-in[Maven plug-in] or the API to update a WAR, you may want to listen for the update and automatically redeploy any packages associated with it. The following script installs an event listener, which listens for updates to an item's `artifact` property, which changes when the WAR file data has been changed. When this event occurs, the script searches for any deployment packages with this particular artifact and redeploys them.
+
+[source]
+----
+import com.mulesoft.tcat.DeploymentService;
+import com.mulesoft.tcat.DeploymentAction.Action;
+import org.mule.galaxy.Item;
+import org.mule.galaxy.Registry;
+import org.mule.galaxy.event.EventManager;
+import org.mule.galaxy.event.PropertyChangedEvent;
+import org.mule.galaxy.event.annotation.Async;
+import org.mule.galaxy.event.annotation.BindToEvent;
+import org.mule.galaxy.event.annotation.OnEvent;
+ 
+import org.springframework.context.ApplicationContext;
+ 
+@BindToEvent("PropertyChanged")
+public class AutomaticRedeployer {
+    def Registry registry;
+    def DeploymentService deploymentService;
+    def EventManager eventManager;
+    def ApplicationContext applicationContext;
+ 
+    public AutomaticRedeployer(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+ 
+    public void install() {
+        registry = applicationContext.getBean("registry");
+        eventManager = applicationContext.getBean("eventManager");
+        deploymentService = applicationContext.getBean("deploymentService");
+ 
+        // remove the previous listener, if any
+        eventManager.listeners.each {
+            if (it.class.simpleName == "AutomaticRedeployer") {
+                eventManager.removeListener(it)
+                println "Removed previous listener"
+            }
+        }
+        // add the event listener again
+        eventManager.addListener(this)
+    }
+ 
+    @Async
+    @OnEvent
+    void onEvent(PropertyChangedEvent e) {
+        if ("artifact" != e.propertyName)
+            return;
+ 
+        println "Artifact for ${e.itemPath} has been updated. Looking for deployments..."
+ 
+        doRedeploy(e.itemPath)
+    }
+ 
+    /**
+     * Redeploy any packages which have the specified artifact version.
+     */
+    void doRedeploy(String artifactVersionPath) {
+        def query = "select where type.name = 'Deployment Version' and package.latest = 'true' and deployment.artifacts = '${artifactVersionPath}'"       
+ 
+        println "Query: ${query}"
+ 
+        def results = registry.search(query, 0, -1)
+ 
+        for (Item deployVersion : results.results) {
+            println "Redeploying ${deployVersion.parent.name}"
+ 
+            deploymentService.doAction(Action.REDEPLOY, deployVersion.parent.id)
+        }
+    }
+}
+ 
+new AutomaticRedeployer(applicationContext).install()
+----
+
+== Sending Notifications of New Artifact Versions
+
+This script watches for new artifact versions and sends an email to any user who is registered in the "contacts" property.
+
+[source]
+----
+import org.mule.galaxy.event.*;
+import org.mule.galaxy.event.annotation.*;
+ 
+import org.mule.galaxy.Registry
+import org.mule.galaxy.security.User
+import org.mule.galaxy.Item
+ 
+import javax.mail.*;
+import javax.mail.internet.*;
+ 
+import java.util.Properties;
+ 
+// An event listener which fires emails when new entry versions are created
+@BindToEvents(["EntryVersionCreated"])
+public class EmailNotifier {
+ 
+    def String userProperty = "contacts"
+    def String server = 'smtp.foo.com'
+    def String port = '465'
+    def String username = 'XXXX'
+    def String password = 'XXXX'
+    def Registry registry
+     
+    @Async
+    @OnEvent
+    void onEvent(EntryVersionCreatedEvent e) {
+        notifyUsers(e)
+    }
+     
+    void notifyUsers(ItemEvent e) {
+        Properties props = new Properties();
+ 
+        props.setProperty("mail.host", server);
+        props.setProperty("mail.user", username);
+        props.setProperty("mail.smtp.port", port);
+        props.setProperty("mail.password", password);
+        props.setProperty("mail.smtp.auth", "true");
+ 
+        Item item = registry.getItemById(e.itemId);
+         
+        def mailSession = Session.getDefaultInstance(props, null);
+        Transport transport = mailSession.getTransport("smtps");
+   
+        MimeMessage message = new MimeMessage(mailSession);
+        message.setSubject("Artifact/entry ${item.name} was created");
+        message.setContent("Artifact/entry was created in ${item.path}", "text/plain");
+         
+        def contacts = item.getProperty(userProperty);
+        contacts?.each {
+            message.addRecipient(Message.RecipientType.TO,
+                 new InternetAddress(it.email));
+        }
+         
+        if (!contacts) { return };
+ 
+        transport.connect();
+        transport.sendMessage(message, message.getAllRecipients());
+        transport.close();
+    }
+}
+ 
+// remove the previous listener, if any
+eventManager.listeners.each {
+    if (it.class.simpleName == "EmailNotifier") {
+        eventManager.removeListener(it);
+        println("Removed listener");
+    }
+}
+ 
+// add the event listener again
+eventManager.addListener(new EmailNotifier(registry: registry));
+----
+
+== Replicating Workspaces
+
+You can replicate workspaces from one Tcat Server instance to another. Replications are performed via custom scripts. This allows you to easily customize the replication process and schedule it via the Scheduler.
+
+Replication occurs by copying artifacts and entries from one workspace to another. If you're replicating to a remote Tcat Server instance, you must first attach it as a remote workspace.
+
+Once you have both your origin and destination workspace in mind, you can create a script that performs this replication. Following is an example script:
+
+[source]
+----
+import org.mule.galaxy.ee.util.*;
+// Create a replicator called "myReplicator"
+def replicator = new Replicator(registry, activityManager, "myReplicator");
+ 
+// Copy from the first workspace, to the second one.
+replicator.copy("/LocalWorkspace", "/RemoteWorkspace");
+----
+
+This script copies all artifacts and entries from LocalWorkspace to RemoteWorkspace. Note that it is beneficial to give your replicators an ID, in this case myReplicator. This makes it easy to view the actions of the replicator in the activity log.
+
+== Restarting Servers
+
+If you need to restart a server, you can easily do it through the administration console. However, what if you wanted to schedule a automatic restart at a particular day/time? You can achieve this by writing a script and scheduling it with the link:/docs/display/TCAT/Automating+Tasks[scheduler]. Following is an example script:
+
+[source]
+----
+def serverName= "Tcat-8081"; // replace this with your server name
+def serverManager = applicationContext.getBean("serverManager");
+def server = serverManager.getServerByName(serverName,false);
+def serverId = server.getId();
+serverManager.restartServerNow(serverId);
+----
+
+To restart ALL servers, except the Tcat Admin Console Server, you could use the following script:
+
+[source]
+----
+// get the server manager
+def sm = applicationContext.getBean("serverManager");
+// get all servers from all groups
+def results = sm.getServersForGroup(null,0,-1,null);
+def allServers =  results.getData();
+// this will hold all server id's
+def serverIds = [];
+// loop through all servers and extract their id's except for the console
+for(server in allServers){
+// replace the agentUrl with the url for your console agent
+ def agentUrl = "https://localhost:51443/agent";
+// skip the console server, we do not want to restart it, so do not need its id
+ if(agentUrl.equals(server.getAgentUrl()))
+   continue;
+// for the remaining servers, extract the id and add it to the list
+ serverIds.add(server.getId());
+}
+// restart all servers
+sm.restartServers(serverIds);
+// return the id of the restarted servers
+return serverIds;
+----
+
+Once you have saved this script, it is easy to schedule this script to be run periodically via the link:/docs/display/TCAT/Automating+Tasks[scheduler].
+
+link:/docs/display/TCAT/Automating+Tasks[<< Previous: *Automating Tasks*]
+
+link:/docs/display/TCAT/Creating+Custom+Policies[Next: *Creating Custom Policies* >>]

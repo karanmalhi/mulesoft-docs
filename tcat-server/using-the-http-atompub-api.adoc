@@ -1,0 +1,335 @@
+= Using the HTTP AtomPub API
+
+* link:#UsingtheHTTPAtomPubAPI-ImportantFeedURLs[Important Feed URLs]
+* link:#UsingtheHTTPAtomPubAPI-ArtifactsasAtomEntries[Artifacts as Atom Entries]
+* link:#UsingtheHTTPAtomPubAPI-ArtifactHistoryFeeds[Artifact History Feeds]
+* link:#UsingtheHTTPAtomPubAPI-UsingtheLibraries[Using the Libraries]
+* link:#UsingtheHTTPAtomPubAPI-ArtifactOperations[Artifact Operations]
+* link:#UsingtheHTTPAtomPubAPI-BrowsingtheRepository[Browsing the Repository]
+* link:#UsingtheHTTPAtomPubAPI-AddinganArtifact[Adding an Artifact]
+* link:#UsingtheHTTPAtomPubAPI-AddingaWorkspace[Adding a Workspace]
+* link:#UsingtheHTTPAtomPubAPI-EditinganArtifact'sMetadata[Editing an Artifact's Metadata]
+
+Tcat Server takes advantage of the simple but powerful http://ietfreport.isoc.org/idref/draft-ietf-atompub-protocol/[Atom Publishing Protocol] for much of its integration API. It is a RESTful HTTP-based API based on the concept of _collections_ and _entries_. AtomPub collections can store anything. The Tcat Server API uses Atom entries to represent artifacts inside the Tcat Server registry (repository). Through the Atom Publishing Protocol, new items can be created, updated, and deleted.
+
+== Important Feed URLs
+
+Tcat Server includes the following feeds:
+
+[width="10a",cols="50a,50a",options="header"]
+|===
+|Feed |URL
+|Root Workspace List and Search |{{[http://host/api/registry]}}
+|Workspace Listing |{{[http://host/api/registry/] +
+
+<workspacePath>}}
+|Child Workspaces |{{[http://host/api/registry/] +
+
+<workspacePath>;workspaces}}
+|Artifact Versions |{{[http://host/api/registry/] +
+
+<workspacePath>/<item>;history}}
+|Comments |{{[http://host/api/comments]
+
+}}
+|===
+
+== Artifacts as Atom Entries
+
+Each feed listed above will contain a series of Atom entries that represent artifacts inside the repository. An artifact might look like this:
+
+[source]
+----
+<entry>
+  <link href="/api/registry/Default%20Workspace/hello.wsdl;atom" rel="edit" />
+  <id>urn:galaxy:artifact:local$720ea69f-14ac-44ac-8171-1e4de567a098</id>
+  <title type="text">hello.wsdl</title>
+  <updated>2008-10-31T21:16:16.272Z</updated>
+  <author>
+    <name>Galaxy</name>
+  </author>
+  <summary type="xhtml">This is a description of the WSDL</summary>
+
+  <artifact-info xmlns="http://galaxy.mule.org/1.0"
+                 mediaType="application/xml"
+                 documentType="{http://schemas.xmlsoap.org/wsdl/}definitions"
+                 created="2008-10-31T21:16:16.272Z" name="hello.wsdl" />
+
+  <version xmlns="http://galaxy.mule.org/1.0"
+           label="0.1"
+           enabled="true"
+           default="true"
+           created="2008-10-31T21:16:16.272Z" />
+
+  <metadata xmlns="http://galaxy.mule.org/1.0" id="versioned">
+    <property name="wsdl.binding.dependencies" locked="true" visible="true">
+      <value>{http://mule.org/hello_world}HelloWorldBinding</value>
+    </property>
+    <property name="wsdl.binding" locked="true" visible="true">
+      <value>HelloWorldBinding</value>
+    </property>
+    <property name="wsdl.service" locked="true" visible="true">
+      <value>HelloWorldService</value>
+    </property>
+    <property name="wsdl.targetNamespace" locked="true" visible="true" value="http://mule.org/hello_world" />
+    <lifecycle property="primary.lifecycle" name="Default" phase="Created">
+      <next-phases>Developed</next-phases>
+      <previous-phases />
+    </lifecycle>
+    <property name="wsdl.endpoint" locked="true" visible="true">
+      <value>SoapPort</value>
+    </property>
+    <property name="wsdl.portType.dependencies" locked="true" visible="true">
+      <value>{http://mule.org/hello_world}HelloWorld</value>
+    </property>
+  </metadata>
+
+  <metadata xmlns="http://galaxy.mule.org/1.0" id="global" />
+
+  <collection xmlns="http://www.w3.org/2007/app" id="versions" href="/api/hello.wsdl;history">
+    <atom:title xmlns:atom="http://www.w3.org/2005/Atom" type="text">Artifact Versions</atom:title>
+  </collection>
+
+  <content type="application/xml" src="/api/registry/Default%20Workspace/hello.wsdl" />
+  <link href="/api/registry/Default%20Workspace/hello.wsdl" rel="edit-media" />
+</entry>
+----
+
+Walking through this Atom entry, there are a few important things to note:
+
+* The `<collection>` element with the `id="versions"` attribute provides a link to the version history of the artifact.
+* To see the actual artifact, use the link provided in the `<content>` element.
+* The summary maps to the description field on the artifact.
+* The `<metadata>` sections represent metadata associated with this artifact.
+** The `<metadata>` with the `global` ID represents metadata associated with all versions of an artifact.
+** The `<metadata>` with the `versioned` ID represents metadata associated with this particular version.
+** Lifecycle properties are represented by the `<lifecycle>` element.
+** If the property is a multivalued property, there will be child `<value>` elements. If it is single valued, there will be a `value` attribute.
+** If the property has the `locked` attribute set to true, it has been created by an index and cannot be modified unless it is by the index.
+
+== Artifact History Feeds
+
+An item's history can be viewed by appending `;history` to its URL. For example, if this is the artifact URL:
+
+[source]
+----
+http://localhost:9002/api/registry/Services/hello.wsdl
+----
+
+The history URL will be:
+
+[source]
+----
+http://localhost:9002/api/registry/Services/hello.wsdl;history
+----
+
+The history URL returns a feed that contains Atom entries for each artifact version like those described in the previous section.
+
+== Using the Libraries
+
+To use the AtomPub API with your Java application, we recommend using the http://incubator.apache.org/abdera/[Apache Abdera framework]. Other tools like `wget` will work as well. For a more visual guidance, check out the http://www.xucia.com/#RestTest[RestTest]FireFox plug-in.
+
+For a more in-depth example using Abdera, see the link:#[AtomPub API Example].
+
+== Artifact Operations
+
+The following table summarizes the operations that can be performed on the AtomPub API.
+
+[width="99",cols="25,25,25,25",options="header"]
+|===
+|HTTP Verb |URL |Data |Description
+|GET |/api/registry |None |Gets all the artifacts in the repository
+|GET |/api/registry/WORKSPACE |None |Gets an Atom feed of the artifacts and workspaces inside the workspace
+|GET |/api/registry/WORKSPACE;atom |None |Gets an Atom entry representation of the workspace
+|GET |/api/registry/WORKSPACE/ARTIFACT |None |Gets an artifact
+|POST |/api/registry/WORKSPACE |An artifact |Add a new artifact. See below for details.
+|POST |/api/registry/WORKSPACE;workspaces |A workspace Atom entry |Creates a new workspace. See below for details.
+|PUT |/api/registry/WORKSPACE/ARTIFACT |An artifact |Adds a new version of an artifact. See below for details.
+|PUT |/api/registry/WORKSPACE/ITEM;atom |An Atom representation of an artifact |Updates an artifact's metadata in the registry
+|DELETE |/api/registry/WORKSPACE |An artifact or workspace |Deletes an artifact or workspace
+|===
+
+== Browsing the Repository
+
+This section describes how you can browse the repository through query parameters or URL encoding.
+
+=== Querying the Repository
+
+You can extend a URL with a query parameter to search the repository. Following are some example queries.
+
+*Selecting All XML Schema Artifacts*
+
+[width="99a",cols"99a",options="header"]
+|===
+^|Query
+^|select artifact where documentType = {http://www.w3.org/2001/XMLSchema}schema
+|===
+
+[width="99a",cols"99a",options="header"]
+|===
+^|URL
+^|http://localhost:8080/api/registry?q=select%20artifact%20where%20documentType%20=%20%7Bhttp://www.w3.org/2001/
+XMLSchema%7Dschema
+|===
+
+*Selecting All JAR Artifacts*
+
+[width="99a",cols"99a",options="header"]
+|===
+^|Query
+^|select artifact where contentType = 'application/java-archive'
+|===
+
+[width="99a",cols"99a",options="header"]
+|===
+^|URL
+^|http://localhost:8080/api/registry?q=select%20artifact%20where%contentType%20=%20'application/java-archive'
+|===
+
+=== URL Encoding
+
+If you are using http://incubator.apache.org/abdera[Abdera] for your client code, the handy `org.apache.abdera.i18n.text.UrlEncoding` class has an encode method that can do this for you:
+
+[source]
+----
+import org.apache.abdera.i18n.text.UrlEncoding;
+import org.apache.abdera.i18n.text.CharUtils.Profile;
+
+String encodedQuery = UrlEncoding.encode("select artifact where ...", Profile.PATH.filter());
+----
+
+Note: If you're using Abdera 0.3.0, you must use the `EncodingUtil.sanitize()` method instead.
+
+For a reference on which characters must be URL-encoded, see http://www.blooberry.com/indexdot/html/topics/urlencoding.htm[this page]. Simply replace any of these characters in your query with the appropriate encoded character. For instance, if you were encoding "select artifact", you would replace the space with `%20`, as that is the URL-encoded representation of the space character.
+
+== Adding an Artifact
+
+When you add an artifact, you must supply additional HTTP headers that specify the workspace and artifact version:
+
+* The "X-Artifact-Version": the version label of the artifact you are POSTing.
+* The "Slug" header: used to determine the name of the artifact in the repository.
+
+A typical HTTP POST will look like this:
+
+[source]
+----
+POST /api/registry/WORKSPACE HTTP/1.0
+Authorization: Basic YWRtaW46YWRtaW4=
+Host: localhost:8080
+Content-Type: text/plain
+X-Artifact-Version: 1.0
+Slug: test.txt
+----
+
+Here's an example using `wget`:
+
+[source]
+----
+$ wget --post-file=YOURFILE --http-user=admin --http-password=admin -S \
+--header="X-Artifact-Version: 0.1" \
+--header="Slug: ARTIFACT_NAME"
+http://localhost:8080/api/registry/Default%20Workspace
+----
+
+=== Adding a New Artifact Version
+
+Adding a new artifact version is very similar to adding a new artifact, with the following exceptions:
+
+* Use the PUT verb
+* Use the URL of the artifact in the repository
+* Specify an X-Artifact-Version header
+
+For example:
+
+[source]
+----
+PUT /api/registry/WORKSPACE/ARTIFACT HTTP/1.0
+Authorization: Basic YWRtaW46YWRtaW4=
+Host: localhost:8080
+Content-Type: text/plain
+X-Artifact-Version: 0.2
+
+... data ...
+----
+
+== Adding a Workspace
+
+To add a workspace, post an Atom entry that represents the workspace to the parent workspace. For example:
+
+[source]
+----
+POST /api/registry/Default%20Workspace;workspaces HTTP/1.0
+Authorization: Basic YWRtaW46YWRtaW4=
+Host: localhost:8080
+Content-Type: application/atom+xml;type=entry
+
+<entry xmlns="http://www.w3.org/2005/Atom">
+  <title type="text">MyNewWorkspace</title>
+  <updated>2008-02-27T01:12:38.758Z</updated>
+  <author>
+    <name>Ignored</name>
+  </author>
+  <id>urn:uuid:8D931B8E837772B5521204074758762</id>
+  <content type="text"></content>
+</entry>
+----
+
+This will create a new workspace called "MyNewWorkspace" in the parent workspace "Default Workspace".
+
+To add a top-level workspace, POST to `/api/registry`. This workspace will then be listed in `/api/registry;workspaces`.
+
+== Editing an Artifact's Metadata
+
+To edit an artifact's metadata, PUT a new Atom entry representation to the artifact URL. You can update the artifact's description, metadata, and lifecycle information.
+
+For example, you could use this HTTP request to update the description of your artifact:
+
+[source]
+----
+PUT /api/registry/Default%20Workspace/hello.wsdl;atom HTTP/1.0
+Authorization: Basic YWRtaW46YWRtaW4=
+Host: localhost:8080
+Content-Type: application/atom+xml;type=entry
+
+<entry xmlns="http://www.w3.org/2005/Atom">
+  <link href="/api/registry/Default%20Workspace/hello_world.wsdl;atom?version=0.2" rel="edit" />
+  <id>urn:galaxy:artifact:50d245b3-8855-4d4d-83f6-2351ae0b23b6:0.2</id>
+  <title type="text">hello_world.wsdl Version 0.2</title>
+  <updated>2008-02-27T00:57:07.116Z</updated>
+  <author>
+    <name>Galaxy</name>
+  </author>
+  <summary type="xhtml">
+    This will become your new artifact description.
+  </summary>
+  <content type="application/xml" src="/api/registry/Default%20Workspace/hello_world.wsdl?version=0.2" />
+  <link href="/api/registry/Default%20Workspace/hello_world.wsdl?version=0.2" rel="edit-media" />
+</entry>
+----
+
+Note that you must PUT it to the Atom representation, which means you must append `;atom` to the URL.
+
+To edit an artifact's metadata, you include a `<metadata>` element inside your Atom entry. Any `<property>` elements inside this element will be modified. In the following example, the property `favoriteSauce` is added to the artifact with a value of `ketchup`.
+
+[source]
+----
+<entry>
+...
+<metadata id="versioned" xmlns="http://galaxy.mule.org/1.0">
+  <property name="favoriteSauce" value="ketchup"/>
+</metadata>
+...
+</entry>
+----
+Any metadata properties that are not present will NOT be deleted. To delete a metadata property, remove all value attributes and child elements:
+
+[source]
+----
+<metadata id="versioned" xmlns="http://galaxy.mule.org/1.0">
+  <property name="propertyToDelete" />
+</metadata>
+----
+
+link:/docs/display/TCAT/Scripting+Examples[<< Previous: *Scripting Examples*]
+
+link:#[Next: *AtomPub API Example* >>]

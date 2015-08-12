@@ -1,0 +1,102 @@
+= Creating Custom Policies
+
+Tcat Server allows you to build your own custom policies through the Galaxy APIs. These can be installed either as a JAR on the classpath or through a custom script. The JAR requires more overhead but allows you to more easily test and compile your policies.
+
+All policies inside Tcat Server are created by implementing the `Policy` interface. This interface allows you to approve items before they are stored in the repository.
+
+This page walks you through working with custom policies using an example that can be found inside the examples distribution under the `custom-policy` directory.
+
+== Writing a Policy
+
+Following is a simple policy that always fails:
+
+[source]
+----
+import java.util.Arrays;
+import java.util.Collection;
+ 
+import org.mule.galaxy.Item;
+import org.mule.galaxy.Registry;
+import org.mule.galaxy.policy.ApprovalMessage;
+import org.mule.galaxy.policy.Policy;
+ 
+/**
+ * A policy that always fails.
+ */
+public class AlwaysFailPolicy implements Policy {
+ 
+    public static final String ID = "ALWAYS_FAIL";
+ 
+    public boolean applies(Item item) {
+        return true;
+    }
+ 
+    public String getDescription() {
+        return "A policy which always fails";
+    }
+ 
+    /**
+     * A unique, unchanging ID for this policy.
+     */
+    public String getId() {
+        return ID;
+    }
+ 
+    /**
+     * The display name in the UI.
+     */
+    public String getName() {
+        return "Always fail policy";
+    }
+ 
+    public Collection<ApprovalMessage> isApproved(Item item) {
+        // Return an approval message that indicates that this policy failed
+        // and gives a reason why.
+        return Arrays.asList(new ApprovalMessage("The policy failed for this item!", false));
+    }
+ 
+    public void setRegistry(Registry registry) {
+    }
+}
+----
+
+The `isApproved()` method returns a Collection of a single ApprovalMessage. This ApprovalMessage provides a reason to the user why the policy failed and why the item is not allowed to transition to a new lifecycle phase or be added to the repository.
+
+The `applies` method controls whether this policy applies to a particular Item in the repository. This is commonly used to control the type of artifact this policy applies to or the type of Item this applies to (An Entry, Artifact, EntryVersion, or ArtifactVersion).
+
+== Configuring Tcat Server to Use a Policy
+
+Policies are registered inside Tcat Server via a simple Spring beans file. The file(s) must be named `META-INF/galaxy-applicationContext.xml` and be on the classpath. Tcat Server looks through these Spring beans to discover any policies. To register the policy above, you would add the following to one of the files:
+
+[source]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+ 
+  <bean class="org.mule.galaxy.example.policy.AlwaysFailPolicy"/>
+ 
+</beans>
+----
+
+== Building a Policy
+
+To build a policy, you must have the `galaxy-core` JAR on your classpath. The custom-policy example provides a Maven POM to build the JAR for you. To build the example, type the following command at the command prompt:
+
+[source]
+----
+cd custom-policy
+mvn install
+----
+
+You will now have a JAR located at `custom-policy/target/galaxy-custom-policy-VERSION.jar`, where VERSION is the version of Tcat Server you are using.
+
+== Installing a Custom Policy
+
+To use a custom policy, simply copy the JAR created in the previous step to the `WEB-INF/lib` directory of the Tcat Server console webapp.
+
+link:/docs/display/TCAT/Scripting+Examples[<< Previous: *Scripting Examples*]
+
+link:/docs/display/TCAT/Maven+Publishing+Plug-in[Next: *Maven Publishing Plug-in* >>]

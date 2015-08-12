@@ -1,0 +1,131 @@
+= Configuring Endpoints
+
+* link:#ConfiguringEndpoints-BasicConfiguration[Basic Configuration]
+* link:#ConfiguringEndpoints-DynamicEndpoints[Dynamic Endpoints]
+* link:#ConfiguringEndpoints-MessageProcessors[Message Processors]
+* link:#ConfiguringEndpoints-GlobalEndpoints[Global Endpoints]
+
+Endpoints are used to connect flows. An endpoint is a specific channel on which a flow can send messages and from which another flow or external service can receive messages. For example, a purchasing component may receive an order request over HTTP. Once the order has been processed by the component, a JMS message may be sent over a topic to notify an auditing system, and a response can be sent back over HTTP.
+
+This page describes how to configure an endpoint. For details on the various attributes and elements you can configure on an endpoint, see link:/docs/display/34X/Endpoint+Configuration+Reference[Endpoint Configuration Reference].
+
+== Basic Configuration
+
+In its most basic form, an endpoint consists of a link:/docs/display/34X/Connecting+Using+Transports[transport] and a transport-specific channel/destination/resource used to identify the channel and location where two flows can exchange information. For example:
+
+*URI-style Endpoints*
+
+Traditionally, endpoints in Mule ESB have been specified as a link:/docs/display/34X/Mule+Endpoint+URIs[URI] such as the examples above. This form is still supported, and indeed may prove to be more practical depending on your application. However, as of Mule 2.0, the recommended way to specify endpoints is via transport-specific namespaces, as shown in the following examples.
+
+*Transport-specific Endpoints*
+
+== Dynamic Endpoints
+
+Starting in Mule 3, an outbound endpoint can also be dynamic. This means that the endpoint's URI is the value of an link:/docs/display/34X/Mule+Expression+Language+MEL[expression], which is evaluated just before a message is sent to it. This allows the target of a message to be determined by its contents or the value of any message property. Dynamic endpoints can use either of the endpoint formats shown above.
+
+*Dynamic Endpoints*
+
+The only part of an endpoint URI that cannot be dynamic is the scheme. Don't do this:
+
+*Illegal Dynamic Endpoint*
+
+=== Connector
+
+In many cases, the connector associated with an endpoint can simply be assumed based on the transport and created implicitly. However, if more than one connector of the same transport exists, or if non-default settings are used for the connector, you must refer to the connector from the endpoint using the `connector-ref` attribute.
+
+*Specifying a connector*
+
+=== Properties
+
+Properties on endpoints can be used to customize behavior. Any properties set on the endpoint can be used to override default properties on the associated transport's connector. For example, an SMTP outbound endpoint might set the `fromAddress` property to `workflow1` to override a default connector value of `sysadmin`. Any standard properties for an endpoint will be available as attributes in the XML schema if transport-specific endpoints are used. It is also possible to specify a non-standard property. For example:
+
+*Setting properties*
+
+=== Exchange Pattern
+
+By default, endpoints are one-way; that is, they accept (or send) messages, but do not return (or receive) responses to those messages. To set an endpoint to wait for a response, you set `exchange-pattern="request-response"`. This setting is not required by HTTP/S, SSL, TCP, and Servlet endpoints, which are request-response by default.
+
+=== Transaction
+
+A transaction can begin or commit when an event is received or sent via an endpoint. The endpoint must be synchronous, and transaction support depends largely on the particular transport being used. For more information see link:/docs/display/34X/Transaction+Management[Transaction Management].
+
+*Transaction example*
+
+=== Encoding
+
+This is the encoding an endpoint used to convert message content. For inbound endpoints, it is used to convert the bytes received to characters. For outbound endpoints, it is used to convert characters about to be sent to bytes. If no encoding is set on the endpoint, the default encoding for the Mule configuration is used. This is turn defaults to UTF-8.
+
+*Encoding example*
+
+=== MimeType
+
+This is the mime type associated with an endpoint's messages. When set on an inbound endpoint, it indicates the type of message expected for incoming messages. Receiving a message with a different mime type will result in an exception. When set on an outbound endpoint, the result is to set that mime type on all outgoing messages.
+
+*MimeType example*
+
+=== Redelivery Policy
+
+A redelivery policy can be defined on an inbound endpoint. It is similar to the maximum redelivery counts that can be set on JMS brokers, and solves a similar problem: if an exception causes the read of a message to be rolled back over and over, how to avoid an infinite loop? Here's an example:
+
+*MimeType example*
+
+If something later in the flow throws an exception, the file won't be consumed, and will be reprocessed. The idempotent-redelivery-policy ensures that it won't be reprocessed more then 3 times; after that, it will be send to `vm:error-queue`, where it can be handled as an error case.
+
+== Message Processors
+
+What is a message processor? It's a very simple interface for anything which takes a Mule message and does something with it (transforms it, filters it, splits it, etc.). One of the big advantages to everything implementing this simple interface is that message processors can be chained together in any order, there can be any number of them, and they can easily be swapped around. This sort of thing was not at all possible prior to Mule 3.
+
+In the case of endpoints, the following message processors are allowed:
+
+* Transformers
+* Filters
+* Security Filters
+* Aggregators
+* Splitters
+* Custom Message Processors
+
+You can put any number of these message processors as child elements on an endpoint (inbound or outbound), and they will get applied in the order in which they are listed to any message passing through that endpoint.
+
+In the case of a synchronous outbound endpoint, there is a response message involved, and so any number of message processors can also be put inside a response wrapper and will get applied to the response message in the order in which they are listed.
+
+Note that any of these elements could be declared locally (i.e., in-line in the endpoint) or globally (and referenced via a ref="foo" attribute).
+
+=== Transformers
+
+link:/docs/display/34X/Using+Transformers[Transformers] can be configured on an endpoint encapsulating transformation logic in an endpoint that can then be reused as required.
+
+Transformers are configured on endpoints using child message processors elements. When configured on an inbound endpoint they are used to transform the message received by the endpoint, and when configured on an outbound endpoint they are used to transform the message before it is sent.
+
+Response transformers can be configured inside the nested `<response>` element. When configured on an inbound endpoint these transformer will be applied to the message just before it is sent back over the transport, and when configured on an outbound endpoint they are applied on the message received from the invocation of the outbound endpoint if there is one.
+
+As will all message processors configured on endpoints, the order in which they are configured is the order in which they are executed.
+
+In the above example you can see two request transformers configured, one of which will be executed before the expression filter and the other one after. The custom transformer configured in the `<response>` element will be applied to the response message.
+
+*Global Endpoints* +
+ Although globally defined transformers can be referenced from endpoints using the \{\{<transformer ref=""/> element as seen in the above example endpoints also support a shortcut notification.
+
+The `transformer-refs` and `responseTransformer-refs` attributes can be used to quickly and easily reference global endpoints.
+
+Any transformers referenced in this way will be added to the end of the list of message processors configured a child elements and will therefore be executed last. If you need them to be executed before something else like a filter or need to use global endpoints in conjunction with locally defined endpoints in a specific order then you'll need to use `<transformer>` elements instead.
+
+=== Filter
+
+An endpoint can contain a filter to selectively ignore certain messages. The filter can be transport-specific such as a JMS selector or file filter or can be a general-purpose filter such as JXPath. Filtering is not supported by all transports, and setting a filter on an endpoint using some transports will result in an UnsupportedOperationException. For more information, see link:/docs/display/34X/Using+Filters[Using Filters].
+
+*Filter example*
+
+=== Other Message Processors
+
+Although filters and transformer are the message processor most used within endpoints, you can just as easily configure other message processors. See more information about the available messages processor on in the link:/docs/display/34X/Message+Sources[Message Sources] page.
+
+== Global Endpoints
+
+Global endpoints, while not required, are a recommended best practice for having a nicely organized configuration file. A global endpoint can be thought of as a template for shared endpoint configuration. Global endpoints can be used as they are defined globally, or they can be extended by adding more configuration attributes or elements.
+
+To reference a global endpoint, use the usual `<inbound-endpoint>` and `<outbound-endpoint>` elements, and specify the global endpoint name using the `ref` attribute.
+
+*Global endpoint example*
+
+In the above example, the `"fileReader"` endpoint is used as a template for the inbound endpoints. The properties `reverseOrder` and `comparator` only need to be declared once, and the property `path` changes for each inbound endpoint.
+
