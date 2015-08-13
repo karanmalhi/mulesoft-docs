@@ -142,13 +142,13 @@ At the simplest level, Flows are sequences of message-processing events. As the 
 . logged to a database
 . evaluated to determine what sort of response gets returned to party that submitted the original message
 
-image:/docs/download/attachments/87687722/BellsnWhistles.png?version=1&modificationDate=1337872344948[image]
+image:BellsnWhistles.png[BellsnWhistles]
 
 The units from which Flows are constructed are known generically as Building Blocks. In general, these correspond to icons on the Studio graphical link:/docs/display/33X/Mule+Studio+Essentials[canvas] or link:/docs/display/33X/Mule+Studio+Essentials[XML elements] within the Mule application configuration file.
 
 The following screenshot illustrates a Flow laid out on the Studio graphical “canvas.”
 
-image:/docs/download/attachments/87687722/FlowOnCanvas.png?version=1&modificationDate=1337872344868[image]
+image:FlowOnCanvas.png[FlowOnCanvas]
 
 The following code block represents the XML listing for that same Flow.
 
@@ -193,7 +193,7 @@ Typically an *Inbound Endpoint* serves as a message source, although a streaming
 
 Sometimes the Message Source immediately places the incoming message into a queue. This allows the Message Source to close the receiver thread it used to accept the message, and immediately open another thread to accept another incoming message. The message just placed into the queue waits until it reaches the head of the queue and can be processed through the rest of the Flow. Since the message is processed sequentially by two distinct threads (with an intervening wait inside the queue), start-to-finish transaction processing is not possible.
 
-image:/docs/download/attachments/87687722/ThreadHandoff.png?version=1&modificationDate=1337872401145[image]
+image:ThreadHandoff.png[ThreadHandoff]
 
 Sometimes, a Message Source can accept incoming messages from multiple transport channels. For instance, you can embed an HTTP endpoint and a Servlet endpoint into the same Message Source. Or you can create a Message Source to receive both IMAP and POP3 mail. Either embedded endpoint (i.e., transport channel) can trigger a Flow instance as soon as it receives an incoming message.
 
@@ -272,7 +272,7 @@ When Inbound Endpoints such as HTTP or VM are configured for a request-response 
 
 When Outbound Endpoints are configured for request-response exchange patterns, they can exchange data with resources outside the flow or with a string of message processors entirely within the same Mule application, as depicted by the following schematic:
 
-image:/docs/download/attachments/87687722/req-resp.png?version=1&modificationDate=1337872401201[image]
+image:req-resp.png[req-resp]
 
 Not all endpoints can be configured for the request-response exchange pattern, and of those that can, request-response is the default exchange pattern for only some of them. To complicate matters further, certain cases exist (such as the JDBC Endpoint) where request-response is available, but only when the endpoint is configured as an outbound endpoint.
 
@@ -284,7 +284,7 @@ A processing strategy determines how Mule executes the sequence of message proce
 
 By contrast, when the flow is configured for a one-way, non-transactional exchange pattern (i.e., no response to the original message sender is required, and it isn’t necessary to verify that all steps in the flow have been completed), Mule sets the processing strategy to *Queued Asynchronous,* which has the potential to raise flow throughput. Under this processing strategy, the inbound endpoint places the incoming message into the queue as soon as it is received, then closes the receiver thread. When the message reaches the top of the queue, it resumes processing, but this time on a different thread. By implication, this sort of processing does not qualify as transactional end-to-end, because the transfer from one thread to the next means that the processing can not be rolled back if an exception is thrown.
 
-image:/docs/download/attachments/87687722/ProcessingStrategies.png?version=1&modificationDate=1337872401173[image]
+image:ProcessingStrategies.png[ProcessingStrategies]
 
 For further details, see link:/docs/display/33X/Flow+Processing+Strategies[Flow Processing Strategies]
 
@@ -300,13 +300,13 @@ Studio provides four pre-packaged error handling strategies to handle exceptions
 
 Mule flows are extremely flexible, so you can combine building blocks in many ways, often to achieve the same result. For many use cases, however, certain message processors tend to fall into loosely ordered patterns. For example, suppose you wanted to create an application that receives product catalog requests from a Web page then sends a PDF of the catalog back to the client who submitted the request. In addition, you want this flow to record the client’s customer information to a database and log the transaction so that you can keep track of how many of each kind of catalog have been sent. Your flow might look something like this:
 
-image:/docs/download/attachments/87687722/DiagramCatalogApp.png?version=1&modificationDate=1337872344965[image]
+image:DiagramCatalogApp.png[DiagramCatalogApp]
 
 Note that you could embed the filter and the transformers inside the Inbound Endpoint, but placing them in the main Flow sequence makes the sequence of events easier to “read” on the Studio Message Flow canvas and in the XML-based application configuration file.
 
-image:/docs/download/attachments/87687722/StudioCatalogApp.png?version=1&modificationDate=1337872401224[image]
+image:StudioCatalogApp.png[StudioCatalogApp]
 
-image:/docs/download/attachments/87687722/XMLCatalogApp.png?version=1&modificationDate=1337872401109[image]
+image:XMLCatalogApp.png[XMLCatalogApp]
 
 == Child Flows
 
@@ -316,7 +316,7 @@ image:/docs/download/attachments/87687722/XMLCatalogApp.png?version=1&modificati
 
 A solid line (below, left) indicates *synchronous* processing along a single thread, which is ideally suited to link:#MuleApplicationArchitecture-transactionalprocessing[transactional processing]. A dashed line (below, right) indicates simultaneous, parallel, *asynchronous* processing along multiple threads. +
  +
- image:/docs/download/attachments/87687722/DiagramKey.png?version=1&modificationDate=1337872344902[image]
+ image:DiagramKey.png[DiagramKey]
 ====
 
 Every flow-based Mule application is built around a main flow. Typically, processing for each message begins when the message source receives a message and concludes when the last message processor in the main flow completes its task. However, the main flow can also spawn various types of branch (i.e., child) flows that run synchronously or asynchronously, and can potentially provide the following advantages:
@@ -334,7 +334,7 @@ As the following sub-sections detail, child flows fall into two main categories:
 
 When a main flow triggers a synchronous child flow, it passes programmatic control to that child flow and suspends its own message processing activity until the child flow completes its sequence of message processing events and returns programmatic control to the main flow.
 
-image:/docs/download/attachments/87687722/SynchronousChild.png?version=1&modificationDate=1337884696431[image]
+image:SynchronousChild.png[SynchronousChild]
 
 Since the main flow and the child flow hand off programmatic control to each other, and by implication, all processing occurs on the same thread, each event in the message processing sequence can be tracked, and *transactional processing* can be ensured.
 
@@ -360,7 +360,7 @@ Subflows, which always run synchronously, inherit both the processing strategy a
 
 Subflows are ideally suited for code reuse, so a developer can write a particular block of code just once, then reference the same subflow repeatedly from within the same application.
 
-image:/docs/download/attachments/87687722/SubflowReuse.png?version=1&modificationDate=1337883607933[image]
+image:SubflowReuse.png[SubflowReuse]
 
 Although a subflow operates synchronously, it can spawn an asynchronous child flow of its own, which executes in parallel, while the parent subflow and then the main flow continue to run.
 
@@ -368,7 +368,7 @@ Although a subflow operates synchronously, it can spawn an asynchronous child fl
 
 A special type of child flow operates synchronously, as a Subflow does, but unlike a Subflow, this type of synchronous child flow uses its own (rather than the parent flow’s) exception strategy. This can be useful when the message processing events inside the child flow are either much more or much less crucial than the rest of the events in the main flow. In either case, you can set the exception strategy used by the synchronous child flow to perform very differently from the exception strategy you configured for the main flow.
 
-image:/docs/download/attachments/87687722/SyncChildNotSubflow.png?version=1&modificationDate=1337890298881[image]
+image:SyncChildNotSubflow.png[SyncChildNotSubflow]
 
 === Asynchronous
 
@@ -384,11 +384,11 @@ The second type of child flow is called a link:#MuleApplicationArchitecture-Sync
 
 The third type of child flow you can call through the *Flow Reference* Component is called an *Asynchronus Child Flow*. Note that an asynchronous flow called in this manner must be named, and because it exists outside the parent flow, it can be called (i.e., reused) multiple times.
 
-image:/docs/download/attachments/87687722/AsyncFlowRef.png?version=1&modificationDate=1337893329243[image]
+image:AsyncFlowRef.png[AsyncFlowRef]
 
 An *Asynchronous Child Flow* called by the *Async* Scope, rather than the Flow Reference Component, exists _in-line_ (i.e., within the parent flow), and runs asynchronously on a separate thread while the main thread continues to run without pause.
 
-image:/docs/download/attachments/87687722/AsyncAsyncScope.png?version=1&modificationDate=1337893329838[image]
+image:AsyncAsyncScope.png[AsyncAsyncScope]
 
 The following table details the component to use for calling the various types of child flows:
 
@@ -437,7 +437,7 @@ The application pictured below leverages child flows, two types of queues, clust
 * high availability
 * high reliability (transactionality)
 
-image:/docs/download/attachments/87687722/AdvancedUseCase.png?version=1&modificationDate=1337872344919[image]
+image:AdvancedUseCase.png[AdvancedUseCase]
 
 === How It Works
 
@@ -460,6 +460,6 @@ Our application has been configured through the Mule Management Console to run o
 
 As the following diagram illustrates, even if none of the nodes goes down, the child flow “steps” can be processed on “the next available node.” This type of automatic *load balancing* promotes *high throughput*.
 
-image:/docs/download/attachments/87687722/4NodeLoadBalancing.png?version=1&modificationDate=1347057830684[image]
+image:4NodeLoadBalancing.png[4NodeLoadBalancing]
 
 The above application stands as just one example of the many ways in which you can leverage Mule technology to speedily create and deploy powerful, custom-tailored Mule applications.

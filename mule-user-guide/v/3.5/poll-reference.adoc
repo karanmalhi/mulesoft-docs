@@ -14,15 +14,15 @@ This document assumes that you are familiar with the [Visual Editor in Anypoint 
 ....
 . Drag a *Poll* scope onto the canvas.
 +
-image:/docs/download/thumbnails/122750691/poll_scope.png?version=1&modificationDate=1421449622313[image]
+image:poll_scope.png[poll_scope]
 
 . Drag an element inside the poll scope, for example a *Twitter* connector. Mule uses this message processor to regularly poll the Twitter API for new data to process.
 +
-image:/docs/download/attachments/122750691/poll_connector.png?version=1&modificationDate=1421449630967[image]
+image:poll_connector.png[poll_connector]
 
 . Configure the Twitter Connector
 +
-image:/docs/download/attachments/122750691/twitter.png?version=1&modificationDate=1421449622065[image]
+image:twitter.png[twitter]
 +
 [width="100%",cols=",",options="header"]
 |===
@@ -34,7 +34,7 @@ image:/docs/download/attachments/122750691/twitter.png?version=1&modificationDat
 
 . Add more message processors to your flow to perform specific business logic after polling for data. The example below uses a logger component. This [logger] uses the [MEL] expression `#[payload]` to log the message payload collected by the Twitter connector every 1000 milliseconds.
 +
-image:/docs/download/attachments/122750691/poll_flow.png?version=1&modificationDate=1421449631152[image]
+image:poll_flow.png[poll_flow]
 ....
 [tab,title="XML Editor or Standlone"]
 ....
@@ -127,11 +127,11 @@ While trying to debug an application the utilizes polling functionality, it is c
 
 . In debug mode, notice the set of buttons in the title bar of the Poll scope (see image below). Use the green *Poll Start-Pause* button to trigger the poll and initiate the flow; click again to halt polling.
 +
-image:/docs/download/attachments/122750691/poll_debug.png?version=1&modificationDate=1421449622823[image]
+image:poll_debug.png[poll_debug]
 
 . While running your project in debug mode, Studio opens a new *Mule Debugger View* tab the lower section of the screen. In the top-right of this tab, Studio displays two icons which allow you to stop or start all polls in your project at the same time.
 +
-image:/docs/download/attachments/122750691/poll_startStop.png?version=1&modificationDate=1421449622575[image]
+image:poll_startStop.png[poll_startStop]
 
 == Polling for Updates using Watermarks
 
@@ -142,7 +142,7 @@ Typically, Mule sets a watermark to a default value the first time the flow runs
 
 Consider the following generic Mule flow.
 
-image:/docs/download/attachments/122750691/watermark-expbasic.png?version=1&modificationDate=1421449627515[image]
+image:watermark-expbasic.png[watermark-expbasic]
 
 This flow regularly polls a resource, then performs a series of operations on the resulting payload. With every poll, the application acquires only the data that is newly created or updated since the last call to the resource. In this example, Mule stores watermarks in two variables:
 
@@ -154,7 +154,7 @@ If you're already comfortably familiar with Mule components in general, you migh
 
 The diagram below illustrates same flow including numbered steps. The step-by-step explanation below describes the activities Mule performs in the background with these two variables.
 
-image:/docs/download/attachments/122750691/watermark-w-selectors.png?version=1&modificationDate=1421449624108[image]
+image:watermark-w-selectors.png[watermark-w-selectors]
 
 . Mule looks for a variable in the object store with a name that matches the value of the Poll attribute `"Variable Name"`. In this case the chosen name is `lastModifiedID`.
 
@@ -200,18 +200,18 @@ If you define a value in the optional `"Object Store"` poll attribute, Mule sear
 ....
 . Follow the steps above to create a flow that polls Twitter for data every 1000 milliseconds, then logs the message payload.
 +
-image:/docs/download/thumbnails/122750691/poll_flow.png?version=1&modificationDate=1421449631152[image]
+image:poll_flow.png[poll_flow]
 
 . Click to flow name bar to select the *flow*, then, in the properties editor, set the *Processing Strategy* to *synchronous*.
 +
 [WARNING]
 All flows use an asynchronous processing strategy by default. If you do not set the processing strategy to *synchronous*, polling with watermarks will not work!
 +
-image:/docs/download/attachments/122750691/synchronous.png?version=1&modificationDate=1421449631323[image]
+image:synchronous.png[synchronous]
 
 . Configure the *Since Id* attribute of the Twitter connector according to the table below.
 +
-image:/docs/download/attachments/122750691/watermark.png?version=1&modificationDate=1421449621824[image]
+image:watermark.png[watermark]
 +
 [width="100%",cols=",",options="header"]
 |===
@@ -221,7 +221,7 @@ image:/docs/download/attachments/122750691/watermark.png?version=1&modificationD
 
 . Select the *poll* scope, then edit its properties according to the table below.
 +
-image:/docs/download/attachments/122750691/watermark_enable.png?version=1&modificationDate=1421449621584[image]
+image:watermark_enable.png[watermark_enable]
 +
 [width="100%",cols=",",options="header"]
 |===
@@ -356,7 +356,7 @@ If you are using custom logic to update the `flowVars`, *ensure that the radio b
 
 The image below displays a sample flow which updates the flowVars using custom logic; note the empty update-expression attribute.
 
-image:/docs/download/attachments/122750691/watermark-expcomplex.png?version=1&modificationDate=1421449623606[image]
+image:watermark-expcomplex.png[watermark-expcomplex]
 
 == Using Watermarks with Auto-Paging
 
@@ -370,18 +370,18 @@ Any connector which is enabled for [auto-paging] allows you to process large dat
 ....
 . Place an *auto-paging-enabled-connector* inside a *poll* scope as in previous examples.
 +
-image:/docs/download/attachments/122750691/ex11.png?version=1&modificationDate=1421449629488[image]
+image:ex11.png[ex11]
 
 . Configure the connector according to the following screenshot. Note that the query orders the output in ascending order of *LastModifiedDate* so that the last item in the list is the newest. The details is crucial.
 +
-image:/docs/download/attachments/122750691/salesforce.png?version=1&modificationDate=1421449620889[image]
+image:salesforce.png[salesforce]
 +
 [WARNING]
 Be sure to configure the order of the output so that the LAST element in the collection is the most recent one!
 
 . Configure the poll scope according to the table below. The watermark will be a variable named lastUpdated. When the flow has finished processing, Mule updates the value of the variable to the value of the *flow variable* by the same name, `lastUpdated`. Its default value is the result of evaluating the following expression: `#['YESTERDAY']`.
 +
-image:/docs/download/attachments/122750691/yesterday.png?version=1&modificationDate=1421449621419[image]
+image:yesterday.png[yesterday]
 +
 [width="100%",cols=",",options="header"]
 |===
@@ -393,15 +393,15 @@ image:/docs/download/attachments/122750691/yesterday.png?version=1&modificationD
 
 . Next, you need to process the output of the connector with an element that can handle collections, such as a [Foreach] scope. The message processors set within the Foreach scope process each item in a collection individually, one at a time.
 +
-image:/docs/download/attachments/122750691/ex12.png?version=1&modificationDate=1421449629758[image]
+image:ex12.png[ex12]
 
 . Inside the Foreach scope, place a Variable transformer. This message processor sets the value of a variable on each iteration of the Foreach scope, overwriting the variable's value each time. Since you ordered your collection so that the last element is the newest, the value that "sticks" at the end of the Foreach's iteration is what Mule needs for the watermark.
 +
-image:/docs/download/attachments/122750691/ex13.png?version=1&modificationDate=1421449629953[image]
+image:ex13.png[ex13]
 
 . Configure the Variable to change `lastUpdated` to the following expression: `#[payload['lastUpdated]]`
 +
-image:/docs/download/attachments/122750691/setvariable.png?version=1&modificationDate=1421449621245[image]
+image:setvariable.png[setvariable]
 +
 [width="100%",cols=",",options="header"]
 |===
@@ -412,7 +412,7 @@ image:/docs/download/attachments/122750691/setvariable.png?version=1&modificatio
 
 . Add a Logger at the end of your flow, outside the foreach scope, to log the value of `lastUpdated`. The logger also allows you to verify that the watermark works.
 +
-image:/docs/download/attachments/122750691/fullex1.png?version=1&modificationDate=1421449630119[image]
+image:fullex1.png[fullex1]
 ....
 [tab,title="XML Editor or Standalone"]
 ....
@@ -509,18 +509,18 @@ http://www.mulesoft.org/schema/mule/netsuite http://www.mulesoft.org/schema/mule
 ....
 . Place an *auto-paging-enabled connector* inside a *poll* scope as in the previous examples.
 +
-image:/docs/download/attachments/122750691/ex11.png?version=1&modificationDate=1421449629488[image]
+image:ex11.png[ex11]
 
 . Configure the connector according to the following screenshot. Note that the query orders the output in ascending order of *LastModifiedDate* so that the last item in the list is the newest. This detail is critical.
 +
-image:/docs/download/attachments/122750691/dsql_sfdc.png?version=1&modificationDate=1421449621063[image]
+image:dsql_sfdc.png[dsql_sfdc]
 +
 [WARNING]
 Be sure to configure the order of the output so that the LAST element in the collection is the most recent one! *ORDER BY LastModifiedDate*
 
 . Configure the poll scope according to the table below. The watermark will be a variable named `lastSync`. When the flow has finished processing, Mule updates the value of the variable to the value of the *flow variable* by named `lastUpdated`. Its default value is the result of evaluating the following expression: `#['YESTERDAY'].`
 +
-image:/docs/download/attachments/122750691/poll_watermark_variable.png?version=1&modificationDate=1421449620685[image]
+image:poll_watermark_variable.png[poll_watermark_variable]
 +
 [width="100%",cols=",",options="header"]
 |===
@@ -532,17 +532,17 @@ image:/docs/download/attachments/122750691/poll_watermark_variable.png?version=1
 
 . Next, you need to process the output of the connector with an element that can handle collections, such as a [DataMapper] transformer. DataMapper can process each item in a collection individually, one at a time.
 +
-image:/docs/download/attachments/122750691/ex22.png?version=1&modificationDate=1421449630414[image]
+image:ex22.png[ex22]
 
 . Configure the [DataMapper] so that each variable has its pairing, then add one extra output argument named *lastModified*. This output argument sets the value of a variable on each iteration of the DataMapper, overwriting it with a new value each time. Because you ordered your collection so that the last element is the newest, the value that "sticks" at the end of the DataMapper's iteration is what Mule needs for the watermark.
 
 In other words, the value of the LastModifiedDate of the last item in the collection becomes the new value of the lastUpdated flow variable, which, in turn, Mule will use to update the value of the variable lastSync the next time the poll executes.
 +
-image:/docs/download/attachments/122750691/datamapper+clean.png?version=1&modificationDate=1421449623076[image]
+image:datamapper+clean.png[datamapper+clean]
 
 . Add a Logger at the end of your flow, outside the foreach scope, to log the value of `lastUpdated`. The logger also allows you to verify that the watermark works.
 +
-image:/docs/download/attachments/122750691/fullex2.png?version=1&modificationDate=1421449630572[image]
+image:fullex2.png[fullex2]
 ....
 ------
 

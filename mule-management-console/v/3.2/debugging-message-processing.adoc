@@ -37,41 +37,41 @@ java.lang.NumberFormatException: For input string: "2,760.00" (javax.script.Scri
 
 Next, we use the Flow Analyzer to make sure that the what happened matches our expectations. The parameters for tracking the loan broker application are already set up, and sure enough we see that only the loan-broker-sync flow executed. We click the flow and the Message Flow pane lists the message processors that were invoked.
 
-image:/documentation-3.2/download/attachments/36701033/loan-broker-error.png?version=2&modificationDate=1301102528327[image]
+image:loan-broker-error.png[loan-broker-error]
 
 We then check the before and after message payloads for each message processor, to make sure that the processor performed its expected task correctly. As the previous figure shows, click a message processor, such as HttpRequestToMap, and you can see its before processing message payload and the payload after it does its processing. In this example, what we see is exactly as expected: The flow received a request passed in as a browser parameter, `/?amount=2,760.00`, which it mapped to an object, `amount=2,760.00`. Checking further, we can see that the ScriptTransformer processor caught the error in specifying the number, and the ExceptionTransformer and ObjectToString processors handle preparing the error message returned to the browser.
 
 Next, we verify that the application can handle correctly formatted rate requests, submitting a rate request via the browser for a loan of $1000. The application responds with the best rate.
 
-image:/documentation-3.2/download/attachments/36701033/loan-request.png?version=1&modificationDate=1301102322634[image]
+image:loan-request.png[loan-request]
 
 To make it easier to follow the application flow, we click the Clear button (circled below) to clear out the previously collected data, then submit our request. The Flow Analyzer shows all the flows that occurred to handle this single request:
 
-image:/documentation-3.2/download/attachments/36701033/loan-broker-request.png?version=1&modificationDate=1301102322616[image]
+image:loan-broker-request.png[loan-broker-request]
 
 == Verifying Message Processors and Payloads
 
 Now you can step through each flow or service in the Message List and examine the message flows and message payloads for each processing step. Click a message id row in the Message List table and details for that flow or service appear in the Message Details section. For example, the figure below shows the message processing details for the loan-broker-sync flow when it is first invoked by the application.
 
-image:/documentation-3.2/download/attachments/36701033/loan-request-1.png?version=1&modificationDate=1301102322608[image]
+image:loan-request-1.png[loan-request-1]
 
 To handle an incoming request, the flow relies on eight message processors, listed in the Message Processor section in the Message Flow pane. Click each message processor in the flow to see its before and after message payload and its inbound, invocation, and outbound meta-data properties. In the above figure, we clicked the first message processor handling the inbound endpoint and see that its payload is the loan amount parameter from the request.
 
 We check that the subsequent message processors are doing their job properly. For example, we click HttpRequestToMap and see that it maps the amount parameter.
 
-image:/documentation-3.2/download/attachments/36701033/loan-request-2.png?version=1&modificationDate=1301102322596[image]
+image:loan-request-2.png[loan-request-2]
 
 Similarly, ScriptTransformer does its transformation work and adds the default loan duration time (not shown). Next, we see that the component processor takes the transformed loan request, does the required component binding to ready the request for a rate quote.
 
-image:/documentation-3.2/download/attachments/36701033/loan-request-3.png?version=1&modificationDate=1301102344221[image]
+image:loan-request-3.png[loan-request-3]
 
 We continue checking each message processor and the payloads for this one flow. Once we determine that processing is as expected, we look at the details of the next flow in the Message List. Or, we skip to the flow where we think there might be a problem. In the figure below, we see that bank5 received the rate request and returned what appears to be the lowest rate.
 
-image:/documentation-3.2/download/attachments/36701033/loan-request-4.png?version=1&modificationDate=1301102344234[image]
+image:loan-request-4.png[loan-request-4]
 
 We check the last invocation of the loan-broker-sync flow and see that it uses four message processors, with the last one converting the rate object to a string so that it can be displayed in the browser.
 
-image:/documentation-3.2/download/attachments/36701033/loan-request-5.png?version=1&modificationDate=1301102344243[image]
+image:loan-request-5.png[loan-request-5]
 
 link:/documentation-3.2/display/32X/Analyzing+Message+Flows[<< Previous: *Analyzing Message Flows*]
 

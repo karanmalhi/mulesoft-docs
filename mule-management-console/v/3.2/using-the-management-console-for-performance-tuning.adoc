@@ -43,11 +43,11 @@ For this flow, the client input is on the order of thousands of messages, even r
 
 Dan needs to verify what's happening and then fix the problem. To do so, he logs into the Management Console. The server is already registered and the flow is running. Dan takes a quick look at the Dashboard, then clicks the link to the server on which his application is running. He does so by clicking the server name from the Server Health portlet on the Dashboard (shown below).
 
-image:/documentation-3.2/download/attachments/36700434/server-info1.png?version=1&modificationDate=1300931584834[image]
+image:server-info1.png[server-info1]
 
 Clicking the server name opens the server-specific Dashboard pane displaying the Server Details summary. From this Dashboard, Dan can see overview data about the server and there is a set of tabs to access more detailed information about different functionality. See the figure below. Dan principally uses three tabs (Memory, Threads, and Pools) to display different information and to do most of the debugging work.
 
-image:/documentation-3.2/download/attachments/36700434/server-info3.png?version=1&modificationDate=1300931584758[image]
+image:server-info3.png[server-info3]
 
 == Debugging Process Details
 
@@ -57,11 +57,11 @@ Here's how Dan's debugging process might proceed.
 
 Dan first eliminates obvious performance bottlenecks, such as memory leaks. He starts by checking memory usage. The server Dashboard pane shows a summary of the server metrics, including memory usage. He scans the memory graphs to spot a trend: a memory graph that shows a constant growth could potentially denote a possible memory leak. Instead, he sees that there was a growth spike but then the memory heaps remained constant for some time. Based on this, Dan is not worried about a memory leak.
 
-image:/documentation-3.2/download/attachments/36700434/server-metrics.png?version=1&modificationDate=1300931625332[image]
+image:server-metrics.png[server-metrics]
 
 He clicks the OS Resources tab to get more information about memory usage. Scanning the page and its charts he checks if heap memory usage is at the upper limit, which would be a good indication of why performance is failing.
 
-image:/documentation-3.2/download/attachments/36700434/os-resources.png?version=1&modificationDate=1300931584818[image]
+image:os-resources.png[os-resources]
 
 When heap usage is at the maximum, the JVM starts a garbage collection (GC) process that takes most resources for itself and causes other threads to freeze. When he sees heap usage at the upper limit, he is not surprised that response time is so bad.
 
@@ -69,7 +69,7 @@ When heap usage is at the maximum, the JVM starts a garbage collection (GC) proc
 
 Dan wants to see how the server is handling all running applications. He clicks the Flows tab and the console displays all flows and flows on the Mule ESB instance. He filters the display by state so that only currently running flows appear.
 
-image:/documentation-3.2/download/attachments/36700434/flows.png?version=2&modificationDate=1300932370074[image]
+image:flows.png[flows]
 
 Examining the pane, he notices that the ratio of processed to received events indicates a high number of queued events for several flows. In fact, he deduces that 70% of the messages for these flows are queued up; that is, waiting for processing. The developer knows that while queued, messages take up memory on the JVM. Thus, the number of queued messages may be the cause of the high memory usage and explain why heap use is so high.
 
@@ -77,7 +77,7 @@ Examining the pane, he notices that the ratio of processed to received events in
 
 Dan now wants to determine why so many messages are on the queue. The Pools pane may have the answer, so he clicks the console Servers tab, then the Pools tab.
 
-image:/documentation-3.2/download/attachments/36700434/pools.png?version=3&modificationDate=1301011933802[image]
+image:pools.png[pools]
 
 Here, he uses the filter to search the list of threads for Dispatcher threads, in particular the Dispatcher thread responsible for dispatching messages. He wants to see how the number of active tasks for this thread compares to the maximum number of active tasks. To make it easier to identify the pools using most of the threads, he clicks the Active Tasks column heading so that the display appears sorted by the value in this column.
 
@@ -89,7 +89,7 @@ The application configuration file that starts the application on the Mule ESB s
 
 Dan clicks the Files tab, then navigates to the use case application folder within the /apps directory, then clicks the application configuration file to open it. Examining the file, he discovers the endpoints are set to synchronous. He clicks the Edit button (shown in the figure below) to change the endpoint configurations to asynchronous.
 
-image:/documentation-3.2/download/attachments/36700434/edit-config.png?version=1&modificationDate=1301013855458[image]
+image:edit-config.png[edit-config]
 
 He saves the configuration file and re-runs the application, immediately seeing a big improvement in performance. However, performance could still be better.
 
@@ -101,13 +101,13 @@ Dan opens the console Flows pane, and again sees that messages are queued up. Wh
 
 Working directly through the console, Dan increases the number of Max Active threads to 50 for the dispatcher thread. He clicks the current Max Active value for the dispatcher thread. The console redisplays the selected thread in an editable mode, and Dan changes the 16 to 50. He clicks Save to ensure the new value is stored.
 
-image:/documentation-3.2/download/attachments/36700434/max-threads.png?version=1&modificationDate=1301362559054[image]
+image:max-threads.png[max-threads]
 
 * Balance the event processing load across all flows.
 
 To get even better performance, Dan wants to balance the event processing load across the server. He clicks the Flows tab to check the events processing numbers. Through the Flows tab, he can see a flow's process events, total received events, plus average and total event processing time.
 
-image:/documentation-3.2/download/attachments/36700434/events-proc.png?version=1&modificationDate=1301363260500[image]
+image:events-proc.png[events-proc]
 
 Depending on what he sees, he may want to increase the Max Active threads for those flows processing less events, since they likely have more messages waiting in their respective queues, and possibly decrease the Max Active value for those flows processing a great number of events. He also clicks the Threads tab and looks at the WC (Wait Count) and BC (Blocked Count) values to estimate the rate of event processing.
 
@@ -117,11 +117,11 @@ After some additional data analysis, he again checks the OS Resources tab and no
 
 Dan returns to the Memory pane and sees that Heap memory is again running out. He knows he has to change some additional memory-specific configuration values. Dan clicks the Files tab, navigates to the /conf directory, and opens the wrapper.conf file.
 
-image:/documentation-3.2/download/attachments/36700434/wrapper.png?version=1&modificationDate=1301362941005[image]
+image:wrapper.png[wrapper]
 
 He checks the initial and maximum heap values set in the file, and sees that the initial heap size is set to three megabytes and the maximum heap size is set to 512 megabytes. He clicks the edit button, increases both the initial maximum heap sizes to one gigabyte, then saves the wrapper.config file.
 
-image:/documentation-3.2/download/attachments/36700434/wrapper-edit.png?version=1&modificationDate=1301362941084[image]
+image:wrapper-edit.png[wrapper-edit]
 
 * Run the load test again.
 

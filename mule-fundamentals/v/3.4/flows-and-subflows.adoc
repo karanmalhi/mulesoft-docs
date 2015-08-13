@@ -2,9 +2,9 @@
 
 Mule *applications* are built around one or more *flows*. Typically, a Mule application begins processing a message it is received by an inbound endpoint in a flow. This flow can then either implement all processing stages, or route the message to other flows or subflows to perform specific tasks. Relative to the flow which triggered its execution, a flows and subflows can process messages either *synchronously* (see below, top) or *asynchronously* (see below, bottom) 
 
-image:/docs/download/attachments/98310299/standard_synchronous.png?version=1&modificationDate=1389628675555[image]
+image:standard_synchronous.png[standard_synchronous]
 
-image:/docs/download/attachments/98310299/standard_asynchronous.png?version=1&modificationDate=1389628675546[image]
+image:standard_asynchronous.png[standard_asynchronous]
 
 *Advantages of Using Multiple Flows in an Application*
 
@@ -32,7 +32,7 @@ This type of flow processes messages along multiple threads.
 
 All three types of flows are identified by name and, thus, can be called as often as needed via link:/docs/display/34X/Flow+Ref+Component+Reference[flow reference components] in other flows. For example, if an asynchronous Flow B's job is to update a database with logged data, any number of other flows can feed data to be logged into Flow B to update the same database (see image below). Because it processes messages asynchronously from any flow that triggers its execution, Flow B doesn't hold up the processing of any of its sister flows. Read more about link:#FlowsandSubflows-TriggeringFlows[Triggering Flows] below.
 
-image:/docs/download/attachments/98310299/async_example.png?version=1&modificationDate=1389628675516[image]
+image:async_example.png[async_example]
 
 === Subflows
 
@@ -42,7 +42,7 @@ Subflows, which always run *synchronously*, inherit both the processing strategy
 * Subflows are ideally suited for code reuse, so you can write a particular block of code once, then reference the same subflow repeatedly from within the same application. The diagram below offers an example of a subflow that is executed twice by different flow reference components in the same flow.
 * Subflows inherit the processing strategies and exception strategies of the flow that triggers it, which means you don't have to define these same configuration details again when building a subflow.
 
-image:/docs/download/attachments/98310299/subflow_example.png?version=1&modificationDate=1389628675584[image]
+image:subflow_example.png[subflow_example]
 
 Note that a *flow:subflow* relationship is an **_n_:_n_** relationship. In other words, a flow can reference several subflows to complete synchronous processing tasks, and a subflow can have several triggering flow. The subflow inherits the processing and exception strategies from whichever flow triggered it's execution. Where you do not want a subflow to inherit any parameters, you can simply use synchronous flows.
 
@@ -52,13 +52,13 @@ Like a subflow, a synchronous flow processes messages synchronously relative to 
 
 Moreover, because it does not inherit a triggering flow's parameters, a synchronous flow can accept calls from multiple flows within an application (see image below) using its own processing and exception strategies.  In other words, a *flow:synchronous flow* relationship is **_n_:1**.  (Of course, a flow can call multiple synchronous flows, so the relationship could really be described as _n_:_n_.)
 
-image:/docs/download/attachments/98310299/sync_example.png?version=1&modificationDate=1389628675603[image]
+image:sync_example.png[sync_example]
 
 === About Synchronous Message Processing
 
 When a flow triggers a synchronous flow or subflow, it passes programmatic control to the triggered flow and suspends its own message processing activity.  For example, when the synchronous Flow B completes its sequence of message processing events, it passes programmatic control back to Flow A. The message that exits Flow B replaces the message in Flow A (see image below).  
 
-image:/docs/download/attachments/98310299/standard_synchronous.png?version=1&modificationDate=1389628675555[image]
+image:standard_synchronous.png[standard_synchronous]
 
 Since the Flow A and Flow B hand off programmatic control to each other and, by implication, all processing occurs on the same thread, each event in the message processing sequence can be tracked. This setup is is ideal for ensuring *transactional processing*.
 
@@ -79,7 +79,7 @@ Read more about setting up link:/docs/display/34X/Transactional[Transactional un
 
 Asynchronous flows begin processing a message when triggered by another flow. Since this type of flow does not need to return data to the flow which triggered it, it can execute simultaneously to its triggering flow. In other words, when Flow A triggers asynchronous Flow B, it neither passes programmatic control to the asynchronous flow, nor does it pause its own message processing. In the image below, the asynchronous flow uses its own exception strategy and can be called multiple times within a single flow or many times by multiple flows to inject data into an external database.
 
-image:/docs/download/attachments/98310299/async_flow_example.png?version=1&modificationDate=1389628675528[image]
+image:async_flow_example.png[async_flow_example]
 
 == Triggering Flows
 

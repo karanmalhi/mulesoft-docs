@@ -71,13 +71,13 @@ At the simplest level, Flows are sequences of message-processing events. As the 
 . logged to a database
 . evaluated to determine what sort of response gets returned to party that submitted the original message
 
-image:/documentation-3.2/download/attachments/55083371/BellsnWhistles.png?version=1&modificationDate=1326502033026[image]
+image:BellsnWhistles.png[BellsnWhistles]
 
 The units from which Flows are constructed are known generically as Building Blocks. In general, these correspond to icons on the Studio graphical link:/documentation-3.2/display/32X/The+Studio+Interface#TheStudioInterface-AbouttheStudioInterface[canvas] or link:/documentation-3.2/display/32X/The+Studio+XML+Editor[XML elements] within the Mule application configuration file.
 
 The following screenshot illustrates a flow laid out on the Studio graphical “canvas.”
 
-image:/documentation-3.2/download/attachments/55083371/FlowOnCanvas.png?version=1&modificationDate=1326501870688[image]
+image:FlowOnCanvas.png[FlowOnCanvas]
 
 The following code block represents the XML listing for that same flow:
 
@@ -100,7 +100,7 @@ The first building block in a typical flow is a *Message Source*, which receives
 
 Sometimes the message source immediately places the incoming message into a queue. This allows the message source to close the receiver thread it used to accept the message, and immediately open another thread to accept another incoming message. The message just placed into the queue, whiere it waits until it reaches the top of the queue and can be processed through the rest of the flow. Since the message is processed sequentially by two distinct threads (with an intervening wait inside the queue), start-to-finish transaction processing is typically not possible. For an elegant work-around, see link:#MuleApplicationArchitecture-AdvancedUseCase[MULE3USER:Advanced Use Case], below.
 
-image:/documentation-3.2/download/attachments/55083371/ThreadHandoff.png?version=1&modificationDate=1331072465739[image]
+image:ThreadHandoff.png[ThreadHandoff]
 
 Sometimes, a message source can accept incoming messages from multiple transport channels. For instance, you can embed both an HTTP endpoint and a Servlet endpoint within a building block known as a *Composite Scope*. Whichever endpoint recieves a message effectively becomes the message source for that particular message flow instance. Alternatively, you can populate a composite scope to receive both IMAP and POP3 mail.
 
@@ -174,7 +174,7 @@ When Inbound Endpoints such as HTTP or VM are configured for a request-response 
 
 When Outbound Endpoints are configured for request-response exchange patterns, they can exchange data with resources outside the flow or with a string of message processors entirely within the same Mule application, as depicted by the following schematic:
 
-image:/documentation-3.2/download/attachments/55083371/req-resp.png?version=1&modificationDate=1331077995515[image]
+image:req-resp.png[req-resp]
 
 Not all Endpoints can be configured for the request-response exchange pattern, and of those that can, request-response is the default exchange pattern for only some of them. To complicate matters further, certain cases exist (such as the JDBC Endpoint) where request-response is sometimes available, but only when the Endpoint is configured as an Outbound Endpoint.
 
@@ -186,7 +186,7 @@ A processing strategy determines how Mule executes the sequence of Message Proce
 
 By contrast, when the flow is configured for a one-way, non-transactional exchange pattern (i.e., no response to the original message sender is required, and it isn’t necessary to verify that all steps in the flow have been completed), Mule sets the processing strategy to Queued Asynchronous, which has the potential to raise flow throughput. Under this processing strategy, the Inbound Endpoint places the incoming message into the queue as soon as it is received, then closes the receiver thread. When the message reaches the top of the queue, it resumes processing, but this time on a different thread. By implication, this sort of processing does not qualify as transactional end-to-end, because the transfer from one thread to the next means that the processing can not be rolled back if an exception is thrown.
 
-image:/documentation-3.2/download/attachments/55083371/ProcessingStrategies.png?version=1&modificationDate=1331338964348[image]
+image:ProcessingStrategies.png[ProcessingStrategies]
 
 ===== Default Processing Strategies
 
@@ -214,7 +214,7 @@ For details, see: link:/documentation-3.2/display/32X/Error+Handling[Error Handl
 
 Mule Flows are extremely flexible, so you can combine building blocks in many ways, often to achieve the same result. For many use cases, however, certain message processors tend to fall into certain loosely ordered patterns. For example, suppose you wanted to create an application that receives product catalog requests from a Web page then sends a PDF of the catalog back to the client who submitted the request. In addition, you want this flow to record the client’s customer information to a database and log the transaction so that you can keep track of how many of each kind of catalog have been sent. Your flow might look something like this:
 
-image:/documentation-3.2/download/attachments/55083371/DiagramCatalogApp.png?version=1&modificationDate=1331187991056[image]
+image:DiagramCatalogApp.png[DiagramCatalogApp]
 
 [source]
 ----
@@ -223,9 +223,9 @@ image:/documentation-3.2/download/attachments/55083371/DiagramCatalogApp.png?ver
 
 Note that you could embed the filter and the transformers inside the Inbound Endpoint, but placing them in the main flow sequence makes the sequence of events easier to “read” on both the *Studio Message Flow canvas* and the the XML-based application configuration file.
 
-image:/documentation-3.2/download/attachments/55083371/StudioCatalogApp.png?version=1&modificationDate=1331340587792[image]
+image:StudioCatalogApp.png[StudioCatalogApp]
 
-image:/documentation-3.2/download/attachments/55083371/XMLCatalogApp.png?version=1&modificationDate=1331341346720[image]
+image:XMLCatalogApp.png[XMLCatalogApp]
 
 == Child Flows
 
@@ -310,4 +310,4 @@ The topology described below leverages child flows, two types of queues, and clu
 * high avaiability
 * high reliability (transactionality)
 
-image:/documentation-3.2/download/attachments/55083371/AdvancedUseCase.png?version=1&modificationDate=1331517370420[image]
+image:AdvancedUseCase.png[AdvancedUseCase]
