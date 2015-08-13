@@ -6,7 +6,7 @@
 
 Mule uses an XML configuration to define each application, by fully describing the constructs required to run the application. A basic Mule application can use a very simple configuration, for instance:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -44,7 +44,7 @@ Every schema referenced in a configuration is defined by two pieces of data:
 
 The configuration both defines the schema's namespace URI as an XML namespace and associates the schema's namespace and location. This is done in the top-level `mule` element, as we can see in the configuration above:
 
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" ❶
       xmlns:stdio="http://www.mulesoft.org/schema/mule/stdio" ❷
@@ -65,7 +65,7 @@ It is required that a Mule configuration contain these things, because they allo
 
 Besides defining the syntax of the elements and attributes that they define, schemas can also define default values for them. Knowing these can be extremely useful in making your configurations readable, since thy won't have to be cluttered with unnecessary information. Default values can be looked up in the schemas themselves, or in the Mule documentation for the modules and transports that define them. For example, the definitions of the `<poll>` element, which polls an endpoint repeatedly, contains the following attribute definition:
 
-[source]
+[source, xml]
 ----
 <xsd:attribute name="frequency"  type="substitutableLong" default="1000">
   <xsd:annotation>
@@ -81,7 +81,7 @@ It is only necessary to specify this attribute when overriding the default value
 
 Many attributes in Mule can take only a limited set of values. These are defined in the schema as enumerated values, to ensure that only those values can be specified. Here's an example from the stdio transport:
 
-[source]
+[source, xml]
 ----
 <xsd:attribute name="system">
   <xsd:simpleType>
@@ -121,7 +121,7 @@ The Mule facility for parsing configurations embeds Spring, so that a Mule confi
 
 The simplest use of Spring in a Mule configuration is to define Spring Beans. These beans are placed into the Mule registry along with the Mule-specific objects, where they can be looked up by name by any of your custom Java objects, for instance, custom components. You can use the full range of Spring capabilities to create them. For example:
 
-[source]
+[source, xml]
 ----
 <spring:beans>
   <spring:bean name="globalCache" class="com.mycompany.utils.LRUCache" >
@@ -136,7 +136,7 @@ There are many places in a Mule configuration when a custom Java object can be u
 
 Here's an example:
 
-[source]
+[source, xml]
 ----
 <custom-processor class="com.mycompany.utils.CustomerClassChecker">
   <spring:property name="highPriorities">
@@ -151,7 +151,7 @@ Here's an example:
 
 The syntax for creating custom components is a bit different, to allow more control over how the Java object is created. For instance, to create a singleton:
 
-[source]
+[source, xml]
 ----
 <component>
   <singleton-object class="com.mycompany.utils.ProcessByPriority">
@@ -176,7 +176,7 @@ Here is an example of a configuration that uses property placeholders, together 
 
 Configuration:
 
-[source]
+[source, xml]
 ----
 <spring:beans>
   <context:property-placeholder
@@ -217,7 +217,7 @@ A connector is a concrete instance of a Mule transport, whose properties describ
 
 Here are some examples of connectors:
 
-[source]
+[source, xml]
 ----
 <vm:connector name="persistentConnector"> ❶
   <vm:queueProfile persistent="true" />
@@ -249,7 +249,7 @@ A Mule endpoint is an object that messages can be read from (inbound) or written
 
 A global endpoint specifies a set of properties, including its location. Inbound and outbound endpoints that reference the global endpoint inherit its properties. Here are some examples of global endpoints:
 
-[source]
+[source, xml]
 ----
 <vm:endpoint name="in" address="vm://in" connector-ref="persistentConnector" /> ❶
 <http:endpoint name="in" host="localhost" port="8080" path = "services/orders" /> ❷
@@ -265,14 +265,14 @@ Note that every endpoint uses a specific transport, but that this can be specifi
 
 The prefix style is preferred, particularly when the location will be complex. Compare
 
-[source]
+[source, xml]
 ----
 <http:endpoint name="in" host="localhost" port="8080" path = "services/orders" user="${user.name}" password ="${user.password}"/>
 ----
 
 and
 
-[source]
+[source, xml]
 ----
 <endpoint address="http://${user.name}:${user.password}@localhost:8080/services/orders/">
 ----
@@ -287,7 +287,7 @@ One of the most important attributes of an endpoint is its message exchange patt
 
 A transformer is an object that transforms the current Mule message. The Mule core defines a basic set of transformers, and many of the modules and transports define more, for instance the JSON module defines transformers to convert an object to JSON and vice-versa, while the Email transport defines transformers that convert between byte arrays and MIME messages. Each type of transformer defines XML configuration to define its properties. Here are some examples of transformers:
 
-[source]
+[source, xml]
 ----
 <json:json-to-object-transformer ❶
       name="jsonToFruitCollection" returnClass="org.mule.module.json.transformers.FruitCollection">
@@ -310,7 +310,7 @@ For more about Mule transformers, see link:/docs/display/34X/Using+Transformers[
 
 A filter is an object that determines whether a message should be processed or not. As with transformers, the Mule core defines a basic set of transformers, and many of the modules and transports define more. Here are some examples of filters:
 
-[source]
+[source, xml]
 ----
 <wildcard-filter pattern="* header received"/> ❶
  
@@ -321,7 +321,7 @@ The filter at ❶ continues processing of the current message only if it matches
 
 There are a few special filters that extend the power of the other filters. The first is `message-filter`:
 
-[source]
+[source, xml]
 ----
 <message-filter onUnaccepted="deadLetterQueue"> ❶
   <wildcard-filter pattern="* header received"/>
@@ -336,7 +336,7 @@ As above, ❶ continues processing of the current message only if it matches the
 
 Other special filters are `and-filter`, `or-filter`, and `not-filter`, which allow you to combine filters into a logical expression:
 
-[source]
+[source, xml]
 ----
 <or-filter>
   <wildcard-filter pattern="*priority:1*"/>
@@ -365,14 +365,14 @@ Mule has a powerful expression facility that allows information for many differe
 
 There are two ways of specifying expressions depending on where the expression is being used. Typically, expression-based elements such as the expression transformer, expression filter, and expression-based routers such as the expression message splitter, will have specific attributes for expression, evaluator, and custom-evaluator. For example:
 
-[source]
+[source, xml]
 ----
 <expression-filter evaluator="header" expression="my-header!=null"/>
 ----
 
 When substituting expressions into string values, you use the syntax #[evaluator:expression], for instance:
 
-[source]
+[source, xml]
 ----
 <message-properties-transformer>
     <add-message-property name="GUID" value="#[string:#[xpath:/msg/header/ID]-#[xpath:/msg/body/@ref]]"/>
@@ -383,7 +383,7 @@ This nests expression calls: first the xpath evaluator is used twice to extract 
 
 Expressions and property placeholders may seem similar, but they're actually quite different. Property placeholders are substituted at configuration time, and can be used to construct information that needs to be static. Expressions are substituted at run-time, so anything that uses them is dynamic. Consider the following:
 
-[source]
+[source, xml]
 ----
 <vm:inbound-endpoint path="${vm.path}"/> ❶
 <vm:inbound-endpoint path="#[header:vm.path]"/> <!-- illegal! --> ❷
@@ -413,7 +413,7 @@ For each type of object, there is a generic element used to refer to it.
 
 For example
 
-[source]
+[source, xml]
 ----
 <vm:endpoint name="in" address="vm://in" connector-ref="persistentConnector" />
 <expression-filter name="checkMyHeader" evaluator="header" expression="my-header!"/>
@@ -430,7 +430,7 @@ For example
 
 In addition, there are places where the names of global objects are the values of an attribute, for instance:
 
-[source]
+[source, xml]
 ----
 <vm:endpoint name="in" address="vm://in" transformer-refs="canonicalize sort createHeaders" />
 ----
@@ -439,7 +439,7 @@ In addition, there are places where the names of global objects are the values o
 
 The flow is the basic unit of processing in Mule. A flow begins with an inbound endpoint from which messages are read and continues with a list of message processors, optionally ending with an outbound endpoint, to which the fully processed message is sent. We've already met some types of message processors: transformers and filters. Other types include components, which process messages using languages like Java or Groovy, connectors, which call cloud services, and routers, which can alter the message flow as desired. Below is a simple flow, which we'll be referring to as we examine its parts:
 
-[source]
+[source, xml]
 ----
 <flow name="acceptAndProcessOrder">
   <http:inbound-endpoint ref="in"/> ❶
@@ -552,7 +552,7 @@ A router changes the flow of the message. Among other possibilities, it might ch
 
 A component is a message processor written in Java, groovy, or some other language. Mule determines which method to call on a component by finding the best match to the message's type. To help tailor this search, Mule uses objects called Entry Point Resolvers, which are configured on the component. Here are some examples of that:
 
-[source]
+[source, xml]
 ----
 <component class="org.mycompany.OrderPreProcessor"> ❶
 <entry-point-resolver-set>
@@ -639,7 +639,7 @@ The allows you to configure, in addition to the inbound and outbound endpoints
 
 Here are some examples:
 
-[source]
+[source, xml]
 ----
 <pattern:bridge name="queue-to-topic" ❶
         transacted="true"
@@ -666,7 +666,7 @@ This allows you to configure, in addition to the inbound endpoint
 
 Here are some examples:
 
-[source]
+[source, xml]
 ----
 <pattern:simple-service name="echo-service" ❶
                 endpoint-ref="echo-service-channel"
@@ -692,7 +692,7 @@ This allows you to configure, in addition to the inbound and outbound endpoints
 
 Here is an example:
 
-[source]
+[source, xml]
 ----
 <pattern:validator name="validator" ❶
            inboundAddress="vm://services/orders"
@@ -717,7 +717,7 @@ This allows you to configure, in addition to the inbound and outbound endpoints:
 
 Here is an example:
 
-[source]
+[source, xml]
 ----
 <pattern:web-service-proxy name="weather-forecast-ws-proxy"
           inboundAddress="http://localhost:8090/weather-forecast"
@@ -738,7 +738,7 @@ Mule is extensible, meaning that you can create your own objects (often by exten
 
 You can now put it into your configuration using the `custom-transformer` element:
 
-[source]
+[source, xml]
 ----
 <custom-transformer mimeType="text/html" returnType="java.lang.String" class="com.mycompany.HTMLCreator">
   <spring:property name="level" value="HTML5"/>
@@ -800,7 +800,7 @@ The Mule security manager can be configured with one or more encryption strategi
 
 For example, here is an example of a password-based encryption strategy (PBE) that provides password-based encryption using JCE. Users must specify a password and optionally a salt and iteration count as well. The default algorithm is PBEWithMD5AndDES, but users can specify any valid algorithm supported by JCE.
 
-[source]
+[source, xml]
 ----
 <security-manager>
   <password-encryption-strategy name="PBE" password="mule"/>
@@ -809,7 +809,7 @@ For example, here is an example of a password-based encryption strategy (PBE) th
 
 This strategy can then be referenced by other components in the system such as filters or transformers.
 
-[source]
+[source, xml]
 ----
 <decrypt-transformer name="EncryptedToByteArray" strategy-ref="PBE"/>
  
@@ -827,7 +827,7 @@ For more about Mule security, see link:/docs/display/34X/Configuring+Security[Co
 
 Mule can generate notifications whenever a message is sent, received, or processed. For these notifications to actually be created and sent, objects must register to receive them. This is done via the global\{\{notifications}} element, which is a direct child of mule. It allows you to specify an object to receive notifications as well as specify which notifications to send it. Note that an object will only receive notifications for which it implements the correct interface (these interfaces are defined in the `org.mule.api.context.notification` package.) Here is an example:
 
-[source]
+[source, xml]
 ----
 <spring:bean name="componentNotificationLogger" ❶
              class="org.myfirm.ComponentMessageNotificationLogger"/>
@@ -856,7 +856,7 @@ Mule allows you to define Agents to extend the functionality of Mule. Mule will 
 
 To create a custom agent, simply declare it using the global `custom-agent` element, which is a direct child of `mule`. The agent is a Spring bean, so as usual it requires a class name and a set of Spring properties to configure it. In addition it requires a name, which Mule uses to identify it in logging output. Here's an example:
 
-[source]
+[source, xml]
 ----
 <custom-agent name="heartbeat-agent" class="com.mycompany.HeartbeatProvider">
   <spring:property name="frequency" value="30"/>

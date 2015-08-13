@@ -38,14 +38,14 @@ from yammer.messages select new { text = body.plain, source = 'yammer' }from twi
 
 "yammer" and "twitter" can become variables that we can refer to by declaring them in our Mule application XML:
 
-[source]
+[source, xml]
 ----
 <twitter:config name="twitter"                 format="JSON"                 consumerKey="${twitter.consumer.key}"                 consumerSecret="${twitter.consumer.secret}"/>                          <yammer:config name="yammer"                consumerKey="${yammer.consumer.key}"                consumerSecret="${yammer.consumer.secret}"  />
 ----
 
 Now, we can put this in a Mule which aggregates both data sets:
 
-[source]
+[source, xml]
 ----
 <flow name="get-activity">    <inbound-endpoint address="http://localhost:9002/activity" exchange-pattern="request-response"/>    <all>        <mql:transform query="from yammer.messages select new { text = body.plain }" />        <mql:transform query="from twitter.publicTimeline as tweet select new { text = tweet.text }" />    </all>    <combine-collections-transformer/>    <response>        <json:object-to-json-transformer/>    </response></flow>
 ----

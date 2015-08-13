@@ -37,7 +37,7 @@ image:loan-broker-sync4.png[loan-broker-sync4]
 
 Now that you're confident that the error occurred in `LowestQuoteProcessor`, you bring the source into the IDE and go through the code carefully.
 
-[source]
+[source, java]
 ----
 public class LowestQuoteProcessor implements MessageProcessor{    public MuleEvent process(MuleEvent event) throws TransformerException    {        Object payload = event.getMessage().getPayload();        LoanQuote lowestQuote = null;        if (payload instanceof LoanQuote)        {            lowestQuote = (LoanQuote) payload;        }        else        {            @SuppressWarnings("unchecked")            List<LoanQuote> loanQuotes = (List<LoanQuote>) payload;            for (LoanQuote loanQuote : loanQuotes)            {                if (lowestQuote == null)                {                    lowestQuote = loanQuote;                }                else                {                    if (loanQuote.getInterestRate() > lowestQuote.getInterestRate())                    {                        lowestQuote = loanQuote;                    }                }            }        }        return new DefaultMuleEvent(new DefaultMuleMessage(lowestQuote, event.getMuleContext()), event);    }}
 ----

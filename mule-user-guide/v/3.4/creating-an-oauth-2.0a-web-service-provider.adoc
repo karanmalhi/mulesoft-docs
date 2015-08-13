@@ -85,7 +85,7 @@ The following procedure describes the steps to take to define the resources that
 
 . Within your Web service project in Mule, create a *Spring bean* called *`ss-authentication-manager`*, in which you define the *`authentication-provider`*.
 +
-[source]
+[source, xml]
 ----
 <spring:beans>
         <ss:authentication-manager id="resourceOwnerAuthenticationManager"> 
@@ -100,7 +100,7 @@ The following procedure describes the steps to take to define the resources that
 
 . Within your Web service project in Mule, create a *security manager* element which references the authentication manager (see example code below). (In context of an OAuth Web service, the authentication manager is the security provider.)
 +
-[source]
+[source, xml]
 ----
 <mule-ss:security-manager>
         <mule-ss:delegate-security-provider name="resourceOwnerSecurityProvider" delegate-ref="resourceOwnerAuthenticationManager"/>
@@ -178,7 +178,7 @@ Use the class to set maximumFailureCount (default = 5) and auhtResetAfterSeconds
 Default value: `TRUE`
 |===
 +
-[source]
+[source, xml]
 ----
 <oauth2-provider:config
         name="oauth2Provider"
@@ -196,14 +196,14 @@ Default value: `TRUE`
 ....
 . Add a global *`outh2-provider:config`* to your Mule application, at the top of your XML config file, outside all flows.
 +
-[source]
+[source, xml]
 ----
 <oauth2-provider:config/>
 ----
 
 . Add attributes to the global element according to the table below. The Req'd column indicates an attribute is required for validating a client app and resource owner. (Refer to example code below.)
 +
-[source]
+[source, xml]
 ----
 <oauth2-provider:config
         name="oauth2Provider"
@@ -317,7 +317,7 @@ During registration, client indicates which are its valid redirect URIs. When th
 |*Strings* | |Select *Create a List*, then click image:add.png[add] icon to add an `oauth2-provider:scopes` child element to the `oauth2-provider:create-client` element in your config. In the dialog, click *Define*, then enter a space-seperated list of scopes which the client must provide when it uses service.
 |===
 +
-[source]
+[source, xml]
 ----
 <oauth2-provider:config
         ...
@@ -343,14 +343,14 @@ During registration, client indicates which are its valid redirect URIs. When th
 
 .. Add a Spring bean and write Java code, using the default object store. In the example code below, the Spring bean invokes the initialize method of the `TweetBookInitializer` Java class. Mule generates the value of the default object store, then the Spring bean sets the value on the `clientRegistration` property.
 +
-[source]
+[source, xml]
 ----
 <spring:bean class="org.mule.modules.security.examples.oauth2.TweetBookInitializer"
                      init-method="initialize"
                      p:clientRegistration="#{oauth2Provider.configuration.clientStore}" />
 ----
 +
-[source]
+[source, java]
 ----
 public class TweetBookInitializer
 {
@@ -393,7 +393,7 @@ public class TweetBookInitializer
 
 .. Add an *`oauth2-provider:client-create`* element to the flow in your Mule application which will accept and store client IDs and secrets. Configure the element's attributes according to the table below. (See code example, below. Mule creates a default object store, then loads the clients' information into that object store.)
 +
-[source]
+[source, xml]
 ----
 <oauth2-provider:create-client clientId="${client_id}" secret="${client_secret}"
                                         type="CONFIDENTIAL" clientName="Mule Bookstore" description="Mule-powered On-line Bookstore">
@@ -448,14 +448,14 @@ During registration, a client indicates which are its valid redirect URIs. When 
 
 .. Add a Spring bean and write Java code, using the default object store. In the example code below, the Spring bean invokes the initialize method of the `TweetBookInitializer` Java class. Mule generates the value of the default object store, then the Spring bean sets the value on the `clientRegistration` property.
 +
-[source]
+[source, xml]
 ----
 <spring:bean class="org.mule.modules.security.examples.oauth2.TweetBookInitializer"
                      init-method="initialize"
                      p:clientRegistration="#{oauth2Provider.configuration.clientStore}" />
 ----
 +
-[source]
+[source, java]
 ----
 public class TweetBookInitializer
 {
@@ -528,7 +528,7 @@ When set to true, the message processor throws an InvalidAccessTokenException wh
 Default value: FALSE
 |===
 +
-[source]
+[source, xml]
 ----
 <flow name="publicProfile" doc:name="publicProfile">
         <http:inbound-endpoint address="http://localhost:8084/tweetbook/api/profile" exchange-pattern="request-response" doc:name="Profile API"/>
@@ -563,7 +563,7 @@ Removing a client ID from the list of registered clients does not automatically 
 |*clientId* ^|x |Define the client ID to be removed from the list. See code example below.
 |===
 +
-[source]
+[source, xml]
 ----
 <oauth2-provider:delete-client clientId="#[message.payload.clientId]"/> 
 ----
@@ -576,7 +576,7 @@ Removing a client ID from the list of registered clients does not automatically 
 |*token* ^|x |A Mule expression to indicate the access token to be revoked. Note that by revoking a client's access token, Mule also revokes any refresh tokens associated with the client, and vice versa. See code example below.
 |===
 +
-[source]
+[source, xml]
 ----
 <oauth2-provider:revoke-token token="#[payload]"/> 
 ----

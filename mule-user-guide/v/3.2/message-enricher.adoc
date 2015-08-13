@@ -8,7 +8,7 @@ Consider a message from a source system contains a ZIP code but the target syste
 
 *Simple Example*
 
-[source]
+[source, xml]
 ----
 <flow name="orderProcessingFlow">   <inbound-endpoint ref="orderEndpoint"/>   <enricher target="#[variable:state]">       <outbound-endpoint ref="stateLookup"/>   </enricher>   <outbound-endpoint ref="orderStep2"/></flow>
 ----
@@ -23,7 +23,7 @@ In this particular example the 'addressLookup' endpoint receives the full messag
 
 *Example 2*
 
-[source]
+[source, xml]
 ----
 <flow name="orderProcessingFlow">   <inbound-endpoint ref="orderEndpoint"/>   <enricher target="#[variable:address]">       <outbound-endpoint ref="addressLookup">           <expression-transformer evaluator="xpath" expression="/order/address/zip" />       </outbound-endpoint>   </enricher>   <outbound-endpoint ref="orderStep2"/></flow>
 ----
@@ -40,7 +40,7 @@ The solution is to use the enrichers ‘source‘ attribute which will select a 
 
 *Example 3*
 
-[source]
+[source, xml]
 ----
 <flow name="orderProcessingFlow">   <inbound-endpoint ref="orderEndpoint"/>   <enricher target="#[variable:paymentValidated]" source="/authorizenet/authorization/@valid">       <authorizenet:authorize cardNumber="/order/cc/number" />   </enricher>   <outbound-endpoint ref="orderStep2"/></flow>
 ----
@@ -49,7 +49,7 @@ This approach allows you to map content in the response message from the enrichm
 
 *Example 4*
 
-[source]
+[source, xml]
 ----
 <flow name="orderProcessingFlow">   <inbound-endpoint ref="orderEndpoint"/>   <enricher>       <authorizenet:authorize cardNumber="/order/cc/number" />       <enrich target="#[variable:paymentValidated]" source="/authorizenet/authorization/@valid" />       <enrich target="#[variable:paymentAuthCode]" source="/authorizenet/authorization/code"/>   </enricher>   <outbound-endpoint ref="orderStep2"/></flow>
 ----

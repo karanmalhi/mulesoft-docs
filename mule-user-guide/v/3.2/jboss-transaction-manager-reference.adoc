@@ -4,7 +4,7 @@
 
 To configure an instance of the JBoss transaction manager within Mule, add this element to your Mule XML config file. You can configure arbitrary properties on the transaction manager that will be passed on to the underlying transaction manager. For example:
 
-[source]
+[source, xml]
 ----
 <jbossts:transaction-manager>   <property key="test" value="TEST"/></jbossts:transaction-manager>
 ----
@@ -13,7 +13,7 @@ You can then declare XA transactions on endpoints supporting XA transactions, an
 
 Mule auto-generates the transaction manager XA node ID. To specify the ID yourself, add the following property:
 
-[source]
+[source, xml]
 ----
 <jbossts:transaction-manager>   <properties>      <spring:entry key="com.arjuna.ats.arjuna.xa.nodeIdentifier" value="SomeUserNodeId"/>   </properties></jbossts:transaction-manager>
 ----
@@ -47,14 +47,14 @@ There are two properties that relate to timeouts for JBoss transactions. (Note t
 * `com.arjuna.ats.arjuna.coordinator.txReaperTimeout`
 ** JBossTS uses a separate reaper thread that monitors all locally created transactions and forces them to roll back if their timeouts elapse. To prevent this reaper thread from consuming application time, it only runs periodically. By default, the reaper thread is set to monitor locally transactions every 120000 milliseconds. You can override this default value by setting the `txReaperTimeout` property. Note: If the `defaultTimeout` property value is less than the `txReaperTimeout` property value, the reaper thread checks for transactions once every `defaultTimeout` seconds.
 
-[source]
+[source, xml]
 ----
 <jbossts:transaction-manager >    <property key="com.arjuna.ats.arjuna.coordinator.defaultTimeout" value="47" /><!-- this is in seconds -->    <property key="com.arjuna.ats.arjuna.coordinator.txReaperTimeout" value="108000"/><!-- this is in milliseconds --></jbossts:transaction-manager>
 ----
 
 *Note*: The `timeout` parameter in the `xa-transaction` tag, shown in the code sample below, is ignored for JBoss transactions because these transactions are configured globally in the `jbossts:transaction-manager`. Note, too, that this code is shown with a strike-through line to indicate that you should *ignore* this parameter.
 
-[source]
+[source, xml]
 ----
 <xa-transaction action="ALWAYS_BEGIN" timeout="60000"/>
 ----

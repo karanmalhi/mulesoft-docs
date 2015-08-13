@@ -12,7 +12,7 @@ TLS/SSL connections are made on behalf of an entity, which can be anonymous or i
 
 XML namespace:
 
-[source]
+[source, xml]
 ----
 xmlns:imap "http://www.mulesoft.org/schema/mule/imap"xmlns:imaps "http://www.mulesoft.org/schema/mule/imaps"
 ----
@@ -26,7 +26,7 @@ http://www.mulesoft.org/schema/mule/imap http://www.mulesoft.org/schema/mule/ima
 
 Connector syntax:
 
-[source]
+[source, xml]
 ----
 <imap:connector name="imapConnector" backupEnabled="true" backupFolder="backup" checkFrequency="90000"                 deleteReadMessages="false" mailboxFolder="INBOX" moveToFolder="PROCESSED"/><imaps:connector name="imapsConnector" backupEnabled="true" backupFolder="backup" checkFrequency="90000"                  deleteReadMessages="false" mailboxFolder="INBOX" moveToFolder="PROCESSED"/>  <imaps:tls-client path="clientKeystore" storePassword="mulepassword" />   <imaps:tls-trust-store path="greenmail-truststore" storePassword="password" /> </imaps:connector>
 ----
@@ -36,14 +36,14 @@ You can define your endpoints 2 different ways:
 
 . Prefixed endpoint:
 
-[source]
+[source, xml]
 ----
 <imap:inbound-endpoint user="bob" password="password" host="localhost" port="65433"/> <imaps:inbound-endpoint user="bob" password="password" host="localhost" port="65433"/>
 ----
 
 . Non-prefixed URI:
 
-[source]
+[source, xml]
 ----
 <inbound-endpoint address="imap://bob:password@localhost:65433"/><inbound-endpoint address="imaps://bob:password@localhost:65433"/>
 ----
@@ -62,14 +62,14 @@ See the sections below for more information.
 
 If you want to include the IMAP email transport in your configuration, these are the namespaces you need to define:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:imap="http://www.mulesoft.org/schema/mule/imap"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/imap http://www.mulesoft.org/schema/mule/imap/3.2/mule-imap.xsd">...
 ----
 
 For the secure version, you would use the following:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:imaps="http://www.mulesoft.org/schema/mule/imaps"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/imaps http://www.mulesoft.org/schema/mule/imaps/3.2/mule-imaps.xsd">...
 ----
@@ -80,7 +80,7 @@ Then you need to configure your connector and endpoints as described below.
 
 Say you had a business and wanted to take orders through email attachments. After you receive the email, you want to save the order attachments so they could be picked up by your order fulfillment process. The following Mule configuration checks an email box for emails, and saves the attachments to the local disk, where it can be picked up from a separate fulfillment process:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:imap="http://www.mulesoft.org/schema/mule/imap"       xmlns:vm="http://www.mulesoft.org/schema/mule/vm"       xmlns:file="http://www.mulesoft.org/schema/mule/file"       xmlns:email="http://www.mulesoft.org/schema/mule/email"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/3.2/mule-file.xsd       http://www.mulesoft.org/schema/mule/imap http://www.mulesoft.org/schema/mule/imap/3.2/mule-imap.xsd       http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/3.2/mule-email.xsd       http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.2/mule-vm.xsd">    <imap:connector name="imapConnector"  />    <expression-transformer name="returnAttachments">        <return-argument evaluator="attachments-list" expression="*" optional="false"/> ❶    </expression-transformer>    <file:connector name="fileName">         <file:expression-filename-parser/>     </file:connector>        <model name="test">        <service name="incoming-orders">            <inbound>                <imap:inbound-endpoint user="bob" password="password" host="emailHost"                      port="143" transformer-refs="returnAttachments" disableTransportTransformer="true"/> ❷            </inbound>            <outbound>                <list-message-splitter-router> ❸                    <file:outbound-endpoint path="./received" outputPattern="#[function:datestamp].dat"> ❹                        <expression-transformer>                            <return-argument expression="payload.inputStream" evaluator="groovy" /> ❺                        </expression-transformer>                    </file:outbound-endpoint>                                    </list-message-splitter-router>                            </outbound>        </service>    </model></mule>
 ----
@@ -89,14 +89,14 @@ The built-in transformer is declared ❶ and gets the list of email attachments.
 
 Here is a flow-based version:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:imap="http://www.mulesoft.org/schema/mule/imap"       xmlns:vm="http://www.mulesoft.org/schema/mule/vm"       xmlns:file="http://www.mulesoft.org/schema/mule/file"       xmlns:email="http://www.mulesoft.org/schema/mule/email"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/3.2/mule-file.xsd       http://www.mulesoft.org/schema/mule/imap http://www.mulesoft.org/schema/mule/imap/3.2/mule-imap.xsd       http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/3.2/mule-email.xsd       http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.2/mule-vm.xsd">    <imap:connector name="imapConnector"  />    <expression-transformer name="returnAttachments">        <return-argument evaluator="attachments-list" expression="*" optional="false"/> ❶    </expression-transformer>    <file:connector name="fileName">         <file:expression-filename-parser/>     </file:connector>            <flow name="incoming-orders">            <imap:inbound-endpoint user="bob" password="password" host="emailHost"                      port="143" transformer-refs="returnAttachments" disableTransportTransformer="true"/> ❷            <collection-splitter/>            <file:outbound-endpoint path="./received" outputPattern="#[function:datestamp].dat"> ❹                <expression-transformer>                    <return-argument expression="payload.inputStream" evaluator="groovy" /> ❺                </expression-transformer>            </file:outbound-endpoint>                            </flow></mule>
 ----
 
 Here is the secure version of the same configuration:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:imaps="http://www.mulesoft.org/schema/mule/imaps"       xmlns:vm="http://www.mulesoft.org/schema/mule/vm"       xmlns:file="http://www.mulesoft.org/schema/mule/file"       xmlns:email="http://www.mulesoft.org/schema/mule/email"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/3.2/mule-file.xsd       http://www.mulesoft.org/schema/mule/imaps http://www.mulesoft.org/schema/mule/imaps/3.2/mule-imaps.xsd       http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/3.2/mule-email.xsd       http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.2/mule-vm.xsd">    <imaps:connector name="imapsConnector"> ❶        <imaps:tls-client path="clientKeystore" storePassword="mulepassword" />         <imaps:tls-trust-store path="greenmail-truststore" storePassword="password" />    </imaps:connector>    <expression-transformer name="returnAttachments">        <return-argument evaluator="attachments-list" expression="*" optional="false"/>  ❷    </expression-transformer>    <file:connector name="fileName">        <file:expression-filename-parser/>    </file:connector>        <model name="test">        <service name="incoming-orders">            <inbound>                <imaps:inbound-endpoint user="bob" password="password" host="mailServer"                       port="110" transformer-refs="returnAttachments" disableTransportTransformer="true"/> ❸            </inbound>            <outbound>                <list-message-splitter-router> ❹                    <file:outbound-endpoint path="./received" outputPattern="#[function:datestamp].dat"> ❺                        <expression-transformer>                            <return-argument expression="payload.inputStream" evaluator="groovy" /> ❻                        </expression-transformer>                    </file:outbound-endpoint>                                    </list-message-splitter-router>                            </outbound>        </service>    </model></mule>
 ----
@@ -144,14 +144,14 @@ Configures the trust store. The attributes are:
 
 For example:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:imap="http://www.mulesoft.org/schema/mule/imap"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/imap http://www.mulesoft.org/schema/mule/imap/3.2/mule-imap.xsd">    <imap:connector name="imapConnector" backupEnabled="true" backupFolder="backup" checkFrequency="90000"                     deleteReadMessages="false" mailboxFolder="INBOX" moveToFolder="PROCESSED"/>...
 ----
 
 Secure version:
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:imaps="http://www.mulesoft.org/schema/mule/imaps"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/imaps http://www.mulesoft.org/schema/mule/imaps/3.2/mule-imaps.xsd">    <imaps:connector name="imapsConnector" backupEnabled="true" backupFolder="backup" checkFrequency="90000"                      deleteReadMessages="false" mailboxFolder="INBOX" moveToFolder="PROCESSED"/>      <imaps:tls-client path="clientKeystore" storePassword="mulepassword" />       <imaps:tls-trust-store path="greenmail-truststore" storePassword="password" />     </imaps:connector>...
 ----
@@ -167,21 +167,21 @@ IMAP and IMAPS endpoints include details about connecting to an IMAP mailbox. Yo
 
 For example:
 
-[source]
+[source, xml]
 ----
 <imap:inbound-endpoint user="bob" password="password" host="localhost" port="65433"/>
 ----
 
 Secure version:
 
-[source]
+[source, xml]
 ----
 <imaps:inbound-endpoint user="bob" password="password" host="localhost" port="65433"/>
 ----
 
 You can also define the endpoints using a URI syntax:
 
-[source]
+[source, xml]
 ----
 <inbound-endpoint address="imap://bob:password@localhost:65433"/><inbound-endpoint address="imaps://bob:password@localhost:65433"/>
 ----
@@ -195,7 +195,7 @@ xslt: Read http://www.mulesoft.org/xslt/mule/schemadoc/3.1/individual-transport-
 
 Here is how you define transformers in your Mule configuration file:
 
-[source]
+[source, xml]
 ----
 <email:bytes-to-mime-transformer encoding="" ignoreBadInput="" mimeType="" name="" returnClass="" xsi:type=""/><email:email-to-string-transformer encoding="" ignoreBadInput="" mimeType="" name="" returnClass="" xsi:type=""/><email:mime-to-bytes-transformer encoding="" ignoreBadInput="" mimeType="" name="" returnClass="" xsi:type=""/><email:object-to-mime-transformer encoding="" ignoreBadInput="" mimeType="" name="" returnClass="" useInboundAttachments="true" useOutboundAttachments="true"/>{Note}Need to explain attributes somewhere; can we pull them in from xsd?{Note}<email:string-to-email-transformer encoding="" ignoreBadInput="" mimeType="" name="" returnClass="" xsi:type=""/>
 ----
@@ -231,7 +231,7 @@ Filters can be set on an endpoint to filter out any unwanted messages. The Email
 
 This is how you define the MailSubjectRegExFilter in your Mule configuration:
 
-[source]
+[source, xml]
 ----
 <message-property-filter pattern="to=barney@mule.org"/>
 ----
@@ -244,7 +244,7 @@ The email transports are implemented by the mule-transport-email module. You can
 
 If you are using maven to build your application, use the following dependency snippet to include the email transport in your project:
 
-[source]
+[source, xml]
 ----
 <dependency>  <groupId>org.mule.transports</groupId>  <artifactId>mule-transport-email</artifactId></dependency>
 ----
@@ -255,7 +255,7 @@ If you are building Mule ESB from source or including Mule artifacts in your Mav
 
 To add the 'mule-deps' repository to your Maven project, add the following to your pom.xml:
 
-[source]
+[source, xml]
 ----
 <repositories>    <repository>        <id>mule-deps</id>        <name>Mule Dependencies</name>        <url>http://dist.codehaus.org/mule/dependencies/maven2</url>        <snapshots>            <enabled>false</enabled>        </snapshots>    </repository></repositories>
 ----

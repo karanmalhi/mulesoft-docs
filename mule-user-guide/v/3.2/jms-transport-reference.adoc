@@ -15,7 +15,7 @@ Mule's JMS transport allows you to easily send and receive messages to queues an
 
 XML namespace:
 
-[source]
+[source, xml]
 ----
 xmlns:jms "http://www.mulesoft.org/schema/mule/jms"
 ----
@@ -31,14 +31,14 @@ http://www.mulesoft.org/docs/site/3.2.0/schemadocs/schemas/mule-jms_xsd/schema-o
 
 Connector syntax:
 
-[source]
+[source, xml]
 ----
 <jms:connector name="myConnector" specification="1.1" connectionFactory-ref="myConnectionFactory" username="myuser" password="mypass"/>
 ----
 
 Endpoint syntax:
 
-[source]
+[source, xml]
 ----
 <jms:outbound-endpoint queue="my.queue"/><jms:inbound-endpoint topic="my.topic"/>
 ----
@@ -90,7 +90,7 @@ To use the JMS transport, you must first declare the JMS namespace in the header
 
 *JMS namespace*
 
-[source]
+[source, xml]
 ----
 <mule ...cut...   xmlns:jms="http://www.mulesoft.org/schema/mule/jms"   xsi:schemaLocation=" ...cut...     http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/3.2/mule-jms.xsd">
 ----
@@ -101,7 +101,7 @@ There are several attributes available on the connector, most of which are optio
 
 *Connector attributes*
 
-[source]
+[source, xml]
 ----
 <jms:connector name="myConnector"               acknowledgementMode="DUPS_OK_ACKNOWLEDGE"               clientId="myClient"               durable="true"               noLocal="true"               persistentDelivery="true"               maxRedelivery="5"               cacheJmsSessions="true"               eagerConsumer="false"               specification="1.1"               numberOfConsumers="7"               username="myuser"               password="mypass" />
 ----
@@ -112,7 +112,7 @@ One of the most important attributes is `connectionFactory-ref`. This is a refer
 
 *ConnectionFactory*
 
-[source]
+[source, xml]
 ----
 <spring:bean name="connectionFactory" class="com.foo.FooConnectionFactory"/><jms:connector name="jmsConnector1" connectionFactory-ref="connectionFactory" />
 ----
@@ -121,7 +121,7 @@ There are also a few attributes which allow you to look up the ConnectionFactory
 
 *ConnectionFactory from JNDI*
 
-[source]
+[source, xml]
 ----
 <jms:connector name="jmsConnector"    jndiInitialFactory="com.sun.jndi.ldap.LdapCtxFactory"    jndiProviderUrl="ldap://localhost:10389/"    jndiProviderProperties-ref="providerProperties"    connectionFactoryJndiName="cn=ConnectionFactory,dc=example,dc=com" />
 ----
@@ -130,14 +130,14 @@ There are also a few attributes which allow you to look up the ConnectionFactory
 
 ==== Queues
 
-[source]
+[source, xml]
 ----
 <jms:inbound-endpoint queue="my.queue"/><jms:outbound-endpoint queue="my.queue"/>
 ----
 
 ==== Topics
 
-[source]
+[source, xml]
 ----
 <jms:inbound-endpoint topic="my.topic"/><jms:outbound-endpoint topic="my.topic"/>
 ----
@@ -148,7 +148,7 @@ When using a durable subscription, the JMS server requires a durable name to ide
 
 *Durable Topic*
 
-[source]
+[source, xml]
 ----
 <jms:connector name="jmsTopicConnector" durable="true"/><jms:inbound-endpoint topic="some.topic" durableName="sub1" /><jms:inbound-endpoint topic="some.topic" durableName="sub2" /><jms:inbound-endpoint topic="some.topic" durableName="sub3" />
 ----
@@ -182,7 +182,7 @@ There are two different ways to configure the JNDI settings:
 
 . Using connector properties (deprecated):
 
-[source]
+[source, xml]
 ----
 <jms:connector name="jmsConnector"    jndiInitialFactory="com.sun.jndi.ldap.LdapCtxFactory"    jndiProviderUrl="ldap://localhost:10389/"    connectionFactoryJndiName="cn=ConnectionFactory,dc=example,dc=com"    jndiDestinations="true"    forceJndiDestinations="true"/>
 ----
@@ -198,7 +198,7 @@ At the moment, there are two simple implementations of that interface:
 
 Default JNDI name resolver example: define the name resolver using the default-jndi-name-resolver tag and then add the appropriate properties to it.
 
-[source]
+[source, xml]
 ----
 <jms:activemq-connector name="jmsConnector"                            jndiDestinations="true"                            connectionFactoryJndiName="ConnectionFactory">        <jms:default-jndi-name-resolver                jndiInitialFactory="org.apache.activemq.jndi.ActiveMQInitialContextFactory"                jndiProviderUrl="vm://localhost?broker.persistent=false&amp;broker.useJmx=false"                jndiProviderProperties-ref="providerProperties"/>    </jms:activemq-connector>
 ----
@@ -231,7 +231,7 @@ You can set a JMS selector as a filter on an inbound endpoint. The JMS selector 
 
 *JMS Selector*
 
-[source]
+[source, xml]
 ----
 <jms:inbound-endpoint queue="important.queue">    <jms:selector expression="JMSPriority=9"/></jms:inbound-endpoint>
 ----
@@ -255,7 +255,7 @@ The Enterprise version of the JMS transport can be configured for transactional 
 
 *Transactional Polling*
 
-[source]
+[source, xml]
 ----
 <jms:connector ...cut...>     <service-overrides transactedMessageReceiver="com.mulesoft.mule.transport.jms.TransactedPollingJmsMessageReceiver" /></jms:connector><jms:inbound-endpoint queue="my.queue">     <properties>          <spring:entry key="pollingFrequency" value="5000" /> ❶     </properties></jms:inbound-endpoint>
 ----
@@ -266,7 +266,7 @@ The Enterprise version of the JMS transport can be configured for transactional 
 
 *Example configuration*
 
-[source]
+[source, xml]
 ----
 <mule ...cut...  xmlns:jms="http://www.mulesoft.org/schema/mule/jms"  xsi:schemaLocation="...cut...    http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/3.2/mule-jms.xsd"> ❶    <spring:bean name="connectionFactory" class="com.foo.FooConnectionFactory"/>    <jms:connector name="jmsConnector" connectionFactory-ref="connectionFactory" username="myuser" password="mypass" />    <flow name="MyFlow">        <jms:inbound-endpoint queue="in" />        <component class="com.foo.MyComponent" />        <jms:outbound-endpoint queue="out" />    </flow></mule>
 ----
@@ -275,7 +275,7 @@ The Enterprise version of the JMS transport can be configured for transactional 
 
 *Example configuration with transactions*
 
-[source]
+[source, xml]
 ----
 <mule ...cut...  xmlns:jms="http://www.mulesoft.org/schema/mule/jms"  xsi:schemaLocation="...cut...    http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/3.2/mule-jms.xsd">    <spring:bean name="connectionFactory" class="com.foo.FooConnectionFactory"/>    <jms:connector name="jmsConnector" connectionFactory-ref="connectionFactory" username="myuser" password="mypass" />    <flow name="MyFlow">        <jms:inbound-endpoint queue="in">            <jms:transaction action="ALWAYS_BEGIN" /> ❶        </jms:inbound-endpoint>        <component class="com.foo.MyComponent" />        <jms:outbound-endpoint queue="out">            <jms:transaction action="ALWAYS_JOIN" /> ❶        </jms:outbound-endpoint>    </flow></mule>
 ----
@@ -284,7 +284,7 @@ The Enterprise version of the JMS transport can be configured for transactional 
 
 *Example configuration with exception strategy*
 
-[source]
+[source, xml]
 ----
 <mule ...cut...  xmlns:jms="http://www.mulesoft.org/schema/mule/jms"  xsi:schemaLocation="...cut...    http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/3.2/mule-jms.xsd">    <spring:bean name="connectionFactory" class="com.foo.FooConnectionFactory"/>    <jms:connector name="jmsConnector" connectionFactory-ref="connectionFactory" username="myuser" password="mypass" />    <flow name="MyFlow">        <jms:inbound-endpoint queue="in">            <jms:transaction action="ALWAYS_BEGIN" />        </jms:inbound-endpoint>        <component class="com.foo.MyComponent" />        <jms:outbound-endpoint queue="out">            <jms:transaction action="ALWAYS_JOIN" />        </jms:outbound-endpoint>        <default-exception-strategy>            <commit-transaction exception-pattern="com.foo.ExpectedExceptionType"/> ❶            <jms:outbound-endpoint queue="dead.letter"> ❷                <jms:transaction action="JOIN_IF_POSSIBLE" />            </jms:outbound-endpoint>        </default-exception-strategy>    </flow></mule>
 ----
@@ -294,7 +294,7 @@ The Enterprise version of the JMS transport can be configured for transactional 
 
 *Example configuration using Service*
 
-[source]
+[source, xml]
 ----
 <mule ...cut...    <spring:bean name="connectionFactory" class="com.foo.FooConnectionFactory"/>    <jms:connector name="jmsConnector" connectionFactory-ref="connectionFactory" username="myuser" password="mypass" />    <model>        <service name="MyService"> ❶            <inbound>                <jms:inbound-endpoint queue="in" />            </inbound>            <component class="com.foo.MyComponent" />            <outbound>                <pass-through-router>                    <jms:outbound-endpoint queue="out" />                </pass-through-router>            </outbound>        </service>    </model></mule>
 ----
@@ -490,7 +490,7 @@ The property-filter element configures a filter that allows you to filter messag
 
 Import the XML schema for this module as follows:
 
-[source]
+[source, xml]
 ----
 xmlns:jms="http://www.mulesoft.org/schema/mule/jms"xsi:schemaLocation="http://www.mulesoft.org/schema/mule/jms  http://www.mulesoft.org/schema/mule/jms/3.2/mule-jms.xsd"
 ----
@@ -505,7 +505,7 @@ Javadoc for this transport can be found http://www.mulesoft.org/docs/site/curren
 
 If you are using Maven to build your application, use the following groupId/artifactId to include this module as a dependency:
 
-[source]
+[source, xml]
 ----
 <dependency>  <groupId>org.mule.transports</groupId>  <artifactId>mule-transport-jms</artifactId></dependency>
 ----
@@ -516,7 +516,7 @@ The 1.0.2b specification has the limitation of only supporting queues or topics 
 
 *Workaround for 1.0.2b spec.*
 
-[source]
+[source, xml]
 ----
 <spring:bean name="queueConnectionFactory" class="com.foo.QueueConnectionFactory"/><spring:bean name="topicConnectionFactory" class="com.foo.TopicConnectionFactory"/><jms:connector name="jmsQueueConnector" connectionFactory-ref="queueConnectionFactory" /><jms:connector name="jmsTopicConnector" connectionFactory-ref="topicConnectionFactory" /><jms:outbound-endpoint queue="my.queue1" connector-ref="jmsQueueConnector"/><jms:outbound-endpoint queue="my.queue2" connector-ref="jmsQueueConnector"/><jms:inbound-endpoint topic="my.topic" connector-ref="jmsTopicConnector"/>
 ----

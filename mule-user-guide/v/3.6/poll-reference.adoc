@@ -113,7 +113,7 @@ Keep in mind that for this example to work, you must manually configure the foll
 * consumerSecret
 ====
 
-[source]
+[source, xml]
 ----
 <mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter" xmlns:http="http://www.mulesoft.org/schema/mule/http"
 xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
@@ -280,7 +280,7 @@ selector-expression="#[payload.id]"
 [TIP]
 All flows use an asynchronous processing strategy by default. If you do not set the processing strategy to *synchronous*, polling with watermarks will not work!
 +
-[source]
+[source, xml]
 ----
 <flow name="test1" doc:name="test1" processingStrategy="synchronous">
 ----
@@ -295,7 +295,7 @@ All flows use an asynchronous processing strategy by default. If you do not set 
 
 .  Add attributes to the `watermark` child element according to the table below.
 +
-[source]
+[source, xml]
 ----
 <watermark variable="lastID" default-expression="-1" selector="FIRST" selector-expression="#[payload.id]"/>
 ----
@@ -341,7 +341,7 @@ sinceId="#[flowVars['lastID']]"
 ----
 |============
 
-[source]
+[source, xml]
 ----
 <flow name="test1" doc:name="test1" processingStrategy="synchronous">
     <poll frequency="1000" doc:name="Poll">
@@ -367,9 +367,8 @@ Keep in mind that for this example to work, you must manually configure the foll
 * consumerSecret
 ====
 
-[source]
+[source, xml]
 ----
-
 <mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter" xmlns:http="http://www.mulesoft.org/schema/mule/http"
 xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
 xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.5.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/twitter http://www.mulesoft.org/schema/mule/twitter/2.4/mule-twitter.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
@@ -461,7 +460,7 @@ image:ex12.png[ex12]
 
 . Add a *poll* element to your flow, then add a *watermark variable* as a child element. The watermark will be a variable named `lastUpdated` . When the flow has finished processing, Mule updates the value of the variable to the value of the *flow variable* by the same name, `lastUpdated` . Its default value is the result of evaluating the following expression: `#['YESTERDAY']` .
 +
-[source]
+[source, xml]
 ----
 <poll frequency="100000" doc:name="Poll">
             <watermark variable="nextSync" default-expression="#['YESTERDAY']" selector="MAX" selector-expression="#[payload['lastUpdated']]"/>
@@ -480,7 +479,7 @@ image:ex12.png[ex12]
 The watermark will be a variable named `lastUpdated`. When you iterate through the collection, later in your flow, Mule updates the value of the variable to the value you put in the Selector field, in this case `#[payload['lastUpdated']]`. Its default value is the result of evaluating the following expression: `#['YESTERDAY']`.
 . Add an auto-paging-enabled connector as a child element of the poll element. Note that the query orders the output in ascending order of *LastModifiedDate* so that the last item in the list is the newest. This detail is critical.
 +
-[source]
+[source, xml]
 ----
 <poll frequency="100000" doc:name="Poll">
             <watermark variable="nextSync" default-expression="#['YESTERDAY']" update-expression="#[flowVars['lastUpdated']]"/>
@@ -496,7 +495,7 @@ Be sure to configure the order of the output so that the LAST element in the col
 Keep in mind that when dealing with collections with auto-paging, you need to process the collection at some point of your flow. If you don't, the selector in your poll won't be updated.
 . Inside the Foreach scope, place a Logger, set its message to `#[payload['lastUpdated]]`. It will log the time of the last update for every element in your collection.
 +
-[source]
+[source, xml]
 ----
 <logger message="#[payload['lastUpdated]] " level="INFO" doc:name="Logger"/>
 ----
@@ -504,7 +503,7 @@ Keep in mind that when dealing with collections with auto-paging, you need to pr
 ....
 ------
 
-[source]
+[source, xml]
 ----
 <mule xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" version="EE-3.5.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd

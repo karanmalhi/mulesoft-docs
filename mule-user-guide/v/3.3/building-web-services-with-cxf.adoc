@@ -14,7 +14,7 @@ The JAX-WS specification defines a series of APIs and annotations that help you 
 
 You begin by writing the service interface. As the following sample shows, you can write an operation called "sayHello" to greet anyone who submits his or her name through a web browser:
 
-[source]
+[source, java]
 ----
 package org.example;
  
@@ -28,7 +28,7 @@ public interface HelloWorld {
 
 Your implementation of the Web service interface will look like this:
 
-[source]
+[source, java]
 ----
 package org.example;
  
@@ -48,7 +48,7 @@ public class HelloWorldImpl implements HelloWorld {
 
 To configure Mule to use the service, simply declare your service and use a CXF endpoint as shown in the following example:
 
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -76,7 +76,7 @@ To use a POJO instead of an annotated JAX-WS service, host the POJO as a compone
 
 If you need to access JAX-WS resources, you can have them injected into your service implementation class. Simply add an annotated field such as this:
 
-[source]
+[source, java]
 ----
 @WebService
 public class HelloWorldImpl implements HelloWorld {
@@ -89,7 +89,7 @@ public class HelloWorldImpl implements HelloWorld {
 To implement injection into your service class, declare it as a Spring bean so that the CXF processor can perform the injection.
 
 
-[source]
+[source, xml]
 ----
 <spring:bean class="org.apache.cxf.bus.spring.Jsr250BeanPostProcessor" />
 <spring:bean id="hello" class="org.example.HelloWorldImpl" />
@@ -124,7 +124,7 @@ Next, write a service implementation class that implements your service interfac
 
 You can specify your original WSDL to CXF by using the @WebService attribute:
 
-[source]
+[source, java]
 ----
 @WebService(endpointInterface = "demo.hw.server.HelloWorld",
             serviceName = "HelloWorld",
@@ -134,7 +134,7 @@ public class HelloWorldImpl implements HelloWorld
 
 Another approach involves specifying the wsdlLocation property on the endpoint:
 
-[source]
+[source, xml]
 ----
 <cxf:jaxws-service address="http://localhost:63081/hello" wsdlLocation="foo/bar/hello.wsdl" />
 ----
@@ -147,7 +147,7 @@ A simple front end allows you to create web services which don't require annotat
 [NOTE]
 You can use an implementation class instead of a service interface, although the service interface makes it easier to consume the service. See link:/docs/display/current/Consuming+Web+Services+with+CXF[Consuming Web Services] for more information.
 
-[source]
+[source, java]
 ----
 package org.example;
  
@@ -158,7 +158,7 @@ public interface HelloWorld {
 
 Your implementation would then look like this:
 
-[source]
+[source, java]
 ----
 package org.example;
  
@@ -174,7 +174,7 @@ public class HelloWorldImpl implements HelloWorld {
 
 To configure Mule to use the service, simply declare your service and use a CXF message processor as shown in the following example:
 
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -202,7 +202,7 @@ If you go to " http://localhost:63081/hello?wsdl ", you will see the WSDL that C
 
 The following code enables schema validation for incoming messages by adding a validationEnabled attribute to your service declaration:
 
-[source]
+[source, xml]
 ----
 <simple-service validationEnabled="true"/>
 <jaxws-service validationEnabled="true"/>
@@ -220,7 +220,7 @@ You can use the databinding property on an endpoint to configure the databinding
 
 The following code specifies the databinding class:
 
-[source]
+[source, xml]
 ----
 <cxf:simple-service serviceClass="com.acme.MyService">
     <cxf:aegis-databinding/>
@@ -233,7 +233,7 @@ The *<cxf:databinding>* element can be used with any CXF front end.
 
 The bindingUri attribute specifies how your service operations are mapped to resources. You configure this attribute as follows:
 
-[source]
+[source, xml]
 ----
 <cxf:jaxws-service serviceClass="com.acme.MyService" bindingUri="http://www.w3.org/2003/05/soap/bindings/HTTP/" />
 ----
@@ -248,7 +248,7 @@ By default, CXF uses the Document/Literal message style. However, you can change
 
 In the following example, the parameter style is set to BARE. This means that each parameter is placed into the message body as a child element of the message root. This is WRAPPED by default.
 
-[source]
+[source, java]
 ----
 @SOAPBinding(style=SOAPBinding.Style.DOCUMENT,
              use=SOAPBinding.Use.LITERAL,

@@ -27,7 +27,7 @@ The following table describes all the `@OAuth2` parameters:
 . Add the `@OAuth2` class level and include at the minimum the `authorizationUrl` and `accessTokenUrl` information:
 +
 
-[source]
+[source, java]
 ----
 @Module(name = "oauth2module")
 @OAuth2(authorizationUrl = "http://someUrl",
@@ -41,7 +41,7 @@ _Note_: the values for `accessTokenUrl` and `authorizationUrl` can be obtained f
 . Create two String instance fields to hold your Consumer Key and Consumer Secret and annotate them with `@OAuthConsumerKey` and `@OAuthConsumerSecret` respectively. Also annotate them with `@Configurable` so that anyone using it can pass in their own credentials.
 +
 
-[source]
+[source, java]
 ----
 @Module(name = "oauth2module")
 @OAuth2(authorizationUrl = "http://someUrl",
@@ -60,7 +60,7 @@ Make sure these instance variables have public getters and setters.
 
 . In the methods annotated with `@Processor` that access Protected Resources add one String parameter and annotate it with `@OAuthAccessToken`:
 
-[source]
+[source, java]
 ----
 @Processor
         public Object accessProtectedResource(@OAuthAccessToken String accessToken, ...) {
@@ -80,7 +80,7 @@ In case the API access token expires and a proper regular expression has been sp
 
 Before any op that requires authorization can be executed the Resource Owner must grant access to the connector to access the Protected Resource. Upon calling authorize Mule will redirect the Resource Owner's browser to the Service Provider authorization page. After that, any subsequent attempts to access a Protected Resource will fill the parameters annotated with `@OAuthAccessToken` with the access token and so that they can be included in the request to Service Provider as described by the OAuth 2 specification.
 
-[source]
+[source, xml]
 ----
 <linkedin:config apiKey="${api.key}" apiSecret="${api.secret}"/>
 
@@ -94,7 +94,7 @@ Before any op that requires authorization can be executed the Resource Owner mus
 
 This is a sample Mule configuration file:
 
-[source]
+[source, xml]
 ----
 <oauth2module:config apiKey="${api.key}" apiSecret="${api.secret}"/>
 
@@ -111,7 +111,7 @@ Then there is a simple flow that accesses a Protected Resource. If the connector
 
 When the user is redirected to the Service Provider authorization page and grants access to the Protected Resource, the Service Provider will make a HTTP callback passing an authorization code that Mule will use later to obtain the Access Token. There is no need to set up anything to handle the HTTP callback since Mule will dynamically create a HTTP inbound endpoint to handle it and this endpoint's URL will be passed to the Service Provider. By default Mule will construct a URL to send to the Service Provider using a host and port determined by the environment variables `fullDomain` and `http.port`. In case there is a need to use different values for host and port you may add the following configuration:
 
-[source]
+[source, xml]
 ----
 <oauth2module:config apiKey="${api.key}" apiSecret="${api.secret}">
        <oauth2module:oauth-callback-config domain="SOME_DOMAIN" remotePort="SOME_PORT" />
@@ -122,7 +122,7 @@ When the user is redirected to the Service Provider authorization page and grant
 
 As mentioned previously Mule will automatically launch an inbound endpoint for handling the OAuth callback. The endpoint will use the HTTP connector by default. In case the Service Provider requires HTTPS you can pass in your own connector by reference.
 
-[source]
+[source, xml]
 ----
 <https:connector name="httpsConnector">
     <https:tls-key-store path="keystore.jks" keyPassword="mule2012" storePassword="mule2012"/>

@@ -13,7 +13,7 @@ Mule currently supports component bindings for Java components (the default comp
 
 Bindings can be used by components to call out to an external service. The bound interface is added to the component as a field with the usual bean getter and setter methods. In the binding configuration for the component, you can bind this interface along with a method in the interface to a Mule endpoint. When that method is called, the call parameters are sent over the Mule endpoint to another service, which may be local or remote. A result may be returned from the flow and passed back to the component using the return argument of the method. This model is very similar to traditional RPC calls. Here is an example:
 
-[source]
+[source, java]
 ----
 public class InvokerComponent
 {
@@ -38,7 +38,7 @@ In this example, the component `InvokerComponent` has a field `hello`, which is 
 
 The HelloInterface is very simple with a single method `sayHello`.
 
-[source]
+[source, java]
 ----
 public interface HelloInterface
 {
@@ -51,7 +51,7 @@ As of Mule 3.x, you are able to set the interface return type to `MuleMessage` t
 
 Now, you simply configure your component to bind the `sayHello` method to the endpoint that will invoke another flow.
 
-[source]
+[source, xml]
 ----
 <flow name="InvokerComponent">
     <inbound>
@@ -77,7 +77,7 @@ The call to the external web service is synchronous, because you want a result r
 
 *Note:* that component bindings will not work with Java Proxy objects, unless the proxy explicitly handles the binding interface method. If using Spring components, ensure that you use CGLib proxies. For more information on the Spring-AOP proxying behavior, see http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/aop.html#aop-introduction-proxies. If you're using the annotation-processors, such as for transactions, you would specify the following:
 
-[source]
+[source, xml]
 ----
 <tx:annotation-driven proxy-target-class="true"/>
 ----
@@ -86,7 +86,7 @@ The call to the external web service is synchronous, because you want a result r
 
 You can handle data conversion when making a call and receiving a result using the normal transformer configuration on the endpoint. In the above example, assume the Web service was expecting an `org.mule.examples.bindings.WebHelloRequest` object and returned an `org.mule.examples.bindings.WebHelloResponse` object. You don't want your component to know about these external data types, so you can configure transformers to do the conversion when the call is made:
 
-[source]
+[source, xml]
 ----
 <component class="org.mule.examples.bindings.InvokerComponent">
     <binding interface="org.mule.examples.bindings.HelloInterface" method="sayHello">
@@ -116,7 +116,7 @@ Currently, the `invoke()` method of http://www.mulesoft.org/docs/site/current/ap
 
 Similar to the Java component bindings, script bindings enable the same behavior for your scripting components. When using a scripting component, the binding is bound to the scripting context and is accessible by using the binding interface class name.
 
-[source]
+[source, xml]
 ----
 <flow name="ScriptService">
     <inbound>

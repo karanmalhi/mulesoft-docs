@@ -41,7 +41,7 @@ Rather than using an inbound endpoint you can poll any message processor and use
 
 To configure polling use the _<poll>_ element instead of an inbound endpoint.
 
-[source]
+[source, xml]
 ----
 <flow name="myFlow">   <poll frequency="2000">        <http:outbound-endpoint host=".." port=".."/>   </poll>   <processor ref=""/>   <processor ref=""/></flow>
 ----
@@ -54,7 +54,7 @@ You can replace any inbound endpoint in a flow with a custom message source. Thi
 
 The following code example configures a custom message source for a flow:
 
-[source]
+[source, xml]
 ----
 <flow name="useMyCustomSource">   <custom-source class="org.my.customClass">      <spring:property name="threads" value="500"/>   </custom-source>   <vm:outbound-endpoint path="output" exchange-pattern="one-way"/></flow>
 ----
@@ -149,7 +149,7 @@ For information about configuring endpoints see link:/documentation-3.2/display/
 
 A Message Processor Chain allows to define a reusable set of message processors that are chained together and invoked in sequence. When configuring Mule using XML a processor chain is defined using the _processor-chain_ element.
 
-[source]
+[source, xml]
 ----
 <processor-chain name="myReusableChain">   <bytearray-to-object-transformer />   <expression-filter expression=""/>   <custom-processor class=""/></processor-chain>
 ----
@@ -158,14 +158,14 @@ A Message Processor Chain allows to define a reusable set of message processors 
 
 A response adaptor is configured using the _response_ element. It is used when you want to use a Message Processor on a response message. In the following case the append-string-transformer is invoked after response was received from the outbound endpoint invocation. This can be useful when you have a message process that performs response processing (e.g. CXF) and you need to add a message processor after this.
 
-[source]
+[source, xml]
 ----
 <http:outbound-endpoint address="http://foo.bar/formAction" exchange-pattern="request-response" method="POST">                <response>        <append-string-transformer message=" - RECEIVED BY MULE"/>    </response></http:outbound-endpoint>
 ----
 
 In the following example response block is invoked after the flow finished processing and before the response message is returned to the caller of the inbound endpoint.
 
-[source]
+[source, xml]
 ----
 <flow ...>    <http:inbound-endpoint address="http://localhost:8080/hello" exchange-pattern="request-response">                    <response>            <message-properties-transformer>           <add-message-property key="Content-Type" value="text/html"/>        </message-properties-transformer>        </response>    </http:inbound-endpoint>     <component class="com.foo.Bar"/></flow>
 ----
@@ -176,14 +176,14 @@ Custom Message Processors can be implemented by simply extending the MessageProc
 
 *Configuring a custom message processor with a class name*
 
-[source]
+[source, xml]
 ----
 <custom-processor name="customMsgProc" class=""/>
 ----
 
 *Configuring a custom message processor by referencing a spring bean*
 
-[source]
+[source, xml]
 ----
 <processor ref="myBean" />
 ----
