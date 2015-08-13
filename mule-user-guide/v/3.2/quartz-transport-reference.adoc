@@ -207,16 +207,15 @@ An inbound endpoint job that will trigger a new event for the service according 
 |payload |0..1 |The payload of the newly created event. The payload can be a reference to a file, fixed string, or object configured as a Spring bean. If this value is not set, an event will be generated with an org.mule.transport.NullPayload instance.
 |=====
 
-////
+
 Example:
 
-image:arrow_closed_active_16.png[arrow_closed_active_16] Click here to expand...
+image:arrow_closed_active_16.png[arrow_closed_active_16]
 
 [source, xml]
 ----
 <flow name="testService1">  <!--  This configuration creates an inbound event for testService1 at 12 noon every day. The event payload always has the value 'foo'.  -->    <quartz:inbound-endpoint name="qEP1" cronExpression="0 0 12 * * ?" jobName="job1" connector-ref="quartzConnector1">      <quartz:event-generator-job>        <quartz:payload>foo</quartz:payload>      </quartz:event-generator-job>    </quartz:inbound-endpoint>    <echo-component/></flow><flow name="testService2">  <!--  This configuration creates an inbound event for testService2 every 1 second indefinitely. The event payload always has the same value, which the are contents of the file 'payload-data.txt'. The file can be on the classpath or on the local file system.  -->    <quartz:inbound-endpoint name="qEP2" repeatCount="10" repeatInterval="1000" jobName="job2"          connector-ref="quartzConnector1">      <quartz:event-generator-job >        <quartz:payload file="payload-data.txt"/>      </quartz:event-generator-job>    </quartz:inbound-endpoint>    <echo-component/></flow>
 ----
-////
 
 == Endpoint polling job
 
@@ -238,16 +237,16 @@ An inbound endpoint job that can be used to periodically read from an external s
 |Name |Cardinality |Description
 |job-endpoint |0..1 |A reference to another configured endpoint from which events will be received.
 |=====
-////
+
 Example:
 
-image:arrow_closed_active_16.png[arrow_closed_active_16] Click here to expand...
+image:arrow_closed_active_16.png[arrow_closed_active_16]
 
 [source, xml]
 ----
 <flow name="testService5">  <!--  The endpoint polling Job tries to perform a 'request' on a Mule endpoint. If a result is received, it hands off to the 'testService5' service for processing. The trigger fires every 5 minutes starting at 2 pm and ending at 2:55 pm, every day. During this period, the job checks the file directory /N/drop-data/in every 5 minutes to see if event data is available. The request times out after 4 seconds if there are no files in the directory.   -->    <quartz:inbound-endpoint name="qEP5" cronExpression="0 0/5 14 * * ?" jobName="job5"           connector-ref="quartzConnector1">      <quartz:endpoint-polling-job>        <quartz:job-endpoint address="file:///N/drop-data/in" timeout="4000"/>      </quartz:endpoint-polling-job>    </quartz:inbound-endpoint>    <echo-component/></flow>
 ----
-////
+
 == Scheduled dispatch job
 
 An outbound job that will schedule a job for dispatch at a later time/date. The event will get dispatched using the configured endpoint reference.
@@ -268,16 +267,16 @@ An outbound job that will schedule a job for dispatch at a later time/date. The 
 |Name |Cardinality |Description
 |job-endpoint |0..1 |The endpoint used to dispatch the scheduled event. The preferred approach is to create a global endpoint and reference it using the ref attribute. However, you can also use the address attribute to define a URI endpoint (which supports expressions). You can use the timeout attribute to specify an arbitrary time-out value associated with the endpoint that can be used by jobs that block waiting to receive events.
 |===
-////
+
 For example:
 
-image:arrow_closed_active_16.png[arrow_closed_active_16] Click here to expand...
+image:arrow_closed_active_16.png[arrow_closed_active_16]
 
 [source, xml]
 ----
 <flow name="testService6">  <!--  This outbound Quartz endpoint receives an event after the component has processed it and stores it in the event store. When the trigger kicks in at 10:15 am everyday it dispatches the event on the endpoint referenced as 'scheduledDispatchEndpoint'. Since the 'repeatCount' is set to 0, the event is only sent out once.  -->  <inbound-endpoint address="test://inbound6"/>  <test:component/>      <quartz:outbound-endpoint name="qEP6" repeatCount="0" cronExpression="0 15 10 * * ? *"                                            jobName="job6" connector-ref="quartzConnector1">        <quartz:scheduled-dispatch-job>          <quartz:job-endpoint ref="scheduledDispatchEndpoint"/>        </quartz:scheduled-dispatch-job>      </quartz:outbound-endpoint>    </flow
 ----
-////
+
 == Custom job
 
 A custom job can be configured on inbound or outbound endpoints. You can create and configure your own job implementation and use it on a Quartz endpoint. A custom job can be configured as a bean in the XML configuration and referenced using this job.
@@ -299,17 +298,17 @@ A custom job can be configured on inbound or outbound endpoints. You can create 
 |Name |Cardinality |Description
 |===
 
-////
+
 Example:
 
-image:arrow_closed_active_16.png[arrow_closed_active_16] Click here to expand...
+image:arrow_closed_active_16.png[arrow_closed_active_16]
 
 [source, xml]
 ----
 <flow name="testService5">  <!--  The endpoint polling Job tries to perform a 'request' on a Mule endpoint. If a result is received, it hands off to the 'testService5' service for processing. The trigger fires every 5 minutes starting at 2 pm and ending at 2:55 pm, every day. during this period the job checks the file directory /N/drop-data/in every 5 minutes to see if any event data is available. The request times out after 4 seconds if there are no files in the directory.  -->    <quartz:inbound-endpoint name="qEP5" cronExpression="0 0/5 14 * * ?" jobName="job5"                                         connector-ref="quartzConnector1">      <quartz:endpoint-polling-job>        <quartz:job-endpoint address="file:///N/drop-data/in" timeout="4000"/>      </quartz:endpoint-polling-job>    </quartz:inbound-endpoint>    <echo-component/></flow>
 ----
 
-////
+
 == Custom job from message
 
 Allows a job to be stored on the current message. This can only be used on outbound endpoints. When the message is received, the job is read and the job is added to the scheduler with the current message. This allows for custom scheduling behavior determined by the message itself. Usually the service or a transformer would create the job on the message based on application-specific logic. Any Mule-supported expressions can be used to read the job from the message. Typically, you add the job as a header, but an attachment could also be used.
@@ -330,10 +329,10 @@ Allows a job to be stored on the current message. This can only be used on outbo
 |Name |Cardinality |Description
 |===
 
-////
+
 Example:
 
-image:arrow_closed_active_16.png[arrow_closed_active_16] Click here to expand...
+image:arrow_closed_active_16.png[arrow_closed_active_16] 
 
 [source, xml]
 ----
