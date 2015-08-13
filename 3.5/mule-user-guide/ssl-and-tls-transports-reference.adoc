@@ -33,7 +33,7 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 
 Connector syntax:
 
-[source]
+[source, xml]
 ----
 <ssl:connector name="tcpConnector" receiveBufferSize="1024" receiveBacklog="50" sendTcpNoDelay="false"
                 reuseAddress="true" clientSoTimeout="0" serverSoTimeout="0" socketSoLinger="0"
@@ -50,7 +50,7 @@ Connector syntax:
 
 PROTOCOL-TYPE defines how messages in Mule are reconstituted from the data packets. The protocol types are:
 
-[source]
+[source, xml]
 ----
 <tcp:direct-protocol payloadOnly="true" rethrowExceptionOnRead="true"/>
 
@@ -77,14 +77,14 @@ You can define your endpoints 2 different ways:
 
 . Prefixed endpoint:
 +
-[source]
+[source, xml]
 ----
 <ssl:inbound-endpoint host="localhost" port="65433"/>
 ----
 
 . Non-prefixed URI:
 +
-[source]
+[source, xml]
 ----
 <inbound-endpoint address="ssl://localhost:65433"/>
 ----
@@ -186,18 +186,18 @@ To use SSL endpoints, follow the following steps:
 
 To act as a server that listens for and accepts SSL connections from clients, create an SSL connector that inbound endpoints use:
 
-[source]
+[source, xml]
 ----
-
+<ssl:connector name="sslConnector"/>
 ----
 
 === Send Messages to an SSL Server
 
 To send messages on an SSL connection, create a simple TCP connector that outbound endpoints use:
 
-[source]
+[source, xml]
 ----
-
+<tcp:connector name="sslConnector"/>
 ----
 
 . Configure the features of each connector that was created.
@@ -224,7 +224,7 @@ By default, SSL endpoints use the request-response exchange pattern, but they ca
 
 *SSL Connector in a Flow*
 
-[source]
+[source, xml]
 ----
 <ssl:connector name="serverConnector" payloadOnly="false">
     <tcp:eof-protocol /> ❹
@@ -238,33 +238,6 @@ By default, SSL endpoints use the request-response exchange pattern, but they ca
     <ssl:outbound-endpoint host="remote" port="5555" /> ❸
 </flow>
 ----
-
-////
-3.2x
-*SSL Connector in Service*
-
-[source]
-----
-<ssl:connector name="connector" payloadOnly="false">
-    <tcp:safe-protocol />  ❺
-    <ssl:client path="clientKeystore"/>
-    <ssl:key-store path="serverKeystore"/>
-</ssl:connector>  ❶
-
-<model name="echoModel">
-    <service name="echo">
-        <inbound>
-            <ssl:inbound-endpoint host="localhost" port="4444" /> ❷
-        </inbound>
-        <outbound>
-            <pass-through-router>
-                <ssl:outbound-endpoint host="remote" port="5555" /> ❸
-             </pass-through-router>
-        </outbound>
-    </service>
-</model>
-----
-////
 
 This shows how to create an SSL server in Mule. The connector at ❶ defines that a server socket is created that accepts connections from clients. Complete mule messages are read from the connection (direct protocol) becomes the payload of a Mule message (since payload only is false). The endpoint at ❷ applies these definitions to create a server at port 4444 on the local host. The messages read from there are then sent to a remote ssl endpoint at ❸.
 
@@ -360,10 +333,6 @@ SSL connector child elements and their attributes:
 
 For more details about creating protocol handlers in Java, see http://java.sun.com/developer/onlineTraining/protocolhandlers .
 
-== Configuration Reference
-
-=== Element Listing
-
 = SSL Transport
 
 The SSL transport can be used for secure socket communication using SSL or TLS. The Javadoc for this transport can be found http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/ssl/package-summary.html[here].
@@ -383,13 +352,6 @@ Connects Mule to an SSL socket to send or receive data via the network.
 |port |port number |no | |
 |===
 
-=== Child Elements of <inbound-endpoint...>
-
-[width="100%",cols="34%,33%,33%",options="header",]
-|===
-|Name |Cardinality |Description
-|===
-
 == Outbound endpoint
 
 === Attributes of <outbound-endpoint...>
@@ -401,12 +363,6 @@ Connects Mule to an SSL socket to send or receive data via the network.
 |port |port number |no | |
 |===
 
-=== Child Elements of <outbound-endpoint...>
-
-[width="100%",cols="34%,33%,33%",options="header",]
-|===
-|Name |Cardinality |Description
-|===
 
 == Endpoint
 
@@ -420,12 +376,6 @@ Connects Mule to an SSL socket to send or receive data via the network.
 |port |port number |no | |
 |===
 
-=== Child Elements of <endpoint...>
-
-[width="100%",cols="34%,33%,33%",options="header",]
-|===
-|Name |Cardinality |Description
-|===
 
 == Schema
 
@@ -591,7 +541,7 @@ Reference the http://www.mulesoft.org/docs/site/3.4.0/apidocs/[SSL Javadoc] for 
 
 The SSLModule can be included with the following dependency:
 
-[source]
+[source, xml]
 ----
 <dependency>
   <groupId>org.mule.transports</groupId>
@@ -616,7 +566,7 @@ When using TCP to communicate with an external program, it may be necessary to w
 
 Suppose we want to communicate with a server that has a simple protocol: all messages are terminated by **>>>**. The protocol class would look like this:
 
-[source]
+[source, java]
 ----
 package org.mule.transport.tcp.integration;
 

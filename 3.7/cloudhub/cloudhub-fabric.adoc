@@ -1,7 +1,8 @@
 = CloudHub Fabric
+:keywords: cloudhub, fabric, vm, queues, worker, datacenter, cloud, manage
 :license-info: Enterprise
 
-CloudHub Fabric provides scalability, workload distribution, and added reliability to CloudHub applications. These capabilities are powered by CloudHub's scalable load-balancing service,  **link:#CloudHubFabric-WorkerScaleout[worker scaleout]**, and *link:#CloudHubFabric-PersistentQueues[persistent queueing]* features.
+CloudHub Fabric provides scalability, workload distribution, and added reliability to CloudHub applications. These capabilities are powered by CloudHub's scalable load-balancing service,  *link:#CloudHubFabric-WorkerScaleout[worker scaleout]*, and *link:#CloudHubFabric-PersistentQueues[persistent queueing]* features.
 
 You can link:#CloudHubFabric-EnablingCloudHubFabricFeatures[activate these features] on a per-application basis using the CloudHub console when you deploy a new application or redeploy an existing application.
 
@@ -16,7 +17,7 @@ CloudHub allows you to select an amount and a size for the *workers* of your app
 [TIP]
 For specs and details about each of the worker sizes see the *Worker Sizing* section of link:/docs/display/current/Deploying+a+CloudHub+Application[Deploying a CloudHub Application]
 
-Use the drop down menus next to *workers* to pick the amount and a size for the workers of your application and configure the computing power that you need. 
+Use the drop-down menus next to *workers* to pick the amount and a size for the workers of your application and configure the computing power that you need. 
 
 image:/docs/download/attachments/131039245/WorkerSizeQuantity.png?version=1&modificationDate=1433893654159[image]
 
@@ -29,7 +30,7 @@ When deploying your application to two or more workers, you can distribute workl
 . The HTTP load balancing service automatically distributes HTTP requests among your assigned workers.
 . Persistent message queues (see below)
 
-[WARNING]
+[IMPORTANT]
 link:/docs/display/current/Batch+Processing[Batch jobs] only run on a single worker at a time, and cannot be distributed across multiple workers.
 
 == Persistent Queues
@@ -41,7 +42,7 @@ Persistent queues ensure zero message loss and allows you to distribute workload
 * With persistent queues enabled on your application, you have runtime visibility into your queues on the link:/docs/display/current/Managing+Queues[Queues tab] in the CloudHub console.
 * You can enable data-at-rest encryption for all your persistent queues. By enabling this feature, you ensure that any shared application data written out to a persistent queue is encrypted, allowing you to meet your security and compliance needs.
 
-[WARNING]
+[IMPORTANT]
 Note that persistent queues do not guarantee one-time-only message delivery. Duplicate messages may be sent. If one-time-only message delivery is critical for your use case, do not enable persistent queues.
 
 To learn more about how to work with persistent queues in your application, see link:/docs/display/current/Managing+Queues[Managing Queues].
@@ -67,7 +68,7 @@ Depending on your use case, you may wish to take advantage of both CloudHub Fabr
 
 Considerations:
 
-* In order to take advantage of persistent queueing, you must first set up your Mule application to support this feature. See link:#CloudHubFabric-BuildingMuleApplicationstoSupportPersistentQueues[Building Mule Applications to Support Persistent Queues], below, for more information.
+* To take advantage of persistent queueing, set your Mule application to support this feature. See <<Building Mule Applications to Support Persistent Queues>>, for more information.
 * Enabling persistent queues has a performance implication: Putting a small message (50kb or less) on a queue can take 10-20 milliseconds (ms); taking the same message off a queue can take 70-100ms. 
 * Adding additional workers increases the cost of service.  
 
@@ -132,11 +133,11 @@ For your application to reap the benefits of persistent queuing, implement link:
 
 image:/docs/download/attachments/131039245/CH_Fabric.png?version=1&modificationDate=1433817704422[image]
 
-The *reliable acquisition flow* delivers a message reliably from the inbound HTTP connector of your application to an outbound VM endpoint. If the reliable acquisition flow cannot put the message into the VM queue, it ensures that the message is not lost by returning an "unsuccessful request" response to the client so that the client can retry the request.
+The *reliable acquisition flow* reliably delivers a message from an inbound HTTP connector to an outbound VM endpoint. If the reliable acquisition flow cannot put the message into the VM queue, it ensures that the message is not lost by returning an "unsuccessful request" response to the client so that the client can retry the request.
 
 The *application logic flow* delivers the message from an inbound VM endpoint to the business logic processing in your application. This flow represents one transaction. (Your business logic may involve several other transactions, not shown.) 
 
-In between these two flows, a *persistent VM queue* holds the messages committed by the reliable acquisition flow until they are ready for processing by the application logic flow. In case of a processing error within the transaction or in case of a transaction timeout (the time allotted for the transaction is exceeded), Mule triggers a rollback. This rollback erases any partial processing that has occurred on the message and places the message back on the queue. If your Mule instance experiences an outage and is unable to explicitly roll back a transaction, the transaction automatically rolls back once the time allotted for the transaction is exceeded. The allotted time is determined by the *`timeout`* attribute of the transaction element. You can configure the timeout yourself, or accept the default.
+In between these two flows, a *persistent VM queue* holds the messages committed by the reliable acquisition flow until they are ready for processing by the application logic flow. In case of a processing error within the transaction or in case of a transaction timeout (the time allotted for the transaction is exceeded), Mule triggers a rollback. This rollback erases any partial processing that has occurred on the message and places the message back on the queue. If your Mule instance experiences an outage and is unable to explicitly roll back a transaction, the transaction automatically rolls back once the time allotted for the transaction is exceeded. The allotted time is determined by the `timeout` attribute of the transaction element. You can configure the timeout yourself, or accept the default.
 
 It is helpful to think of each transaction in terms of three steps:
 
@@ -146,9 +147,9 @@ It is helpful to think of each transaction in terms of three steps:
 
 The following code snippet provides an example of an application set up in a reliability pattern using VM transports for queue persistence on CloudHub.
 
-[source]
+[source,xml]
 ----
-<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
  
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
  
@@ -190,7 +191,7 @@ http://www.mulesoft.org/schema/mule/jbossts http://www.mulesoft.org/schema/mule/
 </mule>
 ----
 
-=== Differences between On-Premises VM Queues and CloudHub VM Queues
+=== Differences bBtween On-Premises VM Queues and CloudHub VM Queues
 
 Although you can refer to the complete references for link:/docs/display/current/Transaction+Management[Transaction Management], the link:/docs/display/current/VM+Transport+Reference[VM transport], and link:/docs/display/current/Reliability+Patterns[Reliability Patterns], note that CloudHub imposes some key differences in the way that persistent queues are implemented. 
 
@@ -203,7 +204,7 @@ Although you can refer to the complete references for link:/docs/display/current
 |Transaction commits and rollbacks for XA transactions operate according to the http://en.wikipedia.org/wiki/Two-phase_commit_protocol[two-phase commit algorithm]. |In CloudHub, there is an important exception to the way the two-phase commit algorithm works for XA transactions when a message is being added to a queue. See the link:#CloudHubFabric-knownissue[known issue] described below for details. (Note that when CloudHub _consumes_ messages from a persistent queue, this exception to the two-phase commit algorithm does not apply.)
 |===
 
-[WARNING]
+[IMPORTANT]
 ====
 *Known Issue*
 

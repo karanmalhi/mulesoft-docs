@@ -1,8 +1,7 @@
 = Creating a SOAP Connector
+:keywords: devkit, soap, connector, maven
 
-The SOAP Connector wizard generates a WSDL-based connector that receives and responds XML elements. This kind of connector only runs on Mule versions 3.7 or above.
-
-*Sample WSDL*: link:/docs/download/attachments/132351382/sunsetriseservice.wsdl?version=1&modificationDate=1436504967538[sunsetriseservice.wsdl] 
+The SOAP Connector wizard generates a WSDL-based connector that receives and responds XML elements. This kind of connector only runs on Mule versions 3.7 or above. 
 
 == Create a SOAP Project
 
@@ -10,37 +9,37 @@ The SOAP Connector wizard generates a WSDL-based connector that receives and res
 . In Anypoint Studio, click *File* > *New* > *Anypoint Connector Project* or right-click your project name in Package Explorer and click *New* > *Anypoint Connector Project*:
 +
 image:/docs/download/attachments/132351382/NewConnProj.png?version=1&modificationDate=1436458531085[image]
-
++
 . If Maven is not registered in Studio, this screen appears. Browse to the Maven directory location to locate where you installed https://maven.apache.org/download.cgi[Maven], and click *Test Maven Configuration*:
 +
 image:/docs/download/attachments/132351382/MavenConfiguration.png?version=1&modificationDate=1436458507751[image]
-
++
 . Select the connector project type you want to create. In this case, select *SOAP Connect*:
 +
 image:/docs/download/attachments/132351382/SOAPConnect.png?version=1&modificationDate=1436458617374[image]
-
++
 . Specify the name of your connector and click *Add WSDL*:
 +
 image:/docs/download/attachments/132351382/ConnectorAndWSDL.png?version=1&modificationDate=1436458692759[image]
-
++
 . Select whether to take the WSDL from a file or a folder. The location can be either on your computer or at a URL. Click *`...`* to browse to a WSDL location on your computer. *Note*: If you select a folder, DevKit loads all the WSDLs in the folder. After specifying a file or folder, click *OK*.
 +
 image:/docs/download/attachments/132351382/SelectWSDLLocation.png?version=1&modificationDate=1436970107498[image]
-
++
 . To add another WSDL, click *Add WSDL*. When done adding WSDLs, click *Finish*. WSDLs are evaluated in the order you specify. Studio aggregates the WSDLs and builds a connector. 
-
++
 . If needed, add code to your connector. 
 . When you are ready to test your connector in a Mule Project, click *Anypoint Connector* > **Install or Update. Note:** You can test a connector immediately after the connector creates.
 +
 image:/docs/download/attachments/132351382/ConnectorInstallUpdate.png?version=2&modificationDate=1436504615139[image]
-
++
 . After your connector installs, create a test project that uses your connector by clicking *File* > *New* > *Mule Project*. 
 . Click *Message Flow* at the lower left of the canvas, search for *http*, and drag the HTTP connector to the canvas. 
 . Click the HTTP Connector and in the *Connector Configuration* field, click the green Plus sign. From the new HTTP Listener Configuration window, click *OK* to accept the default settings.
 . Search for *sunset* and drag the SunsetRise connector to the canvas:
 +
 image:/docs/download/attachments/132351382/SunsetRiseConnector.png?version=1&modificationDate=1436504781788[image]
-
++
 . Click the *SunsetRise* connector icon to configure the fields. In the  *Connector Configuration*  field, click the green Plus sign.
 
 *Note:* SOAP Connect doesn't support RCP-encoded WSDLs or multi-part messages.
@@ -49,12 +48,12 @@ image:/docs/download/attachments/132351382/SunsetRiseConnector.png?version=1&mod
 
 After creating a SOAP connector, DevKit creates these classes:
 
-* @Connector class in **src/main/java** > **org.mule.modules**._<connector_name>_. This class contains the @Config annotation and methods for *getConfig*() and *setConfig*().
-* @WsdlProvider class in **src/main/java** > **org.mule.modules**._<connector_name>_.*config*. This class contains annotations for @WsdlServiceRetriever and @WsdlServiceEndpoint. The retriever annotation retrieves the full set of WSDL files. The service endpoint annotation provides a way to resolve endpoints across the one or more WSDLs.
+* @Connector class in *src/main/java* > *org.mule.modules*._<connector_name>_. This class contains the @Config annotation and methods for *getConfig*() and *setConfig*().
+* @WsdlProvider class in **src/main/java** > *org.mule.modules*._<connector_name>_.*config*. This class contains annotations for @WsdlServiceRetriever and @WsdlServiceEndpoint. The retriever annotation retrieves the full set of WSDL files. The service endpoint annotation provides a way to resolve endpoints across the one or more WSDLs.
 
 === @Connector Class Default Code Example
 
-[source]
+[source,java]
 ----
 package org.mule.modules.sunsetrise;
  
@@ -79,7 +78,7 @@ public class SunsetRiseConnector {
 
 === @WsdlProvider Class Default Code Example
 
-[source]
+[source,java]
 ----
 package org.mule.modules.sunsetrise.config;
  
@@ -173,7 +172,7 @@ Two annotations must be written included within a @WsdlProvider annotation, the 
 
 The following sample shows how to code the @Connector class:
 
-[source]
+[source,java]
 ----
 @Connector(name="tshirt", friendlyName="T-Shirt")
 public class WsdlConnector {
@@ -185,7 +184,7 @@ public class WsdlConnector {
 
 In the @WSDLProvider strategy, add methods for providing an abstraction of the set of WSDL files and a second one to resolve an address.
 
-[source]
+[source,java]
 ----
 @WsdlProvider(friendlyName = "Tshirt configuration")
 public class TShirtWSDLProvider {
@@ -216,7 +215,7 @@ The @WsdlServiceRetriever annotation retrieves the full set of WSDL files, while
 
 In the following example, the generation of this connector has three types of keys: Tshirt_ID#OrderTshirt, Tshirt_ID#ListInventory and Tshirt_ID#TrackOrder. If for any reason the # character separator is not useful for a given SOAP API domain (for example, # could be a valid string name) you can overwrite it by adding the following optional "keySeparator" attribute at @WsdlServiceDefinitionRetriever:
 
-[source]
+[source,java]
 ----
 @WsdlProvider(friendlyName = "Tshirt configuration")
 public class TShirtWSDLProvider {
@@ -238,7 +237,7 @@ To specify multiple providers:
 
 . Use an abstract class and interface as a @ConnectionStrategy:
 +
-[source]
+[source,java]
 ----
 @Connector(name="tshirt", friendlyName="T-Shirt")
 public class WsdlConnector {
@@ -247,10 +246,10 @@ public class WsdlConnector {
     //setters and getters
 }
 ----
-
++
 . Give the abstract class a behavior:
 +
-[source]
+[source,java]
 ----
 public abstract class AbstractTShirtWSDLProvider {
     @Configurable
@@ -268,10 +267,10 @@ public abstract class AbstractTShirtWSDLProvider {
     //setters and getters
 }
 ----
-
++
 . Code a first provider implementation of the abstract class, for example, for women's Tshirts:
 +
-[source]
+[source,java]
 ----
 @WsdlProvider(configElementName = "config-woman", friendlyName = "Tshirt for woman configuration")
 public class TShirtWSDLProvider extends AbstractTShirtWSDLProvider {
@@ -283,10 +282,10 @@ public class TShirtWSDLProvider extends AbstractTShirtWSDLProvider {
     }
 }
 ----
-
-. Code the next provider implementation of the abstract class, in this case, for male Tshirts:
 +
-[source]
+. Code the next provider implementation of the abstract class, in this case, for men's Tshirts:
++
+[source,java]
 ----
 @WsdlProvider(configElementName = "config-man", friendlyName = "Tshirt for male configuration")
 public class TShirtWSDLProvider extends AbstractTShirtWSDLProvider {
@@ -338,7 +337,7 @@ In this case, we have multiple Services to be declared from where can choose to 
 * WSDL: for the drop-down containing the services displayNames
 * Operation: for the second drop-down, showing all the operation exposed by the service
 
-[source]
+[source,java]
 ----
 @WsdlServiceDefinitionRetriever
 public List<ServiceDefinition> getDefinitions() {
@@ -362,7 +361,7 @@ The labels replace, in order, the 'WSDL' and 'Operation' labels previously descr
 
 What happens if the WSDL cause IDs to clash with the default separator '||'? If this is the case, you can Override the default keySeparator as shown in the code below. This only reflects in the key written in the app XML, and have no effect on the drop-downs.
 
-[source]
+[source,java]
 ----
 @WsdlServiceDefinitionRetriever(keySeparator="@@", keyLabels={"Table", "Module"})
 public List<ServiceDefinition> getDefinitions() {
@@ -386,7 +385,7 @@ Returning a single ServiceDefinition impacts what keys used, because only the Op
 
 Also, the key is now a single `_operation-id_` key, instead of a composed key split by a separator. This is not the same as returning a single-element List because, in this single-element-list case, two drop-downs are shown.
 
-[source]
+[source,java]
 ----
 @WsdlServiceDefinitionRetriever(keyLabels={"Operation"})
 public ServiceDefinition getDefinitions() {
@@ -426,7 +425,7 @@ After you create a connector project, changing security from None to HTTP Basic 
 
 An example of the code for HTTP Basic is as follows–by comparing this code to that of the link:#CreatingaSOAPConnector-wsdlproviderwithoutsecurity[previous @WsdlProvider class without security], one can see the extent of the changes.
 
-[source]
+[source,java]
 ----
 package org.mule.modules.water.config;
  
@@ -541,7 +540,7 @@ Despite having a concrete way to hit a SOAP API through the *invoke* operation
 
 Sign envelopes by returning a collection in an annotated method with @WsdlSecurityStrategyResolver:
 
-[source]
+[source,java]
 ----
 @WsdlProvider(friendlyName = "Tshirt configuration")
 public class TShirtWSDLProvider {
@@ -574,7 +573,7 @@ The previous section discussed signing envelopes, but there's a way to customize
 
 The way to achieve this is returning a concrete WsdlTransport object @WsdlTransportRetriever as follows:
 
-[source]
+[source,java]
 ----
 @WsdlProvider(friendlyName = "Tshirt configuration")
 public class TShirtWSDLProvider {
@@ -593,7 +592,7 @@ public class TShirtWSDLProvider {
 
 A more advanced use case is when you need to configure the whole underlaying transport such as with proxies, SSL, sockets options, and more. This uses an HttpRequesterConfig element. For those advanced** **scenarios, you can do the following:
 
-[source]
+[source,java]
 ----
 @WsdlProvider(friendlyName = "Tshirt configuration advance")
 public class TShirtWSDLProvider {
@@ -626,7 +625,7 @@ public class TShirtWSDLProvider {
 
 Some APIs need to send custom headers for each envelope that's sent. DevKit provides a hook to tune headers before executing an operation. The above code shows how to achieve this in the *cookHeaders* method.
 
-[source]
+[source,java]
 ----
 @WsdlProvider(friendlyName = "Tshirt configuration")
 public class TShirtWSDLProvider {
@@ -675,11 +674,11 @@ public class TShirtWSDLProvider {
 }
 ----
 
-The output from the previous headers will be the ones within the **soap:Header** element in the next envelope:
+The output from the previous headers are within the *soap:Header* element in the next envelope:
 
 Snippet of the envelope:
 
-[source]
+[source,xml]
 ----
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
 <soap:Header>

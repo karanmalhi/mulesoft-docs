@@ -1,6 +1,7 @@
 = Secure Data Gateway
+:keywords: cloudhub, salesforce, secure data gateway, sdg
 
-[CAUTION]
+[IMPORTANT]
 ====
 Secure Data Gateway is no longer included by default in CloudHub plans.
 
@@ -8,16 +9,6 @@ For all customers connecting to their own data centers, link:/docs/display/curre
 ====
 
 The CloudHub Secure Data Gateway (SDG) Client provides a secure data link between your CloudHub application and enterprise data sources. Any private services or data sources behind an enterprise firewall can be made available to your CloudHub application by using the SDG client.
-
-*Contents:*
-
-link:#SecureDataGateway-InstallingtheSecureDataGateway[Installing the Secure Data Gateway]
-
-* link:#SecureDataGateway-PrerequisiteJDK[Prerequisite JDK]
-* link:#SecureDataGateway-DownloadtheSDGClient[Download the SDG Client]
-* link:#SecureDataGateway-ConfiguretheSDGClient[Configure the SDG Client]
-* link:#SecureDataGateway-SetupSDGMappings[Set up SDG Mappings]
-* link:#SecureDataGateway-LaunchtheSDGClient[Launch the SDG Client]
 
 link:#SecureDataGateway-ManagingandMonitoring[Managing and Monitoring]
 
@@ -27,50 +18,54 @@ The SDG Client is distributed as a zip file that you need to save and expand on 
 
 image:/docs/download/attachments/122752496/modif-ion_sdg.jpg?version=1&modificationDate=1414509267334[image]
 
-To set up the SDG Client, you need to:
+To set up the SDG Client, view:
 
-* link:#SecureDataGateway-PrerequisiteJDK/JRE[Prerequisite JDK]
-* link:#SecureDataGateway-DownloadtheSDGClient[Download the SDG Client]
-* link:#SecureDataGateway-ConfiguretheSDGClient[Configure the SDG Client]
-* link:#SecureDataGateway-SetupSDGMappings[Set up SDG Mappings]
-* link:#SecureDataGateway-LaunchtheSDGClient[Launch the SDG Client]
+* <<Prerequisite JDK>>
+* <<Download the SDG Client>>
+* <<Configure the SDG Client>>
+* <<Set up SDG Mappings>>
+* <<Launch the SDG Client>>
 
 === Prerequisite JDK
 
-* SDG is a Java application, in order to run it you'll to have a Java JDK installed. One way to check if you have Java installed is to run "java --version" on the command line.
-* If you find our that you need to install Java, please download the appropriate version from: http://www.java.com/en/download/manual.jsp and follow the instructions for installation.
+* SDG is a Java application, to run it you need to have a Java JDK installed. One way to check if you have Java installed is to run *java --version* on the command line.
+* If you find our that you need to install Java, download the appropriate version from: http://www.java.com/en/download/manual.jsp and follow the instructions for installation. *Note*: Mule 3.7 supports JDK 1.8.
 
 === Download the SDG Client
+
+Download:
 
 [width="99a",cols="33a,33a,33a",options="header"]
 |===
 |link:/docs/download/attachments/122752496/sdg-client-1.0.10.zip?version=1&modificationDate=1414536766732[sdg-client-1.0.10.zip] |MD5: 6e6311d17a863d0162c12b1df36c98cd |Updated: 28 Oct 2014
 |===
 
+To install:
+
 * Download the SDG Client zip file from the link above.
 * Confirm MD5 checksum matches what's specified above.
-* Copy the zip file to the SDG server (that is, the system where the SDG client application will run).
+* Copy the zip file to the SDG server (that is, the system where the SDG client application runs).
 * Expand the SDG zip file to your SDG system.
 
 === Configure the SDG Client
 
-On the SDG server, navigate to the sdg-client directory (that is, where you expanded the SDG client zip file as explained in link:#SecureDataGateway-DownloadtheSDGClient[Download the SDG Client]). Then edit the conf/config.xml file. This file contains the configuration parameters used to connect to CloudHub and to obtain information about your running CloudHub applications.
+On the SDG server, navigate to the sdg-client directory (that is, where you expanded the SDG client zip file as explained in <<Download the SDG Client>>. Then edit the conf/config.xml file. This file contains the configuration parameters used to connect to CloudHub and to obtain information about your running CloudHub applications.
 
-The following examples assume that the cloudhub-sdg-client directory is in /opt/ion-sdg-client-version.
+The following examples assume that the `cloudhub-sdg-client` directory is in `/opt/ion-sdg-client-version`.
 
-[source]
+[source,bash]
 ----
 $ unzip sdg-client-version.zip
 ----
 
 Enter you application domain names:
 
-[source]
+[source,xml]
 ----
 <domains>myapp1,myapp2</domains>
 ----
 
-[WARNING]
+[NOTE]
 ====
 The domains element should contain a comma separated list of the short unqualified domain names of the applications that need to make use of the SDG.
 ====
@@ -93,14 +88,25 @@ The SDG client works by securely mapping network ports from your CloudHub applic
 
 The default mappings.xml file that comes with the download looks something like this:
 
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<mappings>
+  <mapping>
+    <domain>mydomain</domain>
+    <remotePort>10000</remotePort>
+    <privateHost>localhost</privateHost>
+    <privatePort>3306</privatePort>
+  </mapping>
+</mappings>
+----
+
 This configuration maps port 10000 on the mydomain application worker to port 3306 on the SDG Client system. That is, if a MySQL database is running on port 3306 of the client system, a JDBC connector running on CloudHub could refer to localhost:10000 and interact with the MySQL database on the SDG Client system.
 
 There is no reason the data sources need to run on the SDG Client, and there are no limits to the number of mappings supported.
 
-[WARNING]
-====
-It is important to pay attention to the domain element for each mapping, especially when mapping ports for multiple application domains. The domain element should map to one of the domains specified in the domains element of the config.xml file.
-====
+[IMPORTANT]
+Pay attention to the domain element for each mapping, especially when mapping ports for multiple application domains. The domain element should map to one of the domains specified in the domains element of the config.xml file.
 
 === Launch the SDG Client
 
@@ -110,7 +116,7 @@ The following examples assume that the cloudhub-sdg-client directory is in /opt/
 
 On Linux or Mac OS X:
 
-[source]
+[source,bash]
 ----
 $ cd /opt/sdg-client-1.0
 $ ./bin/sdg.sh
@@ -118,7 +124,7 @@ $ ./bin/sdg.sh
 
 On Windows:
 
-[source]
+[source,bash]
 ----
 $ cd sdg-client-1.0/bin
 $ sdg.bat
@@ -128,10 +134,34 @@ When this script launches, it reads the configuration data from conf/config.xml 
 
 Example output:
 
-[source]
+[source,json]
 ----
+Initializing Secure Data Gateway
+Establishing connection to CloudHub plaform server cloudhub.io
+Connecting to 75.101.227.200 port 9999
+Connection established
+Remote version string: SSH-2.0-OpenSSH_5.3p1 Debian-3ubuntu4
+Local version string: SSH-2.0-JSCH-0.1.44
+CheckCiphers: aes256-ctr,aes192-ctr,aes128-ctr,aes256-cbc,aes192-cbc,aes128-cbc,3des-ctr,arcfour,arcfour128,arcfour256
+SSH_MSG_KEXINIT sent
+SSH_MSG_KEXINIT received
+kex: server->client aes128-ctr hmac-md5 none
+kex: client->server aes128-ctr hmac-md5 none
+SSH_MSG_KEXDH_INIT sent
+expecting SSH_MSG_KEXDH_REPLY
+ssh_rsa_verify: signature true
+SSH_MSG_NEWKEYS sent
+SSH_MSG_NEWKEYS received
+SSH_MSG_SERVICE_REQUEST sent
+SSH_MSG_SERVICE_ACCEPT received
+Authentications that can continue: publickey,keyboard-interactive,password
+Next authentication method: publickey
+Authentication succeeded (publickey).
+Secure tunnel established 75.101.227.200:10000 -> localhost:3306
 ----
 
 == Managing and Monitoring
 
-image:/docs/download/attachments/122752496/sdg+-+connected.png?version=1&modificationDate=1332915305691[image] The status of the SDG can be seen on the application dashboard. When it's connected, you'll see the a green icon, when it was started, and when it was last seen. Additionally, you can receive email alerts whenever the SDG connects and disconnects, allowing you to quickly fix anything if it goes wrong with your installation. For more information, see link:/docs/display/current/Alerts+and+Notifications[Alerts and Notifications].
+image:/docs/download/attachments/122752496/sdg+-+connected.png?version=1&modificationDate=1332915305691[image] 
+
+The status of the SDG can be seen on the application dashboard. When it's connected, you see a green icon, when it was started, and when it was last seen. Additionally, you can receive email alerts whenever the SDG connects and disconnects, allowing you to quickly fix anything if it goes wrong with your installation. For more information, see link:/docs/display/current/Alerts+and+Notifications[Alerts and Notifications].

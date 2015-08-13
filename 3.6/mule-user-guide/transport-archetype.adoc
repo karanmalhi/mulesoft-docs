@@ -1,10 +1,6 @@
 = Transport Archetype
+:keywords: transports, maven
 
-* link:#TransportArchetype-ConfiguringMaven[Configuring Maven]
-* link:#TransportArchetype-UsingtheArchetype[Using the Archetype]
-* link:#TransportArchetype-TheQuestionsExplained[The Questions Explained]
-* link:#TransportArchetype-ExampleConsoleOutput[Example Console Output]
-* link:#TransportArchetype-CommandLineOptions[Command Line Options]
 
 Mule provides Maven archetypes that you can use as code templates for your Mule projects. These templates include a set of implementation notes and "todo" pointers that help you get started quickly. The Mule transport archetype will help you generate a tailored boilerplate transport project in seconds. For more information on Maven, see link:#[Using Maven].
 
@@ -18,7 +14,7 @@ Add the following to the file `settings.xml` (usually in your Maven `conf` or `$
 
 *settings.xml*
 
-[source]
+[source, xml]
 ----
 <settings>
     <pluginGroups>
@@ -44,7 +40,7 @@ Next, you execute the archetype and generate the code. If this is your first tim
 
 [NOTE]
 ====
-*Running the archetype* +
+*Running the archetype*
 
 Maven uses by default the latest available version of the archetype. This can cause problems if you want to create a transport for an earlier version of Mule. In this case, run the mule-transport-archetype specifying the full version of the plugin like this:
 
@@ -66,60 +62,60 @@ After you have answered all the questions, the archetype creates a directory usi
 
 The plug-in prompts you to answer several questions about the transport you are writing. These may vary according to the options you select. An example of the output is shown link:#TransportArchetype-example[below].
 
-==== Provide a description of what the transport does:
+=== Provide a description of what the transport does:
 
 You should provide an accurate description of the transport with any high-level details of what you can or cannot do with it. This text will be used where a description of the transport is required.
 
-==== Which version of Mule is this transport targeted at?
+=== Which version of Mule is this transport targeted at
 
 The version of Mule you want to use for your transport. By default this will default to the version passed in on the command line.
 
-==== Will this project be hosted on MuleForge?
+=== Will this project be hosted on MuleForge
 
 If the transport is going to be hosted on http://muleforge.org[MuleForge], additional information will be added to your project for linking to its issue tracker, web site, build server and deployment information.
 
-==== Will this transport have a custom schema for configuring the transport in Xml?
+=== Will this transport have a custom schema for configuring the transport in Xml
 
 All new transports should define an XML schema that defines how the transport is configured. If you do not use this option, users will have to use generic configuration to use your transport.
 
-==== Can the transport receive inbound requests?
+=== Can the transport receive inbound requests
 
 Can this transport receive inbound events? For example, the File transport allows you to listen for files written to a directory. JMS allows you to listen for events being written to a topic or queue.
 
-==== Does the Message Receiver need to poll the underlying resource?
+=== Does the Message Receiver need to poll the underlying resource
 
 To receive a message, some transports must do polling. For example, the File transport must poll a directory to know something has been written there, whereas JMS provides a callback (`MessageListener`) to deliver the message. This question is asked only if the transport can receive inbound requests.
 
-==== If this transport will have a default inbound transformer, enter the name of the transformer?
+=== If this transport will have a default inbound transformer, enter the name of the transformer
 
 If the protocol of the application being connected to has its own message type, you can define a default inbound transformer that will be invoked by default when defining endpoints that use this transport. You enter the name of the transformer class (without package name) to generate, such as `JmsMessageToObject`.
 
-==== Can the transport dispatch outbound requests?
+=== Can the transport dispatch outbound requests
 
 Asks whether messages can be written _to_ this transport. With the File transport, you can write file data to a directory, and with JMS you can write to a queue or topic.
 
-==== If this transport will have a default outbound transformer, enter the name of the transformer?
+=== If this transport will have a default outbound transformer, enter the name of the transformer
 
 If the protocol of the application being connected to has its own message type, you can define a default outbound transformer that will be invoked by default when defining outbound endpoints that use this transport. You enter the name of the transformer class (without package name) to generate, such as `ObjectToJmsMessage`.
 
-==== Does the transport need a custom MuleMessageFactory?
+=== Does the transport need a custom MuleMessageFactory
 
-This is usually only required if the underlying transport has an API that has a +
- message object i.e. JMSMessage or HttpServletRequest.
+This is usually only required if the underlying transport has an API that has a
+message object i.e. JMSMessage or HttpServletRequest.
 
-==== Can the transport request individual messages from the underlying resource?
+=== Can the transport request individual messages from the underlying resource
 
 If the transport can request messages from a message channel or resource rather than subscribing to inbound events or polling a resource, answer yes to this question. This will generate a `MessageRequester` class.
 
-==== Does this transport support transactions?
+=== Does this transport support transactions
 
 If the underlying resource for this transport is transactional, you can have Mule generate a transaction wrapper that will allow users to enable transactions on endpoints defined using this transport.
 
-==== Does this transport use a non-JTA transaction manager?
+=== Does this transport use a non-JTA transaction manager
 
 Not all technologies (such as JavaSpaces) support the standard JTA transaction manager. Mule can still work with different non-JTA transaction managers, and this archetype can generate the necessary stubs for you.
 
-==== What type of endpoints does this transport use?
+=== What type of endpoints does this transport use
 
 Mule supports a number of well-defined endpoints
 
@@ -130,18 +126,18 @@ Mule supports a number of well-defined endpoints
 
 The Custom option allows you to deviate from the existing endpoint styles and parse your own.
 
-==== Which Mule transports do you want to include in this project?
+=== Which Mule transports do you want to include in this project
 
 If you are extending one or more existing transports, specify them here in a comma-separated list.
 
-==== Which Mule modules do you want to include in this project?
+=== Which Mule modules do you want to include in this project
 
 By default, the Mule client module is included to enable easier testing. If you want to include other modules, specify them here in a comma-separated list.
 
 == Example Console Output
 
 ----
----------- ************************************************************               Provide a description of what the transport does:                                                                                     [default: ]**[INFO] muleVersion: **              Which version of Mule is this transport targeted at?                                                                              [default: 3.1.1]**[INFO] forgeProject: **              Will this project be hosted on MuleForge? [y] or [n]                                                                                  [default: y]**[INFO] hasCustomSchema: **Will this transport have a custom schema for configuring the transport in Xml? [y] or [n]                                                                    [default: y]**[INFO] hasReceiver: **             Can the transport receive inbound requests? [y] or [n]                                                                                 [default: y]**[INFO] isPollingReceiver: **   Does the Message Receiver need to poll the underlying resource? [y] or [n]                                                                       [default: n]**[INFO] inboundTransformer: **If this transport will have a default inbound transformer, enter the name of thetransformer? (i.e. JmsMessageToObject)                                                                    [default: n]**[INFO] hasDispatcher: **            Can the transport dispatch outbound requests? [y] or [n]                                                                                [default: y]**[INFO] outboundTransformer: **If this transport will have a default outbound transformer, enter the name of thetransformer? (i.e. ObjectToJmsMessage)                                                                    [default: n]**[INFO] hasCustomMessageFactory:**Does the transport need a custom MuleMessageFactory? [y] or [n](This is usually only required if the underlying transport has an API that has a message objecti.e. JMSMessage or HttpServletRequest)                                                                    [default: n]**[INFO] hasRequester: **    Can the transport request incoming messages programmatically? [y] or [n]                                                                        [default: y]**[INFO] hasTransactions: **              Does this transport support transactions? [y] or [n]                                                                                  [default: n]**[INFO] hasCustomTransactions: **Does this transport use a non-JTA Transaction manager? [y] or [n](i.e. needs to wrap proprietary transaction management)                                                                    [default: n]**[INFO] endpointBuilder: **What type of endpoints does this transport use?            - [r]esource endpoints (i.e. jms://my.queue)            - [u]rl endpoints (i.e. http://localhost:1234/context/foo?param=1)            - [s]ocket endpoints (i.e. tcp://localhost:1234)            - [c]ustom - parse your own                                                                    [default: r]**[INFO] transports:**Which Mule transports do you want to include in this project? If you intend extending a transport you should add it here:(options: axis,cxf,ejb,file,ftp,http,https,imap,imaps,jbpm,jdbc,          jetty,jms,multicast,pop3,pop3s,quartz,rmi,servlet,smtp,          smtps,servlet,ssl,tls,stdio,tcp,udp,vm,xmpp):                                                                   [default: vm]**[INFO] modules:**Which Mule modules do you want to include in this project? The client is added for testing:(options: bulders,client,jaas,jbossts,management,ognl,pgp,scripting,          spring-extras,sxc,xml):                                                               [default: client]********
+************************************************************               Provide a description of what the transport does:                                                                                     [default: ]**[INFO] muleVersion: **              Which version of Mule is this transport targeted at?                                                                              [default: 3.1.1]**[INFO] forgeProject: **              Will this project be hosted on MuleForge? [y] or [n]                                                                                  [default: y]**[INFO] hasCustomSchema: **Will this transport have a custom schema for configuring the transport in Xml? [y] or [n]                                                                    [default: y]**[INFO] hasReceiver: **             Can the transport receive inbound requests? [y] or [n]                                                                                 [default: y]**[INFO] isPollingReceiver: **   Does the Message Receiver need to poll the underlying resource? [y] or [n]                                                                       [default: n]**[INFO] inboundTransformer: **If this transport will have a default inbound transformer, enter the name of thetransformer? (i.e. JmsMessageToObject)                                                                    [default: n]**[INFO] hasDispatcher: **            Can the transport dispatch outbound requests? [y] or [n]                                                                                [default: y]**[INFO] outboundTransformer: **If this transport will have a default outbound transformer, enter the name of thetransformer? (i.e. ObjectToJmsMessage)                                                                    [default: n]**[INFO] hasCustomMessageFactory:**Does the transport need a custom MuleMessageFactory? [y] or [n](This is usually only required if the underlying transport has an API that has a message objecti.e. JMSMessage or HttpServletRequest)                                                                    [default: n]**[INFO] hasRequester: **    Can the transport request incoming messages programmatically? [y] or [n]                                                                        [default: y]**[INFO] hasTransactions: **              Does this transport support transactions? [y] or [n]                                                                                  [default: n]**[INFO] hasCustomTransactions: **Does this transport use a non-JTA Transaction manager? [y] or [n](i.e. needs to wrap proprietary transaction management)                                                                    [default: n]**[INFO] endpointBuilder: **What type of endpoints does this transport use?            - [r]esource endpoints (i.e. jms://my.queue)            - [u]rl endpoints (i.e. http://localhost:1234/context/foo?param=1)            - [s]ocket endpoints (i.e. tcp://localhost:1234)            - [c]ustom - parse your own                                                                    [default: r]**[INFO] transports:**Which Mule transports do you want to include in this project? If you intend extending a transport you should add it here:(options: axis,cxf,ejb,file,ftp,http,https,imap,imaps,jbpm,jdbc,          jetty,jms,multicast,pop3,pop3s,quartz,rmi,servlet,smtp,          smtps,servlet,ssl,tls,stdio,tcp,udp,vm,xmpp):                                                                   [default: vm]**[INFO] modules:**Which Mule modules do you want to include in this project? The client is added for testing:(options: bulders,client,jaas,jbossts,management,ognl,pgp,scripting,          spring-extras,sxc,xml):                                                               [default: client]********
 ----
 
 *Note*: OGNL is deprecated in Mule 3.6 and will be removed in Mule 4.0.
