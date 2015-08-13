@@ -3,12 +3,7 @@
 The Mule RSS support makes it possible to integrate easily with RSS feeds via the http://java.net/projects/rome/pages/Home[Rome] project.
 
 == Consuming Feeds
-////
-3.2 version
 
-[WARNING]
-The use of RSS endpoints is deprecated. RSS endpoints were removed in Mule 3.2.0. Use the approach described in the Mixing HTTP and RSS Endpoints section.
-////
 
 One of the most common patterns is for integrating with RSS is polling for feed updates. With Mule this can be done easily. You must first write your class which receives an RSS Syndication Entry:
 
@@ -54,11 +49,10 @@ If you want access to the feed itself, it is available via a header on the curre
 public void processEntry(@Payload Entry entry, @Expr("#[header:invocation:feed.object]") Feed feed) throws Exception
 ----
 
-////
-3.2 version
+
 [TIP]
 The @Expr annotation is only available in the Mule Community Edition.
-////
+
 
 If you want to process the Feed in its entirety (not have it split into Entry objects) you can set the following flag on the endpoint:
 
@@ -145,15 +139,6 @@ For reference the follow example shows the explicit configuration for reading an
 
 The `rss:entry-last-updated-filter` comes after the `<rss:feed-splitter/>` because you need to split the feeds so that the filter can process them. Also we do not set a `lastUpdate` date on the filter, which implies the default behavior that all available entries are read, and then only new entries since the last read are processed.
 
-////
-3.2 version
-== Schema Reference
-
-* Schema: http://www.mulesoft.org/schema/mule/atom/3.2/mule-rss.xsd
-* Structure: http://www.mulesoft.org/docs/site/3.2.0/schemadocs/schemas/mule-rss_xsd/schema-overview.html
-
-=== Elements
-////
 
 === Configuration Reference
 
@@ -185,45 +170,3 @@ Filters can be used to control which data is allowed to continue in the flow.
 == Feed splitter
 
 Will split the entries of a feed into single entry objects. Each entry will be a separate message in Mule.
-
-=== Child Elements of <feed-splitter...>
-
-[width="100%",col="33%,33%,34%",options="header",]
-|===
-|Name	|Cardinality	|Description
-|===
-
-////
-3.2 version
-
-== Entry last updated filter
-
-Will filter RSS entry objects based on their last update date. This is useful for filtering older entries from the feed. This filter works only on RSS SyndEntry objects not SyndFeed objects.
-
-=== Attributes of <entry-last-updated-filter...>
-
-[width="100%",col="20%,20%,20%,20%,20%,",options="header",]
-|===
-|Name	|Type |Required |Default |Description
-|lastUpdate |string |no | |The date from which to filter events from. Any entries that were last updated before this date will not be accepted. The date format is: yyyy-MM-dd hh:mm:ss, for example 2008-12-25 13:00:00. If only the date is important you can omit the time part. You can set the value to 'now' to set the date and time that the server is started. Do not set this attribute if you want to receive all available entries then any new entries going forward. This is the default behaviour and suitable for many scenarios.
-|acceptWithoutUpdateDate |boolean |no |true |Whether an entry should be accepted if it doesn't have a Last Update date set.
-|===
-
-=== Child Elements of <entry-last-updated-filter...>
-
-[width="100%",col="33%,33%,34%",options="header",]
-|===
-|Name	|Cardinality	|Description
-|===
-
-== Object to feed transformer
-
-Transforms the payload of the message to a com.sun.syndication.feed.synd.SyndFeed instance.
-
-=== Child Elements of <object-to-feed-transformer...>
-
-[width="100%",col="33%,33%,34%",options="header",]
-|===
-|Name	|Cardinality	|Description
-|===
-////
