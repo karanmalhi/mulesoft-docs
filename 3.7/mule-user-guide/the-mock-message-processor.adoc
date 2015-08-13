@@ -1,0 +1,335 @@
+= The Mock Message Processor
+
+== Overview
+
+The Mock feature provided by MUnit allows you to define _mocked_ behavior for a message processor. In this case, MUnit replaces the normal behavior of the message processor with the behavior you define. Thus you can modify how a specific message processor responds when it is called with a particular set of attributes.
+
+== Defining Mocks
+
+Defining a mock entails several tasks, listed in the sections below.
+
+* link:#TheMockMessageProcessor-to_mock[Defining the Message Processor to Mock]
+* link:#TheMockMessageProcessor-processor_attributes[Defining Mocked Behavior Using Message Processor Attributes]
+* link:#TheMockMessageProcessor-mock_response[Defining the Payload of the Mock Response]
+
+Using the parameters entailed in the above tasks, you can tell MUnit how to replace the normal behavior of the message processor with the one you define.
+
+[WARNING]
+It is not possible to mock flow control message processors, such as Filter or Choice.
+
+For the purpose of this documentation, we’ll assume we are testing the following Mule code:
+
+[source]
+----
+<flow name="exampleFlow">
+  <set-payload value="#['real_payload']" doc:name="Real Set Payload"/>
+</flow>
+----
+
+=== Defining the Message Processor to Mock
+
+When defining a mock we make use of the `when` message processor, as shown below.
+
+[source]
+----
+<mock:when messageProcessor="mule:set-payload">
+</mock:when>
+----
+
+[width="100",cols="10a,90a",options="header"]
+|===
+|Attribute Name |Description
+|`messageProcessor` |Specifies which message processor to mock. The definition takes the form `{name-space}:{message-processor-name}`. Regular expressions are allowed.
+|===
+
+The `messageProcessor` attribute accepts regular expressions. For example, you can create a mock as follows:
+
+[source]
+----
+<mock:when messageProcessor=".*:set-payload">
+    </mock:when>
+----
+
+The example above defines a mock for a message processor named `set-paylaod`, disregarding which namespace the message processor belongs to.
+
+[NOTE]
+The regular expression language is the same as Java.
+
+=== Defining Mocked Behavior Using Message Processor Attributes
+
+A mock definition is based on _matchers_, i.e. parameters that match features of the desired message processor. Defining a mock solely on the name of the message processor largely limits your scope and actions regarding the mock. For this reason, MUnit allows you to define a mock by defining matchers over the value of a message processor’s attributes.
+
+==== Defining a mock by attributes
+
+[source]
+----
+<mock:when messageProcessor="mule:set-payload">
+  <mock:with-attributes>
+    <mock:with-attribute whereValue="#['Real Set Payload']" name="doc:name"/>
+  </mock:with-attributes>
+</mock:when>
+----
+
+You can define as many attributes as you deem necessary to make the mock as representative as possible. When defining an attribute, you do so by defining:
+
+[width="100",cols="10a,90a",options="header"]
+|===
+|Attribute Name |Description
+|`name` |The name of the attribute. This value is literal, it doesn’t support regular expressions
+|`whereValue` |The value that the attribute of the real message processor should contain. It accepts MEL expressions. If left as a literal, it assumes a string value.
+|===
+
+[TIP]
+MUnit allows you to define mocks based on the content of the Mule message.
+
+[TIP]
+If the attribute you wish to use when mocking is similar to `config-ref` and resolves to an actual bean, you can use the MUnit MEL function `getBeanFromMuleContext('bean_name')`. This function inspects the Mule registry and returns the bean with the matching name if present. See link:#[Assertion] for details.
+
+Several attributes in Mule’s message processors support expressions, which are evaluated at runtime. MUnit is smart enough to understand this.
+
+Suppose we change the test code to:
+
+[source]
+----
+<flow name="exampleFlow">
+  <set-variable variableName="#[1==1? 'var_true': 'var_false']" value="#['some value']" doc:name="Variable"/>
+  <set-variable variableName="#[1==2? 'var_true': 'var_false']" value="#['some value']" doc:name="Variable"/>
+</flow>
+----
+
+In this example, we are going to mock _only_ the first `set-variable`. To specify this, we’ll use _attributes_, as shown below:
+
+[source]
+----
+<mock:when messageProcessor="mule:set-variable">
+  <mock:with-attributes>
+    <mock:with-attribute whereValue="#['var_true']" name="variableName"/>
+  </mock:with-attributes>
+</mock:when>
+----
+
+=== A Word About Mocking Flow-ref
+
+In MUnit, you don’t mock or verify a `flow-ref` message processor, but the flow or sub-flow that would be invoked by `flow-ref`.
+
+[source]
+----
+<mock:when messageProcessor="mule:sub-flow"">
+</mock:when>
+----
+
+Notice that neither `flow` or `sub-flow` have the attribute `doc:name`; the attribute `name` is used instead. So, to mock a `flow-ref` to a `flow`:
+
+[source]
+----
+<mock:when messageProcessor="mule:flow"">
+  <mock:with-attributes>
+    <mock:with-attribute whereValue="FlowName" name="name"/>
+  </mock:with-attributes>
+</mock:when>
+----
+
+Also, note that to mock a `sub-flow` you can’t just type the name of the `sub-flow`. Instead, you need to use the MUnit matcher `matchContains`:
+
+[source]
+----
+<mock:when messageProcessor="mule:sub-flow"">
+  <mock:with-attributes>
+    <mock:with-attribute whereValue="#[matchContains('Sub_Flow_name')]" name="name"/>
+  </mock:with-attributes>
+</mock:when>
+----
+
+[source]
+----
+#[matchContains('exampleSub_Flow1')]
+----
+
+Using `matchContains` is not necessary when verifying or mocking flows, only sub-flows.
+
+[NOTE]
+When mocking or verifying a sub-flow and using the `name` attribute, always use the MUnit matcher `matchContains`.
+
+=== Defining the Payload of the Mock Response
+
+When mocking a message processor, you can define the Mule message that the mocked message processor should return.
+
+[source]
+----
+<mock:when messageProcessor="mule:set-payload">
+  <mock:with-attributes>
+    <mock:with-attribute whereValue="#['Real Set Payload']" name="doc:name"/>
+  </mock:with-attributes>
+  <mock:then-return payload="#['mocked_payload']"/> (1)
+</mock:when>
+----
+
+. Define the message response.
+
+[width="100",cols="10a,90a",options="header"]
+|===
+|Attribute Name |Description
+|`payload` |Defines the contents of the mocked payload.
+|===
+
+==== Loading Payloads From Files and Scripts
+
+Sometimes it’s easier to load complex payloads from a file. MUnit offers a set of MEL functions to help you achieve this.
+
+[width="100",cols="10a,10a,80a",options="header"]
+|===
+|Function Name |Attribute |Description
+|`getResource()` |Name of a _classpath_ resource. |Loads a resource from the project’s classpath and returns an MuniResource object. This object supports util methods such as: `asStream()` , `asString()` and `asByteArray()`
+|`resultOfScript()` |Name of a declared script bean. |Executes a script that is registered in the application, either in the MUnit suite or in one of the imported files.
+|===
+
+==== Example: getResource
+
+[source]
+----
+<mock:then-return payload="#[getResource('users.xml').asStream()]"/> (1) <mock:then-return payload="#[getResource('users.xml').asString()]"/> (2) <mock:then-return payload="#[getResource('users.xml').asByteArray()]"/> (3)
+----
+
+. Return the content of `users.xml` as an input stream.
+. Return the content of `users.xml` as a string.
+. Return the content of `users.xml` as a byte array.
+
+==== Example: resultOfScript
+
+[source]
+----
+<script:script name="groovyScriptPayloadGenerator" engine="groovy"><![CDATA[  (1)
+  List<String> lists = new ArrayList<String>();
+  lists.add("item1");
+  lists.add("item2");
+  lists.add("item3");
+ 
+  return lists;]]>
+</script:script>
+ 
+ 
+...
+<mock:then-return payload="#[resultOfScript('groovyScriptPayloadGenerator')]"/> (2)
+...
+----
+
+. Script definition.
+. Return mock payload as the result of the `groovyScriptPayloadGenerator` script.
+
+=== Defining the Properties of a Mock Response
+
+With MUnit you can also define the properties of the message to be returned by a mock. The following code expands on the example above to modify the returned payload:
+
+[source]
+----
+<mock:when messageProcessor="mule:set-payload">
+  <mock:with-attributes>
+    <mock:with-attribute whereValue="#['Real Set Payload']" name="doc:name"/>
+  </mock:with-attributes>
+  <mock:then-return payload="#['mocked_payload']">
+    <mock:invocation-properties>
+      <mock:invocation-property key="property_name" value="#['property_value']"/>
+    </mock:invocation-properties>
+  </mock:then-return>
+</mock:when>
+----
+
+[width"80a",cols="10a,90a"]
+|===
+|Attribute Name |Description
+|`key` |The name of the property. This value is always literal.
+|`value` |Defines the value the property should contain. It accepts MEL expressions. If left as a literal, it assumes a string value.
+|===
+
+You can define any of the following property types:
+
+* Inbound Properties
+* Invocation Properties
+* Outbound Properties
+
+[TIP]
+You can use the same MEL functions, `getResource()`, `resultOfScript()` and `getBeanFromMuleContext()` to define the content of a Mule message property.
+
+=== Defining Mock Response Exceptions
+
+In some scenarios, you may want to validate how your flow behaves if a message processor throws an exception. For these cases MUnit offers the `throw-an` exception feature.
+
+This feature is offered through a different message processor: `mock:throw-an`.
+
+[source]
+----
+<mock:config name="mock_config" doc:name="Mock configuration"/>
+...
+<mock:throw-an whenCalling="mule:set-payload" exception-ref="#[new java.lang.Exception()]">
+</mock:throw-an>
+----
+
+In the structure of the `throw-an` message processor, you define which message processor you wish to mock, just like the `when` message processor. However, here you also need to define the exception that should be thrown by the mocked message processor.
+
+Message Processor Attributes
+
+[width="100",cols="10a,90a",options="header"]
+|===
+|Name |Description
+|`whenCalling` |Describes which message processor we want to mock, in the form \{name-space}:\{message-processor-name}. Supports regular expressions.
+|`exception-ref` |Defines the exception the mocked payload should throw.
+|===
+
+==== Defining a Mock Response Exception With Message Processor Attributes
+
+You can use matchers — parameters that match features of the desired message processor — to create a mock to throw an exception.
+
+[source]
+----
+<mock:throw-an whenCalling="mule:set-payload" exception-ref="#[new java.lang.Exception()]">
+  <mock:with-attributes>
+    <mock:with-attribute whereValue="#['Real Set Payload']" name="doc:name"/>
+  </mock:with-attributes>
+</mock:throw-an>
+----
+
+You can define as many attributes as you deem necessary to make the mock as representative as possible. When defining an attribute, you do so by defining:
+
+[width="100",cols="10a,90a",options="header"]
+|====
+|Attribute Name |Description
+|`name` |The name of the attribute. This value is literal, it doesn’t support regular expressions.
+|`whereValue` |Defines the value that the attribute of the real message processor should contain.
+|====
+
+== Defining Mocks with Java Code
+
+The code below reproduces the example described above, but with the MUnit Java API.
+
+[source]
+----
+import org.junit.Test;
+import org.mule.api.MuleMessage;
+import org.mule.munit.common.mocking.Attribute;
+import org.mule.munit.runner.functional.FunctionalMunitSuite;
+ 
+public class TheTest extends FunctionalMunitSuite {
+ 
+  @Test
+  public void test() {
+    Attribute attribute = Attribute.attribute("name").ofNamespace("doc").withValue("Real Set Payload"); (1)
+ 
+    MuleMessage messageToBeReturned = muleMessageWithPayload("Real Set Payload"); (2)
+    messageToBeReturned.setProperty("property_name", "property_value",PropertyScope.INBOUND); (3)
+ 
+    whenMessageProcessor("set-payload") (4)
+    .ofNamespace("mule")                (5)
+    .withAttributes(attribute)          (6)
+    .thenReturn(messageToBeReturned);   (7)
+  }
+ 
+}
+----
+
+. Define the real message processor attribute to match.
+. Define the Mule message that should be returned by the mocked message processor.
+. Define the properties of the Mule message that should be returned by the mocked message processor.
+. Define the name of the message processor to be mocked (accepts regular expressions).
+. Define the name of the namespace of the message processor to be mocked (accepts regular expressions).
+. Set the message processor’s attribute defined in (1).
+. Set the message to be returned by the mocked message processor defined in (3).

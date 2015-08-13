@@ -1,0 +1,160 @@
+= MUnit 1.0-RC Migration Guide
+
+MUnit 1.0-RC introduces changes to the syntax, aimed at providing a simpler and more consistent user experience than the Beta version. When upgrading to 1.0-RC, you will need to update your tests to conform to the new syntax.
+
+The major change in 1.0-RC is to simplify how assertions and mocks specify values. Previously, attributes were of the form `value-ref`. If a string was supplied, it referenced a bean in the Spring registry. In 1.0-RC, the literal value of an attribute will be the actual value expected. 
+
+If you need to lookup a Spring bean for comparison, you can look it up using a MEL function:
+
+[source]
+----
+getBeanFromMuleContext(‘bean_name’)
+----
+
+If the bean is not found, it will return null.
+
+= Message Processors Changed
+
+== Assert On Equals
+
+[source]
+----
+<munit:assert-on-equals expected-ref="#['foo']" value-ref="['foo']"/>
+----
+
+was changed to: +
+
+[source]
+----
+<munit:assert-on-equals expectedValue="foo" actualValue="foo"/>
+----
+
+== Assert Not Same
+
+[source]
+----
+<munit:assert-not-same expected-ref="#['foo']" value-ref="#['foo']"/>
+----
+
+was changed to:
+
+[source]
+----
+<munit:assert-not-same expectedValue="foo" actualValue="foo"/> 
+----
+
+== Assert That
+
+[source]
+----
+<munit:assert-that payloadIs-ref="#[‘something’]" doc:name="Assert Payload"/>
+----
+
+was changed to:
+
+[source]
+----
+<munit:assert-payload-equals expectedValue="something" doc:name="Assert Payload"/>
+----
+
+== Payload Definition
+
+[source]
+----
+<munit:set payload-ref="something" doc:name="Set Message"/>
+----
+
+was changed to:
+
+[source]
+----
+<munit:assert-payload-equals expectedValue="something" doc:name="Assert Payload"/>
+----
+
+== Properties Definition
+
+[source]
+----
+<munit:invocation-properties>
+    <munit:invocation-property key="a" value-ref="a"/>
+</munit:invocation-properties>
+----
+
+was changed to:
+
+[source]
+----
+<munit:invocation-properties>
+    <munit:invocation-property key="a" value="a"/>
+</munit:invocation-properties>
+----
+
+=== Attribute Matching - Mock - Throw-an and Spy
+
+[source]
+----
+<mock:with-attribute whereValue-ref="#['Variable']" name="doc:name"/>
+----
+
+was changed to:
+
+[source]
+----
+<mock:with-attribute whereValue="Variable" name="doc:name"/>
+----
+
+== Attribute Matching - Verify
+
+[source]
+----
+<mock:attribute whereValue-ref="#['Variable']" name="doc:name"/>
+----
+
+was changed to:
+
+[source]
+----
+<mock:with-attribute whereValue="Variable" name="doc:name"/>
+----
+
+== Message Definition - Then Return (payload)
+
+[source]
+----
+<mock:then-return payload-ref="#[getResource('orderResponse.xml').asString()]">
+----
+
+was changed to:
+
+[source]
+----
+<mock:then-return payload="#[getResource('orderResponse.xml').asString()]">
+----
+
+== Message Definition - [scope]-property
+
+[source]
+----
+<mock:inbound-property key="Content-Type" value-ref="#['text/xml; charset=UTF-8']"/>
+----
+
+was changed to:
+
+[source]
+----
+<mock:inbound-property key="Content-Type" value="text/xml; charset=UTF-8"/>
+----
+
+== Test
+
+[source]
+----
+<munit:test name="testName" expectExceptionThatSatisfies="">
+----
+
+was changed to:
+
+[source]
+----
+<munit:test name="testName" expectException="">
+----

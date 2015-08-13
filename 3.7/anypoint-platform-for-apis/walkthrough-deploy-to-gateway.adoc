@@ -1,0 +1,201 @@
+= Deploy Your API to an API Gateway
+
+[NOTE]
+====
+This page is part of the Anypoint Platform for APIs walkthrough. If you landed here by mistake and you're not sure where to start, go to the link:/docs/display/current/Anypoint+Platform+for+APIs+Walkthrough[walkthough introduction] to learn more.
+
+Looking for a user guide on deployment in the API platform? See link:/docs/display/current/Deploying+Your+API+or+Proxy[Deploying Your API or Proxy].
+====
+
+== Before You Begin
+
+This page helps you deploy:
+
+* Your APIkit project directly to an API Gateway, (If you didn't create your own APIkit project but you want to jump in at this stage of the walkthrough, you can download and use link:/docs/download/attachments/131039910/implementapiwalkthrough.zip?version=2&modificationDate=1436201802545[this project].)
++
+OR:
+* A proxy for your API and you are ready to deploy it to your API Gateway. (If you didn't create an API yet but you want to jump in here, you can download and use link:#[this example proxy application].)
+
+[WARNING]
+You may deploy an API directly to the gateway only if the number of connectors that you use in the API falls within the allowed number in your subscription. For more information, please file a ticket in the support portal by clicking Support on the top navigation bar of the Anypoint Platform.
+
+If you are deploying to an API Gateway that you are hosting on-premises, follow the instructions to link:/docs/display/current/Configuring+an+API+Gateway[install and configure] that gateway before proceeding. If you are deploying to a cloud API Gateway, no advanced configuration is required.
+
+[NOTE]
+Note that, for the purposes of this walkthrough, you can deploy the API or proxy application to an API Gateway running on your localhost machine and continue testing. However, in order to make your API accessible to other Anypoint Platform users or to the API Console (which accesses your API through a Web proxy), your API must be reachable on a server location that is accessible via the Web. For this reason, we recommend that you deploy to a runtime on CloudHub or to a server with an IP address that can be accessed from the Web.
+
+== Deploying
+
+[tabs]
+------
+[tab,title="On-Premises API Gateway"]
+....
+
+[WARNING]
+Make sure you first download your API as a .zip file from the API version page in the API platform.
+
+. If it is not already running, start your API Gateway in the command line by running:
++
+Windows: `<MULE_HOME>\bin\gateway`
++
+Unix: <`MULE_HOME>/bin/gateway`
++
+////
+ Need more detail?
+
+*Starting the API Gateway as a Foreground Process*
+
+. Use the `cd` command to navigate to the `$MULE_HOME/bin` directory.
+. Run the startup script according to the options below.
+
+* *Unix:* ` ./gateway`
+* *Windows:* ` gateway`
+
+Alternatively, instead of using the `cd` command, type the full path of the script, for example `/opt/mule/api-gateway-1.0.0/bin/gateway`.
+
+When running in foreground mode, the startup script displays information on the terminal's standard output. You cannot issue further commands on the terminal as long as the gateway is running.
+
+To stop the gateway, press `CTRL-C` in the terminal in which the script is running. **
+
+*Starting the API Gateway as a Background Process*
+
+. Use the `cd` command to navigate to the <`MULE_HOME>/bin` directory.
+. Run the startup script according to the options below.
+
+* *Unix:* ` ./gateway start`
+* *Windows:* `gateway` `.bat start`
+
+Alternatively, instead of using the `cd` command, type the full path of the script. For example: `/opt/mule/api-gateway-1.0.0/bin/gateway start`.
+
+To stop Mule, run the script with the `stop` parameter.
++
+////
++
+[TIP]
+*`<MULE_HOME>`* is the value of the MULE_HOME variable employed by MuleSoft's *API Gateway*, usually the root directory of the installation, such as `/opt/Mule/api-gateway-1.0.0/`.
+
+. Navigate to the directory where the API .zip file is located and copy the .zip file. Ensure that your copy of the file does not have any spaces in the name. 
+. Drop the copy of the .zip file into the *`<MULE_HOME>/apps`* folder.
+. The API Gateway polls this folder for new applications every five seconds. Watch your command line window to track the progress of the deployment.
++
+[source]
+----
++++++++++++++++++++++++++++++++++++++++++++++++++++
++ New app 'ProxyExample'                          +
++++++++++++++++++++++++++++++++++++++++++++++++++++
+INFO  2015-07-02 14:42:54,007 [Mule.app.deployer.monitor.1.thread.1] org.mule.module.launcher.MuleDeploymentService:
++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Started app 'ProxyExample'                      +
++++++++++++++++++++++++++++++++++++++++++++++++++++
+----
+
+. Congratulations! Your APIkit project or proxy application is deployed to your API Gateway.
+
+If you wish to undeploy your application, navigate to the `app` directory and delete the file `your_application.txt`. This removes your application from the `/app` directory, which automatically undeploys it from the API Gateway.
+
+If you wish to update your application at runtime, you can drop a new .zip version of the app into the `<MULE_HOME>/apps` directory. The API Gateway will detect this as an existing app update and will ensure a clean redeployment of the application.
+
+Your app deployed on premises is now synced with the one in your Anypoint Platform account. If you make any changes on what you set up in the API version page in the Anypoint Platform for APIs, like if for example you apply a policy, then those changes apply to your application deployed on premises within a few seconds.
+
+....
+[tab,title="Automatically deploy Proxy to CloudHub"]
+....
+
+[WARNING]
+====
+If you want to deploy to CloudHub through this method, you must do it on the same Anypoint Platform account where you have your API registered, and your user must have the appropriate permissions both on CloudHub and on the API Platform. If this is not the case, see the next tab to make a *Manual Deploy* *to CloudHub API Gateway*.
+
+Currently, HTTPS proxies can only be deployed to CloudHub manually.
+====
+
+. In your API Administration page, click *Configure Endpoint* under the API Status section
+. Tick the box labeled *Configure proxy for CloudHub*.
++
+image:/docs/download/attachments/131039910/deploy+ch.png?version=1&modificationDate=1434054765418[image]
+
+. You can click the *Save & Deploy* button to directly deploy your proxy right away. Otherwise, click *Save* and deploy when you're ready.
++
+Notice that after configuring the proxy for CloudHub, a new link labeled *Deploy proxy* appears in the *API Status* section. Use it to open the deploy menu.
++
+image:/docs/download/attachments/131039910/deploy+ch+2.png?version=1&modificationDate=1434054962924[image]
+
+. In the deploy menu, pick an app name (it will use the API name by default) and choose an environment. You must also select an API Gateway version, by default the latest is selected.
++
+image:/docs/download/attachments/131039910/Screen+Shot+2015-06-10+at+5.28.09+PM.png?version=1&modificationDate=1434055064736[image]
++
+[TIP]
+A link is provided to the actual CloudHub application for further management, from there you can change the worker type, the environment, set advanced settings, etc. Under the API Status section, a new link appears labeled *Manage CloudHub proxy* that takes you there.
+
+. The status of the API deployment is indicated by the marker in the API Status section of the API version page. While the app is starting, you see a spinner. After your app starts successfully, the light turns green.
++
+[TIP]
+Notice there should now be a new link under the API Status labeled **Re-deploy proxy**. If you make changes to the endpoint configuration you can click this to re-deploy your proxy application to the same CloudHub application
+
+....
+[tab,title="Manual Deploy to Cloud API Gateway"]
+....
+
+[WARNING]
+Make sure you first download your API as a .zip file from the API version page in the API platform.
+
+. https://cloudhub.io/login.html[Log in] to your Anypoint Platform account, then go to CloudHub.
+. First, ensure that you are in the environment that you wish to deploy to. If necessary, click the current environment name in the top-right corner to switch to another.
+. Once you are in the correct environment, click *Deploy application.*
+. In the Deploy Application screen, give your application a unique domain name.
++
+[TIP]
+This domain name forms part of the URLs that applications should use to call your API, so it should represent your API itself.
+
+. Click *Choose File* and select the .zip file of your proxy application or APIkit project.
+. Open the *Properties* section and define two *Environment Variables* with your Anypoint Platform for APIs client ID and client secret.
++
+[NOTE]
+====
+To obtain these credentials, log in to the Anypoint Platform as an administrator, click the gear icon at the top-right, select the *Organization* tab, and click your organization's name:
+
+image:/docs/download/attachments/131039910/CHOrganizationName.png?version=1&modificationDate=1435878392373[image]
+
+The organization screen may appear entitled Organization info or Business Group info depending on which part of the organization hierarchy you click. Both screens list the Client ID and Client Secret.
+
+*Organization info*:
+
+image:/docs/download/attachments/131039910/OrgClientIDSecret.png?version=2&modificationDate=1435878925495[image]
+
+*Business Group info:*
+
+image:/docs/download/attachments/131039910/BizGroupInfo.png?version=1&modificationDate=1435882362239[image]
+====
++
+Copy the following:
++
+[source]
+----
+anypoint.platform.client_id=00000000000000
+anypoint.platform.client_secret=00000000000000
+----
++
+Then replace the numbers for your organization's *client_id* and **client_secret**.
+. Click *Create*.
+. CloudHub automatically moves to the *Logs* view where you can track the status of the deployment. Watch for this message: +
+ image:/docs/download/attachments/122751784/proxyCH-started.png?version=1&modificationDate=1387501329508[image]
+
+. Congratulations! Your application is deployed to your API Gateway.
+
+If you wish to undeploy your application, go to the *Deployment* tab and click *Stop Application*.
+
+If you wish to update your application at runtime, you can upload a new .zip file on the Deployment tab and click *Update*. The API Gateway performs a zero downtime update using the new application file.
+
+....
+------
+
+== Next
+
+Congratulations! You've deployed your API or proxy to your API Gateway.
+
+What do you want to do next? You can:
+
+* link:/docs/display/current/Walkthrough+Engage[Create an API Portal], if you haven't already
+* link:/docs/display/current/Walkthrough+Manage[Manage your API] with SLAs and policies
+
+[TIP]
+If you add or edit policies on your proxy, there's no need to redeploy the app, as the changes apply automatically within a few seconds.
