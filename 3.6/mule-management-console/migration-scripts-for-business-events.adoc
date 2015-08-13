@@ -34,7 +34,7 @@ To run the script, follow these steps:
 . Find the H2 JAR file in the `<MMC_HOME>/WEB-INF/lib` directory. The file is named `h2-<version>.jar`, for example `h2-1.3.164.jar`.
 . From the command line, run the H2 JAR with the following command:
 +
-[source]
+[source,bash]
 ----
 java -jar h2-<version>.jar
 ----
@@ -42,21 +42,29 @@ java -jar h2-<version>.jar
 [NOTE]
 You must run the JAR file as a user with write permissions on the `mmc-data` directory.
 +
-This will fire up your O.S.'s default Web browser with the Web client for H2, which displays the below configuration screen.
+This fires up your OS's default Web browser with the Web client for H2, which displays the below configuration screen.
 +
 image:/documentation/download/thumbnails/122751946/H2conf.png?version=1&modificationDate=1398351877694[image]
 +
 . For *Driver Class*, enter `org.h2.Driver`.
-. For JDBC URL, enter `jdbc:h2:file:///<path_to_mmc-data>/tracking/persistency`, replacing `<path_to_mmc-data>` with the actual path to the directory containing your MMC tracking database. For example,  `jdbc:h2:file:////var/lib/tomcat6/webapps/persistency` (the path ends in `persistency`, with no filename extension).
+. For JDBC URL, enter `jdbc:h2:file:///<path_to_mmc-data>/tracking/persistency`, replacing `<path_to_mmc-data>` with the actual path to the directory containing your MMC tracking database. For example:
++
+[source,bash]
+----
+jdbc:h2:file:////var/lib/tomcat6/webapps/persistency
+----
++
+*Note*: The path ends in `persistency`, with no filename extension.
++
 . Leave *User Name* and *Password* blank.
-. Click *Connect*. The H2 Web client should display the window shown below. +
+. Click *Connect*. The H2 Web client should display this window:
 +
 image:/documentation/download/attachments/122751946/h2conf2-sql_run.png?version=1&modificationDate=1398353911227[image] +
 +
 . Type the SQL statement for Business Events migration into the empty field, then click *Run*. +
 image:/documentation/download/attachments/122751946/H2query.png?version=1&modificationDate=1398354729746[image] +
 +
-. H2 will run the SQL statement, then print a success message: +
+. H2 runs the SQL statement, then prints a success message: +
 +
 image:/documentation/download/attachments/122751946/h2_success.png?version=1&modificationDate=1398354376374[image] +
 . Optionally, run the link:#MigrationScriptsforBusinessEvents-hddrop[script to drop indexes].
@@ -69,7 +77,7 @@ image:/documentation/download/attachments/122751946/h2_success.png?version=1&mod
 
 If upgrading from MMC 3.4.1 or earlier, you can optionally run a script to drop database indexes that are no longer used in MMC 3.5.0. Run this script from the H2 Web client described in link:#MigrationScriptsforBusinessEvents-H2MigrationScript[the previous section], after running the migration script. The script to drop indexes is provided below.
 
-[source]
+[source,sql]
 ----
 DROP INDEX IF EXISTS e_properties_value;
 DROP INDEX IF EXISTS e_flow_name;
@@ -102,7 +110,7 @@ See the sections below for the script for each supported database.
 
 *Migration Script*
 
-[source]
+[source,sql]
 ----
 ALTER TABLE EVENT_PROPERTIES RENAME COLUMN KEY to PROPKEY;
 ----
@@ -111,7 +119,7 @@ ALTER TABLE EVENT_PROPERTIES RENAME COLUMN KEY to PROPKEY;
 
 Optionally run this script if upgrading from MMC 3.4.1 or earlier.
 
-[source]
+[source,sql]
 ----
 DROP INDEX e_properties_value;
 DROP INDEX e_flow_name;
@@ -129,7 +137,7 @@ DROP INDEX t_s_status_ordinal;
 
 *Migration Script*
 
-[source]
+[source,sql]
 ----
 ALTER TABLE EVENT_PROPERTIES RENAME COLUMN KEY to PROPKEY;
 ----
@@ -138,7 +146,7 @@ ALTER TABLE EVENT_PROPERTIES RENAME COLUMN KEY to PROPKEY;
 
 Optionally run this script if upgrading from MMC 3.4.1 or earlier.
 
-[source]
+[source,sql]
 ----
 
 DROP INDEX IF EXISTS e_properties_value;
@@ -158,7 +166,7 @@ DROP INDEX IF EXISTS t_s_status_ordinal;
 
 Replace `<db_name>` with the name of the target database.
 
-[source]
+[source,sql]
 ----
 USE <db_name>;
 ALTER TABLE EVENT_PROPERTIES CHANGE KEY0 PROPKEY varchar(30);
@@ -169,7 +177,7 @@ Optionally run this script if upgrading from MMC 3.4.1 or earlier.
 
 Replace `<db_name>` with the name of the target database.
 
-[source]
+[source,sql]
 ----
 USE <db_name>;
 DROP INDEX e_properties_value ON EVENT_PROPERTIES;
@@ -191,7 +199,7 @@ You only need to run this script if using MMC 3.4.1 for MS SQL Server.
 
 Replace `<db_name>` with the name of the target database.
 
-[source]
+[source,sql]
 ----
 USE <db_name>
 GO
@@ -216,7 +224,7 @@ GO
 
 Replace `<db_name>` with the name of the target database.
 
-[source]
+[source,sql]
 ----
 USE [enter_db_name_here]
 DROP INDEX [EVENT_PROPERTIES].[e_properties_value]
