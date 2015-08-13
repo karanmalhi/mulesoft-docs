@@ -1,4 +1,5 @@
 = Mule ESB 3.7.0 Release Notes
+:keywords: release notes, esb, runtime, dataweave
 
 == Compatibility Information
 
@@ -101,7 +102,7 @@ The HTTP connector contains may additional security options for the request elem
 
 == Enterprise Edition Fixed Issues
 
-[width="100",cols="50,50",options="header"]
+[width="100",cols="50,50"]
 |===
 |EE-4499 |VM does not honor XA transaction timeout in cluster
 |EE-4481 |ClusterCoreExtension putClusteringTicket fails when .mule directory doesn't exist
@@ -116,14 +117,14 @@ The HTTP connector contains may additional security options for the request elem
 
 === Enterprise Known Issues
 
-[width="100",cols="50,50",options="header"]
+[width="100%",cols="50%,50%"]
 |===
 |EE-4528 |Set attachment component not handling DataWeave transformer output correctly
 |===
 
 == Community Edition Fixes
 
-[width="100",cols="50,50",options="header"]
+[width="100%",cols="50%,50%"]
 |===
 |MULE-8693 |XA transaction must set tx timeout in XA resources
 |MULE-8687 |Passing a JaxB annotated pojo to the HTTP listener response is throwing a transformer error
@@ -239,7 +240,7 @@ The HTTP connector contains may additional security options for the request elem
 
 === Community Edition Known Issues
 
-[width="100",cols="50,50",options="header"]
+[width="100%",cols="50%,50%"]
 |===
 |MULE-8751 |Missing NamespaceHandler entry for non-blocking-processing-strategy
 |MULE-8743 |Mule registry failing to lookup sub-flows
@@ -257,7 +258,7 @@ MuleSoft recommends a minimum of 4 GB RAM on a developer workstation. As applica
 
 == Deprecated in this Release
 
-[width="100",cols="50,50",options="header"]
+[width="100%",cols="50%,50%"]
 |===
 |MULE-8260 |As ASM 3.3.1 is not fully compliant with Java 8, the class in the packages org.mule.util.scan and org.mule.util.scan.annotations have been deprecated, however you can use them under Java 7.
 |MULE-7588 a|
@@ -279,7 +280,7 @@ Lifecycle has been fixed:
 
 DataMapper is now an optional plugin that must be installed inside the Mule runtime for applications that are using it.
 
-[width="100",cols="50,50",options="header"]
+[width="100%",cols="50%,50%"]
 |===
 |EE-4333 |mule-transport-axis was removed from standalone and embedded EE distributions. Following libraries were also removed as they are not required anymore: axis-1.4.jar, commons-discovery-0.4.jar and geronimo-jaxrpc_1.1_spec-1.1.jar
 |SEC-240 |Mule ESB 3.7.0 requires version of link:/docs/display/current/External+OAuth+2.0+Token+Validation+Policy[Anypoint Enterprise Security] to be 1.5.0 or greater
@@ -294,7 +295,7 @@ To migrate DataMapper applications, install the DataMapper plugin manually follo
 
 Mule information:
 
-[width="100",cols="50,50",options="header"]
+[width="100%",cols="50%,50%"]
 |===
 |MULE-8340 |TLS configuration is not mapped anymore to the default JVM system properties. In order to keep this behavior, define the following system property: mule.tls.disableSystemPropertiesMapping=false
 |MULE-8367 |Property http.relative.path was added to the inbound properties of the HTTP listener. This property reflects the value of the http.request.path property without the basePath part of the corresponding listener.
@@ -315,7 +316,7 @@ Lifecycle has been fixed. Please have the following considerations:
 * Spring Bean Definition parsers no longer automatically call the initialise() and dispose() methods. If you want to maintain that behavior in your custom parsers, you must explicitly do it yourself.
 * An example of doing that would be:
 
-[source]
+[source,java,linenums]
 ----
 private void setInitAndDisposeMethods(BeanDefintionBuilder builder, Class<?> parsedObjectType) {
 
@@ -341,7 +342,7 @@ set-payload element is now implemented using a plain MessageProcessor instead of
 
 To use SetPayloadTransformer in the Mule configuration file as a transformer, define it as a <custom-transformer> like this:
 
-[source]
+[source,xml,linenums]
 ----
 <custom-transformer class="org.mule.transformer.simple.SetPayloadTransformer">
     <spring:property name="value" value="someValue"/>
@@ -353,14 +354,14 @@ Applying a message transformer does not changes message's data type if the paylo
 
 In particular, this changes affects usages of message properties transformer configured like this:
 
-[source]
+[source,xml,linenums]
 ----
 <message-properties-transformer name="setResponseType" mimeType="text/baz" encoding="UTF-16BE"/>
 ----
 
 That now must be configure in this way:
 
-[source]
+[source,xml,linenums]
 ----
 <message-properties-transformer name="setResponseType">
 <add-message-property key="Content-Type" value="text/baz;charset=UTF-16BE"/>
@@ -369,7 +370,7 @@ That now must be configure in this way:
 
 Or like this:
 
-[source]
+[source,xml,linenums]
 ----
 <set-property propertyName="Content-Type" value="text/baz;charset=UTF-16BE"/>
 ----
@@ -379,7 +380,8 @@ Applying a message transformer that changes message's payload updates the messag
 
 If a transformer's output data type does not provide a MIME type and/or encoding, then the original payload data type MIME type and/or encoding is used. This can cause different transformers to be applied to an application after the upgrade. In case there is a failure, use <set-payload> to set encoding and the MIME type while maintaining the same payload.
 
-|MULE-7990 |
+|MULE-7990
+a|
 A new API for object serialization has been added through the ObjectSerializer interface. Use the following considerations:
 
 * If you were manually using the org.mule.util.SerializationUtils class in custom components, scripts or flows, you should use this API instead.
@@ -387,14 +389,14 @@ A new API for object serialization has been added through the ObjectSerializer i
 * You can now specify which is the default implementation of ObjectSerializer that you want your application to use. Such instances are used by Mule (although you're free to use others in your custom code). By default, the ObjectSerializer implementation uses default Java serialization an behaves exactly the same as in prior versions.
 * To configure your custom serializer as the default you can use the <configuration> tag:
 
-[source]
+[source,java,linenums]
 ----
 <configuration defaultObjectSerializer-ref="myCustomSerializer" />
 ----
 
 * There are many ways to obtain an ObjectSerializer. Recommended approach is through dependency injection. The following shows how to get the ObjectSerializer that has been configured as the default:
 
-[source]
+[source,java,linenums]
 ----
 public class MyClass {
 
@@ -407,7 +409,7 @@ private ObjectSerializer objectSerializer;
 
 * Instead, if you want a specific named serializer (whether it's the default or not) you can also do it like this:
 
-[source]
+[source,java,linenums]
 ----
 public class MyClass {
 
@@ -420,7 +422,7 @@ private ObjectSerializer objectSerializer;
 
 * Finally, you can always pull it from the muleContext but dependency injection is preferred:
 
-[source]
+[source,java,linenums]
 ----
 // returns the default object serializer
  muleContext.getObjectSerializer();
@@ -433,7 +435,8 @@ private ObjectSerializer objectSerializer;
 |MULE-8483 |MULE_ENCODING and Content-Type properties are not added on the outbound scope when message encoding or mimeType are updated. This was done in order to maintain consistency on MuleMessage data type and properties.
  In case any of these properties is needed, use <set-property> indicating the expected value.
 |MULE-8592 |Default maximum permanent generation has been increased to 256 mb. This property is only used when using Java 7. When using Java 8 the property may lead to a warning. In such case it can be comment out in the wrapper.conf file.
-|MULE-8569 |
+|MULE-8569
+a|
 For those with custom implementation of class org.mule.config.spring.SpringXmlConfigurationBuilder, some important changes have been made:
 
 * The method createApplicationContext(MuleContext, ConfigResource[]) is now private. If you want to overwrite it, use doCreateApplicationContext(MuleContext, ConfigResource[], OptionalObjectsController) instead.
