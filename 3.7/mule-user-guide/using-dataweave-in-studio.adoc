@@ -1,4 +1,5 @@
 = Using DataWeave in Studio
+:keywords: studio, anypoint, esb, transform, transformer, format, aggregate, rename, split, filter convert, xml, json, csv, pojo, java object, metadata, dataweave, data weave, datamapper, dwl, dfl, dw, output structure, input structure, map, mapping
 
 #*_Enterprise_*#
 
@@ -77,7 +78,7 @@ image:/docs/download/attachments/132351217/use+existing.png?version=2&modificati
 
 In the XML editor you can do the same by adding a `resource` attribute.
 
-[source]
+[source, xml]
 ----
 <dw:transform-message>
             <dw:set-payload resource="classpath:path/transform.dwl"/>
@@ -96,7 +97,7 @@ image:/docs/download/attachments/132351217/new+output2.png?version=2&modificatio
 
 In the XML editor you can do the same by adding multiple child elements inside the `dw:transform-message` component.
 
-[source]
+[source, xml]
 ----
 <dw:transform-message>
             <dw:set-payload resource="classpath:path/transform.dwl"/>
@@ -108,7 +109,7 @@ In the XML editor you can do the same by adding multiple child elements inside t
 
 ==== Output Section
 
-This section has two tabs, one of them shows you a neat expandable tree view of the output data structure, the other shows you a preview of what the actual output looks like, built from any sample data you provide in the input section. As you make changes in the transport section, notice how the data structure changes. The output of the transformer is made into the selected component of the output mule message.  If your transformer has multiple outputs, the *Preview* tab will display the one corresponding to the currently selected transform. 
+This section has two tabs, one of them shows you a neat expandable tree view of the output data structure, the other shows you a preview of what the actual output looks like, built from any sample data you provide in the input section. As you make changes in the transport section, notice how the data structure changes. The output of the transformer is made into the selected component of the output mule message.  If your transformer has multiple outputs, the *Preview* tab will display the one corresponding to the currently selected transform.
 
 If there's any syntax error in the transport section, error notifications are displayed in the output section, as no actual output is produced.
 
@@ -120,11 +121,15 @@ DataWeave expressions defined within this function work just as those defined wi
 
 For example, you can define a custom object and populate it with elements from the payload:
 
-`dw(myobject:{id:payload.accountid, user:payload.user})`
+----
+dw(myobject:{id:payload.accountid, user:payload.user})
+----
 
 That same expression could be added inside a Logger, within a MEL expression, to print out its result:
 
+----
 #[`dw(myobject:{id:payload.accountid, user:payload.user})`]
+----
 
 == Calling Global MEL Functions from DataWeave Code
 
@@ -132,7 +137,7 @@ If you define a global link://developer.mulesoft.com/docs/display/current/Mule+E
 
 To create one such global function, you must edit your Mule project's XML file and enclose any functions that you wish to define in the following set of tags, which must be placed in the global elements section, before any of the flows are defined.
 
-[source]
+[source, xml]
 ----
 <configuration doc:name="Configuration">
      <expression-language>
@@ -146,7 +151,7 @@ To create one such global function, you must edit your Mule project's XML file a
 
 In this space you can use any MEL expression to define custom functions, for example:
 
-[source]
+[source, xml]
 ----
 <configuration doc:name="Configuration">
      <expression-language>
@@ -165,7 +170,7 @@ In this space you can use any MEL expression to define custom functions, for exa
 
 With that in place, in the DataWeave code of your Transform Message element you can just refer to these functions. Note that the inputs and outputs of these functions can even be objects and arrays.
 
-[source]
+[source, ruby]
 ----
 %dw 1.0
 %output application/json
@@ -178,7 +183,6 @@ With that in place, in the DataWeave code of your Transform Message element you 
 
 
 Even with these external functions in place, you should be able to preview the output of this transform, updated in real time as you edit it.
-
 
 
 == Known Issues and Limitations

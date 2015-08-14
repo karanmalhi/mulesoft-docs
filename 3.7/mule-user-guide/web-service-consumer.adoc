@@ -1,7 +1,5 @@
 = Web Service Consumer
-
-[WARNING]
-Note that this document is divided into two sections and contains separate information for versions 3.7.0 and 3.6.x. Make sure you're checking the section that matches the runtime version you're using.
+:keywords: anypoint studio, studio, mule esb, connector, endpoint, web service, soap, wsdl
 
 When developing applications with Mule, users often need to be able to consume a SOAP Web service to acquire data from an external source. In the best case scenario, you can use an existing *Anypoint Connector* in your Mule application to connect to a specific service provider, such as Zuora or Avalara. However, where no service-specific connector exists to facilitate the connection, the quickest, easiest way to consume a Web service from within a Mule application is to use the *Web Service Consumer*.
 
@@ -20,30 +18,29 @@ image:/docs/download/attachments/122752084/first+diagram.png?version=1&modificat
 [WARNING]
 The component formerly known as the *SOAP Connector* is now known as the *link:/docs/display/current/CXF+Component+Reference[CXF Component]* . It should not be confused with the Web Service Consumer.
 
-== On Mule 3.7.0
 
 link:#WebServiceConsumer-CompleteCodeExample[Skip to the code]
 
-=== Prerequisites
+== Prerequisites
 
 This document assumes that you are familiar with Anypoint Studio; review the chapter on link:/docs/display/current/Anypoint+Studio+Essentials[Anypoint Studio Essentials] to learn more about developing with Mule ESB's graphical user interface. This document also assumes you are familiar with link:/docs/display/current/DataWeave[DataWeave], link:/docs/display/current/Global+Elements[ Global Elements ], and link:/docs/display/current/DataSense[ DataSense ].
 
-=== Installation
+== Installation
 
 You can install a connector in Anypoint Studio using the instructions in http://www.mulesoft.org/documentation/display/current/Anypoint+Exchange#AnypointExchange-InstallingaConnectorfromAnypointExchange[Installing a Connector from Anypoint Exchange] .
 
-=== Limitations
+== Limitations
 
 * The Web Service Consumer interfaces only with SOAP Web services, not REST APIs.  
 * Within Mule, the Web Services Consumer is available for use only in conjunction with the following connectors:
-** FTP
-** File
-** HTTP
-** JMS
-** SFTP
-** HTTPS 
+* FTP
+* File
+* HTTP
+* JMS
+* SFTP
+* HTTPS 
 
-=== Basic Anatomy
+== Basic Anatomy
 
 To use a Web Service Consumer in your Mule application, you must carry out three tasks:
 
@@ -56,7 +53,7 @@ To use a Web Service Consumer in your Mule application, you must carry out three
 
 For more information on best design-time practices with DataSense and DataWeave, consult the link:/docs/display/current/DataSense[DataSense documentation] .
 
-=== Configuring Web Service Consumer
+== Configuring Web Service Consumer
 
 To prepare an application to use a Web Service as in one of the examples above, you must first add the Web service's WSDL to your Mule project, then configure, at minimum, the required parameters for the Web Service Consumer element and a Global Web Service Consumer element. The diagram and section below describe how to address these requirements.
 
@@ -78,8 +75,8 @@ image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_
 . Confirm that the *Enable DataSense* box is checked, then click *OK* to save.
 . Notice that Studio auto-populates the following fields in the Properties Editor of the Web Service Consumer element in your flow:
 
-** Global Configuration* with the name of the Global Web Service Consumer you just created
-** Operation* with the name of an operation the Web service supports for its consumers. 
+* Global Configuration* with the name of the Global Web Service Consumer you just created
+* Operation* with the name of an operation the Web service supports for its consumers. 
 
 . Adjust the Operation of the Web Service Consumer, if you wish (and if the SOAP Web service indeed offers more than one operation), then click inside the canvas to auto-save your configuration.
 
@@ -93,14 +90,14 @@ image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_
 . If you are using a WSDL file, copy the file into the `src/main/resources` folder of your Studio project. (You can drag and drop the file to copy it to the folder.) If using a URL, there is no need to copy anything to your Studio project.
 . Above all the flows in your application, add a global `ws:consumer-config` element to your application. Configure its attributes according to the code sample below to define how to connect to the Web service you intend to consume. For a full list of elements, attributes and default values, consult  link:#[Web Service Consumer Reference].
 
-[source]
+[source, xml]
 ----
 <ws:consumer-config name="Web_Service_Consumer1" wsdlLocation="src/main/resources/sample_wsdl_2.txt" service="StockQuoteService" port="StockQuotePort" serviceAddress="http://example.com/stockquote" doc:name="Web Service Consumer"/>
 ----
   
 . Add a `ws:consumer` element to a flow in your application. Configure its attributes according to the code sample below to define the global Web Service Consumer to reference, and the operation to perform with a request to the Web service. For a full list of elements, attributes and default values, consult  link:#[Web Service Consumer Reference].
 
-[source]
+[source, xml]
 ----
 <ws:consumer doc:name="Web Service Consumer" config-ref="Web_Service_Consumer1" operation="GetLastTradePrice"/>
 ----
@@ -108,14 +105,14 @@ image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_
 ....
 ------
 
-=== Web Service Consumer and DataWeave
+== Web Service Consumer and DataWeave
 
 As stated above, when used in conjunction with a DataSense-enabled Web Service Consumer, DataWeave can automatically extract payload or header metadata that you can use to map and or transform to a different data format or structure through the http://mulesoft.github.io/data-weave[DataWeave language]. When you have a configured, DataSense-enabled Web Service Consumer in your flow, you can drop a DataWeave transformer next to it – preceding or following it – and DataWeave automatically extracts the information that DataSense collected from the WSDL about the expected format and structure of the message. 
 
 * If DataWeave *follows* the fully-configured Web Service Consumer, DataWeave has access to its *Input values* and you can use these as inputs to create your custom output. 
 * If DataWeave *precedes* the fully-configured Web Service Consumer, DataWeave creates a scaffolding that produces an output that matches what the Web Service Consumer expects to receive (see below).
 
-[source]
+[source, json]
 ----
 {
   "item_amount": "????",
@@ -139,7 +136,7 @@ To take advantage of the Web Service Consumer-DataSense-DataWeave magic, be sure
 . The *Web Service Consumer connector* in a flow in your application, which references the Global Web Service Consumer connector 
 . The *DataWeave transformer*, dropped before or after the Web Service Consumer connector in your flow
 
-==== Adding Custom Headers
+=== Adding Custom Headers
 
 SOAP headers should be created as outbound properties. You can do that through the *Property* transformer
 
@@ -157,7 +154,7 @@ image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_
 [tab,title="XML Editor"]
 ....
 
-[source]
+[source, xml]
 ----
 <set-property propertyName="soap.myProperty" value="#[payload]" doc:name="Property"/>
 ----
@@ -169,7 +166,7 @@ image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_
 ====
 When configuring the header manually, the value you pass should have the structure of an XML element, it shouldn't be a plain pair of key and value. Using a set property element, for example, the value of the property must contain the enclosing XML tags, like so:
 
-[source]
+[source, xml]
 ----
 <set-property propertyName="soap.Authorization"
 value="<auth>Bearer
@@ -178,13 +175,15 @@ MWYxMDk4ZDktNzkyOC00Z</auth>"/>
 
 The example above works, the one below doesn't:
 
-[source]
+[source, xml]
 ----
 <set-property propertyName="soap.Authorization" value="Bearer
 MWYxMDk4ZDktNzkyOC00Z"/>
 ----
 
-==== Mapping SOAP Headers
+====
+
+=== Mapping SOAP Headers
 
 When used in conjunction with a Web Service Consumer, a DataWeave offers you the option of mapping and transforming a message's payload, properties or variables by picking different inputs.
 
@@ -199,21 +198,21 @@ With DataWeave, you can use multiple inputs in a single transform, so you can ta
 To produce multiple outputs, you must create separate transforms, but these can be hosted in a single DataWeave transformer on your flow. So in a single DataWeave transformer you could host a transform that populates the SOAP body and another that populates a SOAP header.
 ====
 
-=== Web Service Consumer and DataSense Explorer
+== Web Service Consumer and DataSense Explorer
 
 Use the *link:/docs/display/current/Using+the+DataSense+Explorer[DataSense Explorer]* feature in Studio to gain design-time insight into the state of the message payload, properties, and variables as it moves through your flow. The DataSense Explorer is mostly useful in understanding the content of a message before it encounters a Web Service Consumer, and after it emerges from the connector so as to better understand the state of the data your application is working with.
 
-The DataSense Explorer in the example below offers information about the Payload, Variables, Inbound Properties and Outbound Properties contained that comprise the message object at the moment the message encounters the Web Service Consumer. Use the **In-Out** toggle at the top of the DataSense Explorer to view metadata of message as it arrives at, or leaves the message processor.
+The DataSense Explorer in the example below offers information about the Payload, Variables, Inbound Properties and Outbound Properties contained that comprise the message object at the moment the message encounters the Web Service Consumer. Use the *In-Out* toggle at the top of the DataSense Explorer to view metadata of message as it arrives at, or leaves the message processor.
 
-===== Message State Before Web Service Consumer
+==== Message State Before Web Service Consumer
 
 image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="metadata_in.png"]
 
-===== Message State After Web Service Consumer
+==== Message State After Web Service Consumer
 
 image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="metadata_out.png"]
 
-=== Securely Connecting to a SOAP Web Service
+== Securely Connecting to a SOAP Web Service
 
 Depending upon the level of security employed by a SOAP Web service, you may need to correspondingly secure the requests your Web Service Consumer sends. In other words, any calls you send to a Web service have to adhere to the Web service provider's security requirements. To comply with this requirement, you can configure security settings on your Global Web Service Consumer connector.
 
@@ -245,7 +244,7 @@ image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_
 
 Add child elements to the global link:#[ws:consumer-config] element you configured in your application. Configure the child elements' attributes according to the code sample below. For a full list of elements, attributes and default values, consult link:#[Web Service Consumer Reference].
 
-[source]
+[source, xml]
 ----
 ...
     <ws:consumer-config name="OrderWS" wsdlLocation="enterprise.wsdl.xml" service="OrderService" port="Soap" serviceAddress="https://login.orderservice.com/services/Soap/c/22.0" doc:name="Web Service Consumer">
@@ -260,7 +259,7 @@ Add child elements to the global link:#[ws:consumer-config] element you configur
 ....
 ------
 
-=== Using Basic Authentication and SSL
+== Using Basic Authentication and SSL
 
 If the web service you're connecting to requires basic authentication, you can easily provide your username and password as part of the URL when you reach out to it.
 
@@ -286,7 +285,7 @@ In the Web Service Consumer's Global Element, add a reference to an `http-reque
 [tab,title="XML Editor"]
 ....
 
-[source]
+[source, xml]
 ----
 <http:request-config host="localhost" port="${port}" name="customConfig">
         <http:basic-authentication username="user" password="pass" />
@@ -332,7 +331,7 @@ image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_
 
 . Add an link:/docs/display/current/HTTP+Connector[HTTP Connector] global element in your project, configure it with the necessary security attributes
 
-[source]
+[source, xml]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" protocol="HTTPS" doc:name="HTTP_Request_Configuration"/>       
         <tls:context>
@@ -344,7 +343,7 @@ image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_
 
 . In your `ws:consumer-config` element, include a `connectorConfig` attribute to reference to this HTTP connector configuration element:
 
-[source]
+[source, xml]
 ----
 <ws:consumer-config name="Web_Service_Consumer" wsdlLocation="tshirt.wsdl.xml" service="TshirtService" port="TshirtServicePort" serviceAddress="http://tshirt-service.qa2.cloudhub.io/tshirt-service" connectorConfig="HTTP_Request_Configuration"/>
 ----
@@ -352,13 +351,13 @@ image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_
 ....
 ------
 
-==== Referencing the Deprecated HTTP Transport
+=== Referencing the Deprecated HTTP Transport
 
 In order to set alternate HTTP settings, instead of referencing an instance the new HTTP Connector, you can reference an instance of the deprecated HTTP transport and accomplish the same. To add this reference, add a `connector-ref` attribute to the WSC configuration element. The `connectorConfig` and `connector-ref` attributes are mutually exclusive, and both optional.
 
 If none of the two reference attributes are specified, a default instance of the new HTTP connector is used. For backwards compatibility, you can change this behavior and make an instance of the deprecated HTTP Transport the default configuration.  There's a global configuration property that has been added in Mule runtime 3.6, that allows you to change this default behavior:
 
-[source]
+[source, xml]
 ----
 <configuration>
         <http:config useTransportForUris="true"/>
@@ -367,7 +366,7 @@ If none of the two reference attributes are specified, a default instance of the
 
 The deafult value for this attribute is false. When setting this flag to true, Mule falls back to the deprecated HTTP transport to resolve URIs when no transport/connector is specified.
 
-=== Complete Code Example
+== Complete Code Example
 
 [tabs]
 ------
@@ -380,7 +379,7 @@ image:/docs/download/attachments/122752084/code+example.png?version=3&modificati
 [tab,title="XML Editor or Standalone"]
 ....
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
@@ -455,437 +454,8 @@ payload]]></dw:set-payload>
 ....
 ------
 
-== On Mule 3.6.x
-
-link:#WebServiceConsumer-CompleteCodeExample[Skip to the code]
-
-=== Prerequisites
-
-This document assumes that you are familiar with Anypoint Studio; review the chapter on link:/docs/display/current/Anypoint+Studio+Essentials[Anypoint Studio Essentials] to learn more about developing with Mule ESB's graphical user interface. This document also assumes you are familiar with the link:/docs/display/current/Datamapper+User+Guide+and+Reference[Anypoint DataMapper] transformer, link:/docs/display/current/Global+Elements[Global Elements], and link:/docs/display/current/DataSense[DataSense].
-
-=== Installation
-
-You can install a connector in Anypoint Studio using the instructions in http://www.mulesoft.org/documentation/display/current/Anypoint+Exchange#AnypointExchange-InstallingaConnectorfromAnypointExchange[Installing a Connector from Anypoint Exchange].
-
-=== Limitations
-
-* The Web Service Consumer interfaces only with SOAP Web services, not REST APIs.  
-* Within Mule, the Web Services Consumer is available for use only in conjunction with the following connectors: +
-* FTP
-* File
-* HTTP
-* JMS
-* SFTP
-* HTTPS 
-
-=== Basic Anatomy
-
-To use a Web Service Consumer in your Mule application, you must carry out three tasks:
-
-. Add the *WSDL file* of the service you want to consume to your Mule project
-. Embed a *Web Service Consumer element* in your Mule flow and configure it to define the operation it will perform, and identify the Global Web Service Consumer element it will reference
-. Configure the *Global Web Service Consumer element* in which you reference the service's WSDL, enable DataSense, and apply any security settings that the service provider demands
-
-To really take advantage of the design-time power of the Web Service Consumer, consider using it in conjunction with the following Mule features:
-
-* *DataSense*: When enabled, DataSense uses information in the WSDL to automatically extract metadata about the data structure and format a SOAP Web service delivers or expects. When this functionality is enabled (in the Global Web Service Consumer element), Mule does the heavy lifting of discovering the type of data that is sent or expected by the service.
-* *DataMapper transformer*: When used in conjunction with a DataSense-enabled Web Service Consumer, DataMapper can automatically extract payload or header metadata from the service that you can map and transform through a visual interface. For example, if you configure a Web Service consumer in your application, then drag a DataMapper after it, the DataMapper uses the information that DataSense extracted to pre-populate the input values for mapping, so that you only need to confirm (or adjust) the selections, then proceed to mapping to your desired output.  In other words, DataSense makes sure that DataMapper _knows_ the data format and structure with which it must work so you don't have to figure it out manually.
-
-For more information on best design-time practices with DataSense and DataMapper, consult the link:/docs/display/current/DataSense#DataSense-DataSenseBestPractices[DataSense documentation].
-
-=== Configuring Web Service Consumer
-
-To prepare an application to use a Web Service as in one of the examples above, you must first add the Web service's WSDL to your Mule project, then configure, at minimum, the required parameters for the Web Service Consumer element and a Global Web Service Consumer element. The diagram and section below describe how to address these requirements.
-
-image:/docs/download/attachments/122752084/wsc_workflow2.png?version=2&modificationDate=1436884877239[image]
-
-[tabs]
-------
-[tab,title="Studio Visual Editor"]
-....
-
-. Begin by acquiring the *WSDL file* for the SOAP Web service you intend to consume, or identifying the *URL of the WSDL*.
-. If you are using a WSDL file, copy the file into the` src/main/resources` folder of your Studio project. (You can drag and drop the file to copy it to the folder.) If using a URL, there is no need to copy anything to your Studio project.
-. Drag a *Web Service Consumer* connector into a flow in your application. Click the Web Service Consumer icon to open its *Properties Editor*, then change the default value of the *Display Name* of the connector, if you wish.
-. Define the Global Configuration of the connector: click the plus sign next to the *Global Configuration* field. 
-. In the window that opens, begin by entering a value in the *WSDL Location* field. Populate this field first, with either the WSDL's URL, or the filepath and filename of the WSDL file you copied into the `src/main/resources` folder of your project. Upon filling this field, you five Studio the opportunity to read the contents of the WSDL and automatically populate the remaining empty fields -- `Service`, `Port` and `Address` -- using information contained in the WSDL file. Alternatively, you can manually populate these fields with the appropriate information about the Web service. 
-
-image:/docs/download/attachments/122752084/wsc_global.png?version=1&modificationDate=1410984989498[image] +
-
-. Confirm that the *Enable DataSense* box is checked, then click *OK* to save.
-. Notice that Studio auto-populates the following fields in the Properties Editor of the Web Service Consumer element in your flow: +
-* *Global Configuration* with the name of the Global Web Service Consumer you just created
-* *Operation* with the name of an operation the Web service supports for its consumers. 
-
-. Adjust the Operation of the Web Service Consumer, if you wish (and if the SOAP Web service indeed offers more than one operation), then click inside the canvas to auto-save your configuration.
-
-image:/docs/download/attachments/122752084/wsc_local.png?version=1&modificationDate=1410984989511[image]
-
-....
-[tab,title="XML Editor or Standalone"]
-....
-
-. Begin by acquiring the *WSDL file* for the SOAP Web service you intend to consume, or identifying the *URL of the WSDL*.
-. If you are using a WSDL file, copy the file into the `src/main/resources` folder of your Studio project. (You can drag and drop the file to copy it to the folder.) If using a URL, there is no need to copy anything to your Studio project.
-. Above all the flows in your application, add a global `ws:consumer-config` element to your application. Configure its attributes according to the code sample below to define how to connect to the Web service you intend to consume. For a full list of elements, attributes and default values, consult  link:#[Web Service Consumer Reference].
-
-[source]
-----
-<ws:consumer-config name="Web_Service_Consumer1" wsdlLocation="src/main/resources/sample_wsdl_2.txt" service="StockQuoteService" port="StockQuotePort" serviceAddress="http://example.com/stockquote" doc:name="Web Service Consumer"/>
-----
-
-. Add a `ws:consumer` element to a flow in your application. Configure its attributes according to the code sample below to define the global Web Service Consumer to reference, and the operation to perform with a request to the Web service. For a full list of elements, attributes and default values, consult  link:#[Web Service Consumer Reference].
-
-[source]
-----
-<ws:consumer doc:name="Web Service Consumer" config-ref="Web_Service_Consumer1" operation="GetLastTradePrice"/>
-----
-
-....
-------
-
-=== Web Service Consumer and DataMapper
-
-As stated above, when used in conjunction with a DataSense-enabled Web Service Consumer, DataMapper can automatically extract payload or header metadata that you can use to map and or transform to a different data format or structure through a visual interface. When you have a configured, DataSense-enabled Web Service Consumer in your flow, you can drop a DataMapper next to it – preceding or following it – and DataMapper automatically extracts the information that DataSense collected from the WSDL about the expected format and structure of the message. 
-
-* If DataMapper *follows* the fully-configured Web Service Consumer, DataMapper pre-populates its *Input values*. 
-* If DataMapper *precedes* the fully-configured Web Service Consumer, DataMapper pre-populates its *Output values* (see below). 
-
-image:/docs/download/attachments/122752084/wsc_dm_output.png?version=1&modificationDate=1410984989467[image]
-
-To take advantage of the Web Service Consumer-DataSense-DataMapper magic, be sure to configure these elements in the following order:
-
-. The *Global Web Service Consumer element*, with DataSense enabled
-. The *Web Service Consumer connector* in a flow in your application, which references the Global Web Service Consumer connector 
-. The *DataMapper transformer*, dropped before or after the Web Service Consumer connector in your flow
-
-Then, simply supply the DataMapper's missing input or output values to "glue the pieces together".
-
-==== Changing Element Type
-
-Where the Web Service Consumer returns sObjects that are abstract types, you can adjust the type of element in your mapping to a different element which extends from the sObject.
-
-For example, imagine you wish to map specific output – name and phone number, perhaps – from a Web service's response to a CSV file. However, a Web service response might return an abstract type such as "records" within which is buried the name and phone number information you wish to map to output values. To access these buried fields, you can change the element type of the input data to select a nested object, such as "Contact" which gives you access to fields such as "FirstName",  "LastName" and "phone number" that you can map to the corresponding output fields in your CSV file.
-
-. First, be sure you have configured a DataSense-enabled Web Service Consumer in your flow, set a DataMapper to follow it, and created your mapping. The example below maps a Web service response to a CSV file with three fields.
-
-image:/docs/download/attachments/122752084/mapping_records.png?version=1&modificationDate=1410984989374[image]
-
-. Because it is impossible to properly map "records" (on the left)  to the three fields in the CSV file (on the right), you must change the element type of the records sObject. To do so, right-click the sObject, then select **Change Element Type…**
-
-image:/docs/download/attachments/122752084/change_element.png?version=1&modificationDate=1410984989291[image]
-
-. In the dialog box that appears, select a new element type, then click *OK*; the example would select "Contacts".
-. DataMapper adjusts the information in the Input panel to present the fields available within the selected element type; in the case of the example, it presents the fields related to Contact information.
-. Proceed to map the input values to the output values in DataMapper.
-
-image:/docs/download/attachments/122752084/able_to_map.png?version=1&modificationDate=1410984989185[image]
-
-==== Adding Custom Headers
-
-SOAP headers should be created as outbound properties. You can do that through the *Property* transformer
-
-[WARNING]
-Outbound properties that begin with a *`soap.`* prefix will be treated as SOAP headers and ignored by the transport. All properties that aren't named with a `soap.` prefix will be treated as transport headers (by default, the WSC uses the HTTP transport).
-
-[tabs]
-------
-[tab,title="Studio Visual Editor"]
-....
-
-image:/docs/download/attachments/122752084/properties+soap.jpg?version=1&modificationDate=1410984989428[image] 
-
-....
-[tab,title="XML Editor"]
-....
-
-[source]
-----
-<set-property propertyName="soap.myProperty" value="#[payload]" doc:name="Property"/>
-----
-
-....
-------
-
-[WARNING]
-====
-When configuring the header manually, the value you pass should have the structure of an XML element, it shouldn't be a plain pair of key and value. Using a set property element, for example, the value of the property must contain the enclosing XML tags, like so:
-
-[source]
-----
-<set-property propertyName="soap.ThisCanLiterallyBeAnything" value="<ns2:authentication xmlns:ns2="http://guidewire.com/ws/soapheaders&quot;&gt;&lt;ns2:username&gt;su&lt;/ns2:username&gt;&lt;ns2:password&gt;gw&lt;/ns2:password&gt;&lt;/ns2:authentication&gt;" doc:name="Property"/>
-<set-property propertyName="soap.Authorization"
-value="<anotherHeader>another value</anotherHeader>"
-doc:name="Property"/>
-----
-
-The example above results in generating the following SOAP message:
-
-[source]
-----
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-    <soap:Header>
-       <ns2:MyHeader xmlns:ns2="http://yournamespace">
-           <something>some content</something>
-       </ns2:MyHeader>
-       <ns2:authentication
-xmlns:ns2="http://guidewire.com/ws/soapheaders">
-           <ns2:username>su</ns2:username>
-           <ns2:password>gw</ns2:password>
-       </ns2:authentication>
-       <anotherHeader>another value</anotherHeader>
-    </soap:Header>
-    <soap:Body>
-       ...
-    </soap:Body>
-</soap:Envelope>
-----
-
-==== Preparing and Mapping SOAP Headers
-
-When used in conjunction with a Web Service Consumer, a DataMapper offers you the option of mapping and transforming a message's payload, properties or variables via the *Type* attribute. Importantly, you can use the value of *Type* to indicate information that DataMapper should map from the message to the SOAP header or SOAP body.
-
-. First, be sure you have configured a DataSense-enabled Web Service Consumer in your flow and set a DataMapper to follow it. Click the DataMapper icon in the canvas to open its *Properties Editor*.
-. Adjust the value of the *Type* fields in the Input and Output panels to map as desired. Note that any property with a value of `soap.` indicates that the the Type is a SOAP header.
-. Click *Create Mapping*, then map the input values to output values as desired.
-
-[TIP]
-Whenever you want to map data to or from both the SOAP header _and_ the SOAP body, you must use two individual DataMapper transformers.  Use one DataMapper to map the headers, and the other DataMapper to map the body.
-
-===== Example Mapping: Message Payload to SOAP Body
-
-image:/docs/download/attachments/122752084/payload2body.png?version=1&modificationDate=1410984989412[image]
-
-===== Example Mapping: Message Payload to SOAP Header
-
-image:/docs/download/attachments/122752084/payload2Header.png?version=1&modificationDate=1410984989419[image]
-
-=== Web Service Consumer and DataSense Explorer
-
-Use the  *link:/docs/display/current/Using+the+DataSense+Explorer[DataSense Explorer]*  feature in Studio to gain design-time insight into the state of the message payload, properties, and variables as it moves through your flow. The DataSense Explorer is mostly useful in understanding the content of a message before it encounters a Web Service Consumer, and after it emerges from the connector so as to better understand the state of the data your application is working with.
-
-The DataSense Explorer in the example below offers information about the Payload, Variables, Inbound Properties and Outbound Properties contained that comprise the message object at the moment the message encounters the Web Service Consumer. Use the *In-Out* toggle at the top of the DataSense Explorer to view metadata of message as it arrives at, or leaves the message processor.
-
-===== Message State Before Web Service Consumer
-
-image:/docs/download/attachments/122752084/metadata_in.png?version=1&modificationDate=1410984989390[image]
-
-===== Message State After Web Service Consumer
-
-image:/docs/download/attachments/122752084/metadata_out.png?version=1&modificationDate=1410984989405[image]
-
-=== Securely Connecting to a SOAP Web Service
-
-Depending upon the level of security employed by a SOAP Web service, you may need to correspondingly secure the requests your Web Service Consumer sends. In other words, any calls you send to a Web service have to adhere to the Web service provider's security requirements. To comply with this requirement, you can configure security settings on your Global Web Service Consumer connector.
-
-[tabs]
-------
-[tab,title="Studio Visual Editor"]
-....
-
-. Within the *Global Web Service Consumer* element's *Global Element Properties* panel, click the *Security* tab
-
-image:/docs/download/attachments/122752084/wsc_security.png?version=1&modificationDate=1410984989519[image]
-
-. Based on the security requirements of the Web service provider, select to apply *Username Token* security, or a *WS-Security Timestamp* or both.
-. Enter values in the required fields. For a full list of elements, attributes and default values, consult  link:/docs/display/current/Web+Service+Consumer+Reference[Web Service Consumer Reference] .
-. Click *OK* to save your security settings.
-
-....
-[tab,title="XML Editor or Standalone"]
-....
-
-Add child elements to the global *` ws:consumer-config `* element you configured in your application. Configure the child elements' attributes according to the code sample below. For a full list of elements, attributes and default values, consult  link:/docs/display/current/Web+Service+Consumer+Reference[Web Service Consumer Reference].
-
-[source]
-----
-...
-    <ws:consumer-config name="OrderWS" wsdlLocation="enterprise.wsdl.xml" service="OrderService" port="Soap" serviceAddress="https://login.orderservice.com/services/Soap/c/22.0" doc:name="Web Service Consumer">
-        <ws:security>
-            <ws:wss-username-token username="test" password="test" passwordType="DIGEST" addCreated="true" addNonce="true"/>
-            <ws:wss-timestamp expires="30000"/>
-        </ws:security>
-    </ws:consumer-config>
-...
-----
-
-....
-------
-
-=== Using Basic Authentication and SSL
-
-If the web service you're connecting to requires basic authentication, you can easily provide your username and password as part of the URL when you reach out to it.
-
-The URL should follow the structure below:
-
-[source]
-----
-http://myUserName:myPassword@hostService
-----
-
-In the Web Service Consumer's Global Element, add a reference to an `http-request-config` element:
-
-[tabs]
-------
-[tab,title="STUDIO Visual Editor"]
-....
-
-. Enter the Web Service Consumer's global configuration element
-. Open the *References* tab
-. Create a new reference by clicking the green plus sign
-
-....
-[tab,title="XML Editor"]
-....
-
-[source]
-----
-<http:request-config host="localhost" port="${port}" name="customConfig">
-        <http:basic-authentication username="user" password="pass" />
-    </http:request-config>
- 
- 
-    <ws:consumer-config wsdlLocation="Test.wsdl" service="TestService" port="TestPort" serviceAddress="http://localhost:${port}/services/Test" connectorConfig="customConfig" name="globalConfig"/>
-----
-
-....
-------
-
-By default, the WSC consumer runs over a default configuration for the link:/docs/display/current/HTTP+Request+Connector[HTTP Request Connector]. If you need it to instead run over a configuration of the connector that uses HTTPS (or an HTTP configuration that is different from the default) follow the steps below:
-
-[tabs]
-------
-[tab,title="Studio Visual Editor"]
-....
-
-. Click the Global Elements tab, below the canvas and create a new Global Element
-image:/docs/download/attachments/122752084/global+elements1.jpg?version=1&modificationDate=1410984989311[image]
-
-. For the Global Element type, select *HTTP Request Configuration*
-
-image:/docs/download/attachments/122752084/http+global+element.png?version=1&modificationDate=1418750346309[image]
-
-. Complete the required fields in the *General* tab (host and port)
-. Then select the *TLS/SSL* tab and configure the fields related to the HTTPS authentication
-
-image:/docs/download/attachments/122752084/ssl+tls.png?version=1&modificationDate=1418751119633[image]
-
-. In your instance of the Web Service Consumer in your flow, click on the green plus sign next to Connector Configuration
-
-image:/docs/download/attachments/122752084/adding+https+ref.jpg?version=1&modificationDate=1410984989212[image]
-
-. In the *References* tab, select your newly created HTTPS Global Element for the *Connector Ref* field
-
-image:/docs/download/attachments/122752084/adding+https+ref2.jpg?version=1&modificationDate=1410984989228[image]
-
-....
-[tab,title="XML Editor"]
-....
-
-. Add an link:/docs/display/current/HTTP+Connector[HTTP Connector] global element in your project, configure it with the necessary security attributes
-
-[source]
-----
-<http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" protocol="HTTPS" doc:name="HTTP_Request_Configuration"/>       
-        <tls:context>
-            <tls:trust-store path="your_truststore_path" password="your_truststore_password"/>
-            <tls:key-store path="your_keystore_path" password="your_keystore_path" keyPassword="your_keystore_keypass"/>
-        </tls:context>
-</http:request-config>
-----
-
-. In your `ws:consumer-config` element, include a `connectorConfig` attribute to reference to this HTTP connector configuration element:
-
-[source]
-----
-<ws:consumer-config name="Web_Service_Consumer" wsdlLocation="tshirt.wsdl.xml" service="TshirtService" port="TshirtServicePort" serviceAddress="http://tshirt-service.cloudhub.io/?wsdl" connectorConfig="HTTP_Request_Configuration"/>
-----
-
-....
-------
-
-==== Referencing the Deprecated HTTP Transport
-
-In order to set alternate HTTP settings, instead of referencing an instance the new HTTP Connector, you can reference an instance of the deprecated HTTP transport and accomplish the same. To add this reference, add a `connector-ref` attribute to the WSC configuration element. The `connectorConfig` and `connector-ref` attributes are mutually exclusive, and both optional.
-
-If none of the two reference attributes are specified, a default instance of the new HTTP connector is used. For backwards compatibility, you can change this behavior and make an instance of the deprecated HTTP Transport the default configuration.  There's a global configuration property that has been added in Mule runtime 3.6, that allows you to change this default behavior:
-
-[source]
-----
-<configuration>
-        <http:config useTransportForUris="true"/>
-    </configuration> 
-----
-
-The deafult value for this attribute is false. When setting this flag to true, Mule falls back to the deprecated HTTP transport to resolve URIs when no transport/connector is specified.
-
-=== Complete Code Example
-
-[tabs]
-------
-[tab,title="STUDIO Visual Editor"]
-....
-
-image:/docs/download/attachments/122752084/final+flow.png?version=1&modificationDate=1418417985134[image]
-
-....
-[tab,title="XML Editor or Standalone"]
-....
-
-[source]
-----
-<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
- 
-    xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"
- 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
- 
-    <ws:consumer-config name="Web_Service_Consumer" wsdlLocation="tshirt.wsdl.xml" service="TshirtService" port="TshirtServicePort" serviceAddress="http://tshirt-service.cloudhub.io/?wsdl" doc:name="Web Service Consumer"/>
- 
-    <data-mapper:config name="xml_listinventoryresponse__to_json" transformationGraphPath="xml_listinventoryresponse__to_json.grf" doc:name="xml_listinventoryresponse__to_json"/>
- 
-    <data-mapper:config name="json_to_xml_ordertshirt_" transformationGraphPath="json_to_xml_ordertshirt_.grf" doc:name="json_to_xml_ordertshirt_"/>
- 
-    <data-mapper:config name="xml_ordertshirtresponse__to_json" transformationGraphPath="xml_ordertshirtresponse__to_json.grf" doc:name="xml_ordertshirtresponse__to_json"/>
- 
-    <data-mapper:config name="string_to_xml_authenticationheader_" transformationGraphPath="string_to_xml_authenticationheader_.grf" doc:name="string_to_xml_authenticationheader_"/>
- 
-    <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
- 
- 
-    <flow name="orderTshirt" doc:name="orderTshirt">
-        <http:listener config-ref="HTTP_Listener_Configuration" path="orders" doc:name="HTTP">
-            <http:response-builder statusCode="200"/>
-        </http:listener>
-        <data-mapper:transform config-ref="json_to_xml_ordertshirt_" doc:name="JSON To Xml&lt;OrderTshirt&gt;"/>
-        <set-variable variableName="apiKey" value="#['abc12345']" doc:name="Set API Key"/>
-        <data-mapper:transform config-ref="string_to_xml_authenticationheader_" input-ref="#[flowVars[&quot;apiKey&quot;]]" target="#[message.outboundProperties[&quot;soap.header&quot;]]" doc:name="String To Xml&lt;AuthenticationHeader&gt;"/>
-        <ws:consumer config-ref="Web_Service_Consumer" operation="OrderTshirt" doc:name="Order Tshirt"/>
-        <data-mapper:transform config-ref="xml_ordertshirtresponse__to_json" doc:name="Xml&lt;OrderTshirtResponse&gt; To JSON" returnClass="java.lang.String"/>
-    </flow>
- 
-    <flow name="listInventory" doc:name="listInventory">
-        <http:listener config-ref="HTTP_Listener_Configuration" path="inventory" doc:name="HTTP">
-            <http:response-builder statusCode="200"/>
-        </http:listener>
-        <ws:consumer config-ref="Web_Service_Consumer" operation="ListInventory" doc:name="List Inventory"/>
-        <data-mapper:transform config-ref="xml_listinventoryresponse__to_json" returnClass="java.lang.String" doc:name="Xml&lt;ListInventoryResponse&gt; To JSON"/>
-    </flow>
- 
-</mule>
-----
-
-....
-------
-
 == See Also
 
-* Learn more about how to use the link:/docs/display/current/Datamapper+User+Guide+and+Reference[DataMapper transformer].
+* Learn more about how to use the link:/docs/display/current/DataWeave[DataWeave transformer].
 * Learn how to publish a REST API in Mule using link:/docs/display/current/Building+Your+API[APIkit].
 * Access the link:/docs/display/current/Mule+Fundamentals[Mule Fundamentals] to learn the basics.
