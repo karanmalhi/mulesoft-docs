@@ -1,0 +1,95 @@
+= Extending the Mule Agent
+
+This document contains an overview of how to extend the Mule agent. It provides instructions on implementing a complete service, external handler and internal hander using a simple method to revert a string.
+
+== Mule Agent Extensible Component
+
+The Mule agent contains the following extensible components:
+
+* link:#ExtendingtheMuleAgent-services[Services]
+* link:#ExtendingtheMuleAgent-ext_mh[External message handers]
+* link:#ExtendingtheMuleAgent-int_mh[Internal message handlers]
+
+== https://github.com/mulesoft/mule-agent/blob/master/mule-agent-documentation/mule-agent-documentation-extending/src/doc/asciidoc/2_mule-agent-component-structure.adoc#mule-agent-custom-component-structure[]Mule Agent Custom Component Structure
+
+A Mule agent custom component should comply with the following structure:
+
+* `/lib` contains component dependencies
+* `/classes` contain compiled classes
+
+For this example, in order to acquire the libraries necessary to extend the agent, add the following dependencies to your `pom.xml`:
+
+The corresponding jar should be added under the `lib` folder within the mule-agent plugin, which is contained in the `plugins` folder of the Mule instance. For example, `$MULE_HOME/plugins/mule-agent/lib/<component name>.jar`.
+
+== Adding a New Service
+
+To add a new service, you must implement the link:#ExtendingtheMuleAgent-MuleAgentService[MuleAgentService] interface.
+
+Considerations for custom services:
+
+* The service can execute any internal handler registered in the Mule Agent environment, by using the `@Inject` annotation.
+* You don't have to follow the Mule Agent architecture in order to create a new service.
+
+=== Writing Your Service
+
+==== Implementing MuleAgentService
+
+To add your new Service, just drop the jar containing your classes under the `lib` folder within the `mule-agent` plugin folder (for example, in `$MULE_HOME/mule-agent/lib`).
+
+=== Revert String Service Example
+
+As explained link:#ExtendingtheMuleAgent-overview[above], this document uses a simple example to explain how to write a full extension to revert a string. The first step is to add a service for this purpose.
+
+== Adding a New External Message Handler
+
+To add a new external message handler, you have to implement the Mule agent link:#ExtendingtheMuleAgent-external_message_handler[ExternalMessageHandler] interface.
+
+Considerations for custom external message handlers:
+
+* The external message handler will be injected into a transport
+* The external message handler must be thread-safe
+* An external message handler is executed by a transport and cannot interact with Mule. *Only Services can interact with Mule*
+
+=== Writing Your External Message Handler
+
+==== https://github.com/mulesoft/mule-agent/blob/master/mule-agent-documentation/mule-agent-documentation-extending/src/doc/asciidoc/4_adding-new-external-message-handler.adoc#rest[]REST
+
+==== WebSockets
+
+To add your new external message handler, just drop the jar containing your classes under the `lib` folder within the `mule-agent` plugin folder (for example, in `$MULE_HOME/mule-agent/lib`).
+
+=== https://github.com/mulesoft/mule-agent/blob/master/mule-agent-documentation/mule-agent-documentation-extending/src/doc/asciidoc/4_adding-new-external-message-handler.adoc#reverse-string-external-message-handler[]Reverse String External Message Handler
+
+Following the Reverse String example, the External Handler is shown below.
+
+The above code exposes a resource under `<your REST transport host>/mule/reverse`.
+
+== Adding a New Internal Message Handler
+
+To add a new internal message handler, you have to implement the link:#ExtendingtheMuleAgent-internal_message_handler[InternalMessageHandler] interface.
+
+Considerations for custom internal message handlers:
+
+* The internal message handler will be injected into a service based on the message types it handles
+* The internal message handler must be thread-safe
+* An internal message handler is executed by a service and cannot interact with Mule. *Only Services can interact with Mule*
+
+=== Writing Your Internal Message Handler
+
+To add your new internal message handler, just drop the jar containing your classes under the `lib` folder within the `mule-agent` plugin folder (for example, in `$MULE_HOME/mule-agent/lib`).
+
+==== Reverse String Internal Message Handler
+
+The code below shows an internal message handler for the reverse string example.
+
+This internal message handler writes the message processed by the service to a file called `revertedString.txt`.
+
+== Mule Agent API Interfaces
+
+=== Mule Service
+
+=== External Message Handler
+
+=== Internal Message Handler
+
+=== Switcher

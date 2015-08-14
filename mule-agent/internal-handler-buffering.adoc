@@ -1,0 +1,44 @@
+= Internal Handler Buffering
+
+The Mule agent provides a simple way of implementing Internal handlers with buffering support. This documents shows how to implement and configure buffers for Mule agent internal handlers.
+
+== Implementing a Buffered Internal Handler
+
+=== BufferedHandler Abstract Class
+
+To implement a buffered internal handler, you need to extend the `BufferedHandler<T>` abstract class. The methods to overwrite are:
+
+*`boolean canHandle(T message)`*
+
+   Returns true if the message can be handled by the internal handler
+
+*`boolean flush(Collection<T> collectionOfMessages)`*
+
+   Provides the implementation to send the messages stored in the buffer to the external service
+
+=== Example
+
+== Configuring a Buffering Internal Handler
+
+=== Buffering Configuration Object
+
+If the internal handler includes buffering support, you can can configure the buffer in the `mule-agent.yml` file. The following table lists the available configuration parameters.
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|Field |Description |Default value
+|`type` |Buffer type. Valid values are `MEMORY` or `DISK`. | 
+|`retryCount` |Number of retries after an exception was thrown in the flush method. | 
+|`maximumCapacity` |Maximum size capacity. | 
+|`flushFrequency` |Frequency at which the flush method will run, in milliseconds. | 
+|`filePath` |Path to the buffer file. Only valid for buffers of type `DISK`. |`PATH/bufferFile`
+|`whenExhausted` |Strategy to follow when the buffer is exhausted. If not specified, the buffer will grow automatically. Valid values are `FAIL` and `FLUSH.` |N/A
+|`flushThreadsNumber` |Number of threads used by the FlushThreadExecutor when the buffer is exhausted and the strategy defined by `whenExhausted` is `FLUSH` (see row above). |`60`
+|`discardMessagesOnFlushFailure` |If true, messages will not be returned to the buffer if the flush is not successful. |`false`
+|===
+
+=== Sample `mule-agent.yml` Files
+
+==== Configuring Buffering in a Publisher
+
+==== Configuring Buffering in Events Tracking
