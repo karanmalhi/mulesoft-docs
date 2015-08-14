@@ -1,4 +1,5 @@
 = Flow Processing Strategies
+:keywords: flow processing, synchronous, asynchronous, sync, async, non-blocking, blocking, cluster
 
 A flow *processing strategy* determines how Mule implements message processing for a given flow. 
 
@@ -35,8 +36,8 @@ Mule selects a processing strategy for a flow based on two criteria:
 
 A flow employs one of two exchange patterns, determined by the exchange pattern of the flow's inbound endpoint:
 
-* A **request-response exchange pattern** is used when the sender of the messages, such as the flow's inbound endpoint expects a response or some kind of result to return to the caller.
-* A **one-way exchange pattern** is used when no response is expected, or when the result is sent to some other flow or system and not back to the caller.
+* A *request-response exchange pattern* is used when the sender of the messages, such as the flow's inbound endpoint expects a response or some kind of result to return to the caller.
+* A *one-way exchange pattern* is used when no response is expected, or when the result is sent to some other flow or system and not back to the caller.
 
 If the exchange pattern is request-response, Mule applies a synchronous processing strategy. 
 
@@ -96,7 +97,7 @@ The procedure to change a processing strategy for an individual flow is straight
 
 The most frequent use case for specifying a processing strategy is to force a flow that would otherwise be queued-asynchronous to be synchronous instead. To force a flow to be synchronous, add the `processingStrategy` attribute to the flow that you want to change and set it to `synchronous`. This is illustrated in the code example below.
 
-[source]
+[source, xml]
 ----
 <flow name="asynchronousToSynchronous" processingStrategy="synchronous">
   <vm:inbound-endpoint path="anyUniqueEndpointName" exchange-pattern="one-way"/>
@@ -134,7 +135,7 @@ The following example defines a global processing strategy (`queued-asynchronous
 * Is asynchronous, because it refers to the queued-asynchronous processing strategy
 * Allows up to 500 concurrent threads, because of the value set for `maxThreads`
 
-[source]
+[source, xml]
 ----
 <queued-asynchronous-processing-strategy name="allow500Threads" maxThreads="500"/>
  
@@ -209,7 +210,7 @@ If neither the synchronous nor queued-asynchronous processing strategies fit you
 
 The following code example illustrates a custom processing strategy:
 
-[source]
+[source, xml]
 ----
 <custom-processing-strategy name="customStrategy" class="org.mule.CustomProcessingStrategy">
   <spring:property name="threads" value="500"/>
@@ -223,7 +224,7 @@ You can use a named processing strategy, either a custom processing strategy tha
 * Declare the processing strategy, as in the following:  
 +
 
-[source]
+[source, xml]
 ----
 <queued-asynchronous-processing-strategy name="allow500Threads" maxThreads="500"/>
 ----
@@ -231,7 +232,7 @@ You can use a named processing strategy, either a custom processing strategy tha
 * Refer to it in appropriate flows, for instance:
 +
 
-[source]
+[source, xml]
 ----
 <flow name="acceptOrders" processingStrategy="allow500Threads">
   <vm:inbound-endpoint path="acceptOrders" exchange-pattern="one-way"/>

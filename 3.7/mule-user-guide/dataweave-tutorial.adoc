@@ -1,4 +1,5 @@
 = DataWeave Tutorial
+:keywords: studio, anypoint, esb, transform, transformer, format, aggregate, rename, split, filter convert, xml, json, csv, pojo, java object, metadata, dataweave, data weave, datamapper, dwl, dfl, dw, output structure, input structure
 
 *_Enterprise_*
 
@@ -26,7 +27,7 @@ image:/docs/download/attachments/132351219/new+weave.png?version=1&modificationD
 . In the transform section of the editor, change the DataWeave code so that it looks like this:
 +
 
-[source]
+[source, ruby]
 ----
 %dw 1.0
 %output application/xml
@@ -52,7 +53,7 @@ image:/docs/download/attachments/132351219/tut12.png?version=1&modificationDate=
 Try pasting this:
 +
 
-[source]
+[source, json]
 ----
 {"abc":
     {
@@ -68,7 +69,7 @@ Try pasting this:
 . Using a tool like Postman (chrome extension), send an HTTP POST request to http://localhost:8081/ex1 with any JSON content you want in the request body. You should get a response with an XML body that has the same data and structure as the input. +
 For example, if you send a request with this body:
 
-[source]
+[source, json]
 ----
 {"ccc":
     {
@@ -81,7 +82,7 @@ For example, if you send a request with this body:
 
 You should get this in the body of the response:
 
-[source]
+[source, xml]
 ----
 <?xml version='1.0' encoding='UTF-8'?>
 <ccc>
@@ -95,13 +96,9 @@ You should get this in the body of the response:
 </ccc>
 ----
 
-Code for example
-////
-[collapsed content]
-
 *Mule XML Code:*
 
-[source]
+[source, xml]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
     <flow name="dataweave_example1">
@@ -117,11 +114,10 @@ payload
         </dw:transform-message>
     </flow>
 ----
-////
 
 *DataWeave Code:*
 
-[source]
+[source, ruby]
 ----
 %dw 1.0
 %output application/xml
@@ -135,22 +131,19 @@ In this example, the data you get as an input is not only in a different format 
 
 Suppose that you want to send a SOAP request to a web service that makes money conversions from one currency to another, based on information you get from a sales tracking software you use that outputs data in a different structure. The external service needs a JSON input with values for the following set of keys:
 
-[source]
-----
-size,
-    email,
-    name,
-    address1,
-    address2,
-    city,
-    stateOrProvince,
-    postalCode,
-    country
-----
+* size
+* email
+* name
+* address1
+* address2
+* city
+* stateOrProvince
+* postalCode
+* country
 
 In this example, imagine that the output that you get from your sales tracking software follows the structure of this sample JSON file:
 
-[source]
+[source, json]
 ----
 {
     "product":{
@@ -212,7 +205,7 @@ image:/docs/download/attachments/132351219/ex2+flow.png?version=1&modificationDa
 . Note that, as this time there's metadata available in the flow the Transform Message element builds a complete scaffolding for your code with placeholders for everything that needs to be in the output:
 +
 
-[soure]
+[source, ruby]
 ----
 %dw 1.0
 %output application/xml
@@ -239,7 +232,7 @@ The expected output of the transform is an XML with a specific set of values. Th
 . As this time there's metadata about the data coming into the Transform Message element, note that if you select the *Payload* in the input section and click the *edit icon* at the top, the new payload tab that opens up already shows a sample input built from the JSON example you provided the HTTP Connector:
 +
 
-[source]
+[source, json]
 ----
 {
   "product": {
@@ -275,7 +268,7 @@ image:/docs/download/attachments/132351219/initial+full+dw.png?version=1&modific
 . Edit the provided DataWeave scaffolding to fill in the placeholders for the required output fields with references to your input:
 +
 
-[source]
+[source, ruby]
 ----
 %dw 1.0
 %output application/xml
@@ -302,7 +295,7 @@ In the code above, the fields are mostly populated with references to elements i
 . We can make this a little more interesting by changing the literal expression that populates "size" into a conditional expression. See how the line that defines "size" has changed, it sets it to "M" unless the buyer's state is Texas, then it makes the shirt "XXL".
 +
 
-[source]
+[source, ruby]
 ----
 %dw 1.0
 %output application/xml
@@ -328,7 +321,7 @@ In the code above, the fields are mostly populated with references to elements i
 . Save your Mule project and Deploy it to Studio's virtual server to try it out by right-clicking on the project and selecting `Run As -> Mule Application`.
 . Using a tool like Postman (chrome extension), send an HTTP POST request to http://localhost:8081/ex2 with a JSON body like the one below:
 
-[source]
+[source, json]
 ----
 {
     "product":{
@@ -357,11 +350,9 @@ In the code above, the fields are mostly populated with references to elements i
 
 You should get a response with an XML body that has a single value, this is the order ID for the shirt order you just placed.
 
-Code for example
-////
-[collapsed content]
+*Mule XML Code:*
 
-[source]
+[source, xml]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
     <ws:consumer-config name="Web_Service_Consumer" wsdlLocation="http://tshirt-service.cloudhub.io/?wsdl" service="TshirtServicePortTypeService" port="TshirtServicePortTypePort" serviceAddress="http://tshirt-service.cloudhub.io/" doc:name="Web Service Consumer"/>
@@ -394,7 +385,7 @@ Code for example
 
 *DataWeave Code:*
 
-[source]
+[source, ruby]
 ----
 %dw 1.0
 %output application/xml
@@ -414,7 +405,7 @@ Code for example
     }
 }
 ----
-////
+
 
 == Rearranging your Input
 
@@ -423,7 +414,7 @@ Code for example
 Back in the properties editor of the Salesforce connector, select the operation *Query*. In the *Query Text* field below, write the following simple query:
 +
 
-[source]
+[source, sql]
 ----
 SELECT Name, Email, Id, Title  FROM Contact
 ----
@@ -443,7 +434,7 @@ image:/docs/download/attachments/132351219/ex3+flow.png?version=1&modificationDa
 . Note that in the input section of the editor, there already is an additional *Payload* tab that shows a sample input with placeholders for its fields. As the type of the input is a POJO, the object is displayed as described through a DataWeave transform:
 +
 
-[source]
+[source, ruby]
 ----
 %dw 1.0
 %output application/java
@@ -460,7 +451,7 @@ image:/docs/download/attachments/132351219/ex3+flow.png?version=1&modificationDa
 This sample gives you a clear reference of how the incoming data is structured and how you can reference each value. This sample input is also used to produce a sample output in the output section. Flesh it out to make it into more helpful data, for example paste this in its place:
 +
 
-[source]
+[source, ruby]
 ----
 %dw 1.0
 %output application/java
@@ -496,7 +487,7 @@ This sample gives you a clear reference of how the incoming data is structured a
 . In the transform section, Write the following DataWeave code:
 +
 
-[source]
+[source, ruby]
 ----
 %dw 1.0
 %output application/json
@@ -508,7 +499,7 @@ roles: payload groupBy $.Title
 The output you're creating is an object. When objects have a single element, there's no need to wrap it in curly brackets, as is necessary when it has multiple elements. This top level object with a single element in it named "roles" which in turn holds an object that contains everything else. Its contents are gouped by the "$.Title" field, which is an expression evaluated in the context of every contact in the input array. The output section of the editor should display this:
 +
 
-[source]
+[source, json]
 ----
 {
   "roles": {
@@ -552,12 +543,10 @@ Each different available value for "title" will have a corresponding element ins
 . Using any browser you want, make a request to http://localhost:8081/ex3. You should get a response with an JSON body that contains a top level object, and inside it the object "roles" that has each different title as an element, each of these containing an array of objects with each contact in your Salesforce Account that matches its title.
 
 Code for example
-////
-[collapsed content]
 
 *Mule XML Code:*
 
-[source]
+[source, xml]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
     <sfdc:config name="Salesforce__Basic_authentication" username="xxxx" password="xxxx" doc:name="Salesforce: Basic authentication" securityToken="xxxx"/>
@@ -580,7 +569,7 @@ roles: payload groupBy $.Title
 
 *DataWeave Code:*
 
-[source]
+[source, ruby]
 ----
 %dw 1.0
 %input payload application/java
@@ -588,17 +577,14 @@ roles: payload groupBy $.Title
 ---
 roles: payload groupBy $.Title
 ----
-////
+
 
 == Code for Full Project
 
-Full Code for Mule Project
-////
-[collapsed content]
 
 *Mule XML Code:*
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 
@@ -661,7 +647,7 @@ roles: payload groupBy $.Title
     </flow>
 </mule>
 ----
-////
+
 
 == Also See
 

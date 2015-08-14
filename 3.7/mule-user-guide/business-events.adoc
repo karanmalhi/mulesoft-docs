@@ -1,6 +1,7 @@
 = Business Events 
+:keywords: anypoint, studio, esb, business events
 
-_Enterprise Edition / CloudHub_
+*_Enterprise Edition / CloudHub_*
 
 Mule can collect *business events* information for the flows and message processors handling your business transactions. Business events information can include transaction execution time, errors, and results (successful completion or failure), and message payload information, which you can customize using link:/docs/display/current/Mule+Expression+Language+MEL[Mule Expression Language (MEL)] . Using CloudHub Insight or Mule Management Console, you can monitor these events at runtime to  analyze the root cause of failures, isolate performance bottlenecks, and test for compliance to company procedures. 
 
@@ -19,9 +20,6 @@ Refer to the following pages for information about runtime business event tracki
 * How to link:/docs/display/current/Tracking+and+Querying+Business+Events[query and filter transactions and events] in the Mule Management Console
 * Business event tracking link:/docs/display/current/Business+Events+Use+Cases[use cases] for Mule Management Console 
 
-[width="99a",cols="99a"]
-|===
-|
 [NOTE]
 ====
 *Terminology*
@@ -31,16 +29,14 @@ It is important to understand some terminology before going further.
 * *Transactions* are logical groupings of related events, and often correspond to a business view of the system. Transactions map to flows.
 * *Events* are low-level details of a transaction. Events map to message processors and connectors. Events can also be exceptions and custom events. All events, except for custom events, are considered default events.
 ====
-|===
 
-[width="99a",cols="99a"]
-|===
-|
+
+
 [WARNING]
 ====
 link:/docs/display/current/Batch+Processing[Batch processing] does not support the use of Business Events.
 ====
-|===
+
 
 * link:#BusinessEvents-CodeSummaries[Skip to the code]
 
@@ -94,11 +90,9 @@ In this example, a custom event with the event name "success" is fired if the de
 ....
 [tab,title="Studio or Standalone XML"]
 ....
-[width="99a",cols="99a"]
-|===
-|Configure a custom event using XML as in the following example:
+Configure a custom event using XML as in the following example:
 
-[source]
+[source, xml]
 ----
 <flow name="flow">
 ...
@@ -110,7 +104,7 @@ In this example, a custom event with the event name "success" is fired if the de
 
 When you define a custom event, you can also add metadata. Use link:/docs/display/current/Mule+Expression+Language+MEL[Mule expression language] in the value to capture information from the message payload.
 
-[source]
+[source, xml]
 ----
 <flow name="flow">
 ...
@@ -127,7 +121,7 @@ When you define a custom event, you can also add metadata. Use link:/docs/displa
 
 You can even add text to the expression language, as shown in the following example:
 
-[source]
+[source, xml]
 ----
 <flow name="flow">
 ...
@@ -141,7 +135,7 @@ You can even add text to the expression language, as shown in the following exam
 
 Also, metadata can be shared among events using the `tracking:custom-event-template` global element:
 
-[source]
+[source, xml]
 ----
 <tracking:custom-event-template name="template">
   <tracking:meta-data key="tier-level" value="platinum" />
@@ -156,7 +150,7 @@ Also, metadata can be shared among events using the `tracking:custom-event-templ
 
 And you can define how conditional custom events are fired. The code below shows how to do this:
 
-[source]
+[source, xml]
 ----
 <choice>
   <when expression="INVOCATION:debugflag = on" evaluator="header">
@@ -169,7 +163,6 @@ And you can define how conditional custom events are fired. The code below shows
 ----
 
 In this last example, a custom event with the event name "success" is fired if the debug flag is on when the message processor is invoked. Otherwise, a custom event with the event name "failure" is fired.
-|===
 ....
 ------
 
@@ -186,8 +179,6 @@ Event tracking requires some processing and network overhead to aggregate and st
 [NOTE]
 ====
 Message processor or connector level configuration takes precedence over flow level configuration.
-
- Click for examples
 
 * if you want to enable all default events for a specific flow:
 
@@ -225,7 +216,7 @@ If you wish, you can disable tracking for specific processors or connectors to o
 |===
 Include the attribute `tracking:enable-default-events="true"` at the level of your flow in your XML, as in the following example:
 
-[source]
+[source, xml]
 ----
 <flow name="flow" tracking:enable-default-events="true">
   ...
@@ -234,7 +225,7 @@ Include the attribute `tracking:enable-default-events="true"` at the level of yo
 
 This enables event tracking for all supported elements in the flow. If you wish, you can disable tracking for specific processors or connectors to override the flow-level enablement. For example, the code below specifies that although the flow has tracking enabled for default events, tracking is disabled for the All router.
 
-[source]
+[source, xml]
 ----
 <flow name="flow" tracking:enable-default-events="true">
   ...
@@ -245,7 +236,7 @@ This enables event tracking for all supported elements in the flow. If you wish,
 
 Optionally, you can define a transaction ID so that meaningful information, such as an order number, is displayed for a transaction. If you do not customize the transaction ID, Mule assigns a numeric transaction ID by default. To make the ID more user-friendly for your business needs, you can customize it with link:/docs/display/current/Mule+Expression+Language+MEL[Mule expression language]:
 
-[source]
+[source, xml]
 ----
 <flow name="flow">
   ...
@@ -281,7 +272,7 @@ Not all building blocks support default event tracking. If the checkbox is not p
 |===
 To enable default events tracking for a specific element in a flow, add the attribute `tracking:enable-default-events="true"` to the element, as shown here for the All router:
 
-[source]
+[source, xml]
 ----
 <flow name="flow">
   ...
@@ -316,7 +307,7 @@ image:/docs/download/attachments/122752234/transactionID.png?version=1&modificat
 [width="99a",cols="99a"]
 |===
 |
-[source]
+[source, xml]
 ----
 <flow name="flow">
 ...
@@ -338,11 +329,9 @@ There are a number of recommended practices for setting up your business event t
 
 == Code Summaries
 
- > Namespace
-////
-[collapsed content]
+*Namespace*:
 
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -354,13 +343,10 @@ There are a number of recommended practices for setting up your business event t
    ...
 </mule>
 ----
-////
 
- > Example of custom event tracking
-////
-[collapsed content]
+*Example of custom event tracking*:
 
-[source]
+[source, xml]
 ----
 <flow name="flow">
 ...
@@ -374,13 +360,11 @@ There are a number of recommended practices for setting up your business event t
 ...
 </flow>
 ----
-////
 
- > Example of default event tracking at the flow level
-////
-[collapsed content]
 
-[source]
+*Example of default event tracking at the flow level*:
+
+[source, xml]
 ----
 <flow name="flow">
 ...
@@ -394,12 +378,10 @@ There are a number of recommended practices for setting up your business event t
 ...
 </flow>
 ----
-////
 
- > Example of default event tracking at the message processor level
-////
-[collapsed content]
-[source]
+*Example of default event tracking at the message processor level*:
+
+[source, xml]
 ----
 <flow name="flow">
   ...
@@ -407,13 +389,11 @@ There are a number of recommended practices for setting up your business event t
   ...
 </flow>
 ----
-////
 
- > Example of customized transaction Id
-////
-[collapsed content]
+*Example of customized transaction Id*:
 
-[source]
+
+[source, xml]
 -----
 <flow name="flow">
 ...
@@ -421,7 +401,7 @@ There are a number of recommended practices for setting up your business event t
 ...
 </flow>
 ----
-////
+
 
 == See Also
 
