@@ -1,4 +1,5 @@
 = APIkit Beyond the Basics
+:keywords: apikit, rest, raml, load balancer
 
 Beyond the link:/docs/display/current/APIkit+Basic+Anatomy[Basic Anatomy of APIkit], there are a few features and functionalities worth exploring a little deeper. This document highlights these elements, describing why they may be useful when building a REST API.
 
@@ -19,7 +20,7 @@ Notice that the name of each flow corresponds to the resource-action pairing. F
 ------
 [tab,title="RAML"]
 ....
-[source]
+[source,yaml,linenums]
 ----
 /machines:
   type: base
@@ -50,7 +51,7 @@ Notice that the name of each flow corresponds to the resource-action pairing. F
 ....
 [tab,title="Backend Flow"]
 ....
-[source]
+[source,yaml,linenums]
 ----
 /machines:
   type: base
@@ -113,7 +114,7 @@ On the right is part of a RAML file that provides an example of the body of a pa
 
 image:/docs/download/attachments/122752392/body.jpg?version=1&modificationDate=1413495740872[image]
 
-[source]
+[source,yaml,linenums]
 ----
 /sales:
   type: collection
@@ -172,7 +173,7 @@ When you begin a new APIkit project, Studio auto-generates a main flow and sever
 
 By default, Studio generates five exception strategy mappings which handle five widely-used HTTP status code responses. See code below. 
 
-[source]
+[source,xml,linenums]
 ----
 <apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping">
         <apikit:mapping statusCode="404">
@@ -299,7 +300,7 @@ image:/docs/download/attachments/122752392/mapping2.png?version=1&modificationDa
 . To your project, above all the flows, add a global *`apikit:config`* element, configuring the attributes according to the table below.
 +
 
-[source]
+[source,xml,linenums]
 ----
 <apikit:config name="Router" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router">
     </apikit:config>
@@ -318,7 +319,7 @@ image:/docs/download/attachments/122752392/mapping2.png?version=1&modificationDa
 . Add an `apikit:flow mapping` child element to the `apikit:config` element. Configure the attributes according to the table below to map the 1:1:1 relationship of *Resource* : *Action* : *Flow* so that calls to a particular resource using a particular method route appropriately to the backend flow that performs the activity.
 +
 
-[source]
+[source,xml,linenums]
 ----
 <apikit:config name="Router" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router">
         <apikit:flow-mapping resource="/machines" action="get" flow-ref="get:/machines:apiConfig"/>
@@ -327,17 +328,17 @@ image:/docs/download/attachments/122752392/mapping2.png?version=1&modificationDa
 
 +
 [cols=",",options="header",]
-|=======
+|===
 |Attribute |Value
 |*resource* |The name of the resource in the RAML file.
 |*action* |The name of the action in the RAML file.
 |*flow-ref* |The name of the backend flow which performs the activity to produce a response for the call.
-|=======
+|===
 
 . Repeat step 2 for each resource-action pairing in your API Definition file (i.e. RAML file).
 . To your project, add a new flow called main. Into the flow, insert a request-response *HTTP connector*, and an *APIkit router*. In the APIkit router, include an attribute called *`config-ref`* with a value that identifies the global mapping element you created above.
 
-[source]
+[source,xml,linenums]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081"/>
     <flow name="main" doc:name="main">
@@ -360,7 +361,7 @@ Read more about `!includes` in the https://github.com/raml-org/raml-spec/blob/ma
 ------
 [tab,title="Defined in Master"]
 ....
-[source]
+[source,yaml,linenums]
 ----
 #%RAML 0.8
 ---
@@ -391,7 +392,7 @@ schemas:
 ....
 [tab,title="Defined in External File"]
 ....
-[source]
+[source,yaml,linenums]
 ----
 #%RAML 0.8
 ---
@@ -486,7 +487,7 @@ To host the console in a separate flow:
 . If you selected a URI with a _different host and/or port_ than you use in your router flow, add a `cors:validate` element to your router flow. Do this in the XML configuration view, adding the `cors:validate` element as shown below.
 +
 
-[source]
+[source,xml,linenums]
 ----
 <flow name="routerFlow" doc:name="routerFlow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="api" doc:name="HTTP Connector"/>
@@ -503,7 +504,7 @@ The `cors:validate` element allows the console to access the router configurati
 image:/docs/download/attachments/122752392/consoleflow.png?version=1&modificationDate=1413495740895[image]
 +
 
-[source]
+[source,xml,linenums]
 ----
 <flow name="apiFlow1" doc:name="apiFlow1">
         <http:listener config-ref="HTTP_Listener_Configuration" path="consoletest" doc:name="HTTP Connector"/>
