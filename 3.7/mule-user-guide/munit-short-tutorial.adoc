@@ -1,4 +1,5 @@
 = MUnit Short Tutorial
+:keywords: mule, esb, tests, qa, quality assurance, verify, functional testing, unit testing, stress testing
 
 == Overview
 
@@ -16,7 +17,7 @@ The sample code for this tutorial is fairly simple, but it uses some of Mule’s
 . It extracts data from the request to route a message through the application.
 . It decides how to create a response.
 
-[source]
+[source, xml]
 ----
 <mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
     xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -70,7 +71,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 
 We’ll analyze the above code by breaking it up into sections. The first section is the entry point of the application, which contains the HTTP listener in `exampleFlow`.
 
-[source]
+[source, xml]
 ----
 <flow name="exampleFlow">                                                                                                 (1)
     <http:listener config-ref="HTTP_Listener_Configuration" path="/" allowedMethods="GET" doc:name="HTTP"/>
@@ -99,7 +100,7 @@ We’ll analyze the above code by breaking it up into sections. The first sectio
 
 The second part of the app, `exampleFlow2`, is basically for routing. It does not perform any real action over the message or its payload. Rather, it delegates that to two other subflows, based on the payload received as input.
 
-[source]
+[source, xml]
 ----
 <flow name="exampleFlow2">
     <choice doc:name="Choice">
@@ -119,7 +120,7 @@ The second part of the app, `exampleFlow2`, is basically for routing. It does no
 
 Finally we have the various subflows called `exampleSub_Flow<number>`, whose only task is to set a value for an _invocation_ variable named `my_variable`.
 
-[source]
+[source, xml]
 ----
 <sub-flow name="exampleSub_Flow1">
     <set-variable variableName="my_variable" value="#['var_value_1']" doc:name="my_variable"/>    (1)
@@ -137,10 +138,8 @@ Finally we have the various subflows called `exampleSub_Flow<number>`, whose onl
 
 Below is the MUnit Test Suite file:
 
-[source]
+[source, xml]
 ----
-
- 
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:mock="http://www.mulesoft.org/schema/mule/mock"
     xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
     xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core"
@@ -267,7 +266,7 @@ Each MUnit test file _must_ contain the following three beans:
 
 These are shown in the snippet below:
 
-[source]
+[source, xml]
 ----
 <munit:config name="munit" doc:name="Munit configuration"/>
  
@@ -290,7 +289,7 @@ This flow contains a `choice` router, which provides two different paths that th
 [NOTE]
 In a real application, always test all possible paths.
 
-[source]
+[source, xml]
 ----
 <flow name="exampleFlow2">
   <choice doc:name="Choice">
@@ -306,7 +305,7 @@ In a real application, always test all possible paths.
 
 We’ll start with the first path.
 
-[source]
+[source, xml]
 ----
 <munit:test name="doc-test-exampleFlow2Test1" description="Validate calls to sub flows are being done properly ">
   <munit:set payload="#['payload_1']" doc:name="Set Message payload == payload_1"/>                         (1)
@@ -353,7 +352,7 @@ When mocking or verifying a sub-flow and using the `name` attribute, always use 
 
 So far we have only tested one branch of `exampleFlow2`; we need to test the other one. To do that, we will add another test.
 
-[source]
+[source, xml]
 ----
 <munit:test name="doc-test-exampleFlow2Test2" description="Validate calls to sub flows are being done properly ">
   <munit:set payload="#['payload_2']" doc:name="Set Message payload == payload_2"/>
@@ -370,7 +369,7 @@ So far we have only tested one branch of `exampleFlow2`; we need to test the oth
 
 As you can see, this test is very similar to the first, except for one crucial change:
 
-[source]
+[source, xml]
 ----
 <munit:set payload="#['payload_2']" doc:name="Set Message payload == payload_2"/>
 ----
@@ -386,7 +385,7 @@ The most complex flow in this application is the last flow, `exampleFlow`.
 
 This flow contains a `choice` router, which provides two different paths that the code can follow. As in the previous case, we will test both of them.
 
-[source]
+[source, xml]
 ----
 <flow name="exampleFlow">
   <http:listener config-ref="HTTP_Listener_Configuration" path="/" allowedMethods="GET" doc:name="HTTP"/>
@@ -409,7 +408,7 @@ This flow contains an `http-listener`, but in order to show you different scenar
 
 As with our first flow, here we’ll start with the first path contained in the flow.
 
-[source]
+[source, xml]
 ----
 <munit:test name="doc-test-exampleFlow-unit-Test_1" description="Unit Test case asserting scenario 1">
  
@@ -446,7 +445,7 @@ The first thing to notice in this test is that we are defining _mocks_. Mocks ar
 
 The first mock we define is for the `set-payload` message processor. We do this because this message processor expects a certain set of inbound variables, but we won’t send them in this test — hence, for the code to succeed we need to mock the behavior of the `set-payload` message processor.
 
-[source]
+[source, xml]
 ----
 <mock:when messageProcessor="mule:set-payload" doc:name="Mock">
   <mock:with-attributes>
@@ -467,7 +466,7 @@ The purpose of `exampleFlow2` was to set the value of the invocation variable `m
 
 Now that our two mocks are in place, we’ll run the production code:
 
-[source]
+[source, xml]
 ----
 <flow-ref name="exampleFlow" doc:name="Flow-ref to exampleFlow"/>
 ----
@@ -483,7 +482,7 @@ As you can see, we are validating that the payload returned is equal to that set
 
 Now we’ll test the other branch.
 
-[source]
+[source, xml]
 ----
 <munit:test name="doc-test-exampleFlow-unit-Test_2" description="Unit Test case asserting scenario 2">
     <mock:when messageProcessor="mule:set-payload" doc:name="Mock">
@@ -516,7 +515,7 @@ This test looks very similar, but as you can see there are two crucial differenc
 
 First difference:
 
-[source]
+[source, xml]
 ----
 <mock:invocation-property key="my_variable" value="#['var_value_2']"/> 
 ----
@@ -525,7 +524,7 @@ When mocking `exampleFlow2`, we’re telling it to return a variable with a diff
 
 Second difference:
 
-[source]
+[source, xml]
 ----
 <munit:assert-payload-equals message="oops, wrong payload!" expectedValue="#['response_payload_2']" doc:name="Assert Payload"/>
 ----
@@ -542,7 +541,7 @@ In previous tests, we mocked the first message processor of `exampleFlow` becaus
 
 exampleFlow - Functional test
 
-[source]
+[source, xml]
 ----
 <munit:test name="doc-test-exampleFlow-functionalTest_1" description="Funtional Test case asserting scenario 1">
     <munit:set payload="#['']" doc:name="Set Message url_key:payload_1">
@@ -559,7 +558,7 @@ This test is very similar to the others for `exampleFlow`, without the mocks.
 
 Let’s check again the implementation of `exampleFlow`, specifically the `set-payload`:
 
-[source]
+[source, xml]
 ----
 <set-payload value="#[message.inboundProperties['http.query.params']['url_key']]" doc:name="Set Original Payload"/>
 ----
@@ -568,7 +567,7 @@ The `set-payload` message processor is expecting the message to have a inbound p
 
 The code below shows how to create such a message:
 
-[source]
+[source, xml]
 ----
 <munit:set payload="#['']" doc:name="Set Message url_key:payload_1">
     <munit:inbound-properties>

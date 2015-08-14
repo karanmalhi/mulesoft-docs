@@ -1,4 +1,5 @@
 = NetSuite Connector
+:keywords: anypoint studio, esb, connector, endpoint, netsuite
 
 *_Select_*
 
@@ -55,7 +56,7 @@ To use the NetSuite connector in a Mule application project:
  image:/docs/download/attachments/132350698/filenew.png?version=1&modificationDate=1436449315876[image]
 
 . Enter a name for your new project and leave the remaining options with their default values.   +
- image:/docs/download/attachments/132350698/NetSuite+New.png?version=1&modificationDate=1436449614262[image] +
+image:/docs/download/attachments/132350698/NetSuite+New.png?version=1&modificationDate=1436449614262[image]
 
 . If you plan to use Git, select **Create a .gitignore file** for the project with default ignores for Studio Projects, and then click *Next*.
 . Click *Finish* to create the project.
@@ -103,7 +104,7 @@ image:/docs/download/attachments/132350698/Global+Configuration.jpg?version=1&mo
 |*Endpoint* a|
 Enter the URL of the service endpoint.
 
-[WARNING]
+[NOTE]
 Make sure that the endpoint uses the version of NetSuite that the connector supports.
 
 |*Separator* |Enter the separator used to support the keys that are required to provide a better support for custom fields.
@@ -114,7 +115,7 @@ To use the SSO Login Authentication, enable this feature in your sandbox environ
 For this mapping, start by generating a token using the SSO Kit provided by NetSuite. To establish the mapping, invoke the SuiteTalks Web Service API call `mapSso` using an external Java application or any other method of your choice. A sample SOAP request of the `mapSso` API call looks as follows:
 
 +
-[source]
+[source, xml]
 ----
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:messages_2015_1.platform.webservices.netsuite.com" xmlns:urn1="urn:core_2015_1.platform.webservices.netsuite.com">
    <soapenv:Header></soapenv:Header>
@@ -161,7 +162,7 @@ For this mapping, start by generating a token using the SSO Kit provided by NetS
 . Ensure that you include the NetSuite namespaces in your configuration file.
 +
 
-[source]
+[source, xml]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -181,21 +182,21 @@ For this mapping, start by generating a token using the SSO Kit provided by NetS
 . Create a global NetSuite configuration outside and above your flows, using one of the following global configuration codes:
 +
 
-[source]
+[source, xml]
 ----
 <netsuite:config-login-authentication name="NetSuite" email="${email}" password="${password}" account="${account}" roleId="${roleId}" />
 ----
 
 +
 
-[source]
+[source, xml]
 ----
 <netsuite:config-request-level-authentication name="NetSuite" email="${email}" password="${password}" account="${account}" roleId="${roleId}" />
 ----
 
 +
 
-[source]
+[source, xml]
 ----
 <netsuite:config-sso-login-authentication name="NetSuite" email="${email}" password="${password}" account="${account}" roleId="${roleId}" />
 ----
@@ -328,7 +329,7 @@ image://https://developer.mulesoft.com/docs/download/attachments/132350698/NetSu
 . Add a *netsuite:config* element to your project, then configure its attributes according to the  table below.
 +
 
-[source]
+[source, xml]
 ----
 <netsuite:config-login-authentication name="NetSuite" email="email@youremail.com"
     password="netsuite_password" account="netsuite_account" roleId="netsuite_role"
@@ -350,7 +351,7 @@ image://https://developer.mulesoft.com/docs/download/attachments/132350698/NetSu
 .  Create a Mule flow with an HTTP endpoint, configuring the endpoint as follows:  
 +
 
-[source]
+[source, xml]
 ----
 <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" path="accountWithCustomFields" doc:name="HTTP"/>
 ----
@@ -370,7 +371,7 @@ image://https://developer.mulesoft.com/docs/download/attachments/132350698/NetSu
 . Add a *set-payload* element to set the message payload in the flow.
 +
 
-[source]
+[source, xml]
 ----
 <set-payload value="#[['name':message.inboundProperties['name'],'lastname':message.inboundProperties['lastname'],'e-mail':message.inboundProperties['email'],'externalId':message.inboundProperties['externalId']]]" doc:name="Set Payload"/>
 ----
@@ -378,7 +379,7 @@ image://https://developer.mulesoft.com/docs/download/attachments/132350698/NetSu
 . Add a **data-mapper** element to pass the message payload to NetSuite.
 +
 
-[source]
+[source, xml]
 ----
 <data-mapper:transform config-ref="Map_To_EMPLOYEE" doc:name="Map To EMPLOYEE"/>
 ----
@@ -386,7 +387,7 @@ image://https://developer.mulesoft.com/docs/download/attachments/132350698/NetSu
 . Add a *netsuite:add-record* element to your flow as follows:
 +
 
-[source]
+[source, xml]
 ----
 <netsuite:add-record config-ref="Netsuite" doc:name="Netsuite Add Record" recordType="EMPLOYEE"/>
 ----
@@ -413,7 +414,7 @@ Type
 . Add a *json:object-to-json-transformer* element to the flow to capture the response from the NetSuite connector and display it as an HTTP response. 
 +
 
-[source]
+[source, xml]
 ----
 <json:object-to-json-transformer doc:name="Object to JSON"/>
 ----
@@ -436,7 +437,7 @@ Note that for this example code to work, you must manually configure the followi
 * Role ID
 ====
 
-[source]
+[source, xml]
 ----
 <mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite"
     xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -479,7 +480,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
 
 This code example demonstrates how to use async-add-list together with the check-async-status, get-async-result, and delete operations, using a custom record type.
 
-[WARNING]
+[NOTE]
 ====
 Note that for this example code to work, you must use a custom record type of your own (or just a regular type), and manually configure the following values of the global NetSuite config to match your instance of NetSuite:
 
@@ -491,7 +492,7 @@ Note that for this example code to work, you must use a custom record type of yo
 
 image:/docs/download/attachments/132350698/async1.jpg?version=2&modificationDate=1436464280889[image]
 
-[source]
+[source, xml]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
  
@@ -601,7 +602,7 @@ Below is the Studio flow and the corresponding code:
 
 image:/docs/download/attachments/132350698/basic+search.jpg?version=1&modificationDate=1436468392085[image]
 
-[source]
+[source, xml]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
  
@@ -615,7 +616,7 @@ image:/docs/download/attachments/132350698/basic+search.jpg?version=1&modificati
 </flow>
 ----
 
-[source]
+[source, java]
 ----
 public class CustomerBasicSearchComponent implements Callable {
  
@@ -655,7 +656,7 @@ The search criteria criteria is set within a custom java component.
 
 image:/docs/download/attachments/132350698/joined+search.jpg?version=1&modificationDate=1436470637439[image]
 
-[source]
+[source, xml]
 ----
 <flow name="item-search-pricing-join">
     <http:listener config-ref="HTTP_Listener_Configuration" path="/joinedSearch" doc:name="HTTP"/>
@@ -665,7 +666,7 @@ image:/docs/download/attachments/132350698/joined+search.jpg?version=1&modificat
 </flow>
 ----
 
-[source]
+[source, java]
 ----
 public class ItemSearchPricingJoinComponent implements Callable {
  
@@ -701,7 +702,7 @@ The example constructs a simple java component that creates a criteria to get th
 
 image:/docs/download/attachments/132350698/codeExampleSearchAdvanced.jpg?version=1&modificationDate=1436474045941[image]
 
-[source]
+[source, xml]
 ----
 <flow name="employee-search-advanced-saved-search">
     <http:listener config-ref="HTTP_Listener_Configuration" path="/advancedSearch" doc:name="HTTP"/>
@@ -711,7 +712,7 @@ image:/docs/download/attachments/132350698/codeExampleSearchAdvanced.jpg?version
 </flow>
 ----
 
-[source]
+[source, java]
 ----
 public class EmployeeSearchAdvancedSavedComponent implements Callable {
  
@@ -734,7 +735,7 @@ The NetSuite connector’s DataSense in conjunction with DataWeave creates an ea
 . This example code adds a Journal Entry to NetSuite from the following JSON input:
 +
 
-[source]
+[source, json]
 ----
 {
    "tranId":"SampleJournal123",
@@ -801,7 +802,7 @@ image:/docs/download/attachments/132350698/dataweave1.jpg?version=1&modification
 . In this example, we use the same scenario for basic search as described in the previous section. However, instead of constructing the criteria in a java component, we transform a JSON string:
 +
 
-[source]
+[source, json]
 ----
 {
    "companyName": {

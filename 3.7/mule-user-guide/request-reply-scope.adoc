@@ -1,4 +1,5 @@
 = Request-Reply Scope
+:keywords: request reply, asynchronous,
 
 The *Request-Reply* scope enables you to embed a "pocket" of asynchronous processing within a Mule flow. This functionality enables you to receive a response from an asynchronous flow without hardcoding the destination of the response. For example, you can use request-reply to convert a *one-way* VM or JMS flow to a *request-response* flow without having to change it's configuration.  In other words, the request-reply converts part of a synchronous process into an asynchronous one. 
 
@@ -18,7 +19,8 @@ Request-reply consists of two parts:
 image:/docs/download/attachments/122752225/request+reply+scope+1.png?version=1&modificationDate=1418675878372[image]
 
 Request-reply obviates the need to explicitly reference the outbound- and inbound-connectors to each other. When Mule asynchronously sends a request via the VM outbound-connector in the Request-Reply scope, it implicitly sets the message's outbound property – `MULE_REPLYTO` – to the URL of its corresponding inbound connector. In other words, in the example above, you do not need to include a reference in the VM in the Reply portion to reference the VM in the Request portion which submitted the request. 
-[WARNING]
+
+[NOTE]
 VM or JMS connectors that are set up to be *transactional* can't be used inside a request-reply scope. Both VM and JMS connectors allow you to perform transactions of several different types, but none of these are compatible with how the request-reply scope works. This is because the request that is to be sent out by the request-response isn't sent until the transaction is committed – but the transaction in turn is not committed until the entire flow has been executed (including the execution of the request-response scope). This leads to a situation where both processes are blocking each other: the flow isn't fully executed because it's still waiting for the response on the request-reply scope, but this response will never arrive since the request hasn't been sent yet (as mentioned before, this message is sent only once the transaction is committed).
 
 == Configuring Request-Reply
@@ -50,7 +52,7 @@ image:/docs/download/attachments/122752225/request+response+2.png?version=1&modi
 
 . Add a *request-reply* element to your flow, then configure the attributes according to the table below.
 
-[source]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  

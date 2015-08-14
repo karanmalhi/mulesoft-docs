@@ -1,4 +1,5 @@
 = Assertion Message Processors
+:keywords: mule, esb, tests, qa, quality assurance, verify, functional testing, unit testing, stress testing
 
 == Overview
 
@@ -13,7 +14,7 @@ Every MUnit Assertion message processor contains an attribute message. It is rec
 
 The `assert-payload-equals` message processor validates that the payload of a Mule message is equal to an expected value.
 
-[source]
+[source, xml]
 ----
 <munit:assert-payload-equals message="oops!" expectedValue="'#[['value 1','value 2']]"/>
 ----
@@ -34,7 +35,7 @@ If you wish to compare the payload against a Spring bean, you can use the MUnit 
 
 The assert-null message processor validates that the Mule message’s payload is NullPayload.
 
-[source]
+[source, xml]
 ----
 <munit:assert-null message="oops!"/>
 ----
@@ -51,7 +52,7 @@ If the assertion fails, the message processor throws a `junit.framework.Assertio
 
 The `assert-not-null` message processor validates that the Mule message’s payload is *not* `NullPayload`.
 
-[source]
+[source, xml]
 ----
 <munit:assert-not-null message="oops!"/>
 ----
@@ -96,7 +97,7 @@ If the assertion fails, the message processor throws a `junit.framework.Assertio
 
 The `assert-false` message processor validates that the result of a boolean expression is `false`.
 
-[source]
+[source, xml]
 ----
 <munit:assert-false  message="oops!" condition="#[ 1 != 1 || payload.length != 0]"/>
 ----
@@ -116,7 +117,7 @@ If the assertion fails, the message processor throws a `junit.framework.Assertio
 
 The `assert-true` message processor validates that the result of a boolean expression is `true`.
 
-[source]
+[source, xml]
 ----
 <munit:assert-true  message="oops!" condition="#[ 1 == 1 && payload.length == 0]"/>
 ----
@@ -157,7 +158,7 @@ These functions validate the existence of a certain message property by its name
 Returns true if an *outbound attachment* property with the provided name is found.
 |===
 
-[source]
+[source, xml]
 ----
 <munit:assert-true condition="#[messageHasPropertyInAnyScopeCalled('my_property')]"/>
 <munit:assert-true condition="#[messageHasInvocationPropertyCalled('another_property')]"/>
@@ -175,7 +176,7 @@ Returns true if an *outbound attachment* property with the provided name is foun
 
 Use the `fail` message processor if you want to fail your test on purpose, for example in order to validate that a specific event should not happen.
 
-[source]
+[source, xml]
 ----
 <munit:fail message="This should not happen"/>
 ----
@@ -195,7 +196,7 @@ If need a more specific assertion, #MUnit# allows you to extend the assertion me
 
 To implement a custom assertion you need to implement the interface org.mule.#munit#.#Munit#Assertion.
 
-[source]
+[source, java]
 ----
 package your.package;
 
@@ -224,7 +225,7 @@ Implement your custom assertions with care, since modifying the message payload 
 
 After you have defined your custom assertion, use the run-custom message processor to run it.
 
-[source]
+[source, xml]
 ----
 <munit:run-custom assertion-ref="#[new your.package.CustomAssertion()]"/>
 ----
@@ -237,7 +238,7 @@ After you have defined your custom assertion, use the run-custom message process
 
 You can also define your custom assertion as a bean.
 
-[source]
+[source, xml]
 ----
 <spring:beans>    (1)
   <spring:bean class="your.package.CustomAssertion" name="customAssertion"/>
