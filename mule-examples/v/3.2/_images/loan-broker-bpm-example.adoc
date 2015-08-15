@@ -1,0 +1,191 @@
+= Loan Broker BPM Example
+
+The BPM example illustrates using a business process engine (JBoss jBPM) to orchestrate the loan broker application. Observe how the process flow and decision logic are cleanly defined in a process definition file (which could be created and maintained using a GUI process editor), while the systems integration and messaging is handled by Mule.
+
+== Running the example
+
+. Make sure you have met the prerequisites and installed Mule according to the [instructions].
+. At the command line, navigate to the `examples/loanbroker-bpm` directory under your Mule home directory.
+. Copy the pre-built example zip to the applications folder (`$MULE_HOME/apps`) and start Mule if it isn't already started.
+. Go to the following URI in your browser to send a loan request (there are some default request values built-in): http://localhost:12081
+. In the Mule log file, you should see the process execute and a response message such as the following from one of the banks:
++
+----
+ Returning Rate is: ABigBank, rate: 6.379575743481158
+----
+
+. Now, modify the loan amount requested, and see different banks responding based on the amount: http://localhost:12081/?amount=100
+. Try different amounts (100, 10000, 20000). Also try invalid numbers to see the error handling in action.
+
+=== Building the example
+
+Run `mvn` from the example source folder. This will compile the example classes, produce an application zip file and copy it to `$MULE_HOME/apps`.
+
+== Walking through the Mule Configuration
+
+At the heart of the configuration is a Business Process Engine which receives and sends Mule messages. The messages which are received will start or advance a process execution, and the process execution will send messages to Mule endpoints.
+
+*Process Engine Receives and Generates Events*
+
+code,code-xml----
+----
+----
+----
+----
+----- code,code-xml
+<flow name="ToBPMS">    <composite-source>        <inbound-endpoint ref="CustomerRequests" />        <inbound-endpoint ref="CreditProfiles" />    </composite-source>    <bpm:process processName="LoanBroker" processDefinition="loan-broker-process.jpdl.xml" /></flow>
+----
+----
+----
+----
+----
+-----
+
+The Process Engine is an instance of http://www.jboss.org/jbpm[JBoss jBPM] and is configured using defaults as follows. For more information refer to the link:/documentation-3.2/display/32X/BPM+Module+Reference[BPM Module Reference] documentation.
+
+*jBPM Process Engine*
+
+code,code-xml----
+ code,code-xml
+<bpm:jbpm name="jbpm" />
+----
+
+== Walking Through the jBPM Process
+
+The first message to arrive at the BPM process will be a customer request for a loan. This message triggers the BPMS to start a new instance of the "LoanBroker" process. The message payload will be stored into the `customerRequest` process variable.
+
+*Start State*
+
+code,code-xml----
+----
+------------------- code,code-xml
+<mule-receive name="incomingCustomerRequest" endpoint="CustomerRequests" var="customerRequest">
+----
+----
+-------------------
+
+The next step is to send the customer's information to the credit agency and get their credit report. The payload that we send to the credit agency comes from the `customerRequest` we just stored as a process variable.
+
+*Generate a Message to Credit Agency*
+
+code,code-xml----
+----
+------------ code,code-xml
+<mule-send name="sendToCreditAgency" expr="#{customerRequest.customer}" endpoint="CreditAgency" synchronous="false">
+----
+----
+------------
+
+The request to the credit agency is asynchronous, so we now transition to a wait state until a response from the credit agency is received. Note that if a response is not received within four hours, the process times out and requires manual intervention.
+
+*Wait state*
+
+code,code-xml----
+----
+-------------- code,code-xml
+<mule-receive name="waitForCreditAgency" endpoint="CreditProfiles" var="creditProfile">    <timer duedate="4 hours" />
+----
+----
+--------------
+
+Once a message is received from the credit agency, the next step prepares a loan request based on the two pieces of information we have received thus far (`customerRequest` and `creditProfile`). This invokes a POJO method using jPDL's standard `<java>` activity.
+
+*Prepare Loan Quote Request*
+
+code,code-xml----
+----
+----
+----
+----
+----
+-------- code,code-xml
+<java name="prepareLoanQuoteRequest" class="org.mule.example.loanbroker.bpm.activity.PrepareLoanQuoteRequest" method="prepareRequest" var="loanRequest">    <arg><object expr="#{customerRequest}"/></arg>    <arg><object expr="#{creditProfile}"/></arg>    <transition to="sendToBanks" /></java>
+----
+----
+----
+----
+----
+----
+--------
+
+Now for the interesting part: the process itself decides which of the three banks, if any, to request a loan from on behalf of this customer. The loan amount, customer's credit history, and credit score are all taken into account. If the customer would not qualify for a loan from any of the three banks based on these criteria, the loan is denied.
+
+*Decision Node*
+
+code,code-xml----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+---------- code,code-xml
+<decision name="sendToBanks">    <transition to="sendToBigBank">        <condition expr="#{customerRequest.loanAmount >= 20000}" />        <condition expr="#{creditProfile.creditHistory >= 24}" />        <condition expr="#{creditProfile.creditScore >= 5}" />    </transition>    <transition to="sendToMediumBank">        <condition expr="#{customerRequest.loanAmount >= 10000}" />        <condition expr="#{creditProfile.creditHistory >= 12}" />        <condition expr="#{creditProfile.creditScore >= 3}" />    </transition>    <transition to="sendToSmallBank">        <condition expr="#{creditProfile.creditHistory >= 6}" />        <condition expr="#{creditProfile.creditScore >= 1}" />    </transition>    <!-- If the credit info. doesn't meet minimum requirements based on the loan amount, the loan is just denied. -->    <transition to="loanDenied" /></decision>
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----
+----------
+
+The final loan quote from the bank is validated and sent back to the customer, and the process ends up in one of two end states: `loanApproved` or `loanDenied`, depending on the outcome.
+
+*Send Final Response and End Process*
+
+code,code-xml----
+----
+----
+----
+---------- code,code-xml
+<mule-send name="sendCustomerResponse" expr="#{loanQuote}" endpoint="CustomerResponses">    <transition to="loanApproved" /></mule-send>  <end name="loanApproved" /><end name="loanDenied" />
+----
+----
+----
+----
+----------
+
+== References
+
+For more information refer to the link:/documentation-3.2/display/32X/BPM+Module+Reference[BPM Module Reference] documentation and/or the http://docs.jboss.com/jbpm/v4/userguide/html_single/[jBPM User Guide].
+
+image:loading_mini.png[loading_mini]image:rater.png[rater]
+
+Your Rating:
+
+Thanks for voting!
+
+link:/documentation-3.2/plugins/rate/rating.action?decorator=none&displayFilter.includeCookies=true&displayFilter.includeUsers=true&ceoId=28083185&rating=1&redirect=true[image:blank.png[blank]]link:/documentation-3.2/plugins/rate/rating.action?decorator=none&displayFilter.includeCookies=true&displayFilter.includeUsers=true&ceoId=28083185&rating=2&redirect=true[image:blank.png[blank]]link:/documentation-3.2/plugins/rate/rating.action?decorator=none&displayFilter.includeCookies=true&displayFilter.includeUsers=true&ceoId=28083185&rating=3&redirect=true[image:blank.png[blank]]link:/documentation-3.2/plugins/rate/rating.action?decorator=none&displayFilter.includeCookies=true&displayFilter.includeUsers=true&ceoId=28083185&rating=4&redirect=true[image:blank.png[blank]]link:/documentation-3.2/plugins/rate/rating.action?decorator=none&displayFilter.includeCookies=true&displayFilter.includeUsers=true&ceoId=28083185&rating=5&redirect=true[image:blank.png[blank]]
+
+image:/documentation-3.2/download/resources/com.adaptavist.confluence.rate:rate/resources/themes/v2/gfx/blank.gif[Please Wait,title="Please Wait"]
+
+Please Wait
+
+Results:
+
+image:/documentation-3.2/download/resources/com.adaptavist.confluence.rate:rate/resources/themes/v2/gfx/blank.gif[Pathetic,title="Pathetic"]image:/documentation-3.2/download/resources/com.adaptavist.confluence.rate:rate/resources/themes/v2/gfx/blank.gif[Bad,title="Bad"]image:/documentation-3.2/download/resources/com.adaptavist.confluence.rate:rate/resources/themes/v2/gfx/blank.gif[OK,title="OK"]image:/documentation-3.2/download/resources/com.adaptavist.confluence.rate:rate/resources/themes/v2/gfx/blank.gif[Good,title="Good"]image:/documentation-3.2/download/resources/com.adaptavist.confluence.rate:rate/resources/themes/v2/gfx/blank.gif[Outstanding!,title="Outstanding!"]
+
+19
+
+rates

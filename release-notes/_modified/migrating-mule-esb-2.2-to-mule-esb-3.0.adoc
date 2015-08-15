@@ -1,0 +1,428 @@
+
+= Migrating Mule ESB 2.2 to Mule ESB 3.0
+:keywords: release notes, esb
+
+[TIP]
+====
+*Did you know . . .*
+
+MuleSoft has released Studio GA, a powerful new interface for Mule ESB that can cut your development time by half or more. You can model, debug, and deploy your applications all within the rich, yet flexible Studio environment.
+
+Studio provides two-way (i.e., graphical and code-based) editing, which means that developers no longer have to trade ease-of-use against fine-grained control over their development projects. Any changes you make in one mode appear instantly in the other.
+
+Mule Enterprise and Mule iON (now known as CloudHub) developers can fine-tune their applications in the advanced Studio XML editor, then re-deploy them on whichever version of Mule those applications were originally developed.
+
+Studio installation is almost instantaneous, and a pair of tutorials can get you up and running in less than 40 minutes.
+
+Let’s get Kicking!
+
+http://www.mulesoft.org/download-mule-esb-community-edition[Download Studio here].
+====
+
+One of the major changes in Mule 3.0 is that the `MuleContext` is no longer available from a static context. This makes the Mule instance properly contained and easier to embed in other environments such as OSGi.
+
+== Access to MuleContext
+
+We have removed the methods for accessing the MuleContext or Registry statically. Therefore, `MuleServer.getMuleContext()` is no longer static, and `org.mule.impl.RegistryContext` has been removed completely. You can now access the `MuleContext` in the following ways:
+
+* From within a component class, implement `org.mule.api.MuleContextAware`, and Mule will inject the instance for you before the initialize lifecycle phase.
+* From within a transformer, extend `AbstractTransformer` or `AbstractMessageAwareTransformer`, and the 'muleContext' variable is available in the base class.
+* From a JSP page or Servlet, the MuleContext is available in the ServletContext using `servletContext.getAttribute(MuleProperties.MULE_CONTEXT_PROPERTY)`.
+* Inbound and outbound routers have the 'muleContext' variable in the base classes.
+* From any other object configured via a configuration builder (such as XML or scripting), implement `org.mule.api.MuleContextAware` to have the current instance injected.
+
+== Deployment Model
+
+The deployment model has changed from Mule 2.2.x to Mule 3.0. You can find more information link:#[here].
+
+== MuleMessage
+
+If you ever need to create an `org.mule.DefaultMuleMessage` instance (usually Mule will handle this for you), you must pass in the current `MuleContext` as described in the previous section.
+
+=== TransactionManagerFactory
+
+The `create()` method on `org.mule.api.transaction.TransactionManagerFactory` now accepts a `org.mule.MuleConfiguration` parameter, which can be used to set global transaction configuration on the transaction manager.
+
+A Spring-based `org.mule.config.spring.factories.MuleTransactionManagerFactoryBean` object has been added that can be used inject the current TransactionManager into other objects. This is useful when configuring XA data sources that need access to the TransactionManager instance.
+
+[source,xml,linenums]
+----
+<mule xmlns="http://www.mulesource.org/schema/mule/core"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:spring="http://www.springframework.org/schema/beans"
+       xmlns:jbossts="http://www.mulesource.org/schema/mule/jbossts"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://www.mulesource.org/schema/mule/core http://www.mulesource.org/schema/mule/core/3.0/mule.xsd
+       http://www.mulesource.org/schema/mule/jbossts http://www.mulesource.org/schema/mule/jbossts/3.0/mule-jbossts.xsd">
+
+    <jbossts:transaction-manager/>
+
+    <!-- grab the transaction manager that is configured in Mule, in this case Ajruna -->
+    <spring:bean id="muleTM" class="org.mule.config.spring.factories.MuleTransactionManagerFactoryBean"/>
+
+    <!-- Data Source -->
+    <spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardXADataSource" destroy-method="shutdown">
+        <spring:property name="transactionManager" ref="muleTM"/>
+        <spring:property name="driverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+        <spring:property name="url" value="#{database.connection}"/>
+    </spring:bean>
+<mule>
+----
+
+=== Object Serialization
+
+Serialization of objects such as `DefaultMuleMessage`, `DefaultMuleSession` and `DefaultMuleEvent` need access to the `MuleContext` once they have been deserialized. The new marker interface `org.mule.util.store.DeserializationPostInitialisable` provides this access. This interface works in the same way as the Java `Cloneable` interface. It is a marker that expects a private (or protected) method to be present on the object. Implementers of this interface must add the following method to their class:
+[source,java,linenums]
+----
+private void initAfterDeserialization(MuleContext muleContext) throws MuleException
+----
+This method will get invoked after the object has been deserialized passing in the current \{\{MuleContext} when using any of the following serialization mechanisms in Mule:
+
+* `org.mule.transformer.wire.SerializationWireFormat`
+* `org.mule.transformer.wire.SerializedMuleMessageWireFormat`
+* `org.mule.xml.transformer.wire.XStreamWireFormat`
+* `org.mule.transformer.simple.ByteArrayToSerializable` transformer
+* `org.mule.xml.transformer.XmlToObject` XStream transformer
+
+The reason for doing this rather than a regular interface method was not to clutter object interfaces with public methods that are only required when the object is serialized, especially since these objects are part of the public facing API.
+
+=== AbstractMuleTestCase
+
+A few new methods have been added to `org.mule.tck.AbstractMuleTestCase` (and thus the `org.mule.tck.functional.FunctionalTestCase`) to help wire objects via the Mule Registry. This means that when the objects are created or passed in, they will be added to the registry, and any required objects will be injected and the object lifecycle will be executed.
+[source,java,linenums]
+----
+protected <T extends Object> T createObject(Class<T> clazz, Object... args) throws Exception
+----
+Create an object of instance `clazz`. It will then register the object with the registry so that any dependencies are injected and then the object will be initialized. Note that if the object needs to be configured with additional state that cannot be passed into the constructor, you should create an instance first, set any additional data on the object, and then call `initialiseObject(Object)`.
+
+There is also a convenience method `createObject(Class)` that will pass in empty arguments to the method above.
+[source,java,linenums]
+----
+
+protected void initialiseObject(Object o) throws RegistrationException
+----
+The `initialiseObject` is a convenience method that will register an object in the registry using its hashcode as the key. This will cause the object to have any objects injected and lifecycle methods called. Note that the object lifecycle will be called to the same current.
+
+== CXF Migration
+
+CXF is no longer a transport inside of Mule. Instead, it is a series of message processors. You'll need to use normal endpoints (non CXF) in your configurations and these message processors in Mule 3. For more information, see link:#[upgrading CXF from Mule 2]
+
+== Consistent use of Mule's expression language
+
+Mule uses the expression language for the _moveToPattern_, _workFileNamePattern_ and _outputPattern_ attributes in the file and FTP transports now. The previous patterns will no longer be recognized. See http://www.mulesource.org/display/MULE2USER/File+Transport#FileTransport-ExpressionFilenameParser[the ExpressionFilenameParser documentation] for instructions on converting the patterns.
+
+== Queueing in the VM connector
+
+The queueing behaviour in the VM transport was changed so that async endpoints always use queueing and sync endpoint never do, this provides suitable default behavior, eliminates the need to configure queuing explicitly and as this issue suggests makes configuring of queuing easier by not even requiring it. The queueEvents attribute has been removed in 3.0.
+
+== Inbound Transformers
+
+Inbound transformer are no longer invoked when the component is invoke but rather as part of the inbound message processing pipeline after the security filter. This has a couple of consequences:
+
+* It is no longer possible to skip transformation by having a custom component that does not call `context.transformMessage()`.
+* Inbound transformation always happens before any `SelectiveConsumer` inbound router. This was the default in 2.2 so the only difference is that now it is not possible to do the equivalent of "transformFirst=false"
+* Inbound transformation always happens before any entry point resolvers. This was the default in 2.2 so the only difference is that now it is not possible to do the equivalent of "transformFirst=false"
+* This change does affect the behavior of *LegacyEntryPointResolverSet* which although still respects the type and order of resolvers used in Mule 1.x, no longer resolves before transformation.
+
+== Default Transport Transformers
+
+In Mule 2.x, if you set a transformer on an endpoint, it would replace the default transport-specific transformer (e.g., JMSMessageToObject/ObjectToJMSMessage in the case of a JMS endpoint). In 3.x, it will _not_ replace the default transformer, but rather the default will get applied _before_ any transformers you specify. If you wish to disable the default transformer, you can set the new attribute `disableTransportTransformer=true` on the endpoint.
+
+== MessageDispatchers
+
+It is no longer the responsibility of the Dispatcher to transform messages. Any call such as: `Object data = event.transformMessage();` should be replaced with: `Object data = event.getMessage().getPayload();` +
+ If a Dispatcher needs special functionality before transformers are applied to the message, it can override the method `AbstractMessageDispatcher.applyOutboundTransformers(MuleEvent event)`
+
+== Model/Service
+
+* Direct/Pipeline service implementations have been removed. These were not exposed via configuration and are never really used.
+
+== Inbound Routers
+
+* Inbound routers are now invoked one after another in a pipeline fashion with the result of a router being used as the input for the next inbound router.
+* Because of this "matchAll" which default to "true" in 2.x no longer makes any sense and has been removed.
+* Another consequence of this approach is that filtering is easy to achieve by adding a filter where required and so existing inbound routers (apart from selective-consumer which is now simply implemented as a message filter) no longer accept child filter elements.
+* The catchAllStrategy has been conserved but when it is invoked has changed; rather than being invoked when no inbound routers match, it will be invoked if any filters in the pipeline don't match.
+* The ForwardingConsumer and SelectiveConsumer inbound routers are still supported but have been deprecated. You can no longer use the ForwardingConsumer to selectively skip the component, you should do this with a link:/documentation/display/current/Using+Interceptors[component interceptor] instead.
+
+== Outbound Routers
+
+* TemplateEndpointRouter has been removed. This functionality is available with almost all other routers (that extend FilteringOutboundRouter) by enabling useTemplates.
+* The useTemplates value of FilteringOutboundRouter (and all subclasses) has i) been exposed in configuration ii) has it's default value changed from false to true.
+
+=== Response Routers
+
+* ResponseRouter's no longer exist in code as they are now no different to inbound routers.
+** CollectionAggregator is common to inbound and response
+** SingleResponseAggregator is now redundant and doesn't need to be configured.
+* The xml configuration still supports Mule 2.x response specific elements
+* When implementing your own ResponseAggregators you'll now need to extend org.mule.routing.AbstractCorrelationAggregator rather than org.mule.routing.response.AbstractResponseAggregator
+
+== Message Info Mapping
+
+Now configured directly on the Service rather than having to be configured on the router. Simplifies configuration but not having to specify it on both outbound and async-reply.
+
+== Endpoint configuration
+
+The synchronous attribute on endpoints has been replaced by the exchange-pattern attribute. As a rule of thumb
+
+* use one-way where synchronous was set to false before
+* use request-response on endpoints that where synchronous before
+
+Note that some transports do not allow to configure an exchange-pattern on transport specific endpoints. In this case, the transport supports only a single exchange pattern which is assumed as default for all endpoints.
+
+== Exception Strategy
+
+Exception strategies have been revamped for 3.0. link:/documentation/display/current/Error+Handling[See documentation]
+
+== Reconnection Strategies (ex-Retry Policies)
+
+Retry Policies have been renamed to Reconnection Strategies for 3.1 to avoid misunderstandings. link:/documentation/display/current/Configuring+Reconnection+Strategies[See documentation]
+
+== Expression Evaluators
+
+Expressions including `#[headers:]`, `#[headers-list:]`, `#[attachments:]` and `#[attachments-list:]` can retrieve all headers or attachments in a given scope. The notation in Mule 2.2 for doing this was `#[headers:all]`. IN Mule 3.0 the notation uses a '**' instead of 'all'** `#[headers:``]` or `#[headers:INBOUND:*]`.
+
+== jBPM Transport
+
+The jBPM transport has been overhauled for 3.0, including an upgrade to the latest major version of jBPM (4.3), much simplified configuration, and cleaner integration with Mule from your process definition, including custom process elements.
+
+== Connectors Performance Tuning
+
+As of Mule 3.1, connector's property maxDispatchersActive cannot be configured as a spring property. The following elements should be used instead: <default-threading-profile>, <default-receiver-threading-profile>, <default-dispatcher-threading-profile> and <default-service-threading-profile>.
+
+More details in the link:/documentation/display/current/Tuning+Performance[Tuning Performance] documentation.
+
+== Summary of API Changes
+
+[cols="3*a",options="header"]
+|===
+| Mule 2.2
+| Mule 3.0
+| Notes
+
+| MuleMessage.get/setProperty()
+| Deprecated, replaced with scope-aware methods
+|
+
+| MuleMessage.getPropertyNames()
+| Deprecated, replaced with scope-aware methods
+|
+
+| MuleMessage.getStringProperty()
+| Deprecated, replaced with scope-aware methods
+|
+
+| DefaultMuleMessage(Object)
+| DefaultMuleMessage(Object, MuleContext)
+|
+
+| DefaultMuleMessage(Object, MuleMessageAdatper)
+| DefaultMuleMessage(Object, MuleMessageAdapter, MuleContext)
+|
+
+| DefaultMuleMessage(Object message, Map properties)
+|
+| DefaultMuleMessage(Object message, Map properties, MuleContext muleContext)
+
+| TransactionManagerFactory.create()
+| TransactionManagerFactory.create(MuleConfiguration)
+|
+
+| Transaction()
+| Transaction(MuleContext)
+|
+
+| MuleEndpointURI(String)
+| MuleEndpointURI(String, MuleContext)
+|
+
+| FutureMessageResult(Callable callable)
+| FutureMessageResult(Callable callable, MuleContext muleContext)
+|
+
+| MessagingException(Message message, Object payload)
+| Removed
+|
+
+| MessagingException(Message message, Object payload, Throwable cause)
+| Removed
+|
+
+| Added
+| EndpointURI.getMuleContext()
+| Implements MuleContextAware
+
+| EndpointURIBuilder.build(URI)
+| EndpointURIBuilder.build(URI, MuleContext)
+|
+
+| Added
+| URIBuilder(MuleContext)
+|
+
+| Added
+| RetryContext.getMuleContext()
+|
+
+| RouterResultsHandler.aggregateResults(List <MuleMessage>, MuleMessage)
+| RouterResultsHandler.aggregateResults(List<MuleMessage>, MuleMessage, MuleContext)
+|
+
+| Added
+| Transformer.transform(Object, String)
+| Added so that encoding can explicitly be passed in
+
+| ExceptionMessage.getEndpoint()
+| Returns a string representation instead of EndpointURI instance
+|
+
+| Added
+| DeserializationPostInitialisable
+| A marker interface for post deserialization initialization
+
+| RegistryContext
+| Removed
+| Singleton class for accessing the registry
+
+| static MuleServer.getMuleContext()
+| MuleServer.getMuleContext()
+| No longer a static method
+
+| MuleServer.setMuleContext()
+| Removed
+| No More singleton references to MuleContext, you can now have the MuleContext injected using the MuleContextAware interface or by using the javax.inject.Inject annotation (as of Mule 3.0.0-M3).
+
+| AbstractEntryPointResolver.setTransformFirst()
+| Removed
+| Transformation now always occurs as part of inbound endpoint
+
+| AbstractEntryPointResolver.isTransformFirst()
+| Removed
+| Transformation now always occurs as part of inbound endpoint
+
+| SelectiveConsumer.setTransformFirst()
+| Removed
+| Transformation now always occurs as part of inbound endpoint
+
+| SelectiveConsumer.isTransformFirst()
+| Removed
+| Transformation now always occurs as part of inbound endpoint
+
+| ServiceCatchAllStrategy
+| Removed
+|
+
+| DirectService/DirectModel
+| Removed
+|
+
+| DirectService/DirectModel
+| Removed
+|
+
+| PipelineService/PipelineModel
+| Removed
+|
+
+| BridgeComponent
+| Removed
+| This was deprecated in 2.x and has now been removed. For bridging, simply don't specify a Component on your Service.
+
+| AbstractMessageReceiver
+| Signatures updated to use FlowConstruct instead of Service
+|
+
+| LifecycleAdapterFactory DefaultComponentLifecycleAdapterFactory DefaultComponentLifecycleAdapter
+| Signatures updated to take additional FlowConstruct parameter
+|
+
+| MuleEvent/MuleSession/MuleEventContext
+| getService() replacement with getFlowConstruct()
+|
+
+| org/mule/transport/file/SimpleFilenameParser
+| use ExpressionFilenameParser
+| see MULE-4479
+
+| AbstractMessageDispatcher.returnResponse(MuleEvent event)
+| deprecated
+|
+
+| org.mule.routing.response.AbstractResponseRouter
+| response specific routers no longer exists, inbound routers are not used for async reply
+|
+
+| org.mule.routing.response.AbstractResponseAggregator
+| no longer exists, logic here is now done as part of async reply
+|
+
+| org.mule.routing.response.ResponseCorrelationAggregator
+| response specific routers no longer exist, inbound routers are now used for async reply, extend org.mule.routing.AbstractCorrelationAggregator for implementing custom inbound/response aggregators
+|
+
+| org.mule.routing.response.DefaultResponseRouterCollection
+| response router collection no longer exists, an inbound router collection is used for async reply
+|
+
+| org.mule.routing.response.SimpleCollectionResponseAggregator
+| org.mule.routing.SimpleCollectionAggregator
+|
+
+| org.mule.routing.response.SingleResponseRouter
+| Removed. No longer required as async-reply does reply aggregation now.
+|
+|===
+
+== Schema Namespace change
+
+We changed our company name from MuleSource to MuleSoft, and accordingly we changed our domain names too. The new namespaces for Mule 3 reflect that and have been simplified a bit. In Mule 2.x namespaces for XML configuration files looked something like this -
+
+[source,xml,linenums]
+----
+<mule xmlns="http://www.mulesource.org/schema/mule/core/2.2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:cxf="http://www.mulesource.org/schema/mule/cxf/2.2"
+  xsi:schemaLocation="
+    http://www.mulesource.org/schema/mule/core/2.2 http://www.mulesource.org/schema/mule/core/2.2/mule.xsd
+    http://www.mulesource.org/schema/mule/cxf/2.2 http://www.mulesource.org/schema/mule/cxf/2.2/mule-cxf.xsd">
+
+</mule>
+----
+Below is the equivalent in Mule 3. Notice that the version has been removed from the namespace and now is only present in the actual schema location, this makes moving from one version of Mule to another easier since only the schema location is updated.
+[source,xml,linenums]
+----
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf"
+  xsi:schemaLocation="
+    http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.0/mule.xsd
+    http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/3.0/mule-cxf.xsd">
+
+</mule>
+----
+=== Core Mule Schema Changes
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|Affects |Change |Description
+|All entry-point-resolvers elements |`transformFirst` attribute removed |Transformation now always occurs as part of inbound endpoint
+|All selective consumer inbound router elements |`transformFirst` attribute removed |Transformation now always occurs as part of inbound endpoint
+|<bridge-component> |Removed |This was deprecated in 2.x and has now been removed. For bridging, simply don't specify a Component on your Service.
+|<transformers> wrapper for setting transformers on an endpoint |Removed |Simply list any transformer elements on the endpoint without the <transformers> wrapper.
+|<responseTransformers> wrapper for setting response transformers on an endpoint |Renamed to <response> |This element was renamed because in the future you will be able to add other message processors besides transformers.
+|<no-action-transformer> |Moved to test module (mule-tests-functional.jar) |Use the new disableTransportTransformer attribute to explicitly disable the default transformer for an endpoint.
+|===
+
+=== Scripting
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|Affects |Change |Description
+|Scripted transformers and components |Message properties are no longer bound as global variables of the script. |Use message.get<Scope>Property() to access the desired property.
+|===
+
+=== Testing
+
+For transformer tests add: transformer.setMuleContext(muleContext); to method getTransformer()

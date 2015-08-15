@@ -41,12 +41,12 @@ Follow the procedure below to create, then run the Loan Broker application in Mu
 . Open your Web browser.
 . Type `http://localhost:11081/?name=Muley&amount=20000&term=48&ssn=1234` into the address bar of your browser, then press *enter* to elicit a response from the Loan Broker application (below).
 +
-image:/docs/download/attachments/87687920/submitted_m.png?version=1&modificationDate=1346340590275[image]
+image:submitted_m.png[submitted_m]
 
 
 . In your browser’s address bar, replace the `amount` value with `5000`, then press *enter* to elicit a new response from the application (below).
 +
-image:/docs/download/attachments/87687920/submitted2_m.png?version=1&modificationDate=1346340608571[image]
+image:submitted2_m.png[submitted2_m]
 
 == How it Works
 
@@ -60,14 +60,14 @@ The sections below offer flow-by-flow descriptions of the Loan Broker’s action
 
 In Mule Studio, double-click a link:/docs/display/33X/Studio+Building+Blocks[building block] to open its *Properties Panel*, then examine its configuration details. Alternatively, click the *Configuration XML* tab to examine the application's XML configuration file.
 
-image:/docs/download/attachments/87687920/config_tab.png?version=1&modificationDate=1346340630834[image]
+image:config_tab.png[config_tab]
 ====
 
 === Loan-broker-sync Flow
 
 As the main flow in the Loan Broker application, this flow coordinates data collection among flows to produce an end user response.
 
-image:/docs/download/attachments/87687920/loan_sync_all.png?version=1&modificationDate=1346340650854[image]
+image:loan_sync_all.png[loan_sync_all]
 
 // View the XML
 
@@ -81,7 +81,7 @@ Notice that the HTTP endpoint has a *two-way message exchange pattern* (as indic
 
 If an HTTP endpoint has only to input information into an application, it requires a *one-way message exchange pattern* (below, right).
 
-image:/docs/download/attachments/87687920/http_endpoints.png?version=1&modificationDate=1346340671356[image]
+image:http_endpoints.png[http_endpoints]
 ====
 
 Next, the *Body to Parameter Map Transformer* converts the data format of the message payload from http://en.wikipedia.org/wiki/HTTP_body_data[HTTP body data] to a Java http://en.wikipedia.org/wiki/Associative_array[map]. The Loan Broker application only processes Java message payloads.
@@ -91,7 +91,7 @@ Then, Mule employs a content-based router to direct the message for further proc
 * If the message payload contains a complete request (i.e. the borrower’s name and SSN, and the amount and the term of the loan), the choice flow control passes the message to the `create customer request` *Expression Component*.
 * If the message payload is an incomplete request, the choice flow control passes the message to the `set error message` expression component. This component sets the payload of the message to read `Error: incomplete request`. Mule processes the message no further. Instead, it responds to the end user with the error message.
 +
-image:/docs/download/attachments/87687920/choice_first_route2.png?version=1&modificationDate=1346340691249[image]
+image:choice_first_route2.png[choice_first_route2]
 
 The `create customer request` component uses expressions to extract data from the message payload. It uses the data to create a new Java object with three values:
 
@@ -155,7 +155,7 @@ Notice that the Loan-broker-sync flow also contains a **link:/docs/display/33X/C
 
 Invoked upon demand by the Loan-broker-sync flow, this subflow acquires and logs the borrower’s credit score on the message payload.
 
-image:/docs/download/attachments/87687920/credit_profile.png?version=1&modificationDate=1346340713002[image]
+image:credit_profile.png[credit_profile]
 
 // View the XML
 
@@ -169,7 +169,7 @@ Last in this flow, the **link:/docs/display/33X/Logger+Component+Reference[Logge
 
 The Loan Broker application prevents exposing all banks to all loan quote requests. A bank that caters to premiere clients, for example, would be irked to receive a request for a quote for a small loan from a borrower with poor credit. To prevent such irksome calls to banks’ Web services, the Loan Broker application employs the *LookupBanks* subflow.
 
-image:/docs/download/attachments/87687920/look_up_banks.png?version=1&modificationDate=1346340731723[image]
+image:look_up_banks.png[look_up_banks]
 
 Mule first uses a choice flow control to examine the `amount` in the payload, then routes the message according to the size of the loan.
 
@@ -177,7 +177,7 @@ Mule first uses a choice flow control to examine the `amount` in the payload, th
 * If the loan is more than $10,000, the flow control routes the message to the second expression component, labeled `Bank 3, Bank 4`.
 * if otherwise (i.e. if the loan is $10,000 or less), the flow control routes the message to the third expression component, labeled `Bank 5`.
 
-image:/docs/download/attachments/87687920/choice_banks2.png?version=1&modificationDate=1346340748803[image]
+image:choice_banks2.png[choice_banks2]
 
 // View the XML
 
@@ -189,7 +189,7 @@ Each expression component in this subflow contains the URIs of the banks willing
 
 This sends a quote request to banks' Web services.
 
-image:/docs/download/attachments/87687920/lookupLoanRequest.png?version=1&modificationDate=1346340769222[image]
+image:lookupLoanRequest.png[lookupLoanRequest]
 
 // View the XML
 
@@ -202,13 +202,13 @@ The `create LoanBrokerLoanRequest` component uses expressions to extract the bor
 
 This simple subflow uses an expression component to determine which item, in the list of quotes, offers the lowest interest rate. The Logger records the result.
 
-image:/docs/download/attachments/87687920/find_lowestLoanQuote.png?version=1&modificationDate=1346340785207[image]
+image:find_lowestLoanQuote.png[find_lowestLoanQuote]
 
 // View the XML
 
 The expression in the component compares the `getInterestRate` of items in the list to each other to determine which one is the lowest (see image below).
 
-image:/docs/download/attachments/87687920/expression_bestRate.png?version=1&modificationDate=1346340802192[image]
+image:expression_bestRate.png[expression_bestRate]
 
 // View the Java
 

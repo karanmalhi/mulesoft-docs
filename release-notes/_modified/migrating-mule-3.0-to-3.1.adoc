@@ -1,0 +1,137 @@
+= Migrating Mule 3.0 to 3.1
+:keywords: release notes,esb
+
+== Spring Security Upgraded to 3.0.3
+
+[NOTE]
+This does not apply to Mule 3.1-RC1.
+
+In Mule 3.1, Spring Security has been upgraded from 2.0.4 to 3.0.3. This should be transparent to Mule configurations, except in two areas:
+
+* Schema changes
+* Java package changes
+
+=== Schema changes
+
+The schema for Spring Security elements has changed in two ways. First, it is now located at http://www.springframework.org/schema/security/spring-security-3.0.xsd. Second, the _authentication-provider_ tag is now a child of _authentication-manager_. The result is that the Spring Security 2 configuration
+[source,xml,linenums]
+----
+<mule
+  xmlns:ss="http://www.springframework.org/schema/security"
+  xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-2.0.xsd">
+  <ss:authentication-manager alias="authenticationManager"/>
+  <ss:authentication-provider>
+    <ss:user-service id="userService">
+      <ss:user name="ross" password="ross" authorities="ROLE_ADMIN" />
+      <ss:user name="anon" password="anon" authorities="ROLE_ANON" />
+    </ss:user-service>
+  </ss:authentication-provider>
+</mule>
+----
+must be changed to
+[source,xml,linenums]
+----
+<mule
+  xmlns:ss="http://www.springframework.org/schema/security"
+  xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+  <ss:authentication-manager alias="authenticationManager">
+    <ss:authentication-provider>
+      <ss:user-service id="userService">
+        <ss:user name="ross" password="ross" authorities="ROLE_ADMIN" />
+        <ss:user name="anon" password="anon" authorities="ROLE_ANON" />
+      </ss:user-service>
+    </ss:authentication-provider>
+  </ss:authentication-manager>
+</mule>
+----
+
+=== Java package changes
+
+Many Java classes are in different packages in Spring Security 3 than in Spring Security 2. This requires changes in any Mule configurations that reference these classes by name. For instance
+[source,xml,linenums]
+----
+<bean id="accessDecisionManager" class="org.springframework.security.vote.AffirmativeBased">
+----
+must be changed to
+[source,xml,linenums]
+----
+<bean id="accessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
+----
+
+For the current locations of these classes, see http://static.springsource.org/spring-security/site/apidocs/index.html .
+
+== Retry Policies
+
+The name "Retry Policies" in Mule 2.x led to false expectations and misunderstandings about how these behave, so for 3.x they have gone back to their original name of "Reconnection Strategies". The schema elements have been renamed accordingly, for more info., refer to link:/documentation/display/current/Configuring+Reconnection+Strategies[Configuring Reconnection Strategies].
+
+A summary of the schema changes is as follows:
+
+[width="100%",cols="34%,33%,33%",options="header"]
+|===
+|Type |Mule 2.x config |Mule 3.x config
+|Element |<retry-simple-policy> |<reconnect>
+|Element |<retry-forever-policy> |<reconnect-forever>
+|Element |<retry-custom-policy> |<reconnect-custom-strategy>
+|Attribute |asynchronous="true" |blocking="false"
+|Element |<retry-connect-notifier> |<reconnect-notifier>
+|Element |<retry-custom-notifier> |<reconnect-custom-notifier>
+|===
+
+== BPM Transport
+
+Since we are typically not connecting to an external BPM engine but using one "inside" Mule to broker messaging, BPM is no longer a transport but rather a component / message processor for Mule 3.x. This is a much more natural fit, and probably the way it should have always been. Incoming messages to the component automatically advance the process, and the running process can send messages to any outbound endpoint. For more info., refer to link:/documentation/display/current/BPM+Module+Reference[BPM Module Reference].
+
+[NOTE]
+The `<bpm:outbound-router>` element is no longer needed in 3.x, a running process can send messages directly to any outbound endpoint.
+
+*Mule 2.x with jBPM config*
+[source,xml,linenums]
+----
+<bpm:connector name="jBpmConnector" bpms-ref="jbpm" />
+
+<service name="ToBPMS">
+    <inbound>
+        <inbound-endpoint ref="in" />
+    </inbound>
+    <outbound>
+        <filtering-router>
+            <bpm:outbound-endpoint process="MyProcess" />
+        </filtering-router>
+    </outbound>
+</service>
+
+<service name="FromBPMS">
+    <inbound>
+        <bpm:inbound-endpoint process="MyProcess" />
+    </inbound>
+    ...cut...
+</service>
+
+<spring:bean id="jbpm" class="org.mule.transport.bpm.jbpm.Jbpm" destroy-method="destroy">
+    <spring:property name="jbpmConfiguration">
+        <spring:ref local="jbpmConfig" />
+    </spring:property>
+</spring:bean>
+
+<spring:bean class="org.springmodules.workflow.jbpm31.LocalJbpmConfigurationFactoryBean">
+    <spring:property name="processDefinitions">
+        <spring:list>
+            <spring:bean class="org.springmodules.workflow.jbpm31.definition.ProcessDefinitionFactoryBean">
+                <spring:property name="definitionLocation">
+                    <spring:value>my-process.jpdl.xml</spring:value>
+                </spring:property>
+            </spring:bean>
+        </spring:list>
+    </spring:property>
+    ...cut...
+----
+*Equivalent Mule 3.x with jBPM config*
+[source,xml,linenums]
+----
+<bpm:jbpm name="jbpm" />
+
+<flow name="ToBPMS">
+    <inbound-endpoint ref="in" />
+    <bpm:process processName="MyProcess" processDefinition="my-process.jpdl.xml" />
+</flow>
+----

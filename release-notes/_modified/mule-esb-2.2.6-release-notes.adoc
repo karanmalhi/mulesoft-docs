@@ -1,0 +1,161 @@
+= Mule ESB 2.2.6 Release Notes
+:keywords: release notes, esb
+
+
+This release of Mule ESB Enterprise Edition introduces substantial MMC improvements, including UI support for configuration of email alerts, auto-discovery of Mule server instances, external LDAP configuration, and improved performance.
+
+This release also includes ESB improvements such as re-worked exception handling and a number of additional platform certifications.
+
+== Current Release Version
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|  |Enterprise Edition |Community Edition
+|ESB |x | 
+|Management +
+ Console |x | 
+|===
+
+== Feature Highlights
+
+=== New in MMC
+
+* Email Alert destination UI. Makes it easier to configure destinations to escalate alerts via email
+* SNMP Alert destination UI. Makes it easier to configure destinations to escalate alerts via SNMP traps (supports both SNMP v2 and v3)
+* Mule instances http://www.mulesoft.org/documentation/display/mmc/Managing+Servers#ManagingServers-ServerAutoDiscoveryForNewServers[Auto Discovery]. Simplifies connecting the management console to Mule server instances.
+* Mule HA (high availability) support
+* External LDAP configuration
+* Performance improvements
+
+=== New in Mule
+
+* Improvements to exception handling: Until now, Mule exceptions could be handled more than once by the exception strategies. Exception strategies will now be executed once for a given exception. If you are relying upon multiple exception strategies being called for a particular exception, you need to adapt your code.
+* Now supports Tanuki wrapper 4.3.0
+* Inbound client connections now supported for TCP transport
+* File connector now able to listen on subdirectories
+* JDBC Query timeouts now supported
+* HTTP transport now supports redirects
+* New WMQ connector attribute: clientID
+* MessagePropertiesTransformer enhanced to support expressions and wildcards
+* MessagePropertiesTransformer can now remove many message properties at once (either by wildcards or regex)
+
+== Supported Platforms and Deployments
+
+Mule ESB Management Console has been tested with and supports the following platforms:
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|Application Server |Management Console |Agent
+|Tcat/Tomcat (5.5 and 6.x) |Yes |Yes
+|JBoss (4.x, 5, 5.1.0) |Yes |Yes
+|Mule Standalone 2.2.6 |N/A |Yes
+|WebSphere 7.0 |Yes |Yes
+|WebLogic version 11g (10.3.3.0) |Yes |Yes
+|===
+
+== Known Issues
+
+=== ESB Issues
+
+[cols=",",options="header"]
+|===============
+|Key |Summary
+|MULE-4771 |Stockquote WSDL example fails with exception. Workaround: Add %JAVA_HOME%\bin to the path
+|EE-1257 |Mule cannot "see" the license when there is a space in MULE_HOME (e.g., "Program Files"). Workaround: MULE_HOME must not have a space in it (e.g. "Program Files").
+|EE-1735 |Maven archetypes (project, transport, module etc.) fail because the required artifacts are not available. Workaround: Continue to use the 2.2.1 archetypes.
+|EE-2008 |Jdbc example not able to process CSV file for insert data into the database. The fix is to add a ObjectToString transformer before the CsvToMapTransformer in the file inbound endpoint.
+|===============
+
+== Fixed Issues
+
+=== ESB Fixes
+
+[cols=",",options="header"]
+|===
+|Key |Summary
+|EE-1839 |WMQ connection / JMS Session is left open when transaction begins on outbound endpoint
+|EE-1978 |XA transactions are not committed if Mule uses more than one WMQ connector
+|MULE-4963 |Transformers should not be cached (they have an endpoint attribute)
+|EE-1539    |New Exception Strategy allowing more control over message and routing
+|EE-1805 |NullPointerException in org.mule.transport.jms.XaTransactedJmsMessageReceiver
+|EE-1813 |Implement inbound client connections for TCP transport
+|EE-1889 |Support Module removed from distribution
+|EE-1977 |NullPointerException in AutoDiscoveryRedeliveryHandlerFactory
+|EE-1980 |Connector exception strategy is invoked twice
+|EE-1983 |Retry Policy not working for wmq with XA Transaction
+|MULE-3478 |Default encoding (FileUtils) is always UTF-8 as of version 2.0.1 for all files read by the filetransport.
+|MULE-4274 |File-to-string-transformer doesn't respect endpoint encoding
+|MULE-4752 |Dispatcher object pool exhaustion policy interferes with threading profile exhaustion policy because dispatcher has to be obtained before work is scheduled
+|MULE-4792 |XStream XmlToObject transformer unable to load classes when running in hot deployment mode
+|MULE-4899 |Memory Leak in CXF Message Dispatchers
+|EE-1817 |Intermittent org.mule.api.lifecycle.InitialisationException when deployed as EAR in JBoss
+|EE-1867 |Proxying POJO with simple frontend throws NPE
+|EE-1898 |Race Condition with WMQ Connector and retry-forever-policy which causes javax.jms.MessageListener not being registered
+|EE-1901 |Setting clientid on wmq connector was not working
+|EE-1907 |Outbound endpoint was not invoked when timeout happened on collection-aggregator-router and failOnTimeout=false was set
+|EE-1924 |Expression transformer were causing conflicts with other transformers in the stack
+|EE-1928 |Problems handling Spaces in Path in populate_m2_repo.groovy
+|EE-1935 |MULE_BASE stop not working on solaris
+|EE-1937 |NPE issue in MuleEventContext.dispatchEvent
+|EE-1964 |JXPathExpressionEvaluator doesn't recognize namespaces if prefix is different.
+|MULE-3983 |JmsConnector throwing NPE when endpoint transaction config not set
+|MULE-4467 |Alternate Exception Strategy now correctly handles routing and transactions
+|MULE-4705 |PrompotStdioConnector was unable to load user ResourceBundle when using hot deployment
+|MULE-4776 |Webapp example fails when using tomcat:run
+|MULE-4783 |XsltTransformer cannot load xsl file when Mule is deployed in an EAR outside the WAR
+|MULE-4786 |Max http connections (for all http endpoints) is limited by dispatcher threading profile maxActiveThreads
+|MULE-4837 |Outbound endpoint is not invoked when timeout happens on collection-aggregator-router and failOnTimeout=false is set
+|MULE-4874 |MethodHeaderPropertyEntryPointResolver must applied transformers before looking for a method property
+|MULE-4920 |Proxying POJO with simple frontend without specifying namespace throws NPE
+|MULE-4927 |Exception strategy invoked both for connector *and* service exception strategies when exception on sync outbound endpoint
+|MULE-4961 |JXPathExpressionEvaluator doesn't recognize namespaces if prefix is different.
+|MULE-4964 |Retry Policy not working for wmq with XA Transaction
+|MULE-4970 |SmtpConnector: Work caused exception on 'workCompleted'. - NullPointerException
+|EE-1717 |SpringProviderAdapter forces use of UsernamePasswordAuthenticationToken
+|EE-1903 |ConsoleWrapperTestCase and ConsoleWrapperLoggingTestCase fail on jdk1.5.0_22
+|EE-1909 |Filters are invoked twice
+|EE-1952 |VM queues ordering
+|EE-877 |Potential Improvements on SelectiveConsumer.java
+|MULE-2052 |Startup script does detect running process if located in long path
+|MULE-4870 |Method AbstractConnectable.start() is not thread safe
+|MULE-4876 |SpringProviderAdapter forces use of UsernamePasswordAuthenticationToken
+|MULE-4939 |Persistent VM queues don't keep order after restart
+|EE-1941 |JmsMessageRequester not XA Transaction aware, closes JMS Session
+|MULE-4908 |JmsMessageDispatcher not XA Transaction aware, closes JMS Session
+|EE-1494 |dispatcher.dispatchRemote causes Broken Pipe exception
+|MULE-4791 |EventGroupTestCase.testCompareTo() fails intermittently
+|===
+
+== MMC Fixes
+
+[cols=",",options="header"]
+|======
+|Key |Summary
+|MMC-363 |When configuring alerts, the wrong script name was displayed. "Script 'SNMPAlert' has been saved"
+|MMC-387 |Stack Overflow error caused when executing Administrator Scripts in Internet Explorer 8
+|MMC-375 |Creating a new user sometimes caused bogus validation error, red highlight
+|MMC-311 |Special characters in User name and password fields caused "error communicating with the server"
+|MMC-374 |Email notification for alerts not saving properl
+|MMC-399 |Attempting to register backup node removed servers from MMC, threw errors
+|MMC-372 |Registering a standalone server with an agent of MMC 2.2.5 didn't work properly
+|MMC-344 |Running MMC in a web application running on TCServer causes exception: "java.lang.NoSuchMethodError: org.tanukisoftware.wrapper.jmx.WrapperManagerMBean.getJavaPID()"
+|MMC-53 |Discovery - agent must user Mule server ID when broadcasting. This issue is fixed by the implementation of auto-discovery.
+|MMC-390 |Exception alert not working.
+|MMC-365 |MMC is unable to detect Mule shutdown, still shows green status and no alert is fired
+|MMC-269 |ServerUp event must deploy alerts only for the target server, not every server associated with the alert definition
+|MMC-336 |Audit Status not in-sync after Restart of server
+|MMC-331 |NPE occurred when attempting to deploy MMC war on WebLogic
+|MMC-352 |Restarting a registered mule instance sometimes caused race conditions
+|MMC-148 |When a server goes down, RPC calls give bad error messages
+|MMC-368 |Stopping and then starting a JMS endpoint caused it to drop messages
+|MMC-272 |Mule log file "mule.log" appears as one continuous line when using IE 8. Fixed in IE8 and IE6.
+|MMC-241 |Previously displayed msgs need to be cleared when next Submit (type) action is performed
+|MMC-369 |Thread Poll SLA Error: "No transformer found for alert info type canned.alert.type.threadPool"
+|MMC-342 |Files screen shows no files when starting Mule as a Service
+|MMC-215 |Refreshes to server information (server list and server tree in nav panel) are very slow in remote situations with 10+ servers
+|MMC-210 |When trying to connect remotely to the EC2 instance -- server registration takes a very long time (2+ minutes) before failing with "connection refused"
+|MMC-42 |Selecting link on memory type should zoom associated chart.
+|MMC-381 |When clearing the statistics found in the Services tab, not all of them were being cleared (e.g.,the Executed Events)
+|MMC-349 |Services tab was not updating queued messaged itself
+|MMC-348 |Inbound router statistics not updating. From the Services->Endpoints panel. Fixed.
+|======

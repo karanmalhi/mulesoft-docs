@@ -1,0 +1,65 @@
+= Mule 2.2.0 Release Notes
+:keywords: release notes, esb
+
+
+* link:#Mule2.2.0ReleaseNotes-EnhancedExpressionSupport[Enhanced Expression Support]
+* link:#Mule2.2.0ReleaseNotes-SupportforSpringSecurity2.0[Support for Spring Security 2.0]
+* link:#Mule2.2.0ReleaseNotes-SupportforSpring-firstDeploymentsforMuleEmbeddedinaWebapp[Support for Spring-first Deployments for Mule Embedded in a Webapp]
+* link:#Mule2.2.0ReleaseNotes-SimplifiedMessageStyles[Simplified Message Styles]
+* link:#Mule2.2.0ReleaseNotes-AdditionalImprovements[Additional Improvements]
+* link:#Mule2.2.0ReleaseNotes-IssuesResolvedfor2.2.0[Issues Resolved for 2.2.0]
+
+Mule 2.2.0 Community Edition is now available. This release includes several new features that make Mule more powerful and easier to use than ever before.
+
+== Enhanced Expression Support
+
+Expressions allow you to extract information from the current message or determine how to handle the message. Expressions are very useful with routers and filters for defining routing logic and for filtering out unwanted messages. In Mule 2.2, you can now use the powerful new Mule expression language, which provides a unified language for querying message properties, attachments payload, Mule context information such as the current service or endpoint, and access to the registry. Additionally, you can now declare a namespace globally so that it can be used by XPath expressions across Mule. +
+For example, the following Jaxen filter declares a namespace with the prefix "e", which is then used in the filter expression:
+
+[source,xml,linenums]
+----
+<outbound>
+  <filtering-router>
+    <outbound-endpoint address="vm://echo" synchronous="true"/>
+    <mule-xml:jaxen-filter pattern="/e:purchaseOrder/e:shipTo/@country" expectedValue="US">
+      <mule-xml:namespace prefix="e" uri="http://www.example.com"/>
+    </mule-xml:jaxen-filter>
+  </filtering-router>
+....
+</outbound>
+----
+
+For more information, see http://www.mulesource.org/display/MULE2USER/Using+Expressions[Using Expressions] in the Mule User Guide (login required).
+
+== Support for Spring Security 2.0
+
+You can now use Spring Security 2.0 as a Security Manager inside of Mule. Spring Security is the next version of Acegi and provides a number of authentication and authorization providers such as JAAS, LDAP, CAS (Yale Central Authenication service), and DAO. You can use any of the library's security providers with Mule. For more information, see http://www.mulesource.org/display/MULE2USER/Configuring+Security[Configuring Security] in the Mule User Guide (login required).
+
+== Support for Spring-first Deployments for Mule Embedded in a Webapp
+
+Submitted as a patch by a Mule community user, this feature lets Mule use your existing application context (WebApplicationContext), if it has already been created by Spring, as the parent application context for the Mule configuration builder. This gives Mule easy access to all the beans you've configured in your Spring application context. For more information, see http://www.mulesource.org/display/MULE2USER/Spring+Application+Contexts[Spring Application Contexts] in the Mule User Guide (login required).
+
+== Simplified Message Styles
+
+The synchronous messaging style now inherently supports remote synchronous mode, so you no longer have to set the `remoteSync` attribute on endpoints. Additionally, you specify the synchronous attribute explicitly on each synchronous endpoint (default is false, creating asynchronous endpoints), which makes your configuration easier to interpret and control. For more information, see http://www.mulesource.org/display/MULE2USER/Mule+Messaging+Styles[Mule Messaging Styles] in the Mule User Guide (login required).
+
+== Additional Improvements
+
+* New XPath extractor transformer, BeanBuilderTransformer transformer, XPath filter, and schema validation filter
+* Fixes for the examples and an overhaul of the Bookstore example to use web services
+* Support for extensible SQL strategies
+* CXF web service proxying now supports attachments
+* CXF clients now pass custom Mule message properties correctly to the server
+* Native JMS redelivery counters if supported by a JMS server (with fallback to the old-style manual counts)
+* Improved JMS topic subscriptions support for SunMQ/OpenMQ
+* Improved JNDI lookup of JMS destinations having slashes in their names
+* Explicit control over JMS temporary reply destinations creation on a connector/endpoint level
+* Every inbound aggregator router now supports `timeout` and `failOnTimeout` for partial aggregations
+* Every connector now has a `validateConnections` configuration attribute, acting as a performance optimization hint
+* Fixed failures with some IBM J9 and JRockit versions when proprietary JVM optimizations were enabled
+* Clarified and cleaned up message property scopes and precedence
+* Clean up of the use of OSGi rebundled dependencies
+* Improved and expanded documentation
+* Many bug fixes and increased test coverage
+
+For more details and for information on migrating from Mule 2.1 to Mule 2.2, click http://www.mulesource.org/display/MULE2INTRO/Migrating+Mule+2.1+to+2.2[here].

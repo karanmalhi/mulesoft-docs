@@ -32,7 +32,7 @@ Do not RUN the application until you have edited the `email.properties` file as 
 . In the *Package Explorer*, click to expand the `src/main/java/` folder.
 . Double-click the `email.properties` file to open the file in a new *canvas* tab in Studio (see image below).
 +
-image:/docs/download/attachments/87687924/email_props.png?version=1&modificationDate=1348947501482[image]
+image:email_props.png[email_props]
 
 . Edit the file to include the correct information.
 * For `mail_target`, enter the email address of the intended recipient
@@ -43,13 +43,13 @@ image:/docs/download/attachments/87687924/email_props.png?version=1&modification
 image:/docs/s/en_GB/3391/c989735defd8798a9d5e69c058c254be2e5a762b.76/_/images/icons/emoticons/error.png[(error)] in the tab to close the file.
 
 . Double-click the *File Endpoint* building block in the first flow (the first building block in the `Import_Order` flow). The *Endpoint Properties* window pops up.
-. In the *File Name Filter* section of the *Endpoint Properties* window, click the image:/docs/download/attachments/87687924/edit_fn_regex_icon.png?version=1&modificationDate=1349201366819[image] icon to edit the regular expression used to filter files.
+. In the *File Name Filter* section of the *Endpoint Properties* window, click the image:edit_fn_regex_icon.png[edit_fn_regex_icon] icon to edit the regular expression used to filter files.
 +
-image:/docs/download/attachments/87687924/file_endp_props.png?version=1&modificationDate=1349201388449[image]
+image:file_endp_props.png[file_endp_props]
 
 . At the *File Name Regex Filter* window, change the default filter from `.*.xlsx` to `.*.xls`, then click *Finish*.
 +
-image:/docs/download/attachments/87687924/fn_regex_filter_window.png?version=1&modificationDate=1349201401304[image]
+image:fn_regex_filter_window.png[fn_regex_filter_window]
 +
 *If you are using Windows, click here for additional instructions*
 +
@@ -60,7 +60,7 @@ The *File Endpoint* building block is configured to poll the `/tmp` directory, w
 . To edit the File Endpoint's properties, double-click the *File Endpoint* building block in the flow.
 . At the *Endpoint Properties* window, type the name of the desired directory in the *Path* input box (see image below).
 +
-image:/docs/download/attachments/87687924/windows_tmp.png?version=1&modificationDate=1349201409153[image]
+image:windows_tmp.png[windows_tmp]
 ====
 
 . In the *Package Explorer* pane in Studio, right-click the `mule-config.mflow` file and select `Run As > Mule Application`. Studio runs the application and Mule is up and kicking!
@@ -72,13 +72,13 @@ image:/docs/download/attachments/87687924/windows_tmp.png?version=1&modification
 ====
 To see the full path of your project's root directory, right-click the project root folder in the *Package Explorer* pane, then select *Properties*. Studio will display the *Properties* window for the project. Under *Resource*, the field *Location* lists the full path for the project's root directory (see image below):
 
-image:/docs/download/attachments/87687924/rootfolder.png?version=1&modificationDate=1349201419439[image]
+image:rootfolder.png[rootfolder]
 ====
 
 . When Mule detects the Excel file in the `/tmp` directory, it imports the file, processes the order, and send emails to the recipient specified in the `email.properties` file.
 . To stop the application, click the red *Terminate* button in Studio's *Console*.
 +
-image:/docs/download/attachments/87687924/terminate.png?version=1&modificationDate=1348947543502[image]
+image:terminate.png[terminate]
 
 == How It Works
 
@@ -90,14 +90,14 @@ The application contains two link:/docs/display/33X/Mule+Application+Architectur
 
 In Mule Studio, double-click a link:#[building block] to open its *Properties Panel*, then examine its configuration details. Alternatively, click the *Configuration XML* tab to examine the application's XML configuration file.
 
-image:/docs/download/attachments/87687924/config_tab.png?version=1&modificationDate=1348947565064[image]
+image:config_tab.png[config_tab]
 ====
 
 === Part 1 - Import Order Flow
 
 This flow polls the `/tmp` directory for files ending with `.xls` extensions. Mule uploads these files (which contain order details for t-shirts), then maps the data from the spreadsheet into http://en.wikipedia.org/wiki/JSON[JSON] in preparation for sending the data to the Web service in Part 2 for fulfillment.
 
-image:/docs/download/attachments/87687924/Import+Order.png?version=1&modificationDate=1340306637744[image]
+image:Import+Order.png[Import+Order]
 
 *View the XML*
 
@@ -117,7 +117,7 @@ The first link:/docs/display/33X/Studio+Building+Blocks[building block] in the 
 
 Next, an **link:/docs/display/33X/DataMapper+Transformer+Reference[Anypoint DataMapper Transformer]** maps the Excel data to JSON format (see image below). +
  +
- image:/docs/download/attachments/87687924/datamapper1.png?version=1&modificationDate=1348947597060[image]
+ image:datamapper1.png[datamapper1]
 
 After transforming the data into a format that the Web service in Part 2 can read, the flow uses an *Object to String Transformer* to convert the data into a string. Then, Mule uses a one-way, outbound **link:/docs/display/33X/HTTP+Endpoint+Reference[HTTP Endpoint]** to send the data to the Web service in Part 2, the *Request_Order_Service* flow.
 
@@ -129,14 +129,14 @@ Notice that the HTTP endpoint has a *one-way message exchange pattern* (as indic
 
 If an HTTP endpoint must respond to the requester, it requires a *request-response message exchange pattern* (below, left).
 
-image:/docs/download/attachments/87687924/http_endpoints.png?version=1&modificationDate=1348947620147[image]
+image:http_endpoints.png[http_endpoints]
 ====
 
 === Part 2 - Request Order Service Flow
 
 This flow accepts JSON-formatted Web service requests from Part 1 of the application. It maps the data from JSON to a Java object in preparation for iterative processing. Mule prepares, then sends one email to the vendor for each type of t-shirt order.
 
-image:/docs/download/attachments/87687924/flow_2.png?version=1&modificationDate=1348947640002[image]
+image:flow_2.png[flow_2]
 
 *View the XML*
 
@@ -158,11 +158,11 @@ image:/docs/download/attachments/87687924/flow_2.png?version=1&modificationDate=
 
 The *Request Order Service* flow is a RESTful Web service which "listens" for HTTP requests from Part 1. When the inbound HTTP endpoint receives a request, it passes the message to the DataMapper. This transformer converts the incoming JSON-formatted http://en.wikipedia.org/wiki/Array_data_type[array] to a http://en.wikipedia.org/wiki/List_(abstract_data_type)[list] of TShirtRequest beans (see below). The message payload, now a http://en.wikipedia.org/wiki/Collection_(abstract_data_type)[collection], is ready for iterative processing. +
  +
- image:/docs/download/attachments/87687924/datamapper2.png?version=1&modificationDate=1348947663456[image]
+ image:datamapper2.png[datamapper2]
 
 Next, Mule sends the collection to the **link:/docs/display/33X/Foreach[Foreach]** iterative processor which breaks the collection apart into items, then processes each individual item one by one. In this case, each item is a line in the imported Excel spreadsheet (see image below) for which Mule will prepare an individual vendor email. +
  +
- image:/docs/download/attachments/87687924/excel_file_contents.png?version=1&modificationDate=1348947679052[image]
+ image:excel_file_contents.png[excel_file_contents]
 
 Each item in the collection first encounters a **link:/docs/display/33X/Groovy+Component+Reference[Groovy Component]** which extracts two pieces of data from the payload:
 
@@ -171,7 +171,7 @@ Each item in the collection first encounters a **link:/docs/display/33X/Groovy+C
 
 The Groovy component uses the extracted data to prepare an email to the vendor to demand fulfillment of the order (see image below). Each email demands a specific number of a specific type of t-shirt. For example, the first item in the collection yields an email that reads, `You need to create 10 A0001.` +
  +
- image:/docs/download/attachments/87687924/groove_script.png?version=1&modificationDate=1348947693619[image]
+ image:groove_script.png[groove_script]
 
 Lastly, the outbound *SMTP Endpoint* sends an email to the vendor with a demand to fulfill the order for t-shirts. Because it processes each item in the collection individually, Mule sends one email to the vendor for each type of t-shirt. From the Excel file included with this example, Mule sends six emails to the vendor, one for each row in the spreadsheet (excluding the header row). See the contents of a vendor email below.
 

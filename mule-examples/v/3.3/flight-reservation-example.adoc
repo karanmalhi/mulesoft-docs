@@ -51,21 +51,21 @@ Follow the procedure below to create, then run the Flight Reservation applicatio
 . Open your Web browser.
 . Browse to the URL `http://localhost:9092/reservation/`. The application displays its Web user interface (see below).
 +
-image:/docs/download/attachments/87687927/Flight+Reservation+UI.png?version=1&modificationDate=1349735279293[image]
+image:Flight+Reservation+UI.png[Flight+Reservation+UI]
 
 The application includes three cities preloaded in the `Origin` and `Destination` combo boxes, and can output the following three results:
 
 . Error (if no city was selected in one or both combo boxes)
 +
-image:/docs/download/attachments/87687927/Flight+Reservation+Invalid+Error.png?version=1&modificationDate=1349735249716[image]
+image:Flight+Reservation+Invalid+Error.png[Flight+Reservation+Invalid+Error]
 
 . No flight available (Buenos Aires to Hong Kong)
 +
-image:/docs/download/attachments/87687927/Flight+Resrvation+no+flights.png?version=1&modificationDate=1349735264610[image]
+image:Flight+Resrvation+no+flights.png[Flight+Resrvation+no+flights]
 
 . Flight information for a three-leg flight (Buenos Aires to Moscow)
 +
-image:/docs/download/attachments/87687927/Flight+Reservation+success.png?version=1&modificationDate=1349735282843[image]
+image:Flight+Reservation+success.png[Flight+Reservation+success]
 
 When successful, the search results display a table with information for each flight segment and the total price for the flight (see image above).
 
@@ -73,10 +73,10 @@ When successful, the search results display a table with information for each fl
 
 The Flight Reservation application consists of four flowslink:#[Mule Application Architecture]. Together, these flows process end-user requests, then return responses which contain flight information. +
  +
- image:/docs/download/attachments/87687927/partA.png?version=1&modificationDate=1349735297706[image] +
+ image:partA-1.png[partA-1] +
 
 
-image:/docs/download/attachments/87687927/partB.png?version=1&modificationDate=1349735309108[image] +
+image:partB-1.png[partB-1] +
 
 *View the XML*
 
@@ -183,14 +183,14 @@ The sections below offer flow-by-flow descriptions of the Flight Reservation sys
 
 In Mule Studio, double-click a link:/docs/display/33X/Studio+Building+Blocks[building block] to open its *Properties Panel*, then examine its configuration details. Alternatively, click the *Configuration XML* tab to examine the application's XML configuration file.
 
-image:/docs/download/attachments/87687927/config_tab.png?version=1&modificationDate=1349735340379[image]
+image:config_tab.png[config_tab]
 ====
 
 === MakeReservation flow
 
 This first flow in the application receives incoming requests and forwards them to the next flow, the *processReservation* flow.
 
-image:/docs/download/attachments/87687927/MakeReservation+Flow.png?version=1&modificationDate=1349735368605[image]
+image:MakeReservation+Flow.png[MakeReservation+Flow]
 
 *View the XML*
 
@@ -215,24 +215,24 @@ AJAX link:/docs/display/33X/Studio+Building+Blocks[building block] must referenc
 
 . Click the *Global Elements* tab to the right of the *Message Flow* tab.
 +
-image:/docs/download/attachments/87687927/global.elements.tab.png?version=1&modificationDate=1349735423676[image]
+image:global.elements.tab.png[global.elements.tab]
 
 . Click the `ajaxServer` row in the *Global Configuration Elements* view, then click *Edit*.
 +
-image:/docs/download/attachments/87687927/global.element-edit.png?version=1&modificationDate=1349735439882[image]
+image:global.element-edit.png[global.element-edit]
 
 . Studio displays the *Global Element Properties* window for the AJAX Global Element.
 +
-image:/docs/download/attachments/87687927/global.element-props.png?version=1&modificationDate=1349735454977[image]
+image:global.element-props.png[global.element-props]
 ====
 
 The AJAX Endpoint forwards the data to the next building block, an *Object to String* transformer which converts the data to a readable text string. Then, a link:/docs/display/33X/Flow+Ref+Component+Reference[Flow Reference Component] forwards the data to the the *ProcessReservation* flow. This second flow contains the application's main logic.
 
 === ProcessReservation Flow
 
-image:/docs/download/attachments/87687927/processflow1.png?version=1&modificationDate=1349735496387[image]
+image:processflow1.png[processflow1]
 
-image:/docs/download/attachments/87687927/processflow2.png?version=1&modificationDate=1349735506357[image]
+image:processflow2.png[processflow2]
 
 *View the XML*
 
@@ -257,7 +257,7 @@ Next, the link:/docs/display/33X/Variable+Transformer+Reference[Variable Transfo
 
 The link:/docs/display/33X/Foreach[Foreach] scope splits the collection into elements, then iteratively processes them through the message processors defined within the scope. Mule extracts the collection from `#[payload.flights]`, which holds the flight segments' information (see image below).
 
-image:/docs/download/attachments/87687927/foreach.png?version=1&modificationDate=1349735526403[image]
+image:foreach.png[foreach]
 
 *View the XML*
 
@@ -304,7 +304,7 @@ After the Foreach scope, an link:/docs/display/33X/Expression+Transformer+Refere
 
 To handle errors within the *ProcessReservation* flow, Mule uses a **link:/docs/display/33X/Choice+Exception+Strategy[Choice Exception Strategy]**. This exception strategy routes messages according to the cause of each exception.
 
-image:/docs/download/attachments/87687927/choice_ES.png?version=1&modificationDate=1349735540138[image]
+image:choice_ES.png[choice_ES]
 
 *View the XML*
 
@@ -338,7 +338,7 @@ payload]]>
 
 The first **link:/docs/display/33X/Catch+Exception+Strategy[Catch Exception Strategy]** within the choice exception strategy uses an link:/docs/display/33X/Mule+Expression+Language+MEL[expression]  to handle all `FlightUnavailableException` exceptions (see image below). When this exception occurs, the catch exception strategy uses a Groovy transformer to generate an error message stating the lack of availability for the flight. +
  +
- image:/docs/download/attachments/87687927/catch_ES.png?version=1&modificationDate=1349735552801[image]
+ image:catch_ES.png[catch_ES]
 
 The second catch exception strategy handles all other exceptions. Like the first catch exception strategy, it uses a Groovy transformer to generate an error message, in this case, `Error processing request.` Next, it uses a link:/docs/display/33X/Property+Transformer+Reference[Property Transformer] to set the HTTP status code to `500: Internal Error`. Finally, it transforms the response to JSON data-format for the client-side Web browser.
 
@@ -346,7 +346,7 @@ The second catch exception strategy handles all other exceptions. Like the first
 
 Invoked by the Foreach scope in the *ProcessReservation* flow, this flow provides a valid response for each request it receives. +
  +
- image:/docs/download/attachments/87687927/Acquire+seat+info+flow.png?version=1&modificationDate=1349735565130[image]
+ image:Acquire+seat+info+flow.png[Acquire+seat+info+flow]
 
  [width="99",cols="99a",options="header"]
  |===
@@ -383,7 +383,7 @@ The catch exception strategy handles any exceptions that occur in this flow. It 
 
 Invoked by the `Acquire Flight Price` building block in the Foreach scope of the *ProcessReservation* flow, this flow provides a valid response for each request it receives.
 
-image:/docs/download/attachments/87687927/Acquire+price+info.png?version=1&modificationDate=1349735581034[image]
+image:Acquire+price+info.png[Acquire+price+info]
 
 [width="99",cols="99a",options="header"]
 |===

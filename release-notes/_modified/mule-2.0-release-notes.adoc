@@ -1,0 +1,91 @@
+= Mule 2.0 Release Notes
+:keywords: release notes, esb
+
+
+With no critical issues remaining, we are proud to announce the final/GA release of Mule 2.0. We would like to specially thank all those users who have provided feedback on and reported bugs in the Milestones and Release Candidates.
+
+== Release Candidate 3
+
+There have been 157 issues closed since 2.0.0-RC2.
+
+The http://mule.mulesource.org/display/MULE2USER/Home[documentation] for 2.0.0-RC3 is well underway. This user guide includes xml configuration documentation which is auto-generated from the core, module and transport schemas.
+
+A couple of performance related issues were resolved in 2.0.0-RC3 and some performance testing done to ensure 2.0.0 performance is as good as 1.4.3 and the following significant changes implemented:
+
+*API*
+
+* We completed our package re-organisation work, but changes were limited to examples and modules and so the impact should be minimal compared to the huge number of changes in RC2.
+* There were some Service/Component API changes but these will only affect module developers and won't affect users.
+
+*Expression evaluation framework* +
+ Allows expression to be used within mule in a generic way. Expression values are resolved in runtime by using expression evaluators. Implementations exist for message header properties, message payload, message attachments, xpath expression, script expressions. These expressions can be used in transformers, filters, the endpoint selector router and for filename parsers etc.
+
+*CXF replaces XFire* +
+ The XFire transport has been deprecated in favor of CXF in the main distribution and is now available on the http://www.mulesource.org/display/XFIRE/Home[MuleForge]. This was done as CXF is a more robust solution for building web services (it can be thought of as the next generation of XFire) and because distributing both CXF and XFire created conflicts in the classpath. Mule examples using XFire have been migrated to use CXF. You will need Java 5 to compile and run the examples that use CXF.
+
+*XML Configuration*
+
+* The mule-core schema annotation is almost complete, so you will now get more context-specific documentation when creating/editing your xml configurations.
+* A number of minor improvements to the schema where implemented.
+* The use of <component> and object factories we improved: i) You can now pool any component object including spring beans, ii) the use of pooling is now explicit via the <pooled-component> element. iii) The <pooled-object> object factory has been removed, <pooled-component> should be used instead.
+* Model elements no longer require names, if a name is not specified then one is auto-generated.
+* Agent elements no longer require names, they have fixed built-in names.
+* XML configuration syntax has been updated to use the "Expression evaluation framework".
+* Server ID's and working directory can no longer be configured in xml configuration, these should be configured via system properties if it is necessary to override the defaults.
+
+== Release Candidate 2
+
+With 102 issues closed since RC1, Mule 2.0 is becoming more stable than ever with its second Release Candidate.
+
+This release includes for the first time the http://www.muleforge.org/projects/CXF[Mule CXF Transport] which is an evolution of Mule's XFire Transport for web service integration via http://incubator.apache.org/cxf/[Apache CXF].
+
+Other significant changes or improvements in RC2 worth mentioning here are:
+
+*API* +
+ This release includes a significant amount of API re-organisation. This re-organisation involved the moving and renaming of interfaces as well as a small amount of tidying up. Interfaces are no longer prefixed with 'UMO', and now use the 'org.mule.api' package rather than 'org.mule.umo'. Also 'ManagementContext' was renamed to 'MuleContext' and 'org.mule.providers' to 'org.mule.transport'. We wanted to take advantage of 2.0 being a major release to introduce these changes, but unfortunately this didn't quite make it into RC1.
+
+*ConfigurationBuilder + MuleContextFactory* +
+ The ConfigurationBuilder API was improved and now just configures a mule instance rather than creating MuleContext and configuring it. The new MuleContextFactory is used for creating the MuleContext, and a DefaultMuleContextFactory is provided with methods that allow MuleContext creation and configuration in a manner similar to the old MuleXMLConfigurationBuilder.
+
+*XML Configuration* +
+ The Configuration of Mule 2.0 using Spring has now been abstracted out into the 'spring-config' module and 'mule-core' no longer depends on Spring. In order to use XML configuration, you will now need to include the 'spring-config' module on your class-path. MuleXMLConfigurationBuilder in 'mule-core' was moved to the 'spring-config' module and renamed to 'SpringXMLConfigurationBuilder'.
+
+*XML Configuration Syntax* +
+ We revised and simplified the XML schema for this release. This was a final revision and future RC releases will be more stable. The main changes are:
+
+* Response endpoints are now simply inbound endpoints
+* The main service structure no longer uses "-router" (for what were, confusingly, "router collections"). It is now: +
+ <service> +
+   <inbound/> +
+   <component/> +
+   <outbound/> +
+   <async-reply/> +
+ </service> +
+ (and, for consistency, "response" in other places changed to "async-reply")
+* Transactions are a single element (no factory)
+* Entry point resolvers were added and the "no args call wrapper" removed +
+ (see EntryPointResolverTestCase for many detailed examples)
+* Transformer names now *end* in "-transformer" to be consistent with other elements
+* The component configuration was cleaned slightly
+
+== Release Candidate 1
+
+The Mule development team is very pleased to announce the first Release Candidate for 2.0, the next generation of the Mule ESB, and believe it or not we even have some documentation available!
+
+First take a look at the http://www.mulesoft.org/documentation-3.2/display/MULE2USER/Home[Mule 2.0 Configuration Guide] to see how a 2.0 Mule config compares to a 1.4 config.
+
+For those interested in creating an XML Namespace for their custom module/transport (or just want to know the gory details of how it works), read link:/documentation/display/current/Creating+a+Custom+XML+Namespace[How to Create an XML Namespace].
+
+A lot of work has gone into Mule 2.0 (see the 425 issues listed below, for example), so we'd really like you to try it out and http://mule.mulesource.org/jira/browse/MULE[let us know how it goes].
+
+One more thing worth mentioning is that we have been continuously merging in fixes from 1.x, so any issue resolved for 1.4.4 should also be resolved in 2.0
+
+== Milestone / "Technology Preview" Release 2
+
+A lot of hard work has gone into the Mule 2.0 development effort since the last milestone and we'd like to make that work available to interested members of our community to preview. There is still a ways to go, but we are gradually closing in on a final 2.0 release. Feel free to take a look and let us hear your feedback.
+
+== Milestone / "Technology Preview" Release 1
+
+The Mule development team is hard at work on the next major release of Mule and is pleased to announce that a first milestone towards Mule 2.0 is available to download and try out. Please be aware that, although much progress has been made, there is still a lot more to be done, so this milestone is simply a "Technology Preview" of a work-in-progress.
+
+We encourage Mule users interested in getting a glimpse of the future to try out the new configuration style (preferably in your favorite Java IDE which should allow auto-completion via XML schemas, this has been tested on Eclipse and IDEA so far). We're very eager to hear what you think and any suggestions on how we can make it better suit your needs as a Mule user. And, like always, keep those helpful bug reports http://mule.mulesource.org/jira[coming in]!
