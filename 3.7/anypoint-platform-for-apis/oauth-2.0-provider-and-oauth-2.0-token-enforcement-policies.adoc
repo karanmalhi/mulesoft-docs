@@ -29,18 +29,36 @@ If your API is defined using RAML (recommended), your RAML securitySchemes must 
 
 Within the RAML securitySchemes definition, you must include URIs for the authorization and access token. If you are deploying the API to a cloud API Gateway, you must configure the host and port as 0.0.0.0:8081 in your OAuth Provider policy on your API Version Details page.
 
-[width="99a",cols="50a,50a"]
+[cols="3*a"]
 |===
-|URI in RAML |Configuration in OAuth Provider Policy for host and port. For On-Premises Deployment. For Cloud Deployment
-|*`authorizationUri`* |No specific limitations. Host must be 0.0.0.0. Port must be 8081
-|*`accessTokenUri`* |No specific limitations. Host must be 0.0.0.0. Port must be 8081
+.2+^.^| *URI in RAML*
+2+^| *Configuration in OAuth Provider Policy for host and port*
+
+| *for On-Premises Deployment*
+| *for Cloud Deployment*
+
+| *`authorizationUri`*
+
+| No specific limitations
+
+| Host must be 0.0.0.0
+
+Port must be 8081
+
+| *`accessTokenUri`*
+
+| No specific limitations
+
+| Host must be 0.0.0.0
+
+Port must be 8081
 |===
 
 ==== Grant Types
 
 You must configure your policy to match the grant types specified in your RAML securitySchemes. Refer to the table below for reference on how the grant type specifications in RAML map to the grant type names in the policy configuration. 
 
-[width="99a",cols="33a,33a,33a",options="header"]
+[width="99a",cols="34a,33a,33a",options="header"]
 |===
 |Authorization Grant Types Defined in RAML Definition |Equivalent Authorization Grant Type to Enable in the OAuth Provider Policy |Supported in embedded APIkit Console?
 |`[token]` |Implicit |Yes
@@ -72,7 +90,7 @@ Select one or more of the following link:/docs/display/current/Authorization+Gra
 * Authorization Code |`Authorization Code`
 |===
 
-* Note that Scopes and the Client Credentials and Resource Owner Password Credentials grant types are not supported in the embedded console within APIkit at this time. You can apply these to your API, but you will not be able to use the console.
+*Note that Scopes and the Client Credentials and Resource Owner Password Credentials grant types are not supported in the embedded console within APIkit at this time. You can apply these to your API, but you will not be able to use the console.
 
 == Configuring an OAuth 2.0 Token Validation Policy
 
@@ -96,7 +114,7 @@ To unapply the OAuth Provider and Token Enforcement policies backed by a Securit
 
 In some cases, you might want to have access to information about what externally authenticated users are using your API. To do so, place the following script in any place between your proxy's inbound and outbound endpoints (it will be executed after the OAuth 2.0 Provider and OAuth 2.0 Token Enforcement Policies):
 
-[source]
+[source,xml,linenums]
 ----
 <expression-component>
     message.outboundProperties.put('X-Authenticated-userid', _muleEvent.session.securityContext.authentication.principal.username)
