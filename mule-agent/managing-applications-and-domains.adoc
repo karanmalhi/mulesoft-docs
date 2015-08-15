@@ -1,41 +1,8 @@
-= Managing Applications and Domains** +
-**
+= Managing Applications and Domains
+:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
 
 This document describes how manage (deploy and list) Mule applications and domains through the Mule agent API.
 
-#ManagingApplicationsandDomains-Operation:ListApplications[Operation: List Applications]
-
-* link:#ManagingApplicationsandDomains-ApplicationStates[Application States]
-
-#ManagingApplicationsandDomains-Operation:DeployApplication[Operation: Deploy Application]
-
-* link:#ManagingApplicationsandDomains-ExampleUsingJSON[Example Using JSON]
-* link:#ManagingApplicationsandDomains-ExampleUsingOctetStream[Example Using Octet Stream]
-
-#ManagingApplicationsandDomains-Operation:UndeployanApplication[Operation: Undeploy an Application]
-
-#ManagingApplicationsandDomains-Operation:RestartanApplication[Operation: Restart an Application]
-
-#ManagingApplicationsandDomains-Operation:GetanApplication[Operation: Get an Application]
-
-#ManagingApplicationsandDomains-Operation:StartanApplication[Operation: Start an Application]
-
-#ManagingApplicationsandDomains-Operation:StopanApplication[Operation: Stop an Application]
-
-link:#ManagingApplicationsandDomains-ManagingDomains[Managing Domains]
-
-#ManagingApplicationsandDomains-Operation:ListDomains[Operation: List Domains]
-
-#ManagingApplicationsandDomains-Operation:Deploy/RedeployaDomain[Operation: Deploy/Redeploy a Domain]
-
-* link:#ManagingApplicationsandDomains-ExampleUsingJSON.1[Example Using JSON]
-* link:#ManagingApplicationsandDomains-ExampleUsingOctetStream.1[Example Using Octet Stream]
-
-#ManagingApplicationsandDomains-Operation:UndeployaDomain[Operation: Undeploy a Domain]
-
-#ManagingApplicationsandDomains-Operation:RestartaDomain[Operation: Restart a Domain]
-
-#ManagingApplicationsandDomains-Operation:GetaDomain[Operation: Get a Domain]
 
 == Managing Applications
 
@@ -45,9 +12,28 @@ This operation lists all of the applications running on the Mule instance.
 
 *Request:*
 
+----
+GET <host:port>/mule/applications/ HTTP/1.1
+----
+
 *Example:*
 
+----
+GET localhost:9999/mule/applications/ HTTP/1.1
+----
+
 *Response:*
+[source, json]
+----
+[
+  {
+    name: 'domain1', domain: 'domain1', state: 'CREATED'
+  },
+  {
+    name: 'domain2', domain: 'domain2', state: 'STARTED'
+  }
+]
+----
 
 ==== Application States
 
@@ -72,19 +58,61 @@ Both methods are illustrated in the link:#ManagingApplicationsandDomains-ex1[exa
 
 *Basic Request:*
 
+----
+PUT <host:port>/mule/applications/<application name> HTTP/1.1
+----
+
 *Example:*
+[source, json]
+----
+PUT http://localhost:9999/mule/applications/myapp HTTP/1.1
+----
 
 ==== Example Using JSON
 
 *Request:*
 
+----
+PUT http://localhost:9999/mule/applications/myapp HTTP/1.1
+Content-Type: application/json
+ 
+{
+url: "http://myDomain.com/myApp.zip"
+}
+----
+
 *Response:*
+[source, json]
+----
+{
+  application: {
+    name: "applicationName"
+  },
+  status: "Deployment attempt started"
+}
+----
 
 ==== Example Using Octet Stream
 
 *Request:*
 
+----
+PUT http://localhost:9999/mule/applications/myapp HTTP/1.1
+Content-Type: application/octet-stream
+ 
+Body: Binary zip file
+----
+
 *Response:*
+[source, json]
+----
+{
+  application: {
+    name: "applicationName"
+  },
+  status: "Deployment attempt started"
+}
+----
 
 === Operation: Undeploy an Application
 
@@ -92,17 +120,56 @@ This operation undeploys the specified application.
 
 *Request:*
 
+----
+DELETE <host:port>/mule/applications/<application name> HTTP/1.1
+Content-Type: application/json
+----
+
 *Example:*
 
+----
+DELETE http://localhost:9999/mule/applications/myapp HTTP/1.1
+Content-Type: application/json
+----
+
 *Response:*
+[source, json]
+----
+{
+  application: {
+    name: "applicationName"
+  },
+  status: "Undeployment attempt started"
+}
+----
 
 === Operation: Restart an Application
 
 *Request:*
 
+----
+PUT <host:port>/mule/applications/<application name>/restart
+----
+
 *Example:*
 
+----
+PUT http://localhost:9999/mule/applications/myapp/restart HTTP/1.1
+Content-Type: application/json
+----
+
 *Response:*
+[source, json]
+----
+{
+  application: {
+    name: "applicationName",
+    domain: "domainName",
+    state: "STARTED"
+  },
+  status: "Restart attempt started"
+}
+----
 
 === Operation: Get an Application
 
@@ -110,9 +177,25 @@ This operation retrieves a specific application status
 
 *Request:*
 
+----
+GET <host:port>/mule/applications/<application name> HTTP/1.1
+----
+
 *Example:*
 
+----
+http://localhost:9999/mule/applications/myapp HTTP/1.1
+----
+
 *Response:*
+[source, json]
+----
+{
+  name: 'myapp'
+  domain: 'domain'
+  state: 'STARTED'
+}
+----
 
 === Operation: Start an Application
 
@@ -120,9 +203,28 @@ This operation starts the specified application.
 
 *Request:*
 
+----
+PUT <host:port>/mule/applications/<application name>/start HTTP/1.1
+----
+
 *Example:*
 
+----
+PUT http://localhost:9999/mule/applications/myapp/start HTTP/1.1
+----
+
 *Response:*
+[source, json]
+----
+{
+  application: {
+    name: "applicationName",
+    domain: "domainName",
+    state: "STOPPED"
+  },
+  status: "Start attempt started"
+}
+----
 
 === Operation: Stop an Application
 
@@ -130,9 +232,28 @@ This operation stops the specified application.
 
 *Request:*
 
+----
+PUT <host:port>/mule/applications/<application name>/stop HTTP/1.1
+----
+
 *Example:*
 
+----
+PUT http://localhost:9999/mule/applications/myapp/stop HTTP/1.1
+----
+
 *Response:*
+[source, json]
+----
+{
+  application: {
+    name: "applicationName",
+    domain: "domainName",
+    state: "STARTED"
+  },
+  status: "Stop attempt started"
+}
+----
 
 == Managing Domains
 
@@ -142,9 +263,52 @@ This operation lists all of the domains and their corresponding applications.
 
 *Request:*
 
+----
+GET <host:port>/mule/domains HTTP/1.1
+----
+
 *Example:*
 
+----
+GET http://localhost:9999/mule/domains HTTP/1.1
+----
+
 *Response:*
+[source, json]
+----
+[
+  {
+    name: "myDomain1",
+    applications:[
+      {
+        name: "domain1",
+        domain: "domain1",
+        state: "CREATED"
+      },
+      {
+        name: "domain2",
+        domain: "domain2",
+        state: "STARTED"
+      }
+    ]
+  },
+  {
+    name: "myDomain2",
+    applications:[
+      {
+        name: "otherDomain1",
+        domain: "otherDomain1",
+        state: "CREATED"
+      },
+      {
+        name: "otherDomain2",
+        domain: "otherDomain2",
+        state: "STARTED"
+      }
+    ]
+  }
+]
+----
 
 === Operation: Deploy/Redeploy a Domain
 
@@ -160,22 +324,59 @@ Both methods are illustrated in the link:#ManagingApplicationsandDomains-ex2[ex
 
 *Basic Request:*
 
-*Example:*
+----
+PUT <host:port>/mule/domains/<domain name> HTTP/1.1
+----
 
-* +
-*
+*Example:*
+[source, json]
+----
+PUT http://localhost:9999/mule/domains/mydomain HTTP/1.1
+----
+
+
 
 ==== Example Using JSON
 
 *Request:*
 
+----
+PUT http://localhost:9999/mule/domains/mydomain HTTP/1.1
+Content-Type: application/json
+ 
+{
+  url: "http://localhost/myDomain.jar"
+}
+----
+
 *Response:*
+[source, json]
+----
+{
+  domain: "domainName",
+  status: "Deployment attempt started"
+}
+----
 
 ==== Example Using Octet Stream
 
 *Request:*
 
+----
+PUT http://localhost:9999/mule/domains/mydomain HTTP/1.1
+Content-Type: application/octet-stream
+ 
+Body: Binary zip file
+----
+
 *Response:*
+[source, json]
+----
+{
+  domain: "domainName",
+  status: "Deployment attempt started"
+}
+----
 
 === Operation: Undeploy a Domain
 
@@ -183,17 +384,49 @@ This operation undeploys the specified domain.
 
 *Request:*
 
+----
+DELETE <host:port>/mule/domains/<domain name>
+----
+
 *Example:*
 
+----
+DELETE http://localhost:9999/mule/domains/mydomain HTTP/1.1
+Content-Type: application/json
+----
+
 *Response:*
+[source, json]
+----
+{
+  domain: "domainName",
+  status: "Undeployment attempt started"
+}
+----
 
 === Operation: Restart a Domain
 
 *Request:*
 
+----
+PUT <host:port>/mule/domains/<domain name>/restart
+----
+
 *Example:*
 
+----
+PUT http://localhost:9999/mule/domains/mydomain/restart HTTP/1.1
+Content-Type: application/json
+----
+
 *Response:*
+[source, json]
+----
+{
+  domain: "domainName",
+  status: "Restart attempt started"
+}
+----
 
 === Operation: Get a Domain
 
@@ -201,6 +434,32 @@ This operation retrieves the status of the specified domain.
 
 *Request:*
 
+----
+GET <host:port>mule/domains/<domain name> HTTP/1.1
+----
+
 *Example:*
 
+----
+GET http://localhost:9999/mule/domains/myDomain HTTP/1.1
+----
+
 *Response:*
+[source, json]
+----
+{
+  name: "myDomain",
+  aplications:[
+    {
+      name: "otherDomain1",
+      domain: "otherDomain1",
+      state: "CREATED"
+    },
+    {
+      name: "otherDomain2",
+      domain: "otherDomain2",
+      state: "STARTED"
+    }
+  ]
+}
+----

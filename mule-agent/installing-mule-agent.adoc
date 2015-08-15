@@ -1,6 +1,7 @@
 = Installing the Mule Agent
+:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
 
- _*Enterprise Edition*_
+_*Enterprise Edition*_
 
 == Assumptions
 
@@ -13,25 +14,30 @@ If your Mule version is 3.6.x, you have to download the agent separately (see li
 
 This document assumes that your enterprise license is current. Please see http://www.mulesoft.org/documentation/display/current/Installing+an+Enterprise+License[Installing an Enterprise License] for information on obtaining and installing an enterprise license.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |Mule Agent is only available for Mule 3.6.0 or later versions, and Anypoint API Gateway 2.0 or later.
+[NOTE]
+Mule Agent is only available for Mule 3.6.0 or later versions, and Anypoint API Gateway 2.0 or later.
 
-|===
+[TIP]
+It is recommended to run the latest version of Mule Enterprise. Download it from the http://www.mulesoft.com/support-login[customer portal] if you need to upgrade.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/check.png[image] |It is recommended to run the latest version of Mule Enterprise. Download it from the http://www.mulesoft.com/support-login[customer portal] if you need to upgrade.
-
-|===
 
 == Installing the Agent
 
 You can install the Mule agent on Mule ESB or API Gateway. The installation procedure is the same for Mule 3.7 and for API Gateway; for Mule 3.6.x, you have to download the agent manually.
 
+[tabs]
+------
+[tab,title="Mule 3.7 and above"]
+....
+
 In 3.7.0, the agent comes bundled with your Mule installation. You install it by running `$MULE_HOME/bin/amc_setup` (or `$MULE_HOME\bin\amc_setup.bat` if on Windows).
 
 The install script provides you with several options, explained link:#InstallingMuleAgent-install_options[below].
+
+....
+[tab,title="Mule 3.6"]
+....
+
 
 If you are using **Mule 3.6.x**, you need to download the agent. The agent comes bundled in a .jar file with a quick-start script for easy installation.
 
@@ -47,15 +53,24 @@ After downloading `agent-setup.jar`, copy it to the server that hosts the Mule 
 
 Run the script from any directory, specifying the directory where Mule is located using the `--mule-home` parameter, as shown below.
 
+----
+java -jar agent-setup.jar --mule-home /Users/user/mule
+----
+
 *Option 2:*
 
 Copy the `agent-setup.jar` into `MULE_HOME/bin`, then run it with no parameters as shown below.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |After running the installation script, you will need to restart Mule for these settings to take effect.
+----
+java -jar agent-setup.jar
+----
 
-|===
+[NOTE]
+After running the installation script, you will need to restart Mule for these settings to take effect.
+
+....
+[tab,title="API Gateway"]
+....
 
 _*API Gateway 2.0 and above*_
 
@@ -65,6 +80,9 @@ The install script provides you with several options, explained link:#Installing
 
 The Mule agent in API Gateway allows you to add the gateway's Mule runtime as a server to Anypoint Management Center. For more information, see the *Add a Server* section in link:/docs/display/current/Managing+Applications+and+Servers+in+the+Cloud+and+On+Premises[Managing Applications and Servers in the Cloud and On Premises].
 
+....
+------
+
 === Installation Options
 
 Whether installing on Mule 3.6.x or 3.7.0, the options for the installation script are the same.
@@ -72,24 +90,37 @@ Whether installing on Mule 3.6.x or 3.7.0, the options for the installation scri
 ==== Example Installation Commands
 
 ===== Mule 3.6.x
+----
+java -jar agent-setup.jar --mule-home=/opt/mule/mule-3.6.1
+----
 
 ===== Mule 3.7.0
 
 If running from the `$MULE_HOME/bin` directory:
 
+----
+./amc_setup -I
+----
+
 If running from another directory, requires the `--mule-home` option:
 
-[cols=",",]
-|===================================
-|image:/docs/images/icons/emoticons/information.png[image] |The `amc_setup` script in Mule 3.7.0 requires at least the `-I`, `-S` or `-H` options to run. If run with no options, the script returns a help message. For details on these options, see below.
+----
+bin/amc_setup --mule-home /opt/mule/mule-3.7.0 -I
+----
 
-|===================================
+[NOTE]
+The `amc_setup` script in Mule 3.7.0 requires at least the `-I`, `-S` or `-H` options to run. If run with no options, the script returns a help message. For details on these options, see below.
+
 
 [width="100%",cols="50%,50%",options="header",]
-|=============================
+|===
 |Parameter |Description
 |`-H` a|
 Configures the Mule agent to connect to the Anypoint Management Center (AMC). This option requires a token (provided by the AMC console) and a name for the Mule server as you want it to appear in AMC. For example:
+
+----
+-H 800644c019d3ef2a264e5f3a5c9569ce myserver
+----
 
 To obtain the token, you need to use the *Add Server* option in AMC. Once you have the token, copy-paste it as the `-H` parameter for your agent installation command.
 
@@ -104,11 +135,26 @@ a|
 
  |When configuring Mule agent to connecto the Anypoint Management Center via a proxy, this option defines proxy details. See link:#InstallingMuleAgent-proxy[Installation Via Proxy].
 |`--mule-home` |Your `$MULE_HOME` directory. Use this option if you are not running the installation script from `$MULE_HOME/bin`.
-|=============================
+|===
 
 ==== Secure Connection Channel (S)
 
+----
+Anypoint Mule Agent Installer ----------- Mode [Secure connection Channel(S) / Insecure Connection Channel(I) / Quit(Q)] (?):
+----
+
 This option configures the Mule agent to establish a TLS connection with an on-premises administration console. You will need to provide the truststore and keystore in JKS format. This option enables a TLS channel for REST communications only. Once you select the Secure connection Channel mode, you will see the following menu:
+
+----
+The communication channel for the agent will be encrypted using public/private key certificates. In the following steps you will be asked to provide the keystore and truststore. Both keystore and truststore format must be JKS.
+
+Keystore location (?):
+Truststore location (?):
+Keystore Password (?):
+Keystore Alias (?):
+Keystore Alias Password (?):
+INFO: Mule agent was successfully configured to use a TLS channel for REST communications.
+----
 
 _*Keystore location*_
 
@@ -158,11 +204,8 @@ The user with which to authenticate against the proxy.
 
 The password with which to authenticate against the proxy.
 
-[cols=",",]
-|================================================
-|image:/docs/images/icons/emoticons/check.png[image] |If you have already installed the Mule agent and want to change its configuration to use a proxy, you can do so by editing the `wrapper.conf` file. For details, see link:#[Configuring a Proxy for the Mule Agent].
-
-|================================================
+[TIP]
+If you have already installed the Mule agent and want to change its configuration to use a proxy, you can do so by editing the `wrapper.conf` file. For details, see link:#[Configuring a Proxy for the Mule Agent].
 
 == Configuring the Agent
 

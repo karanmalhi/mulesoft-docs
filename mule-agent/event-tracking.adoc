@@ -1,4 +1,5 @@
 = Event Tracking
+:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
 
 == Overview
 
@@ -73,11 +74,8 @@ The following table lists the types of notifications active in each debugging le
 
 You can configure the tracking level globally and/or per application, and/or per flow. It's possible to configure the tracking level in the configuration file `mule-agent.yml`, or in real time using the agent API.
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |Bear in mind that performance may be affected depending on the debugging level.
-
-|===
+[NOTE]
+Bear in mind that performance may be affected depending on the debugging level.
 
 === Configuring via `mule-agent.yml`
 
@@ -87,11 +85,14 @@ This configuration affects all the applications in the Mule instance, as well as
 
 In `mule-agent.yml`:
 
-[cols=",",]
-|===
-|image:/docs/images/icons/emoticons/information.png[image] |If `globalTrackingLevel` is not specified, the default value is `NONE`.
+[source, yaml]
+----
+mule.agent.tracking.service:
+     globalTrackingLevel: TRACKING
+----
 
-|===
+[NOTE]
+If `globalTrackingLevel` is not specified, the default value is `NONE`.
 
 ==== Configuring Tracking by Application
 
@@ -99,23 +100,52 @@ In the example below, the tracking level for application `mule-example-echo` an
 
 In `mule-agent.yml`:
 
+[source, yaml]
+----
+mule.agent.tracking.service:
+      trackedApplications:
+          - appName: mule-example-echo
+            trackingLevel: TRACKING
+----
+
 ==== Configuring Tracking by Application Flow
 
 In the example below, different tracking levels are set for specific flows in application `mule-example-echo`. Tracking level `TRACKING` is set for the whole application, but tracking level `DEBUG` is set for the flow `EchoFlow`.
 
 In `mule-agent.yml`:
+[source, yaml]
+----
+mule.agent.tracking.service:
+    trackedApplications:
+        - appName: mule-example-echo
+          trackingLevel: TRACKING
+          trackedFlows:
+              - flowName: EchoFlow
+                trackingLevel: DEBUG
+----
 
 === Setting Complex Tracking Configurations
 
 This example sets the following configuration:
 
-* Application `mule-example-echo`:link:/docs/download/attachments/122751359/event_tracking.png?version=1&modificationDate=1421251570795[event_tracking.png] +
+* Application `mule-example-echo`:link:/docs/download/attachments/122751359/event_tracking.png?version=1&modificationDate=1421251570795[event_tracking.png]
 ** Level `TRACKING `for application
 ** Level `DEBUG` for flow `EchoFlow`
 * All other applications in the Mule instance, and their flows: +
 ** Level Business Event (`BE`)
 
 In `mule-agent.yml`:
+[source, yaml]
+----
+mule.agent.tracking.service:
+    globalTrackingLevel: BE
+    trackedApplications:
+        - appName: mule-example-echo
+          trackingLevel: TRACKING
+          trackedFlows:
+              - flowName: EchoFlow
+                trackingLevel: DEBUG
+----
 
 === Configuring Via the Agent API During Runtime
 
@@ -126,8 +156,41 @@ The agent API allows you to change the agent tracking configuration during runti
 This below retrieves the information about the tracking service. The retrieved information includes the configurable fields with their current values.
 
 *Request:*
+----
+GET <Mule agent URL>/mule/agent/mule.agent.tracking.service
+----
 
 *Response:*
+[source, json]
+----
+"configurableFields": [
+    {
+      "name": "globalTrackingLevel",
+      "valueType": "com.mulesoft.agent.services.tracking.TrackingLevel",
+      "value": "NONE",
+      "configurableType": "DYNAMIC",
+      "description": ""
+    },
+    {
+      "name": "trackedApplications",
+      "valueType": "[Lcom.mulesoft.agent.services.tracking.TrackedApplication;",
+      "value": [],
+      "configurableType": "DYNAMIC",
+      "description": ""
+    }
+  ],
+  "injectedHandlers": [
+    {
+      "name": "com.mulesoft.agent.handlers.internal.InternalTrackingNotificationHandler",
+      "path": "/mule/agent/tracking.notification.internal.message.handler/configuration",
+      "type": "class com.mulesoft.agent.domain.tracking.AgentTrackingNotification"
+    }
+  ],
+  "serviceHandlerTypes": [
+    "class com.mulesoft.agent.domain.tracking.AgentTrackingNotification"
+  ]
+}
+----
 
 ==== Modifying the Current Configuration
 
@@ -136,5 +199,67 @@ To modify the current configuration during runtime, send a request with the JSON
 The following example request overrides the `globalTrackingLevel` and `trackedApplications` fields. All other fields are left unchanged.
 
 *Request:*
+[source, json]
+----
+PATCH <Mule agent URL>/mule/agent/mule.agent.tracking.service HTTP/1.1
+
+{
+  "globalTrackingLevel": "BE",
+  "trackedApplications": [
+  {
+    "appName": "mule-example-echo",
+    "trackingLevel": "DEBUG",
+    "trackedFlows": [
+    {
+      "flowName": "EchoFlow",
+      "trackingLevel": "TRACKING"
+    }
+    ]
+  }
+  ]
+}
+----
 
 *Response:*
+[source, json]
+----
+{
+  "configurableFields": [
+  {
+    "name": "globalTrackingLevel",
+    "valueType": "com.mulesoft.agent.services.tracking.TrackingLevel",
+    "value": "BE",
+    "configurableType": "DYNAMIC",
+    "description": ""
+    },
+    {
+      "name": "trackedApplications",
+      "valueType": "[Lcom.mulesoft.agent.services.tracking.TrackedApplication;",
+      "value": [
+      {
+        "appName": "mule-example-echo",
+        "trackingLevel": "DEBUG",
+        "trackedFlows": [
+        {
+          "flowName": "EchoFlow",
+          "trackingLevel": "TRACKING"
+        }
+        ]
+      }
+      ],
+      "configurableType": "DYNAMIC",
+      "description": ""
+    }
+    ],
+    "injectedHandlers": [
+    {
+      "name": "com.mulesoft.agent.handlers.internal.InternalTrackingNotificationHandler",
+      "path": "/mule/agent/tracking.notification.internal.message.handler/configuration",
+      "type": "class com.mulesoft.agent.domain.tracking.AgentTrackingNotification"
+    }
+    ],
+    "serviceHandlerTypes": [
+    "class com.mulesoft.agent.domain.tracking.AgentTrackingNotification"
+    ]
+  }
+----

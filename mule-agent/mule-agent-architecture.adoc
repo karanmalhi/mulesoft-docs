@@ -1,4 +1,5 @@
 = Mule Agent Architecture
+:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
 
 The Mule agent is a Mule plugin that exposes the Mule ESB JAVA API as a service, allowing users to manipulate and monitor Mule ESB instances from external systems.
 
@@ -51,7 +52,7 @@ The agent's architecture is quite simple:
 * The transports handle communication
 * The external message handlers dispatch messages
 * The services connect to Mule API
-* The internal message handlers dispatch Mule notifications 
+* The internal message handlers dispatch Mule notifications
 +
 image:/docs/download/attachments/122751362/architecture.png?version=1&modificationDate=1421251068895[image] +
 +
@@ -81,6 +82,20 @@ During installation, you also have the option to configure the Mule agent via a 
 
 You can configure component attributes in the `mule-agent.yml` file. For this purpose, you can annotate the class attributes as `@Configurable`.
 
+[source, java]
+----
+@Singleton
+public class MyRequestHandler implements ExternalMessageHandler
+{
+    @Inject
+    private MuleService muleService;
+
+    @Configurable
+    public String host;
+    ...
+}
+----
+
 == The Mule Agent WebSocket Protocol
 
 Communication over WebSockets to the agent implements the HTTP protocol. All messages sent to and from the agent are HTTP messages sent as binary messages or text (depending on the agent configuration) over WebSocket. These HTTP messages are the same as those used in the agent REST communication.
@@ -92,9 +107,30 @@ Handshaking is a process specific to the WebSocket transport. On startup, the ag
 ==== The Handshake Request
 
 Below is an example of a handshake request.
+----
+POST handshake HTTP/1.1
+Content-Type: application/json
+Message-Id: ${messageId}
+accept: application/json
+Content-length: 1234
+
+{
+"agentVersion": "1.0.0",
+"muleVersion": "${muleVersion}",
+"uniqueId": "${uniqueId}"
+}
+----
 
 ==== Handshake Response
 
 Authorized:
+----
+HTTP 200 OK
+Message-Id: ${messageId}
+----
 
 Unauthorized:
+----
+HTTP 401 UNAUTHORIZED
+Message-Id: ${messageId}
+----
