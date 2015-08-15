@@ -1,0 +1,76 @@
+= Mule Query Language
+
+MQL is a LINQ inspired query lanaguage for Java and Mule. With it you can *filter, join and transform data from Mule messages, cloud connectors, and Spring beans* in very concise code. And with the `<mql:query-service>` support inside Mule, you can instantly turn that query into a REST service. MQL is currently in beta.
+
+Here are some quick samples:
+
+[width="100",cols="50,50",options="header"]
+|===
+|Description |Query
+|Filter Data a|
+
+[source]
+----
+from userManager.users   where division = ‘Sales’ and     (email like ‘mulesoft.com’ or email like ‘mulesource.com’)
+----
+
+Queries userManager.getUsers() and returns all users which are in Sales and have an email which contains "mulesoft.com" or "mulesource.com"
+
+|Transform data into a Map/POJO a|
+
+[source]
+----
+from userManager.users as u select new {  href = 'http://localhost/users/' + u.id,  name = u.firstName + ' ' + u.lastName,  division = u.division}
+----
+
+Queries userManager.getUsers() and creates new objects which have the href, name and division properties. This object will be a `Map` by default, but can also be a POJO by using syntax like `new(com.foo.UserSummary)` in the select statement.
+
+|Join data from Salesforce a|
+
+[source]
+----
+from userManager.users as user  join salesforce.query('SELECT Company, MobilePhone                          FROM Lead                          WHERE Email = \'' + user.email + '\'', 1)    as sfuser  select new {    name = user.name,    email = user.email,    company = sfuser[0].?Company,    mobilePhone = sfuser[0].?MobilePhone  }
+----
+
+Queries userManager.getUsers() and for each user calls the link:/documentation-3.2/display/32X/SalesForce[SalesForce] cloud connector to retrieve user information based on the users's email address. In the select statement, we're creating a new object based on both the local data (name and email) and the SalesForce data (company and mobile phone).
+
+|Instant REST service a|
+
+[source, xml]
+----
+<mql:query-service name=“UsersService"   address="http://localhost:9002/mulesoft-users"  query="from userManager.users as u where email like 'mulesoft.com'"/>
+----
+
+Creates a REST services on the specified address which executes the specified query. Data is returned in JSON format.
+
+|Transform Mule messages a|
+
+[source, xml]
+----
+<mql:transform query="select new { name = u.name, email = u.email}"/>
+----
+
+Takes a Mule message payload (POJO or JSON data) and transforms it into a new object (POJO or JSON). If the payload is a Collection, it will transform each individual object. If the payload is a single object, it will return a single transformed object.
+
+|===
+
+== Use Cases
+
+[width="99",cols="10,90",options="header"]
+|===
+|Name |Description
+|link:/documentation-3.2/display/32X/MQL+Query+Java+Objects[Query Java Objects] |Query local POJOs and transform them into different objects.
+|link:/documentation-3.2/display/32X/MQL+Merge+Datasets[Merging Datasets] |In this example, see how you can take activity streams from Twitter and Yammer and merge them into a common format.
+|link:/documentation-3.2/display/32X/MQL+Enrich+Data[Enrich Data] |In this example, local data is enriched with data from SalesForce
+|link:/documentation-3.2/display/32X/MQL+Service+Versioning[Service Versioning] |Easily handle two different data formats (version 1.0 and version 2.0) for your service.
+|===
+
+== Resources
+
+* link:/documentation-3.2/display/32X/MQL+Download[Download]
+* http://www.mulesoft.org/community-support[Support]
+* link:/documentation-3.2/display/32X/MQL+Mule+Integration[Mule Integration]
+* link:/documentation-3.2/display/32X/MQL+Spring+Integration[Spring Integration]
+* link:/documentation-3.2/display/32X/MQL+Reference+Guide[Syntax Guide]
+* http://javadoc.muleion.com/mql/apidocs/[Javadoc]
+* link:/documentation-3.2/display/32X/MQL+Roadmap[Roadmap]

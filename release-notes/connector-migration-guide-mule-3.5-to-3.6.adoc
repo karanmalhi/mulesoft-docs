@@ -1,0 +1,386 @@
+= Connector Migration Guide - DevKit 3.5 to 3.6
+:keywords: release notes, devkit
+
+
+*January 16, 2015*
+
+== Compatibility
+
+[cols=",",options="header",]
+|===
+|Software |Version
+|Mule ESB |3.6
+|JDK |1.7
+|===
+
+== Migrating from DevKit 3.5 to 3.6
+
+The sections that follow show how to migrate an Anypoint Connector to 3.6.
+
+=== Add the @TestConnectivity Annotation to the @Connect Method 
+
+Before, when using the @Connect annotation, DevKit enabled by default the *Test Connectivity* capability:
+
+image:36TestConnection.png[36TestConnection]
+
+For version 3.6 and later, DevKit enhances the Test Connectivity capability for use in Connection Management scenarios other than just the @Connect method. A method annotated with @Connect must now also be annotated with @TestConnectivty to enable Test Connectivity capability, and `@TestConnectivity(active=false)` to disable it.
+
+New - Add @TestConnectivity to enable:
+
+[source,java]
+----
+@ConnectionManagement(configElementName = "config-type",
+  friendlyName = "Basic Auth type strategy")
+public class ConnectorConnectionStrategy
+{
+    ...
+    @Connect
+    @TestConnectivity
+    public void connect(@ConnectionKey String username,
+      @Password String password) throws ConnectionException {
+        ...
+    }
+    ...
+}
+----
+
+Old - Test Connectivity capability was built into @Connect:
+
+[source,java]
+----
+@Connector(...)
+public class ConnectorConnectionStrategy
+{
+    ...
+    @Connect
+    public void connect(@ConnectionKey String username,
+      @Password String password) throws ConnectionException {
+        ...
+    }
+    ...
+}
+----
+
+
+==== Custom Labels
+
+In version 3.6 and later, the @TestConnectivity annotation supports custom labels, so that Studio can read later to draw a different button in the UI. +
+ +
+Code to make a custom button:
+
+[source,java]
+----
+@ConnectionManagement(configElementName = "config-type",
+    friendlyName = "Basic Auth type strategy")
+public class ConnectorConnectionStrategy
+{
+    ...
+    @Connect
+    @TestConnectivity(label="My custom button")
+    public void connect(@ConnectionKey String username,
+      @Password String password) throws ConnectionException {
+        ...
+    }
+    ...
+}
+----
+
+image:36BasicAuthTypeStrategy.png[36BasicAuthTypeStrategy]
+
+=== Deprecated: The connectivityTesting Property in the @Connect and @Module Annotations.
+
+If a connector used the connectivityTesting property in @Connector to disable the Test Connectivity capability, delete that property and in the @TestConnectivity, add an *active* property assigned to *false*.
+
+New - Disable Test Connectivity by setting @TestConnectivity to false:
+
+[source,java]
+----
+@Connector(name = "my", schemaVersion = "2.0", friendlyName = "MyConnector")
+@TestConnectivity(active=false)
+public class MyConnector{
+    ...
+    @Connect
+    public void connect(@ConnectionKey String accessKey, String secretKey)
+        throws ConnectionException
+    {...}
+...
+}
+----
+
+Old - Disabled using  `connectivityTesting = ConnectivityTesting.DISABLED`:
+
+[source,java]
+----
+@Connector(name = "my", schemaVersion = "2.0", friendlyName = "MyConnector", minMuleVersion = "3.5", metaData = MetaDataSwitch.OFF,
+connectivityTesting = ConnectivityTesting.DISABLED //DEPRECATED)
+public class MyConnector{
+    ...
+    @Connect
+    public void connect(@ConnectionKey String accessKey,
+        String secretKey) throws ConnectionException
+    {...}
+...
+}
+----
+
+=== Add config-ref="" Attribute in Processors
+
+In 3.6 and later, DevKit requires that you specify the connector configuration for each processor, or Studio fails when starting the application by enforcing it through the schema. This choice occurs at Studio start up where you choose an existing connector project from *File* > *Open*, or create a new project.
+
+This also affect tests of a connector, as it's easy to omit this from the XML file for tests.
+
+New - Add `config-ref="<connector_name>-config"`:
+
+[source,java]
+----
+<mongo:config name="mongo-config" username="user" password="pass">
+<flow name="SaveObject">
+    <mongo:save-object config-ref="mongo-config"
+      collection="#[map-payload:aCollectionName]" element-ref="myDbObject"/>
+</flow>
+----
+
+Old - config-ref not used:
+
+[source,java]
+----
+<mongo:config name="mongo-config" username="user" password="pass">
+<flow name="SaveObject">
+    <mongo:save-object collection="#[map-payload:aCollectionName]"
+        element-ref="myDbObject"/>
+</flow>
+----
+
+=== Deprecated: The  metaData Property in the @Connect and @Module Annotations
+
+In 3.6 and later, DevKit supports two ways of building a connector, either using Static DataSense or Dynamic DataSense. In previous versions, you could create a mix by changing values of the metaData property. In 3.6 and later, the default is Static DataSense, unless a connector implements @MetaDataCategory, and then connectors are set to Dynamic DataSense.
+
+New - Defaults to Static DataSense:
+
+[source,java]
+----
+@Connector(name = "my", schemaVersion = "2.0", friendlyName = "MyConnector")
+public class MyConnector
+    ...
+{
+----
+Old - Used the metaData property to change the DataSense setting:
+
+[source,java]
+----
+@Connector(name = "my", schemaVersion = "2.0", friendlyName = "MyConnector",
+minMuleVersion = "3.5",
+metaData = MetaDataSwitch.OFF //DEPRECATED)
+public class MyConnector
+    ...
+{
+----
+
+=== @Disconnect only Throws RuntimeException
+
+In 3.6 and later @Disconnect method now only supports RuntimeException, any other exception causes a failure in a connector's compilation. +
+ +
+New - Throws RunTimeException:
+[source,java]
+----
+@Connector(...)
+public myConnector(){
+    ...
+    @Disconnect
+    public void disconnect() throws RuntimeException{
+        ...
+    }
+    ...
+}
+----
+
+Old - Threw IOException:
+[source,java]
+----
+@Connector(...)
+public myConnector(){
+    ...
+    @Disconnect
+    public void disconnect() throws IOException{
+        ...
+    }
+    ...
+}
+----
+
+== Migration to Connector Strategies
+
+In 3.6 and later, connections are no longer supported at the @Connector level, but are defined in another component and injected to the @Connector by annotating a field with @ConnectionStrategy. This provides a better environment for developing a connector and the easiest way to create multiple authentication types. 
+
+=== Migrating a Connector with Connection Management
+
+===== Old 3.5 Connector with Connection Management
+
+Previously, connection and domain methods were in the same class:
+[source,java]
+----
+@Connector(name="connector", schemaVersion="1.0", friendlyName="My Connector")
+public class MyConnectionManagementConnector
+{
+    @Connect
+    public void connect(@ConnectionKey String username, @Password String password)
+        throws ConnectionException {
+         service.connectService(username,password);
+    }
+
+    @Disconnect
+    public void disconnect() {
+        service.disconnectService();
+    }
+
+    @ValidateConnection
+    public boolean isConnected() {
+        return service.connectionStatus();
+    }
+
+    @ConnectionIdentifier
+    public String connectionId() {
+        return service.connectionId();
+    }
+
+    @Processor
+    public String getUser(String user)
+    {
+        //Processor Logic
+    }
+
+}
+----
+
+===== Version 3.6 and Later Strategies Model
+
+To update to the Connection Strategy model:
+
+. Create a new Java class for the Connection Strategy.
+. Annotate the class with the @ConnectionManagement annotation. 
+. Move the four connection methods (@Connect, @Disconnect, @ValidateConnection and @ConnectionIdentifier) from the old @Connector class to the new Connection Strategy class:
++
+[source,java]
+----
+@ConnectionManagement(friendlyName="ConnectionManagement", configElementName="config-name")
+public class ConnectionManagementStrategy
+{
+    @Connect
+    public void connect(@ConnectionKey String username, @Password String password)
+        throws ConnectionException {
+       return true;
+    }
+
+    @Disconnect
+    public void disconnect() {
+        service.disconnectService();
+    }
+
+    @ValidateConnection
+    public boolean isConnected() {
+        return service.connectionStatus();
+    }
+
+    @ConnectionIdentifier
+    public String connectionId() {
+        return "001";
+    }
+
+}
+----
+. After moving the connection methods to the Connection Strategy class, set  @Connector to reference the connection strategy class by creating a @ConnectionStategy field with the reference to the new strategy. The @Connector is then detached from how it connects with a service: +
++
+[source,java]
+----
+@Connector(name="myconnector", schemaVersion="1.0", friendlyName="Connector")
+public class MyConnector
+{
+    @ConnectionStrategy
+    private ConnectionManagementStrategy strategy;
+
+    public void setMyProperty(ConnectionManagementStrategy strategy)
+    {
+        this.strategy = strategy;
+    }
+
+    public ConnectionManagementStrategy getStrategy()
+    {
+        return this.strategy;
+    }
+
+    @Processor
+    public String getUser(String user)
+    {
+        //Processor Logic
+    }
+}
+----
+
+=== @OverrideAtProcessors Annotation - Deprecated
+
+This annotation is only used for compatibility purposes. 
+
+Now in 3.6 @Connect parameters cannot be overridden from the @Processor call.
+
+For this case in only one @ConnectionManagement component of your Connector DevKit lets you add the @Connect parameters as optional parameters for the @Processor by annotating the @ConnectionStrategy with @OverrideAtProcessors. This way you can override an attribute directly from the @Processor call. 
+
+The @OverrideAtProcessor is deprecated and will be removed in DevKit 4.0.0 (as this annotation exists just for backward compatibility), as it’s possible since 3.5.0 to have MEL expressions at global element, meaning that for multi-tenancy there is no longer need to specify the connectivity attributes in every processor of your Mule application.
+
+=== Migrating Connector with OAuth2 
+
+The same happens for OAuth2 Authentication. Now the @OAuth2 annotation should be placed in another class different from the @Connector class, as a @ConnectionStrategy.
+[source,java]
+----
+@OAuth2( configElementName = "config-oauth2", friendlyName="OAuth2 type Strategy",
+authorizationUrl = "https://api.myconnector.com/uas/oauth/authorize",
+accessTokenUrl = "https://api.myconnector.com/uas/oauth/accessToken")
+public class ConnectorOAuth2Strategy
+{
+    /**
+     * The OAuth2 access token
+     */
+    @OAuthAccessToken
+    private String accessToken;
+
+    /**
+     * The OAuth2 consumer key
+     */
+    @Configurable
+    @OAuthConsumerKey
+    private String consumerKey;
+
+    /**
+     * The OAuth2 consumer secret
+     */
+    @Configurable
+    @OAuthConsumerSecret
+    private String consumerSecret;
+
+    ...
+}
+----
+ After migrating to the @ConnectionStrategy class, set  @Connector to reference the connection strategy class by creating a @ConnectionStategy field with the reference to the new strategy, as explained above.
+
+  +
+
+[TIP]
+====
+*About Connection Strategies* +
+
+Connection Strategies supports  @ConnectionManagement ,  @OAuth2 , @Configuration, and  @HttpBasicAuth components. Read more about this http://www.mulesoft.org/documentation/display/current/Annotation+Reference#AnnotationReference-connstratan[here].
+====
+
+=== Migrating Connector with OAuth V1
+
+Currently @OAuth is not supported as a @ConnectionStrategy, @OAuth authentication in 3.6 must be implemented the same way that in 3.5.
+
+== See Also
+
+[cols=",",options="header",]
+|===
+|Document |Description
+|link:/documentation/display/current/Anypoint+Connectors[Anypoint Connectors] |MuleSoft connector user guides.
+|https://www.mulesoft.com/exchange#!/?types=connector&sortBy=name[Connectors] |Connectors available from MuleSoft or third party sources.
+|link:/documentation/display/current/Anypoint+Connector+DevKit[Anypoint Connector DevKit] |Connector development information.
+|link:/documentation/display/current/Annotation+Reference[Annotation Reference] |Describes DevKit elements that start with an at sign(@), which you can use in your connector to identify classes and functions for Anypoint functionality.
+|===

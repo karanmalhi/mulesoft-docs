@@ -1,0 +1,315 @@
+= Implementing Connection Management
+
+The DevKit connection management framework provides multi-tenancy capabilities for a connector (managing multiple simultaneous connections with different credentials for a given connector within your application), as well as connection pooling and instance pooling. These benefits are available for connectors supporting most authentication schemes other than OAuth, and for connectors to targets that do not require authentication.
+
+This document describes the benefits of using the connection management framework, the Java annotations through which it is exposed, and how to implement connection management support in your own connector. Examples in this discussion show the use of connection management with basic username/password authentication, but they can easily be generalized to other non-OAuth protocols.
+
+image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="5-package.png"]
+
+== Assumptions
+
+This document assumes you have link:/docs/display/34X/Creating+a+Connector+Project[created a connector project], link:/docs/display/34X/Installing+and+Testing+Your+Connector[installed and tested] it in Mule Studio, and are ready to implement authentication on your connector. It assumes you are familiar with the various link:/docs/display/34X/Authentication+Methods[authentication methods] and have link:/docs/display/34X/Authentication+and+Connection+Management[compared the authentication support options in DevKit] and selected Connection Management as your option of choice.
+
+This document also assumes you are familiar with the @Connector class within a connector, which provides the interface between the connector's client implementation (for calling the remote service) and Mule. 
+
+== About Connection Management
+
+The DevKit's connection management framework provides the following benefits, with minimal effort on the part of the connector developer:
+
+* transparent multitenancy– a Mule application can open many connections to a single target, using different credentials to connect on behalf of many users simultaneously
+* connection pooling–  automated management of a pool of instances of the connector class, to manage connection resources effectively
+* automatically invalidating connections on exceptions, and reconnecting as needed
+
+DevKit makes it easy to add connection management functionality to connectors, by applying annotations at the @Connector class level. 
+
+[WARNING]
+====
+*Connection Management Framework and Authentication Protocols*
+
+The connection management framework can be used in conjunction with most authentication protocols, such as Basic username/password authentication (most common), SAML, Kerberos, LDAP and NTLM.
+
+However, you cannot use the connection management framework with connectors that use OAuth authentication; the framework does not support the "OAuth dance" or the management of OAuth tokens.
+
+OAuth 2-based authentication in DevKit provides functionality comparable to the connection management framework, if you use the OAuth-related annotations. See link:/docs/display/34X/Implementing+OAuth+2.0+Authentication[Implementing OAuth 2.0 Authentication] for details.
+
+OAuth 1-based connectors do not support multi-tenancy through DevKit. In cases where OAuth 1 is the only method of authentication available, it is possible to implement multi-tenancy without DevKit, but building your own multitenancy mechanism is beyond the scope of this document. It is simplest to instead choose OAuth 2 if your target supports it; contact Mulesoft for other options if you have a strict business or technical requirement in this area.
+====
+
+== Connection Management Annotations in DevKit
+
+To use connection management in a connector, define and annotate the following methods on the @Connector class:
+
+* A `@Connect` method, that creates a connection
+* A `@Disconnect` method, that explicitly closes a connection
+* A `@ValidateConnection` method, that returns `true` if a connection is still valid, `false` otherwise
+* A `@ConnectionIdentifier` method, that returns a prefix used in generating unique identifies for connector instances in the connection pool
+
+Also available is an `@InvalidateConnectionOn`  method, useful when an API operation encounters an exception due to a lost connection.
+
+Specifics of the implementation of these methods depends on the target. 
+
+Because connection management is such a useful and fundamental feature, the generated code skeleton from the Maven archetype includes placeholder methods with the connection management annotations already applied.
+
+*Skeleton Connector with Connection Management Annotated Methods*
+
+[source]
+----
+/**
+* Connect
+*
+* @param username A username
+* @param password A password
+* @throws ConnectionException
+*/
+@Connect public void connect(@ConnectionKey String username, String password)
+    throws ConnectionException
+{
+ 
+    /**
+    * CODE FOR ESTABLISHING A CONNECTION GOES IN HERE
+    */
+}
+ 
+/**
+* Disconnect
+*/
+@Disconnect
+public void disconnect()
+{
+ 
+    /**
+    * CODE FOR CLOSING A CONNECTION GOES IN HERE
+    */
+}
+ 
+/**
+* Are we connected
+*/
+@ValidateConnection public boolean isConnected()
+{
+    return true;
+}
+ 
+/**
+* Connection identifier
+*/
+@ConnectionIdentifier public String connectionId()
+{
+    return "001";
+}
+----
+
+The methods are called automatically as needed by the DevKit framework; you never call them directly from your code.  
+
+== @Connect Method
+
+This method indicates which method inside an `@Connector` class is responsible for creating a connection to the target. The `@Connect` method is called automatically by Mule when the connector starts up, or if the connection to the API has been lost and must be reestablished. When this method finishes, if authentication is successful, the connector instance is ready to make requests to the API. 
+
+A method annotated with `@Connect` must:
+
+* be `public`
+* throw `org.mule.api.ConnectionException` (and no other exceptions)
+* have a `void` return type
+* have exactly one method annotated `@Connect` (or compilation will fail), if automatic connection management is used
+
+The specific code that implements the actual connection will depend on the API. Here is an example of how a @Connect method can be implemented for the Salesforce connector:
+
+*Connect method for salesforce connector*
+
+[source, java]
+----
+@Connect
+public void connect(@ConnectionKey String username, String password)
+throws ConnectionException
+{
+   ConnectorConfig config = new ConnectorConfig();
+   config.setUsername(username);
+   config.setPassword(password);
+   try
+   {
+      connection = com.sforce.soap.partner.Connector.newConnection(config);
+   }
+   catch (com.sforce.ws.ConnectionException e)
+   {
+      throw new org.mule.api.ConnectionException(ConnectionExceptionCode.UNKNOWN, null, e.getMessage(), e);
+   }
+}
+----
+
+The parameters required by this method are the credentials needed for authentication, in this case username and password. Since this method is annotated with `@Connect` , DevKit makes these parameters available both in the configuration element for this Connector (as occurs with `@Configurable` fields), as well as in the message processor whenever an instance of it is dragged into a flow. Specified credentials override those that are set in the configuration element.
+
+== @ConnectionKey and Connection Pooling
+
+Note that the username parameter is annotated with `@ConnectionKey`. If pools are enabled (see Pooling Modules below), Mule keeps a pool of simultaneous connections which are used as needed to make calls. The `@ConnectionKey` annotation marks that this field is used as the key for this particular connection within the connection pool, so once a connection for this username has been created and added to the pool, it will be reused rather than recreated for each request.  
+
+[NOTE]
+====
+*Choosing a Connection Key* +
+
+For username/password authentication, the username is the obvious choice for `@ConnectionKey`; for other protocols, identify the value that is most obviously associated with different users and access privileges that connect to your service and choose that as your @ConnectionKey. 
+====
+
+The above `@Connect `method first creates a `ConnectorConfig` (a Salesforce type that holds connection configuration information) object, then loads the username and password values into the object. This object is used as the argument to the static `newConnection()` call, which returns a `PartnerConnection` if successful. If the authentication fails (because of invalid login information or for some other reason) the code catches the Salesforce typed exception and throws a new exception containing the same information but labeled as the correct Mule exception type.
+
+[NOTE]
+Use the fully qualified name for the Salesforce Connector class (on which you call n`ewConnection(config)`) rather than importing the class, because the DevKit also imports a class called Connector, which causes an import conflict.
+
+[WARNING]
+For clients where no authentication is used, you must still supply a @ConnectionKey field. An invented username is one possibility; see link:/docs/display/34X/Connector+to+SOAP+Service+via+CXF+Client+Example[Connector to SOAP Service via CXF Client Example] for such an implementation.
+
+== @Disconnect Method
+
+This annotation indicates the method inside a `@Connector` class that is responsible for disposing of a connection. It is called when the connector is shut down or the connection is explicitly terminated. 
+
+A method annotated with `@Disconnect` must:
+
+* be `public`
+* take no input parameters
+* have a `void` return type
+
+If connection management is used, the @Connector class must have exactly one annotated `@Disconnect` method (or compilation will fail). 
+
+[source, java]
+----
+@Disconnect
+public void disconnect()
+{
+   if (connection != null)
+   {
+       try
+         {
+         connection.logout();
+         }
+      catch (com.sforce.ws.ConnectionException e)
+         {
+         e.printStackTrace();
+         }
+      finally
+         {
+         connection = null;
+         }
+   }
+}
+----
+
+If the connector currently has a connection open, this code calls `connection.logout()` , a Salesforce client method that explicitly de-authenticates and closes the connection. The "finally" block ensures that, if the logout fails for any reason, the connection is still set to null, so the connector does not again try to reference that connector instance.
+
+== @ValidateConnection Method
+
+This method is called by Mule to check whether the connection is actually open or not.
+
+A method annotated with `@ValidateConnection` must:
+
+* be `public`
+* decline to receive parameters
+* return `boolean` or `java.lang.Boolean`
+
+Only one method on a @Connector class can be annotated with `@ValidateConnection.`
+
+[source, java]
+----
+@ValidateConnection    
+public boolean isConnected() 
+{     
+return connection != null;    
+}
+----
+
+For this example, this code simply checks whether the connection parameter is null to check whether the connection is active. For other connectors, depending upon the protocol, a different implementation may be required.
+
+== @ConnectionIdentifier Method
+
+This annotation identifies a method inside a `@Connector` that returns a unique identifier for the connection, used for logging and debugging.
+
+A method annotated with `@ConnectionIdentifier` must:
+
+* be `public`
+* not be `static`
+* not take arguments
+* return `java.lang.String`
+
+A @Connector class that uses connection management must have exactly one method annotated `@ConnectionIdentifier` (or compilation will fail).
+
+This code returns the connection SessionId as an identifier (if available). The SessionHeader is a Salesforce object containing header information about the current connection to the API, including the session ID.
+
+[source, java]
+----
+@ConnectionIdentifier
+   public String connectionId() {
+    if (connection != null){
+     return connection.getSessionHeader().getSessionId();
+    } else {
+     return null;
+    }
+   } 
+----
+
+== @InvalidateConnectionOn Annotation
+
+This annotation is used for exception handling related to connections. Attach this annotation to any method with a `@Processor` or `@Source` annotation. If the Processor/Source throws an exception of this class, `@InvalidateConnectionOn` automatically invalidates the connection. `@InvalidateConnectionOn` receives a single argument: the class of the exception to be caught. See link:/docs/display/34X/Configuring+Reconnection+Strategies[Configuring Reconnection Strategies] for more details. 
+
+== Connection Pooling
+
+You can allow users of your connector to use a pool of simultaneous connections instead of sharing a single instance to process messages.
+
+Connectors that implement pools are each assigned a pool component, which contains multiple instances of the connector to handle simultaneous requests. A flow's pooling profile configures its component pool.
+
+If you set the `poolable` annotation parameter to true, the generated schema will include additional configuration elements.
+
+=== Example
+
+*Connector*
+[source, java]
+----
+@Connector(name = "myconnector", poolable = true)
+public class MyConnector
+{
+----
+
+In the corresponding XML, the `pooling-config` element is nested inside the `config` element. Notice that there is no need to provide any custom Java code to handle the pool, all that is needed is to provide a few parameters:
+
+*XML*
+[source, xml]
+----
+<mymodule:config>
+    <mymodule:pooling-profile maxActive="10" maxIdle="5"
+        initialisationPolicy="INITIALISE_ALL"
+        exhaustedAction="WHEN_EXHAUSTED_FAIL" maxWait="60"/>
+</mymodule:config>
+----
+
+The table that follows offers a breakdown of `pooling-profile` parameters.
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+a|
+*Attribute Name*
+
+ a|
+*Description*
+
+|maxActive |**Required.** Controls the maximum number of Mule components that can be borrowed from a session at once. When set to a negative value, there is no limit to the number of components that may be active at once. When `maxActive` is exceeded, the pool is said to be exhausted.
+|maxIdle |**Required.** Controls the maximum number of Mule components that can sit idle in the pool at once. When set to a negative value, there is no limit to the number of Mule components that may be idle at once.
+|initialisationPolicy |**Optional.** Determines how components in a pool should be initialized. Its possible values are: +
+`INITIALISE_NONE` (will not load any components into the pool on startup), `INITIALISE_ONE` (will load one initial component into the pool on startup), or `INITIALISE_ALL` (will load all components in the pool on startup).  +
+Default value is `INITIALISE_ONE`
+|exhaustedAction a|
+**Optional.** Specifies the behavior of the Mule component pool when the pool is exhausted. Its possible values are:
+
+`WHEN_EXHAUSTED_FAIL` (throw a NoSuchElementException)  +
+`WHEN_EXHAUSTED_WAIT `(block by invoking `Object.wait(long)` until a new or idle object is available)
+
+`WHEN_EXHAUSTED_GROW` (create a new Mule instance and return it, essentially making maxActive meaningless).
+
+If a positive `maxWait `value is supplied, it will block for at most that many milliseconds, after which a `NoSuchElementException` will be thrown. If `maxThreadWait `is a negative value, it will block indefinitely.
+
+Default value is `WHEN_EXHAUSTED_GROW`.
+
+|maxWait |**Required.** Specifies the number of milliseconds to wait for a pooled component to become available when the pool is exhausted and the `exhaustedAction` is set to `WHEN_EXHAUSTED_WAIT`.
+|===
+
+== See Also
+
+* See the link:/docs/display/34X/Connector+to+SOAP+Service+via+CXF+Client+Example[Connector to SOAP Service via CXF Client Example] example to see the connection management annotations in a fully working example.
+* Take a look at https://github.com/mulesoft/salesforce-connector/blob/master/src/main/java/org/mule/modules/salesforce/SalesforceConnector.java[Salesforce.com connector source code] and see how the connection management is implemented.
+* Return to the link:/docs/display/34X/DevKit+Shortcut+to+Success[DevKit Shortcut to Success].

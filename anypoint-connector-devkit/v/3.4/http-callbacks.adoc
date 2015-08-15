@@ -1,0 +1,87 @@
+= HTTP Callbacks
+
+Many public APIs use http://en.wikipedia.org/wiki/Callback_(computer_programming)[callbacks] to notify API consumers of specific events. For example, after a phone call Twilio performs an HTTP request to a specified URL to pass information about the status of the call.
+
+DevKit provides a special data type to facilitate invocation of a Mule flow when an HTTP callback is received.
+
+image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="5-package.png"]
+
+== The HTTPCallback Interface
+
+To return a status, DevKit creates an HTTP inbound endpoint for your connector: 
+
+[source, java]
+----
+import org.mule.api.annotations.Connector;
+import org.mule.api.annotations.Processor;
+import org.mule.api.callback.HttpCallback;
+@Connector(name = "callback")
+public class HttpCallbackTest
+{
+   @Processor public void doA(HttpCallback onEventX, HttpCallback onEventY)
+   {
+      String urlEventX = onEventX.getUrl();
+      String urlEventY = onEventY.getUrl();
+----
+
+The `HTTPCallback` interface acquires this inbound endpoint via a single method. When the callback is received, the enpdoint references another flow in the Mule configuration file.  
+
+Note that the flows referenced do not have an inbound endpoint:
+
+[source, xml]
+----
+<flow name="doA">
+   <callback:do-a on-event-x-flow-ref="flowToExecuteOnEventX"
+             do-a on-event-x-flow-ref="flowToExecuteOnEventX"/>
+</flow>
+ 
+<flow name="flowToExecuteOnEventX">
+   <component class="org.mule.devkit.it.ComponentX"/>
+</flow>
+ 
+<flow name="flowToExecuteOnEventY">
+   <component class="org.mule.devkit.it.ComponentY"/>
+</flow>
+----
+
+== Advanced Configuration
+
+The table below lists advanced `HTTPCallback` attributes that you can use in the Mule configuration file:
+
+[width="100%",cols=",",options="header"]
+|===
+|Attribute Name |Description
+|`localPort` |Use to create the HTTP inbound endpoint. Defaults to environment variable `http.port`
+|`remotePort` |The public port to use to construct the public URL to be sent to the external system. Defaults to environment variable `http.port`
+|`domain` |Use to construct the the public URL to send to the external system. Defaults to environment variable `fullDomain`
+|`async` |Possible values are `true` or `false` depending on whether the callback flow should be executed asynchronously or not. Defaults to `true`
+|===
+
+The example below illustrates how to use the optional, in-flow `HTTPCallback` attributes.
+
+[source, xml]
+----
+<callback:config>
+   <callback:http-callback-config domain="www.mydomain.com"
+                localPort="8080" remotePort="80" async="false" />
+</callback:config>
+----
+
+== How It Works
+
+Behind the scenes, DevKit creates a Mule flow containing a message processor that invokes the desired flow. By default, DevKit wraps this processor in an async message processor chain. (You can override this behavior using the `async` attribute as described in the table above.)
+
+DevKit builds the URL of the HTTP inbound endpoint using `localhost` as host and the `http.port` environment variable, or the value of `localPort`, as port. The path of the URL is a random string.
+
+The URL that is passed to the external system is identical to the URL of the HTTP inbound endpoint, except that the host is replaced by the `domain` setting (or its default value) and the port is replaced by the `remotePort` setting (or its default value).
+
+== See Also
+
+Read more about other advanced topics that can add functionality to your connector:
+
+* link:/docs/display/34X/Integrating+Connectors+with+the+Mule+Lifecycle[Integrating Connectors with the Mule Life Cycle]
+* link:/docs/display/34X/Handling+Data+Types+for+Configurable+Properties[Handling Data Types for Configurable Properties]
+* link:/docs/display/34X/Architectural+Considerations+with+Connectors+and+the+Mule+Container[Architectural Considerations with DevKit and the Mule Container]
+* link:/docs/display/34X/Injecting+Mule+Managers+into+Anypoint+Connectors[Injecting Mule Managers into Anypoint Connectors]
+* link:/docs/display/34X/Supporting+DataSense+with+Dynamic+Data+Models[Supporting DataSense with Dynamic Data Models]
+* link:/docs/display/34X/Implementing+DataSense+Query+Language+Support[Implementing DataSense Query Language Support]

@@ -1,0 +1,36 @@
+= Nesting Message Processors
+
+The DevKit allows you to nest other message processor inside your own. The interaction between your message processor and the nested message processors happen thru and interface called NestedProcessor.
+
+The following is an example of a message processor that can contain others message processors:
+
+[source, java]
+----
+@Processor
+public Object callNestedProcessor(NestedProcessor nestedProcessor) { ... }
+----
+
+The use of the interface NestedProcessor signals the code generation processor into generating an slot in the XML definition so the user of the connector can insert its own message processor.
+
+The previous example can be called from a Mule flow as follows:
+
+[source, xml]
+----
+<module:call-nested-processor>
+   <expression-transformer evaluator="string" expression="Hello World!"/>
+</module:call-nested-processor>
+----
+
+Upon Mule config parsing, the expression-transfomer will be wrapped inside a class implementing the NestedProcessor interface and passed along to your code. You code can then optionally execute the nested processor.
+
+This example code shows how to execute the nested processor
+
+[source, java]
+----
+@Processor
+public Object callNestedProcessor(NestedProcessor nestedProcessor) {
+    return nestedProcessor.process();
+}
+----
+
+In the previous example we are executing the nested message processor and returning the message straight up. We are not doing anything useful, but we could alter the payload returned by the message processor if we wanted to.

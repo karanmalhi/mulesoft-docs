@@ -1,0 +1,139 @@
+= Defining @Configurable Attributes on Connectors
+
+Like all Mule elements, connectors have attributes that can be assigned in Mule configuration XML files and set in the element's property dialog. The `@Configurable`  DevKit annotation defines attributes on the connector that can be set when the connector is used. A `@Connector` can have any number of simple or complex `@Configurable` attributes.
+
+image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="6-package.png"]
+
+== Assumptions
+
+You are familiar with Mule's XML syntax for configuring elements.
+
+== Creating a @Configurable Attribute
+
+The `@Configurable` annotation signals the generator to create a property configurable for each instance of your connector through XML syntax or a connector configuration dialog box. In addition to the `@Configurable` annotation, you need a public getter and a public setter.
+
+For example:
+
+[source, java]
+----
+import org.mule.api.annotations.Configurable;
+import org.mule.api.annotations.Connector;
+ 
+@Connector(name = "myconnector")
+public class MyConnector {
+ 
+    @Configurable
+    private String key;
+ 
+    public String getKey(){
+        return this.key;
+    }
+    public void setKey(String key) {
+       this.key = key;
+    }
+----
+
+Then configure the module or connector as follows:
+
+[source, xml]
+----
+<myconnector:config key="myKey" />
+----
+
+== Making an Attribute @Optional
+
+`@Configurable` attributes are mandatory, unless marked with the `@Optional` annotation. `@Optional` `@Configurable` attributes may be omitted when using the connector.
+
+For example:
+
+[source, java]
+----
+@Module(name = "mymodule")
+public class MyModule {
+  
+    @Configurable
+    @Optional
+    private String key;
+  
+    public String getKey(){
+        return this.key;
+    }
+    public void setKey(String key) {
+       this.key = key;
+    }
+----
+
+Then configure the connector as follows:
+
+[source, xml]
+----
+<myconnector:config key="myKey" />
+----
+
+ The following is also valid since assigning a value is optional:
+
+[source, xml]
+----
+<myconnector:config />
+----
+
+== Adding a @Default Attribute Value
+
+For `@Optional` configurable attributes, use the `@Default` annotation to specify a default value if the attribute is omitted. 
+
+For example:
+
+[source, java]
+----
+@Module(name = "mymodule")
+public class MyModule {
+  
+    @Configurable
+    @Optional
+    @Default("testKey")
+    private String key;
+  
+    public String getKey(){
+        return this.key;
+    }
+    public void setKey(String key) {
+       this.key = key;
+    }
+----
+
+Then the connector can be configured as follows:
+
+[source, xml]
+----
+<myconnector:config key="myKey" />
+----
+
+If the `key` attribute is not present it will implicitly be assigned the value `testKey` as defined by the `@Default` annotation:
+
+[source, xml]
+----
+<myconnector:config />
+----
+
+== Customizing Attributes for Better Usability
+
+You can (and should) use several annotations that control how the attribute appears in the property dialog in Studio and in your connector documentation:
+
+* `@FriendlyName` sets the attribute name shown in the property dialog
+* `@Placement` affects the position in the property dialog
+* `@Summary` provides a short description for the operation (used as a tooltip in Studio)
+
+See link:/docs/display/34X/Customizing+Connector+Integration+with+ESB+and+Studio[Customizing Connector Integration with ESB and Studio] for more on these annotations.
+
+== Complex Data Types and Configurable Attributes
+
+DevKit supports configurable attributes of complex types, such as enumerated types and collections. See link:/docs/display/34X/Handling+Data+Types+for+Configurable+Properties[Handling Data Types for Configurable Properties] for more details. 
+
+== Next Steps
+
+Choose a client implementation style to follow, based on your use case:
+
+* link:/docs/display/34X/Connector+to+Java+Client+Library+Example[Connector to Java Client Library Example]
+* link:/docs/display/34X/Connector+to+SOAP+Service+via+CXF+Client+Example[Connector to SOAP Service via CXF Client Example]
+* link:/docs/display/34X/Connector+to+RESTful+Service+with+Jersey+Client+Example[Connector to RESTful Service with Jersey Client Example]
+* link:/docs/display/34X/Connector+to+RESTful+API+with+RESTCall+Annotations+Example[Connector to RESTful API with RESTCall Annotations Example]

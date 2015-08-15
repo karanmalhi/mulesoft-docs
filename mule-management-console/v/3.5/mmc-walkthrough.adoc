@@ -1,0 +1,140 @@
+= MMC Walkthrough
+
+Mule Management Console's graphical interface offers visibility into your Web application server(s) so you can monitor and manage multiple Mule applications.
+
+[width="100%",cols=","]
+|===
+|*Walkthrough Description* a|This walkthrough illustrates some of the basic functionality MMC provides as a monitoring tool:
+
+* How to register a server
+* How to deploy a sample application onto server
+* How to monitor flow activity in the application
+* How to undeploy the application
+
+|*End Result* |At the end of this walkthrough, you'll have successfully deployed a sample application onto a server using the console, verified the health of the application by monitoring the activity of the individual flows, and undeployed the application from the server.
+
+|*Learning Outcome* |After completing the walkthrough, you will understand the basic mechanism by which you can register the servers and deploy and manage the application using the console.
+|===
+
+== Assumptions
+
+This walkthrough assumes that you are familiar with [Mule application and Mule flows] and that you have downloaded and installed *Mule ESB Enterprise Runtime (with Management Tools)* which includes a *trail version* of the Mule Management Console. Beyond installation, you do not need to complete any specific setup configurations to complete this walkthrough. If you have not yet downloaded the trial package, consult the documentation for [installing].
+
+== Launching MMMC
+
+[TIP]
+`$MULE_HOME` is the directory where your Mule installation resides, for example `/opt/mule-3.4.1]`.
+
+. From the command line, mule the *`mule`* executable file located in the `$MULE_HOME/bin` directory. To run the `mule` executable:
+
+ ** Windows: Open a command window, then navigate to the `$MULE_HOME/bin` directory. Type `mule` from within the `/bin` directory. Alternatively, you can execute `mule.bat` to start Mule.
+
+ ** Unix: Open a terminal window, then navigate to the `$MULE_HOME/bin` directory. Type `./mule` to start Mule, or `./mule start` to launch Mule in the terminal background.
+
+. Mule starts and launches MMC automatically. Once Mule is up and kicking, use a browser to navigate to the following URL: http://localhost:8585/mmc.
+
+. Log in to MMC using the following credentials:
+
+.. Username: admin
+.. Password: admin
+
+. Since you are using this bundled trail distribution, the server is automatically registered with the console. The console Dashboard "Quick Start" panel, which displays when you first login, indicates that there are no servers to register. Close the Quick Start panel by clicking the *X* in the upper right corner.
++
+image:MMC-quickstartpanel-annotated.png[MMC-quickstartpanel-annotated]
+
+== Register the Server
+
+Before you use MMC to deploy Mule applications to a server, you must first identify the server to MMC. This action is called registering the server.
+
+The first time you run the trial version of MMC, the console automatically registers the local server, so _you do not need to follow the steps below_; skip ahead to the [next section].
+
+However, if you run the trial version more than once, you may wish to register a different server. The simplest way to register a server is with the console's auto-discovery feature. The console automatically senses that a Mule server is running and captures much of the information needed for registration, thus making it easy to register any "discovered" servers.
+
+. Click the *Server* tab, then click *Unregistered* in the left navigation pane.
+
+. The console list all servers that have come online and are not yet registered. Select the *Mule-3.4 server*, then click the *Register* button.
++
+image:mmc-register_servers.png[mmc-register_servers]
+
+. Click *All* in the left navigation pane to view the server you registered.
++
+image:mmc-server_registered.png[mmc-server_registered]
+
+Alternatively, you can manually register a server. To do so,
+
+. Click the *Severs* tab, then the *Add* button, then select *New Server*.
++
+image:MMC-addserver.png[MMC-addserver]
+
+. In the screen that opens, enter a *Server Name* and a *Mule Agent URL* for the server, then click *Add*.
++
+image:MMC-addserver-name.png[MMC-addserver-name]
+
+== Deploying an Application
+
+Having identified a server to the console, you can now deploy applications to it. To do so, you first create an application group, known as a "deployment", which bundles applications so you can deploy the group to one or more servers. Then, within the deployment you deploy an application. This walkthrough describes how to deploy the Hello application included as an example application in the `example` folder in the Mule ESB download.
+
+. Click the *Deployments* tab in the console.
+. Click *New* to create a new deployment.
+. Enter a unique *Deployment Name*, such as `HelloWorld`.
+. Click the *Upload New Application* button.
+. In the dialog that appears, use the *Browse* button to navigate to the following filepath: `$MULE_HOME/examples/hellow/mule-example-hello-3.4.1.zip`.
+. Click *Add*. The console uploads the application with the deployment (see below).
++
+image:uploaded.png[uploaded]
+
+. To identify the server to which to deploy the `HelloWorld` deployment, use the drop-down list under the *Servers* heading to select the server that the console registered upon launch.
++
+image:mmc-uploaded_server.png[mmc-uploaded_server]
+
+. Click *Deploy* to deploy the `HelloWorld` deployment (containing the Hello application) to the server.
++
+image:all_deployments.png[all_deployments]
+
+When you deploy the application, the console automatically saves the Hello application to the server *repository*. If you wish, you can click *Save* instead of *Deploy* to simply save the applications to the server repository for later deployment. Click *Repository* in the left navigation panel to view all applications saved in the repository. (Note that in the repository of the trial version, MMC contains all example applications that come bundled with the download package).
+
+image::mmc-repositoryexamples.png[mmc-repositoryexamples]
+
+== Using the Deployed Application
+
+To confirm that Hello application is up and running, enter the following URL in your browser: http://localhost:8888/?name=Ross. The application returns a response, confirm that the application has indeed been deployed.
+
+image::hello_world.png[hello_world]
+
+== Viewing the Flow Details
+
+After using the application to return a "hello" response, you can access the console window to view details about how to request was processed.
+
+. In the console, click the *Flows* tab. The screen displays only the flows within the Hello application. The table shows a summary of the number of events handled by the application (both processed and received events), along with the average and total event processing time per individual flow (see below).
++
+image::flows.png[flows]
+
+. You can pause, stop, or start an individual flow, or flows. For example, use the checkboxes to select one or more flows, then click the *Control Flows* button, then select *Stop* to stop the flow from accepting any more events.
+
+. Click a flow name name to examine more detailed information about the flow. For example, click the *HelloWorld* flow name to open a screen with two tabs:
+
+** If *Summary* tab displays summary information about the flow such as the message sources and message processors it contains, its status (started, stopped, paused), and details about the events it has received and events it has processed
++
+image::flow_summary.png[flow_summary]
+
+** The *Endpoints* tab displays a table of all endpoints for the flow and data about each endpoint, including the endpoint type, its address, connector information, whether or not it is filtered, if it is synchronous or asynchronous, and whether it handles transactions. Click one or more endpoints and, using the *Control Endpoints* button, start or stop those endpoints.
++
+image:flow-endpoints.png[flow-endpoints]
+
+== Undeploying the Application
+
+. Click the *Deployments* tab
+
+. Check the box next to the *HelloWorld* deployment.
+
+. Click *Undeploy*. The console stops all applications in the selected deployment. In this example, you only had on application (Hello) in the deployment.
++
+image::mmc-undeploy.png[mmc-undeploy]
+
+. To stop Mule itself, hit `Ctrl+C` in the terminal where you launched Mule If you launched Mule in the terminal background, issue the command `$MULE_HOME/bin/mule stop`.
+
+== See Also
+
+* Orient yourself further to the [console]
+* Lean how to [setup your MMC instance] to work with other components in your enterprise
+* Learn more about the [technical architecture of MMC]

@@ -1,0 +1,120 @@
+= Handling Complex Types
+
+*Mule DevKit* supports the following types:
+
+[width="99",cols="50a,50a",frame="none",grid="none"]
+|===
+|
+* int
+* float
+* long
+* byte
+* short
+* double
+* boolean
+* char
+* java.lang.Integer
+* java.lang.Float
+* java.lang.Long
+* java.lang.Byte |
+* java.lang.Short
+* java.lang.Double
+* java.lang.Boolean
+* java.lang.Character
+* java.lang.String
+* java.math.BigDecimal
+* java.math.BigInteger
+* java.util.Date
+* java.lang.Class
+* java.net.URL
+* java.net.URI
+|===
+
+You can pass other types by reference, as in the following example:
+
+[source, java]
+----
+@Processor
+public void receiveAComplexType(MyComplexType myComplexType) { ... }
+----
+
+Mule DevKit 3.3 enables you to use a processor, especially when Anypoint (TM) link:/docs/display/33X/DataMapper+Transformer+Reference[*DataMapper*] uses the module. DataMapper-friendly modules tend to pass information in beans, because DataMapper can extract metadata from a Java bean _and_ from the XML. DevKit 3.3 also standardizes the way Mule passes references.
+
+== Enabling Support for Complex Type Constructions
+
+When an `@Processor` method receives a complex type, the DevKit deconstructs the object, then constructs a schema that can be used to reconstruct the object. For example, rather than writing code such as the sample below, top, you can write code more quickly, as per the sample below, bottom.
+
+[source, xml]
+----
+<bean-builder-transformer beanClass="MyComplexType">
+  <bean-property property-name="color" value="red"/>
+</bean-builder-transformer>
+<ns:receive-a-complex-type myComplexType-ref="#[payload]"/>
+----
+
+[source, xml]
+----
+<ns:receive-a-complex-type>
+    <ns:my-complex-type color="red"/>
+</ns:receive-a-complex-type>
+----
+
+You can use the following annotations inside the complex type to control schema generation:
+
+* `@Optional`
+* `@Default`
+
+Further, a complex type can have inner lists or maps of other complex types.
+
+== Standardizing Passing by Reference
+
+DevKit 3.3 standardizes the way to pass objects by reference. Lists and maps pass objects by reference in a `ref` attribute in a child element, as in the following example.
+
+[source, java]
+----
+@Processor
+public void receiveAList(List<String> strings) { ... }
+----
+
+[source, xml]
+----
+<ns:receive-a-list>
+  <ns:strings ref="#[payload]"/>
+</ns:receive-a-list>
+----
+
+In DevKit 3.3 passing a complex object also uses a `ref` attribute in a child element, as in the following example:
+
+[source, xml]
+----
+<ns:receive-a-complex-type>
+    <ns:my-complex-type ref="#[payload]"/>
+</ns:receive-a-complex-type>
+----
+
+== Ignoring Fields in a Complex Type
+
+The `@Ignore` annotation tells the DevKit to ignore a field inside a complex object, as in the following example
+
+[source, java]
+----
+public class MyComplexType
+{
+    private String color;
+     
+    @Ignore
+    private String description;
+}
+ 
+@Processor
+public void receiveAComplexType(MyComplexType myComplexType) { ... }
+---- 
+
+DevKit omits the description field from the generated schema. For example, the snippet below fails because the annotation processor ignores the description.
+
+[source, xml]
+----
+<ns:receive-a-complex-type>
+    <ns:my-complex-type color="red" description=""/>
+</ns:receive-a-complex-type>
+----

@@ -1,0 +1,75 @@
+= Inbound Headers
+
+The `@InboundHeaders` annotation marks a `@Processor` method parameter that will be used to pass in one or more of the headers received in the inbound scope. This annotation value can define a single header, a comma-separated list of header names, * to denote all headers, or a comma-separated list of wildcard expressions such as 'MULE_', 'X-*'. By default, if a named header is not present on the current message, an exception will be thrown. However, if the header name is defined with the '?' post fix, it will be marked as optional. When defining multiple header names or using wildcards, the parameter can be a `java.util.Map` or `java.util.List`. If a `java.util.Map` is used, the header name and value is passed in. If `java.util.List` is used, just the header values are used. If a single header name is defined, the header type can be used as the parameter type, though `java.util.List` or `java.util.Map` can be used too.
+
+The Inbound headers collection is immutable, so the headers `Map` or `List` passed in will be immutable too. Attempting to write to the `Map` or `List` will result in an `UnsupportedOperationException`.
+
+The `@InboundHeaders` annotation supports the following parameters:
+
+[width="99",cols="10,85",options="header"]
+|===
+|Parameter |Description
+|value |*Required*. Defines the headers that should be injected into the parameter.
+|===
+
+== Restrictions
+
+A method annotated with `@Processor` can have *at most* one parameter annotated with `@Payload`, `@InboundHeaders`, `@InvocationHeaders` or `@OutboundHeaders`.
+
+For example this is not possible:
+
+[source, java]
+----
+@Processor
+    public Object myMethod(@Payload Object payload, @InboundHeaders("*") Map<?, ?> headers) {
+----
+
+== Examples
+
+Inject the `url` header value from the inbound scope:
+
+[source, java]
+----
+@Processor
+    public Object myMethod(@InboundHeaders("url") URL url) {
+----
+
+Inject the value of the header `faz` from the inbound scope if present:
+
+[source, java]
+----
+@Processor
+    public Object myMethod(@InboundHeaders("faz?") String faz) {
+----
+
+Inject the `foo` and `bar` headers from the inbound scope with their values:
+
+[source, java]
+----
+@Processor
+    public Object myMethod(@InboundHeaders("foo, bar") Map<?, ?> myHeaders) {
+----
+
+Inject all the headers from the inbound scope with their values:
+
+[source, java]
+----
+@Processor
+    public Object myMethod(@InboundHeaders("*") Map<?, ?> headers) {
+----
+
+Inject all the headers from the inbound scope with names starting with `MULE_` or `ba`
+
+[source, java]
+----
+@Processor
+    public Object myMethod(@InboundHeaders("MULE_*, ba*") Map<?, ?> headers) {
+----
+
+Inject the value of `foo` and `bar` headers, and if present the `baz` header value, all from the inbound scope:
+
+[source, java]
+----
+@Processor
+    public Object process(@InboundHeaders("foo, bar, baz?") List<?> headers) {
+----

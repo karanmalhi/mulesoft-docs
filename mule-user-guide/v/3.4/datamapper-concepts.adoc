@@ -1,0 +1,159 @@
+= DataMapper Concepts
+
+This discussion introduces the underlying concepts regarding the Anypoint DataMapper, and introduces the basics of the Anypoint DataMapper GUI.
+
+== Mapping Flows and Element Mappings
+
+A DataMapper _mapping flow_ defines an overall data transformation and integration process, from a given input to a given output. A mapping flow is defined by its _input and output metadata_ that describe the expected payload contents, and one or more _element mappings_ that specify how to transform the input into the output.
+
+=== Input and Output Metadata
+
+The primary input for the DataMapper is the message payload for the flow; the primary output is the transformed payload. Both the input and the output can be in any of the formats supported by Mule:
+
+* "Flat" row-oriented formats: CSV, fixed-width file, MS Excel sheets.
+* Structured formats: XML, JSON, POJO object trees, and key-value Maps.
+
+Metadata describes the data formats of the input and output. For "flat" data, this is a list of column names, data types and possibly sizes. For structured data, the metadata describes a tree-like hierarchy of elements and attributes, with element and attribute names, data types, sizes and so on.
+
+=== Element Mappings
+
+*Element mappings* pair an element or a collection of similar elements from the input schema with an element or collection of elements in the output schema. Once two elements are mapped, you can define transformations that populate the output elements. For each output element, generally you write an expression that computes the output value based on the values of input elements.
+
+==== Element Mapping Levels and Nested Lists
+
+Before mapping elements in a list, you must first map the list itself to an output object or list. Once the input list maps to the output object or list, you can map its individual child elements. You may have to map several levels of element to get access to deeply nested input or output. These additional element mappings created to descend levels in a document may be referred to as mapping levels.
+
+For an illustration of this technique, see link:/docs/display/34X/Mapping+Elements+Inside+Lists[Mapping Elements Inside Lists].
+
+== Example: A Basic Mapping Flow with Three Element Mappings
+
+An example an make clearer the relationship between a mapping flow, element mappings, and individual transformations represented graphically and be scripting code.
+
+[NOTE]
+The specifics of using the DataMapper UI to create a mapping flow like this one will be covered in depth elsewhere; for now focus on the graphical views in the following screenshot, and the relationships they represent.
+
+image:image2013-4-12+7%3A35%3A3.png[image2013-4-12+7%3A35%3A3]
+
+In this case, a mapping flow receives as input an XML document with lists of employees and managers with their contact information, and generates a JSON document with a list of people and phone numbers. The input data looks like this:
+
+[source, xml]
+----
+<staff type="staff" id="id0">
+  <employees>
+    <employee firstname="john" lastname="harrison" gender="m" phone="1111 1111"/>
+    <employee firstname="jane" lastname="doe" gender="f" phone="2222 2222"/>
+    <employee firstname="Harry" lastname="No Phone" gender="m" phone=""/>
+  </employees>
+  <managers>
+    <manager name="Larry" lastname="Larson" phone="4444 4444"/>
+    <manager name="John" lastname="Johnson" gender="M" phone="6666 6666"/>
+  </managers>
+</staff>
+----
+
+The final output looks like this:
+
+[width="100%",cols=",",options="header"]
+|===
+^|JSON output for phone list
+a|
+[source]
+----
+{
+  "contact" : [ {
+    "name" : "harrison, john (emp)",
+    "phone" : "1111 1111"
+  }, {
+    "name" : "doe, jane (emp)",
+    "phone" : "2222 2222"
+  }, {
+    "name" : "No Phone, Harry (emp)",
+    "phone" : null
+  }, {
+    "name" : "Larson, Larry (mgr)",
+    "phone" : "4444 4444"
+  }, {
+    "name" : "Johnson, John (mgr)",
+    "phone" : "6666 6666"
+  } ]
+}
+----
+|===
+
+This screenshot shows the graphical mapping editor with the resulting mapping displayed.
+
+image:image2013-4-12+7%3A22%3A28.png[image2013-4-12+7%3A22%3A28]
+
+The screenshot of the mapping flow editor shows the following:
+
+* The input XML schema (on the left), with staff as a root element, and the `employees` and `managers` collections as descendants.
+* The `employees` XML node, with a list of `employee` elements, which contain name, gender and contact information.
+* The output JSON schema for the `phonelist`.
+* The element mapping drop-down (at top center) shows a list of three mappings from the source to target data.
+* The element mappings shown in this list are:
+** *Foreach \'staff' -> \'phonelist'* - Not selected. A top level element mapping that connects the root nodes of the two structures, represented by the greyed-out dotted arrow in the center column from *`staff to phonelist`*. This indicates that at a high level, the staff input document tree contributes to the *`phonelist`* output document tree. Without creating this top element mapping, the other two element mappings cannot be created.
+** *Foreach \'employee' -> \'contact'* - currently selected, highlighted in the drop-down. Displayed in the main body of the editor, by the solid arrows that connect `employee` attributes e.g. firstname, lastname, and phone to the name and phone fields to the contact node. Data from the `employee` input element, such as the attributes of the employee node, can be mapped to the `contact` output elements. One contact element will be populated for each employee element in the source.
+** *Foreach \'manager' -> \'contact'* - Not selected. Specifies that data from the manager input elements can be mapped to the contact input elements. One contact element will be populated for each manager element in the source.
+* The _assigned script_ expression for the output field "name" is showing, in the expression editor in the lower-right corner. This is a MEL (Mule Expression Language) expression that concatenates the last name and first name, and adds the suffix \'(emp)' to denote an employee. Note that the arrows that lead from the firstname and lastname fields in the input reflect the fact that the input.firsthand and input.lastname fields are used in the expression. You can view the script for all fields in this element mapping tog.
+
+For comparison, see the following screenshots that show the 'staff' -> 'phonelist' and 'manager' -> 'contact' element mappings.
+
+image:image2013-4-12+7%3A6%3A6.png[image2013-4-12+7%3A6%3A6]
+
+Notice how in viewing each element mapping, some elements (those eligible to be mapped) are bolded, and some (those not eligible) are grayed out.
+
+For each of the element mappings, Mule iterates over the input nodes selected by that element mapping (thus the "Foreach" in the names of the element mappings). For each node, Mule evaluates the assigned script expressions to populate the output data. So in this instance:
+
+* The 'staff' -> 'phonelist' mapping contributes nothing to the output, as there are no assigned script expressions associated with it;
+* The 'employee' -> 'contact' mapping code executes, assigning employee data to nodes in the JSON output document;
+* The 'manager' -> 'contact' mapping code executes, assigning manager contact data to more nodes in the JSON output format.
+
+The final JSON output includes contact information for both managers and employees.
+
+=== Element Mappings and Rule
+
+While multiple levels of element mapping is the most common way to deal with data in nested lists, in some situations, it is only necessary to extract a few pieces of data from a nested structure. To permit direct access to fields within nested structures, DataMapper element mappings support rules. A rule is an XPath query that can extract specific details from the nested structure and store them in an output element or attribute.
+
+[NOTE]
+====
+*XPath, Structured Data and Rules*
+
+XPath syntax is used to query nested structures even when those structures are not based on XML-- for example, you can drill down into a JSON document or a key-value Map with an XPath syntax query, and DataMapper treats the structure as analogous to an XML node hierarchy, and traverses the structure regardless of the actual underlying representation.
+====
+
+For more information on Rules, see "Using Rules to Extract Fields from Complex Structured Data" in link:/docs/display/34X/Building+a+Mapping+Flow+in+the+Graphical+Mapping+Editor[Building a Mapping Flow in the Graphical Mapping Editor]
+
+== Filters for Element Mappings
+
+An element mapping can have a filter expression applied, to select records to skip over rather than process. For example, in the DataMapper above, employee Harry No-Phone has an empty phone number defined. A filter could be created to skip over records without a phone number, or an invalid one.
+
+For more details on Filters, see  "Setting an Element Mapping XPath Filter" in Building a link:/docs/display/34X/Building+a+Mapping+Flow+in+the+Graphical+Mapping+Editor[Mapping Flow in the Graphical Mapping Editor].
+
+== Arguments and Lookup Tables
+
+In addition to the message payload, DataMapper supports mapping flow arguments, for passing data into and out of the mapping flow, and lookup tables, that can be used to enrich data during the transformation process. (For our phone list example, one could parse a well-formed telephone number to extract country code and area code, then look up the country name, cost per minute to call, and other details in a lookup table.)
+
+For more on input and output arguments, see the discussion of "Using Data Mapping Input and Output Arguments" in link:/docs/display/34X/Building+a+Mapping+Flow+in+the+Graphical+Mapping+Editor[Building a Mapping Flow]. For more on lookup tables, see "Using Lookup Tables" in link:/docs/display/34X/Building+a+Mapping+Flow+in+the+Graphical+Mapping+Editor[Building a Mapping Flow].
+
+== How DataMapper Processes Transformations
+
+Each element mapping implements the following basic integration pattern:
+
+* Iterate over the source, extracting data elements that match the input side of the element mapping;
+* Filter the incoming elements, if a filter clause is set, to skip non-matching elements;
+* For each element that passes the filter, evaluate the generated code for that element mapping;
+* That generated code sets the attributes of the new records or nodes created as output.
+
+=== Languages for Transformation Code: MEL and CTL2
+
+The transformation code for DataMapper can be generated in one of two languages: Mule Expression Language (MEL) or CTL2 (Clover Transformation Language).
+
+MEL is the default language and offers a number of technical advantages:
+
+* MEL is used throughout the rest of Mule as the primary expression language, so using it in DataMapper makes for an experience more consistent with the rest of Mule ESB
+* MEL is being actively developed with new capabilities to continue to expose features
+* MEL can call out to arbitrary Java classes when needed
+
+CTL2 was licensed from a third party for use in past versions of DataMapper, and is still fully supported for reasons of backward compatibility. However, Mule recommends that you use MEL rather than CTL2 for future DataMapper development.
+
+For complete information on MEL, see link:/docs/display/34X/Mule+Expression+Language+MEL[Mule Expression Language]. For complete information on CTL syntax and capabilities, including a language and functions reference, download the link:/docs/download/attachments/95393434/Mule+ESB+and+Studio+-+Datamapper+CTL2+Reference.pdf?version=1&modificationDate=1374598548138[CTL2 Documentation].

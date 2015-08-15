@@ -1,0 +1,46 @@
+= Creating Message Sources
+
+In some cases it is necessary to create http://www.mulesoft.org/documentation/display/MULE3USER/Message+Sources+and+Message+Processors#MessageSourcesandMessageProcessors-MessageSources[Message Sources] instead of http://www.mulesoft.org/documentation/display/MULE3USER/Message+Sources+and+Message+Processors#MessageSourcesandMessageProcessors-MessageProcessors[Message Processors]. Basically, a Message Source receives or generates new messages to be processed by Mule.
+
+On of the use cases of Message Sources is implementing Streaming APIs. The `@Source` annotation marks a method inside a `@Module` or `@Connector` annotated class as callable from a Mule flow and capable of generating Mule events. Each marked method will have a Message Source generated. The method must receive a `SourceCallback` as one of its arguments that represents the next message processor in the chain. It does not matter the order in which this parameter appears as long it is present in the method signature.
+
+== Example
+
+For example the https://github.com/mulesoft/salesforce-connector[SalesForce Cloud Connector] supports the SalesForce Streaming API in which users can suscribe to topics and receive notifications when a new event related to that topic happens.
+
+[source, java]
+----
+@Source
+   public void subscribeTopic(String topic, final SourceCallback callback) {
+       getBayeuxClient().subscribe(topic, new ClientSessionChannel.MessageListener() {
+           @Override
+           public void onMessage(ClientSessionChannel channel, Message message) {
+               try {
+                   callback.process(message.getData());
+               } catch (Exception e) {
+                   LOGGER.error(e);
+               }
+           }
+       });
+   }
+----
+
+This method can be invoked from Mule as follows:
+
+[source, xml]
+----
+<flow name="myFlow">
+        <sfdc:subscribe-topic topic="/someTopic"/>
+        <logger level="INFO" message="#[payload]"/>
+        ...
+    </flow>
+----
+
+It suscribes to a topic with the given parameter name, and when an update is received it will invoke the next message processor in the chain which in this case is a logger.
+
+To see a full working example of using streaming APIs follow this https://github.com/mulesoft/salesforce-connector/blob/master/examples/salesforce-to-freshbooks-app/[link]. This application uses https://github.com/mulesoft/salesforce-connector[SalesForce Cloud Connector] and https://github.com/mulesoft/freshbooks-connector[FreshBooks Cloud Connector].
+
+== More information
+
+* http://www.mulesoft.org/documentation/display/MULE3USER/Message+Sources+and+Message+Processors#MessageSourcesandMessageProcessors-MessageProcessors[Message Processors]
+* http://www.mulesoft.org/documentation/display/MULE3USER/Message+Sources+and+Message+Processors#MessageSourcesandMessageProcessors-MessageSources[Message Sources]

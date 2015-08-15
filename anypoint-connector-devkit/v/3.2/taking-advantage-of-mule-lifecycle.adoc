@@ -1,0 +1,63 @@
+= Taking Advantage of Mule Lifecycle
+
+Cloud connectors can be fully aware of Mule's lifecycle without implementing any Mule specific interface. There is one method annotation for each of the four phases of Mule lifecycle. If a method is annotated with one of these annotations it will be invoked during the Mule lifecycle phase that annotation represents.
+
+Each annotation can be applied to one method at the most.
+
+== Initialize Phase
+
+To have a method invoked during the Start phase it needs to be annotated with `@PostConstruct`. At most only one method can have the `@PostConstruct` annotation.
+
+[source, java]
+----
+import org.mule.api.annotations.Module;import javax.annotation.PostConstruct;@Module(name = "myconnector")public class MyConnector {    ...    @PostConstruct    public void anyMethodName() {        // your code here    }    ...
+----
+
+== Start Phase
+
+To have a method invoked during the Start phase it needs to be annotated with `@Start`. At most only one method can have the `@Start` annotation.
+
+[source, java]
+----
+import org.mule.api.annotations.Module;import org.mule.api.annotations.lifecycle.Start;@Module(name = "myconnector")public class MyConnector {    ...    @Start    public void anyMethodName() {        // your code here    }    ...
+----
+
+== Stop Phase
+
+To have a method invoked during the Stop phase it needs to be annotated with `@Stop`. At most only one method can have the `@Stop` annotation.
+
+[source, java]
+----
+import org.mule.api.annotations.Module;import org.mule.api.annotations.lifecycle.Stop;@Module(name = "myconnector")public class MyConnector {    ...    @Stop    public void anyMethodName() {        // your code here    }    ...
+----
+
+== Dispose Phase
+
+To have a method invoked during the Dispose phase it needs to be annotated with `@PreDestroy`. At most only one method can have the `@PreDestroy` annotation.
+
+[source, java]
+----
+import org.mule.api.annotations.Module;import org.mule.api.annotations.lifecycle.Dispose;@Module(name = "myconnector")public class MyConnector {    ...    @PreDestroy    public void anyMethodName() {        // your code here    }    ...
+----
+
+== A Real Life Example
+
+The following code fragment is taken from the Twilio Cloud Connector. During the Start phase an instance of the class TwilioClient is created.
+
+[source, java]
+----
+package org.mule.module.twilio;import org.mule.api.annotations.Configurable;import org.mule.api.annotations.Module;import org.mule.api.annotations.Processor;import org.mule.api.annotations.lifecycle.Start;import org.mule.api.annotations.param.Optional;import org.mule.api.callback.HttpCallback;@Module(name = "twilio")public class TwilioConnector {    /**     * The account sid to be used to connect to Twilio.     */    @Configurable    private String accountSid;    /**     * The authentication token to be used to connect to Twilio     */    @Configurable    private String authToken;    private TwilioClient twilioClient;    @Start    public void createTwilioClient() {        twilioClient = new TwilioClient(accountSid, authToken);    }
+----
+
+== Restrictions
+
+When annotating methods with these lifecycle annotations consider the following:
+
+* At most one method can be annotated with @PostConstruct
+* At most one method can be annotated with @Start
+* At most one method can be annotated with @Stop
+* At most one method can be annotated with @PreDestroy
+* None of these annotations can be applied to static methods
+* None of these annotations can be applied to non-public methods
+* None of these annotations can be applied to methods that take arguments
+* None of these annotations can be applied to methods that do not return void

@@ -1,0 +1,94 @@
+= Audit Logs
+:keywords: mmc, audit logs, debug, payload, monitoring
+
+The Audit Log feature allows you to access and search management console logs. By default, the console stores logs in an embedded database and include the following events:
+
+* Users and User group creation
+* Group Permission changes
+* Successful User Authentications
+* Server registration
+* Application deployments
+* Warnings and error conditions
+
+== Accessing the Audit Log
+
+Starting from the blue management console tool bar, select *Administration*, then select *Audit Log* from the *Utility Group* in the pane on the left (below).
+
+image:ActivityLog.jpeg[ActivityLog]
+
+By default, the Audit Log pane displays the current day’s log entries, with the most recent entries listed on top. To display just the log entries pertaining to specific users, servers, or events, you can apply the following filters:
+
+* date
+* type of message
+* text field
+
+== Filtering the Audit Log
+
+=== Sorting by date
+
+In the *Occurring After* field, type a date in YYYY-MM-DD format, or click the calendar icon to the right of the field. After the pop up calendar appears, click a date to select it.
+
+[NOTE]
+Note that he Audit Log shows logs entries from the selected day onward (not from the selected day only).
+
+After selecting the date, click *Search*.
+
+image:FilterDate.jpeg[FilterDate]
+
+Click the *Reset* button at any time to return to the default Audit Log display.
+
+After you specify a range of dates, all subsequent filters affect only those log entries that fall within the selected range of dates.
+
+=== Sorting by log entry type
+
+Click the *Type* field to select the log entry levels to display. The available options include *All* (default), *Info*, *Error* and *Warning*.
+
+=== Sorting by text
+
+Type a string in the *Text Contains* field to display only those log entries containing the specified string. This search is not case sensitive. By default, only log entries matching whole words are included in the results. To search for part of a word, enclose the string within asterisks (\*). For example, *`admin`* returns all words containing the string `admin`.
+
+You may also use asterisks to determine whether the desired string occurs at the beginning or end of a word. For example, to search for `admin` but not `admingroup`, search for *`admin`.
+
+*Audit Log* defines a “whole word” as a string surrounded by spaces or by special delimiting characters such as period (.), slash (/), parentheses (()) or underscore (_). So, for example, a search for the string `admin` returns entries containing the whole word `admin` (separated by spaces), as well as entries containing the string `admin` separated by special characters, such as `(admin)` or `_admin_` (which would include, for example, `EXECUTE_ADMIN_SCRIPTS`). The results will not include entries containing the word `Administrator`, because that string does not contain `admin` delimited by one of these special characters.
+
+After typing the desired search string, click *Search* to display the results.
+
+== Example
+
+Suppose the logs include entries with three objects that each contain the string `test`: `testuser`, `Testgroup` and `test_deployment`. When you enter the filter string `test`, the following strings are returned (highlighted, below).
+
+image:FIlterResults1.jpeg[FIlterResults1]
+
+These case-insensitive results include items containing the whole word `test`. In this example, `test` is delimited by a slash, an underscore, then a space and a period (last two entries).
+
+Also, notice that the filter returned the string `test` but not `Testgroup`, because for this last term, the string `test` is not followed by a qualifying delimiter.
+
+When we change the filter string to `*test*`, the console returns the following results:
+
+image:FIlterResults2a.jpeg[FIlterResults2a]
+
+(A section of the output is omitted here).
+
+image:FIlterResults2a.jpeg[FIlterResults2a]
+
+This time, the console returns all log entries that contain `test` as a whole word, or _as part of a word_. Note that this set of results includes entries containing both `testuser` and `Testgroup`, neither of which appeared among the results for the first search, which used the filter string `test`.
+
+Our next filter string (`*test`) returns the results below:
+
+image:FIlterResults3.jpeg[FIlterResults3]
+
+The above search results show entries containing words that end with `test`. In the first and last two entries, the words are delimited by an underscore (`test_deployment`) or a period (`Test`). The menu entries containing `Testgroup` are included only because they also happen to contain `Test` at the end of the entry (yellow highlights, above).
+
+Changing the filter string to `test*` produces the following results:
+
+image:FIlterResults4.jpeg[FIlterResults4]
+
+(The rest of the output has been omitted).
+
+These results contain all entries containing `test` at the beginning of a word, including, for example, all entries containing `Testgroup`.
+
+== Limiting Results Displayed
+
+The *Max Results* field can limit the number of entries shown. Available options are 10, 25, 50 (default), 100 and 200.
+
+The management console, can also access the logs of registered Mule servers. Click link:/documentation/display/current/Accessing+Server+Logs[this link] for details.

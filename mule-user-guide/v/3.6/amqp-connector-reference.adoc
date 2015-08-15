@@ -1,0 +1,67 @@
+= AMQP Connector Reference
+:keywords: anypoint, components, elements, connectors, amqp
+
+This document lists and describes all of the configuration parameters supported by the AMQP connector, as well as all AMQP endpoint configuration elements.
+
+== Connector Attributes
+
+The AMQP connector defines what broker to connect to, which credentials to use when connecting, and all the common properties used by the inbound and outbound endpoints that use this connector.
+
+You can create several connectors connected to the same broker for the purpose of having different sets of common properties that endpoints can use.
+
+[width="100%",cols=",",options="header"]
+|===
+|Name |Type |Required |Default |Description
+|`host` |string |no |`localhost` |The main AMQP broker host to connect to.
+|`port` |port number |no |`5672` |The port to use to connect to the main AMQP broker.
+|`fallbackAddresses` |string |no |  |A comma-separated list of hosts, listed as `<host>` or `<host:port>`. If the connection to the main broker fails, the hosts listed here are the fallback brokers to attempt to connect to.
+|`virtualHost` |string |no |`/` |The virtual host to connect to on the AMQP broker.
+|`username` |string |no |`guest` |The user name to use to connect to on the AMQP broker.
+|`password` |string |no |`guest` |The password to use to connect to the AMQP broker.
+|`deliveryMode` a|
+* `PERSISTENT `
+* `NON_PERSISTENT`
+
+ |no |`PERSISTENT` |The delivery mode to use when publishing to the AMQP broker.
+|`priority` |  |no |`0` |The priority to use when publishing to the AMQP broker.
+|`mandatory` |boolean |no |`false` |Tells the server how to react if the message cannot be routed to a queue. If set to true, the server will throw an exception for any unroutable message. If set to false, the server silently drops the message.
+|`immediate` |boolean |no |`false` |Tells the server how to react if the message cannot be routed to a queue consumer immediately. If set to true, the server will throw an exception for any undeliverable message. If set to false, the server will queue the message, but with no guarantee that it will ever be consumed.
+|`default-return-endpoint-ref` |string |no |  |Reference to an endpoint to which an AMQP returned message should be dispatched to.
+|`ackMode` a|
+* `AMQP_AUTO `
+* `MULE_AUTO `
+* `MANUAL`
+
+ |no |`AMQP_AUTO` |The acknowledgment mode to use when consuming from the AMQP broker.
+|`prefetchSize` |integer |no |`0` |The maximum amount of content (measured in octets) that the server will deliver. 0 means unlimited.
+|`prefetchCount` |integer |no |`0` |The maximum number of messages that the server will deliver. 0 means unlimited.
+|`noLocal` |boolean |no |`false` |If set to true, the server will not send messages to the connection that published them.
+|`exclusiveConsumers` |boolean |no |`false` |Set to true if the connector should only create exclusive consumers.
+|`numberOfConsumers` |integer |no |`4` |The number of concurrent consumer threads that will be used to receive AMQP messages.
+|`activeDeclarationsOnly` |boolean |no |`false` |Defines if the connector should only do active exchange and queue declarations, or if it can also perform passive declarations to enforce their existence.
+|===
+
+== Endpoint Attributes
+
+Endpoint attributes are interpreted differently if they are used on inbound or outbound endpoints. For example, on an inbound endpoint the attribute `routingKey` is used for queue binding, and on an outbound endpoint it is used as a basic publish parameter.
+
+[width="100%",cols=",",options="header"]
+|===
+|Name |Type |Required |Default |Description
+|`exchangeName` |string |no |  |The exchange to publish to or bind queues to. Use `AMQP.DEFAULT.EXCHANGE` for the default exchange. (The previous approach, which consists in leaving blank or omitting `exchangeName` for the default exchange, still works but is not recommended).
+|`queueName` |string |no |  |Name of the queue to consume from. Leave blank or omit for using a new private exclusive server-named queue.
+|`routingKey` |string |no |  |Comma-separated routing keys to use when binding a queue or publishing a message.
+|`consumerTag` |string |no |  |A client-generated consumer tag to establish context.
+|`exchangeType` a|
+* `fanout`
+* `direct`
+* `topic`
+* `headers`
+
+ |no |  |The type of exchange to be declared.
+|`exchangeDurable` |boolean |no |  |The durability of the declared exchange.
+|`exchangeAutoDelete` |boolean |no |  |Specifies if the declared exchange should be autodeleted.
+|`queueDurable` |boolean |no |  |Specifies if the declared queue is durable.
+|`queueAutoDelete` |boolean |no |  |Specifies if the declared queue should be autodeleted.
+|`queueExclusive` |boolean |no |  |Specifies if the declared queue is exclusive.
+|===

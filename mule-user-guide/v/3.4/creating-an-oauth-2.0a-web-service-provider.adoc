@@ -1,0 +1,582 @@
+= Creating an OAuth 2.0a Web Service Provider
+
+The primary responsibility of an OAuth2 Web Service is to control access to protected resources. Playing the part of both the Authorization server and the Resource server, the OAuth provider module hosts the protected resources and issues tokens to access protected resources without sharing the resource owner's credentials.
+
+The service provider in the link:/docs/display/34X/Mule+Secure+Token+Service#MuleSecureTokenService-TheOAuthDance[OAuth dance] is responsible for the following tasks (refers to the detailed explanation of the OAuth dance in the link:/docs/display/34X/Mule+STS+OAuth+2.0a+Example+Application#MuleSTSOAuth2.0aExampleApplication-TheOAuthDance[Mule STS OAuth 2.0a Example Application])
+
+. Provides a login page for resource owners to enter login credentials.
+. Authenticates clients, both `CONFIDENTIAL` and `PUBLIC`
+. Authenticates the resource owner's credentials.
+. Issues and validates authorization codes.
+. Provides tokens, which specify the data to which a client may have access (scope).
+. Validate tokens, thereby granting access to a protected resource.
+. Issues refresh tokens to clients.
+
+Mule provides two elements to configure a Web service provider to complete the above-listed tasks:
+
+* *Global OAuth provider module* - a global message processor in which you specify most of the configurations to set up the provider, such as the login page details, the security providers, whether refresh tokens should be issued, the lifespan of the tokens, and supported grant types and scopes.
+* *OAuth provider module, Validate* - a message processor (with the `operation` attribute set to `validate` or `valiate-client`) which you configure to validate tokens, confirming that the client presents the correct scopes to access the protected resource.
+
+Because the OAuth provider module message processor only issues tokens to registered clients, Mule also offers two methods of registering clients:
+
+. You can manually define a list of registered clients during the configuration of your Mule application.
+. You can enable clients to register dynamically in the Mule application.
+
+Note that the OAuth provider module itself does not _generate_ client IDs or secrets. The mechanism responsible for generating the IDs and secrets - a web page with a form, for example, which sends client information through an HTTP endpoint to a component that validates the input, and generates the ID and secret - simply passes the information to the OAuth provider module which uses data to keep track of clients who are registered to use the service. With respect to registering clients, then, the OAuth provider module is responsible for the following tasks:
+
+. Accept and store the client ID
+. Accept and store the client secret
+. Remove, when necessary, a client ID from the clientStore of registered clients *Version 1.2 only*
+. Revokes access or refresh tokens *Version 1.2 only*
+
+Mule provides three elements to complete the above-listed tasks:
+
+* *OAuth provider module, Create client* - a message processor (with the `operation` attribute set to `create-client`) to accept and store the client ID and secret in the clientStore. (For example, the clientStore could be a database or the default persistent object store, depending on your requirements.)
+* *Delete Client* - *Version 1.2 only* a message processor which removes clientIDs from the clientStore.
+* *Revoke Token* - *Version 1.2 only* a message processor which revokes access or refresh tokens, invalidating the corresponding pair as well (i.e., if the message processor revokes the access token, it automatically revokes any refresh token associated with it, and vice versa).
+
+== Assumptions
+
+This topic introduces the idea of Global Elements; if you are unfamiliar with this functionality, access link:/docs/display/34X/Understand+Global+Mule+Elements[Understand Global Mule Elements] to learn more before proceeding.
+
+== Applying OAuth 2.0a to Web Service Provider
+
+To apply OAuth 2.0a to a Web service that you publish, you must complete, at minimum, five tasks. The first two tasks [define resources] which the OAuth Provider element reference; the last three [apply OAuth 2.0a to Mule flows], thereby initiating OAuth2 authentication when a consumer calls the Web service. The table below lists these tasks, along with the Mule elements each uses and the OAuth tasks for which each is responsible.
+
+[width="100%",cols=",",options="header"]
+|===
+| |Tasks |Mule Element |OAuth Tasks
+|1. |Create a Spring bean to define authentication manager and provider. |Spring bean a|
+* performs client authentication
+|2. |Configure a security manager. |Mule Security Manager a|
+* delegates client authentication
+|3. |Create a Global OAuth 2.0a provider to define some OAuth parameters. |Global OAuth provider module a|
+* defines most of the service provider's OAuth 2.0 parameters
+|4. |Create a Client Registration flow |OAuth provider module configured to `Create Client` a|
+* stores client IDs and secrets
+|5. |Create OAuth Validation flows. |OAuth provider module configured to `Validate` or `Validate-client` a|
+* validates the access token, thereby granting or rejecting, access to a protected resource
+|===
+
+However, before tackling the work of creating an OAuth 2.0a Web service, it is important to understand the various ways in which a service provider can authenticate a client.
+
+== Paths to Authentication
+
+When a client calls an OAuth Web service, it must identify itself by type: `PUBLIC` or `CONFIDENTIAL`
+
+* a *`PUBLIC`* client provides a client ID which the Web service provider uses for authentication.
+* a *`CONFIDENTIAL`* client provides validation credentials (client ID and client secrets) which the Web service provider uses for authentication.
+
+If `CONFIDENTIAL`, a client must provide validation credentials in *one* of three different parts of the request:
+
+* in the *query*
+* in the *body*
+* in the *authentication header*
+
+Where the client sends validation credentials in the *body* or *query* of the request, the OAuth Web service provider simply validates the incoming credentials (client ID and client secret) against the contents in their clientStore. Where the client sends validation credentials in the *authentication header* of the request, the service provider uses a security manager to delegate authentication to an *authentication manager*. The authentication manager users an *authentication provider* to validate a client's http://en.wikipedia.org/wiki/Principal_(computer_security)[principals] (username and password, for example). The security manager then authenticates the client ID and client secret against the content of the clientStore.
+
+Therefore, you must configure your OAuth 2.0a Web service provider to match the type(s) of client requests you expect to receive. The figure below illustrates the different types of requests and their resulting paths to authentication.
+
+image:client_validation.png[client_validation]
+
+== Defining Resources
+
+The following procedure describes the steps to take to define the resources that the OAuth Provider and Global OAuth Provider reference. These resources - an authentication provider, an authentication manager, and a security manager - are only necessary if your Web service expects calls from `CONFIDENTIAL` clients with validation credentials in the *authentication header*. (Recall that if your Web service expects call only from `CONFIDENTIAL` clients which provide validation credentials in the *body* or *query* of the request, your Mule application does not need to define these resources.)
+
+. Within your Web service project in Mule, create a *Spring bean* called *`ss-authentication-manager`*, in which you define the *`authentication-provider`*.
++
+[source, xml]
+----
+<spring:beans>
+        <ss:authentication-manager id="resourceOwnerAuthenticationManager"> 
+            <ss:authentication-provider>
+                <ss:user-service id="resourceOwnerUserService">
+                    <ss:user name="john" password="doe" authorities="RESOURCE_OWNER"/>
+                </ss:user-service>
+            </ss:authentication-provider>
+        </ss:authentication-manager>
+</spring:beans>
+----
+
+. Within your Web service project in Mule, create a *security manager* element which references the authentication manager (see example code below). (In context of an OAuth Web service, the authentication manager is the security provider.)
++
+[source, xml]
+----
+<mule-ss:security-manager>
+        <mule-ss:delegate-security-provider name="resourceOwnerSecurityProvider" delegate-ref="resourceOwnerAuthenticationManager"/>
+    </mule-ss:security-manager>
+----
+
+== Creating a Global OAuth Provider Module
+
+[tabs]
+------
+[tab,title="STUDIO Visual Editor"]
+....
+. Add a global *OAuth Provider module* message processor to your Mule project.
+. Configure the attributes of the message processor according to the table below. The Req'd column indicates an attribute is required for validating a client app and resource owner. (Refer to example code below.)
++
+image:oauth_global.png[oauth_global]
++
+[width="100%",cols=",",options="header"]
+|===
+|Field |Req'd |Value
+|*Name* |  |A unique name for the global element.
+|*Access Token Endpoint Path* | a|Location of access token endpoint required to access resource server.
+
+Default value: `/localhost/9999/`
+
+For example: `tweetbook/api/token`
+|*Host* | a|Web service host
+
+Default value: `localhost`
+|*Provider Name* | |Name of the Web service provider. For example: `TweetBook`
+|*Authorization Ttl Seconds* | a|Lifespan of authorization code (ms)
+
+Default value: 600 ms
+|*Port* | a|Port on which the Web service is exposed.
+
+Default value: 999
+|*Client Store Reference* | |In-memory object store that retains OAuth client specific information. Use this field to reference a specific, customized object store.
+
+Default value: persistent object store
+|*Authorization Code Store Reference* | |In-memory object store that retains authorization codes. Use this field to reference a specific, customized object store (can be the same object store as for client store).
+|*Token Store Reference* | |In-memory object store (can be the same as the one above) that retains tokens. Use this field to reference a specific, customized object store (can be the same object store as for client store).
+|*Authorization Endpoint Path* | a|Location of authorization endpoint required to access to authorization server.
+
+Default value: `/localhost/9999/`
+
+For example, `tweetbook/api/authorize`
+|*Login Page* | a|URL for the service provider's end user login page. The resource owner logs into her account from this page.
+
+Default value: org/mule/modules/oauth2/provider/www/templates/login.html
+|*Scopes* ^|x |A space-seperated list in the token that defines the specific data to which the consumer has access. For example, `READ_PROFILE WRITE_PROFILE READ_BOOKSHELF WRITE_BOOKSHELF`.
+|*Token Ttl Seconds* | a|Lifespan of token (ms)
+
+Default value: 86400 ms
+|*Connector Reference* | |A reference to the type of transport, which defaults to HTTP. If your application uses something other than HTTP - Jetty, HTTPS, Servlet - or you have specific HTTP transport configurations you wish to reference, use this field to reference a specific connector.
+|*Resource Owner Security Provider Reference* ^|x |The reference to the authentication server's security provider. For example, `resourceOwnerSecurityProvider` references the Spring security manager (which, in turn, references the authentication manager spring bean).
+|*Client Security Provider Reference* | |The reference to the security provider that validates client credentials.
+|*Supported Grant Types* | a|Space-seperated list of authorization grant types the OAuth Web service provider supports.
+
+Specify on of the values listed below.
+
+`AUTHORIZATION_CODE` _(default)_
+
+`IMPLICIT`
+
+`RESOURCE_OWNER_PASSWORD_CREDENTIALS`
+
+`CLIENT_CREDENTIALS`
+|*Rate Limiter Reference* | a|References a package to define limitations for the rate at which a client can call the interface.
+
+By default references: `org.mule.modules.oauth2.provider.rateLimit.SimpleInMemmoryRateLimiter`
+
+Use the class to set maximumFailureCount (default = 5) and auhtResetAfterSeconds (default = 600).
+|*Enable Refresh Token* | a|Set to true, this attribute allows Mule to send http://tools.ietf.org/html/draft-ietf-oauth-v2-22#section-1.5[refresh tokens].
+
+Default value: `TRUE`
+|===
++
+[source, xml]
+----
+<oauth2-provider:config
+        name="oauth2Provider"
+        providerName="TweetBook"
+        host="localhost"
+        port="${http.port}"
+        authorizationEndpointPath="tweetbook/oauth/authorize"
+        accessTokenEndpointPath="tweetbook/oauth/token"
+        resourceOwnerSecurityProvider-ref="resourceOwnerSecurityProvider"
+        scopes="READ_PROFILE WRITE_PROFILE READ_BOOKSHELF WRITE_BOOKSHELF" doc:name="OAuth provider module">
+    </oauth2-provider:config>
+----
+....
+[tab,title="XML Editor or Standalone"]
+....
+. Add a global *`outh2-provider:config`* to your Mule application, at the top of your XML config file, outside all flows.
++
+[source, xml]
+----
+<oauth2-provider:config/>
+----
+
+. Add attributes to the global element according to the table below. The Req'd column indicates an attribute is required for validating a client app and resource owner. (Refer to example code below.)
++
+[source, xml]
+----
+<oauth2-provider:config
+        name="oauth2Provider"
+        providerName="TweetBook"
+        host="localhost"
+        port="${http.port}"
+        authorizationEndpointPath="tweetbook/oauth/authorize"
+        accessTokenEndpointPath="tweetbook/oauth/token"
+        resourceOwnerSecurityProvider-ref="resourceOwnerSecurityProvider"
+        scopes="READ_PROFILE WRITE_PROFILE READ_BOOKSHELF WRITE_BOOKSHELF" doc:name="OAuth provider module">
+    </oauth2-provider:config>
+----
++
+[width="100%",cols=",",options="header"]
+|===
+|Attribute |Req'd |Value
+|*doc:name* | |A unique name for the global element.
+|*accessTokenEndpointPath* | a|Location of access token endpoint required to access resource server.
+
+Default value: `/localhost/9999/`
+
+For example, `tweetbook/api/token`
+
+|*host* | a|Web service host.
+
+Default value: `localhost`
+|*providerName* | |Name of the Web service provider. For example, `TweetBook`
+|*authorizationTtlSeconds* | a|Lifespan of authorization code (ms).
+
+Default value: 600 ms
+|*port* | a|Port on which the Web service is exposed.
+
+Default value: 9999
+|*clientStoreReference* | a|In-memory object store that retains OAuth client specific information. Use this field to reference a specific, customized object store.
+
+Default value: persistent object store
+|*authorizationCodeStoreReference* | |In-memory object store that retains authorization codes. Use this field to reference a specific, customized object store (can be the same object store as for client store.)
+|*tokenStoreReference* | |In-memory object store (can be the same as the one above) that retains field to reference a specific, customized object store (can be the same object client store).
+|authorizationEndpointPath | a|Location of authorization endpoint required to access to authorization server.
+
+Default value: `/localhost/9999/`
+
+For example, `tweetbook/api/authorize`
+|*loginPage* | a|URL for the service provider's end user login page. The resource owner logs from this page.
+
+Default value: `org/mule/modules/oauth2/provider/www/templates/login.html`
+|*scopes* | |A space-seperated list in the token that defines the specific data to which the consumer has access. For example, `READ_PROFILE WRITE_PROFILE READ_BOOKSHELF WRITE_BOOKSHELF`
+|*tokenTtlSeconds* | a|Lifespan of token (ms)
+
+Default value: 86400 ms
+|*connectorReference* | |A reference to the type of transport, which defaults to HTTP. If your application uses something other than HTTP - Jetty, HTTPS, Servlet - or you have some specific HTTP transport configurations you wish to reference, use this field to reference a specific connector.
+|*resourceOwnerSecurityProvider* | |The reference to authentication server's security provider. For example, `resourceOwnerSecurityProvider` references the Spring security manager turn, references the authentication manager spring bean, (which in turn, references the authentication manager spring bean).
+|*clientSecurityProvider* | |The reference to the security provider that validates client credentials.
+|*supportedGrantTypes* | a|Space-seperated list of authorization grant types the OAuth Web service provider supports.
+
+Specify one of the values listed below.
+
+`AUTHORIZATION_CODE` _(default)_
+
+`IMPLICIT`
+
+`RESOURCE_OWNER_PASSWORD_CREDENTIALS`
+
+`CLIENT_CREDENTIALS`
+|*rateLimiterReference* | a|References a package to define limitations for the rate at which a client can call the interface.
+
+By default, references: `org.mule.modules.oauth2.provider.rateLimit.SimpleInMemmoryRateLimiter`
+
+Use the class to set maximumFailureCount (default = 5) and auhtResetAfterSeconds (default = 600)
+|*enableRefreshToken* | a|Set to true, this attribute allows Mule to send http://tools.ietf.org/html/draft-ietf-oauth-v2-22#section-1.5[refresh tokens].
+
+Default value: `FALSE`
+|===
+....
+------
+
+== Creating a Client Registration Flow
+
+Recall that in order to use Web service protected by OAuth 2.0a, a client must first register with the service. The following procedures describes the steps to configure a Mule flow to dynamically accept client registration requests.
+
+[tabs]
+------
+[tab,title="STUDIO Visual Editor"]
+....
+. Create a Mule flow designed to accept calls from client apps requesting registration to use the service.
+
+. Use one of three following methods to store client IDs and secrets.
+
+.. Add an *OAuth provider module* message processor to the flow in your Mule application which will accept and store client IDs and secrets. Configure the element's field according tot he table below. (See code example below. Mule creates a default object store, then loads the client' information into that object store.)
++
+image:create_client.png[create_client]
++
+[width="100%",cols=",",options="header"]
+|===
+|Field |Req'd |Value
+|*Display Name* | |Enter a unique name for the global element.
+|*Config Reference* ^|x |Reference the global OAuth provider module element you created above.
+|*Operation* ^|x |Create client
+|*Client Id* ^|x |Define where to acquire the client ID. (In the example code below, Mule access an object store to validate the `client_ID` and `client_secret`.) Use a Mule expression to dynamically accept this information from clients.
+|*Client Name* | |Identify the client application by name.
+|*Description* | |Offer a brief description of the client application.
+|*Principal* | |Defines a client's http://en.wikipedia.org/wiki/Principal_(computer_security)[principals] (username and password, for example).
+|*Secret* | a|Define where to acquire the client secret.
+
+Not a required attribute if type="PUBLIC"
+|*Type* | |Define the client type (PUBLIC or CONFIDENTIAL)
+|*Strings* | |Select *Create a List*, then click the image:add.png[add] icon to add an `outh2-provider:authorized-grant-types` child element to the `outh2-provider:create-client` element in your config. In the dialog, click *Define*, then enter one or more of the following values, separated by spaces: `AUTHORIZATION_CODE IMPLICIT RESOURCE_OWNER_PASSWORD_CREDENTIALS CLIENT_CREDENTIALS`
+|*Strings* | a|Select *Create A List* then click image:add.png[add] icon to add an `oauth2-provider:redirect-uris` child element to the `oauth2-provider:create-client` element in your config. In the dialog, click *Define*, then enter a URI to which the message processor redirects an authorization code.
+
+During registration, client indicates which are its valid redirect URIs. When the client later requests an authorization code, it also includes a redirect URI. If the redirect URI included in the request for authorization code is valid (i.e., matches one of the redirect URIs submitted by the client during registration), the message processor directs authorization code to the specified URI.
+|*Strings* | |Select *Create a List*, then click image:add.png[add] icon to add an `oauth2-provider:scopes` child element to the `oauth2-provider:create-client` element in your config. In the dialog, click *Define*, then enter a space-seperated list of scopes which the client must provide when it uses service.
+|===
++
+[source, xml]
+----
+<oauth2-provider:config
+        ...
+            <oauth2-provider:clients>
+                <oauth2-provider:client clientId="${client_id}" secret="${client_secret}"
+                                        type="CONFIDENTIAL" clientName="Mule Bookstore" description="Mule-powered On-line Bookstore">
+                    <oauth2-provider:redirect-uris>
+                        <oauth2-provider:redirect-uri>http://oauth-consumer.qa.cloudhub.io*</oauth2-provider:redirect-uri>
+                    </oauth2-provider:redirect-uris>
+                    <oauth2-provider:authorized-grant-types>
+                        <oauth2-provider:authorized-grant-type>AUTHORIZATION_CODE</oauth2-provider:authorized-grant-type>
+                    </oauth2-provider:authorized-grant-types>
+                    <oauth2-provider:scopes>
+                        <oauth2-provider:scope>READ_PROFILE</oauth2-provider:scope>
+                        <oauth2-provider:scope>READ_BOOKSHELF</oauth2-provider:scope>
+                        <oauth2-provider:scope>WRITE_BOOKSHELF</oauth2-provider:scope>
+                        <oauth2-provider:scope>WRITE_PROFILE</oauth2-provider:scope>
+                    </oauth2-provider:scopes>
+                </oauth2-provider:client>
+            </oauth2-provider:clients>
+    </oauth2-provider:config>
+----
+
+.. Add a Spring bean and write Java code, using the default object store. In the example code below, the Spring bean invokes the initialize method of the `TweetBookInitializer` Java class. Mule generates the value of the default object store, then the Spring bean sets the value on the `clientRegistration` property.
++
+[source, xml]
+----
+<spring:bean class="org.mule.modules.security.examples.oauth2.TweetBookInitializer"
+                     init-method="initialize"
+                     p:clientRegistration="#{oauth2Provider.configuration.clientStore}" />
+----
++
+[source, java]
+----
+public class TweetBookInitializer
+{
+    public static final String BOOKSTORE_CLIENT_ID = "e7aaf348-f08a-11e1-9237-96c6dd6a022f";
+    public static final String BOOKSTORE_CLIENT_SECRET = "ee9acaa2-f08a-11e1-bc20-96c6dd6a022f";
+ 
+    private ClientRegistration clientRegistration;
+ 
+    public void initialize()
+    {
+        final Client bookstoreClient = new Client(BOOKSTORE_CLIENT_ID);
+        bookstoreClient.setSecret(BOOKSTORE_CLIENT_SECRET);
+        bookstoreClient.setType(ClientType.CONFIDENTIAL);
+        bookstoreClient.setClientName("Mule Bookstore");
+        bookstoreClient.setDescription("Mule-powered On-line Bookstore");
+        bookstoreClient.getAuthorizedGrantTypes().add(RequestGrantType.AUTHORIZATION_CODE);
+        bookstoreClient.getRedirectUris().add("http://localhost*");
+        bookstoreClient.getScopes().addAll(
+            Utils.tokenize("READ_PROFILE READ_BOOKSHELF WRITE_BOOKSHELF WRITE_PROFILE"));
+ 
+        clientRegistration.addClient(bookstoreClient);
+    }
+ 
+    public void setClientRegistration(final ClientRegistration clientRegistration)
+    {
+        this.clientRegistration = clientRegistration;
+    }
+}
+----
+
+.. Create a custom implementation of the object store client IDs and secrets.
+
+... Create an implementation of the `org.mule.module.oauth2.provider.client.ClientStore` interface
+... In the XML configuration, add a `clientStore-ref` property to the `oauth2-provider:create-client` element. Mule invokes the `getClientById` method of the contract to obtain client IDs and secrets.
+....
+[tab,title="XML Editor or Standalone"]
+....
+. Create a Mule flow designed to accept calls from client apps requesting registration to use the service.
+. Use one of three following methods to store client IDs and secrets.
+
+.. Add an *`oauth2-provider:client-create`* element to the flow in your Mule application which will accept and store client IDs and secrets. Configure the element's attributes according to the table below. (See code example, below. Mule creates a default object store, then loads the clients' information into that object store.)
++
+[source, xml]
+----
+<oauth2-provider:create-client clientId="${client_id}" secret="${client_secret}"
+                                        type="CONFIDENTIAL" clientName="Mule Bookstore" description="Mule-powered On-line Bookstore">
+    <oauth2-provider:redirect-uris>
+    <oauth2-provider:redirect-uri>http://oauth-consumer.qa.cloudhub.io*</oauth2-provider:redirect-uri>
+    </oauth2-provider:redirect-uris>
+    <oauth2-provider:authorized-grant-types>
+        <oauth2-provider:authorized-grant-type>AUTHORIZATION_CODE</oauth2-provider:authorized-grant-type>
+    </oauth2-provider:authorized-grant-types>
+    <oauth2-provider:scopes>
+        <oauth2-provider:scope>READ_PROFILE</oauth2-provider:scope>
+        <oauth2-provider:scope>READ_BOOKSHELF</oauth2-provider:scope>
+        <oauth2-provider:scope>WRITE_BOOKSHELF</oauth2-provider:scope>
+        <oauth2-provider:scope>WRITE_PROFILE</oauth2-provider:scope>
+    </oauth2-provider:scopes>
+</oauth2-provider:create-client>
+----
++
+[width="100%",cols=",",options="header"]
+|===
+|Attribute |Req'd? |Value
+|*config-ref* ^|x |Use the name of the new global OAuth provider module element you created link:/docs/display/34X/Creating+an+OAuth+2.0a+Web+Service+Provider#CreatinganOAuth2.0aWebServiceProvider-CreatingaGlobalOAuth2.0aValidator[above].
+|*doc:name* | |A unique name for the element in the flow.
+|*client ID* ^|x |Define where to acquire the client ID. (In the example code below, Mule access an object store to validate the `client_ID` and `client_secret`.)
+|*clientName* | |Identify the client application.
+|*description* | |Offer a brief descripton of the client application
+|*secret* ^|x a|Define where to acquire the client secret.
+
+Not a required attribute if type="PUBLIC".
+|*type* ^|x |Define the client type (PUBLIC or CONFIDENTIAL).
+|===
++
+Add three child elements to the `oauth2-provider:create-client` element in your config:
++
+[width="100%",cols=",",options="header"]
+|===
+|Child Element |Attribute |Value
+|`*oauth2-provider:authorized-grant-type*` |ref a|Define on or more of the following values, seperated by spaces:
+
+`AUTHORIZATION_CODE`
+
+`IMPLICIT`
+
+`RESOURCE_OWNER_PASSWORD_CREDENTIALS`
+
+`CLIENT_CREDENTIALS`
+|`*oauth2-provider:redirect-uris*` |ref a|Identify the URI to which the message processor redirects an authorization code.
+
+During registration, a client indicates which are its valid redirect URIs. When the client later requests an authorization code, it also includes a redirect URI. If the redirect URI included in the request for authorization code is valid (i.e., matches one of the redirect URIs submitted by the client during registration), the message processor directs the authorization code to the specified URI.
+|`*oauth2-provider:scopes*` |ref |Define a space-seperated list of scopes which the client must provide when it uses the service.
+|===
+
+.. Add a Spring bean and write Java code, using the default object store. In the example code below, the Spring bean invokes the initialize method of the `TweetBookInitializer` Java class. Mule generates the value of the default object store, then the Spring bean sets the value on the `clientRegistration` property.
++
+[source, xml]
+----
+<spring:bean class="org.mule.modules.security.examples.oauth2.TweetBookInitializer"
+                     init-method="initialize"
+                     p:clientRegistration="#{oauth2Provider.configuration.clientStore}" />
+----
++
+[source, java]
+----
+public class TweetBookInitializer
+{
+    public static final String BOOKSTORE_CLIENT_ID = "e7aaf348-f08a-11e1-9237-96c6dd6a022f";
+    public static final String BOOKSTORE_CLIENT_SECRET = "ee9acaa2-f08a-11e1-bc20-96c6dd6a022f";
+ 
+    private ClientRegistration clientRegistration;
+ 
+    public void initialize()
+    {
+        final Client bookstoreClient = new Client(BOOKSTORE_CLIENT_ID);
+        bookstoreClient.setSecret(BOOKSTORE_CLIENT_SECRET);
+        bookstoreClient.setType(ClientType.CONFIDENTIAL);
+        bookstoreClient.setClientName("Mule Bookstore");
+        bookstoreClient.setDescription("Mule-powered On-line Bookstore");
+        bookstoreClient.getAuthorizedGrantTypes().add(RequestGrantType.AUTHORIZATION_CODE);
+        bookstoreClient.getRedirectUris().add("http://localhost*");
+        bookstoreClient.getScopes().addAll(
+            Utils.tokenize("READ_PROFILE READ_BOOKSHELF WRITE_BOOKSHELF WRITE_PROFILE"));
+ 
+        clientRegistration.addClient(bookstoreClient);
+    }
+ 
+    public void setClientRegistration(final ClientRegistration clientRegistration)
+    {
+        this.clientRegistration = clientRegistration;
+    }
+}
+----
+
+.. Create a custom implementation of the object store to store client IDs and secrets.
+
+... Create an implementation of the `org.mule.modules.oauth2.provider.client.ClientStore` interface
+... Add a `clientStore-ref` property to the `oauth2-provider:create-client` element. Mule invokes the `getClientById` method of the contract to obtain client IDs and secrets.
+....
+------
+
+== Creating OAuth Validation Flows
+
+The following procedures describes the steps to configure Mule flows to accept requests for protected resources. You can create a flow that allows a client app to access just one scope of a protected resource, or multiple scopes of a protected resource. (In our link:/docs/display/34X/Mule+STS+OAuth+2.0a+Example+Application[example application] — see code below — Mule uses two flows with OAuth provider modules: one to enable clients to access the `READ_PROFILE` scope, one to enable clients to access the `READ_BOOKSHELF` scope.)
+
+A validation flow must contain an *OAuth provider module* message processor which defines a few of the attributes required for an OAuth 2.0a Web service provider. Generally speaking, however, the OAuth Provider message processor in a flow behaves more like a placeholder, referencing the global OAuth provider module element for the bulk of its processing instructions.
+
+[tabs]
+------
+[tab,title="STUDIO Visual Editor"]
+....
+. Create a Mule flow designed to accept calls from client apps requesting access to a protected resource.
+. To this Mule flow, add an *OAuth2 provider module* message processor _before_ the point in the flow at which Mule accesses the protected resource. In other words, set the OAuth2 provider module message processor before Mule calls a database or another service to access the resource owner's private, secure data.
+. Configure the attributes of the OAuth2 provider module according to the table below.
++
+image:validate-Both.png[validate-Both]
++
+[width="100%",cols=",",options="header"]
+|===
+|Field |Req'd? |Value
+|*Display Name* | |Enter a unique name for the message processor in your flow.
+|*Config Reference* ^|x |Use the name of the new global OAuth provider module element you created link:/docs/display/34X/Creating+an+OAuth+2.0a+Web+Service+Provider#CreatinganOAuth2.0aWebServiceProvider-CreatingaGlobalOAuth2.0aValidator[above].
+|*Operation* ^|x a|validate for link:/docs/display/34X/Authorization+Grant+Types[authorization grant types] the utilize "three-legged OAuth" (Authorization Code, Implicit, and Resource Owner Password Credentials).
+
+validate-client: for the authorization grant type the utilizes "two-legged OAuth" (Client Credentials)
+|*Resource Owner Roles* | |Specifies resource ownder role Mule enforces when validating a token.
+|*Scopes* | |Specifies the data to which a client app calling this flow will have access.
+|*Throw Exception On Unaccepted* ^|x a|*Version 1.2 only*
+
+When set to false, the message processor returns a forbidden HTTP status code when it encounters an invalid token, then stops the flow.
+
+When set to true, the message processor throws an InvalidAccessTokenException when it encounters an invalid token, which Mule can manage within an exception strategy.
+
+Default value: FALSE
+|===
++
+[source, xml]
+----
+<flow name="publicProfile" doc:name="publicProfile">
+        <http:inbound-endpoint address="http://localhost:8084/tweetbook/api/profile" exchange-pattern="request-response" doc:name="Profile API"/>
+        <oauth2-provider:validate scopes="READ_PROFILE" config-ref="oauth2Provider" doc:name="OAuth provider module"/>
+        <component class="org.mule.security.examples.oauth2.ProfileLookupComponent" doc:name="Profile Lookup"/>
+    </flow>
+ 
+    <flow name="publicBookshelf" doc:name="publicBookshelf">
+        <http:inbound-endpoint address="http://localhost:8084/tweetbook/api/bookshelf" exchange-pattern="request-response" doc:name="Bookshelf API"/>
+        <oauth2-provider:validate scopes="READ_BOOKSHELF" config-ref="oauth2Provider" doc:name="OAuth provider module"/>
+        <set-payload value="The Lord of the Rings,The Hitchhiker's Guide to the Galaxy" doc:name="Retrieve Bookshelf"/>
+    </flow>
+----
+....
+------
+
+== Disallow Client Access
+
+*Version 1.2 only*
+
+To prevent an existing client from using the Web service, use a `*delete-client*` element (*Delete Client* message processor in Studio's Visual Editor) in your OAuth Validation flow to remove the client ID from the list of registered clients.
+
+[WARNING]
+Removing a client ID from the list of registered clients does not automatically revoke tokens related to the clientID. After removing a client from the list, you can wait for the client's existing token - access or refresh - to expire, which thereafter bars them from using the Web service, or you can revoke the tokens manually using the `*revoke-token*` element (*Revoke Token* message processorin Studio's Visual Editor).
+
+. To your OAuth Validation flow, add an `*oauth2-provider:delete-client*` element (*Delete Client* message processor in Studio's Visual Editor) before the message processor which validates clients.
+. Configure a single attribute of the `delete-client` element according to the table below.
++
+[width="100%",cols=",",options="header"]
+|===
+|Attribute |Req'd |Value
+|*clientId* ^|x |Define the client ID to be removed from the list. See code example below.
+|===
++
+[source, xml]
+----
+<oauth2-provider:delete-client clientId="#[message.payload.clientId]"/> 
+----
+
+. Optionally, add a `*oauth2-provider:revoke-token*` element (*Revoke Token* message processor in Studio's Visual Editor) to the flow to revoke tokens from a client, immediately barring them from using the Web service. Add the `*revoke-token*` message processor _after_ the `delete-client` message processor, then configure attribute as per the table below.
++
+[width="100%",cols=",",options="header"]
+|===
+|Attribute |Req'd? |Value
+|*token* ^|x |A Mule expression to indicate the access token to be revoked. Note that by revoking a client's access token, Mule also revokes any refresh tokens associated with the client, and vice versa. See code example below.
+|===
++
+[source, xml]
+----
+<oauth2-provider:revoke-token token="#[payload]"/> 
+----

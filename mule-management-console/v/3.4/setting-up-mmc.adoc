@@ -1,0 +1,93 @@
+= Setting UP MMC
+
+== Overview
+
+This document describe requisites, options, and recommendations for setting up MMC in a production environment.
+
+To setup MMC, you will need to register your Mule ESB servers with MMC. For details on how to do this, see link:/docs/display/34X/Setting+Up+MMC-Mule+ESB+Communications[Setting Up MMC-Mule ESB Communications].
+
+To use MMC in a production environment, you need to deploy MMC to a Web application server such as Tomcat. You do this when link:/docs/display/34X/Installing+the+Production+Version+of+MMC[installing the production version of MMC].
+
+The link:/docs/display/34X/Setting+Up+MMC#SettingUpMMC-SetupDecisions[diagram] below lists the default options as well as the alternate setup configurations that you can select when setting up MMC. By default, MMC stores environments or transaction data, as well as user and group information, it internal databases. Using alternate configurations, you can:
+
+* link:/docs/display/34X/Persisting+MMC+Data+On+External+Databases[Set up external database] to persist MMC environment or transaction data (Business Events).
+* link:/docs/display/34X/Managing+MMC+Users+and+Roles[Manage MMC users and roles] via LDAP.
+
+These options are covered in link:/docs/display/34X/Setting+Up+MMC#SettingUpMMC-SetupDecisions[Setup Decisions] in this document.
+
+== Assumptions
+
+This document assumes you are an administrator account holder in MMC. It also assumes that you have installed:
+
+* *Mule Enterprise 3.4.1 or later*. Download it from the http://www.mulesoft.com/support-login[customer portal] if you need to upgrade this version.
+* *MMC Version 3.4.1.* Download it from the http://www.mulesoft.com/support-login[customer portal] if you need to upgrade to this version.
+* *a Web application server such as Tcat, Tomcat, or JBoss*. Please refer to the link:/docs/display/34X/Hardware+and+Software+Requirements[Hardware and Software Requirements] for the latest information about hardware requirements and supported application servers, Java Runtime Environments, and browsers.
+
+== Recommended Environment Architecture
+
+MuleSoft recommends using one instance of MMC per critical environment, and one for testing and QA. In a site with testing, staging, and production environments, the recommended setup is:
+
+* 1 instance of MMC to monitor and manage Dev, QA, and Test environments.
+* 1 instance of MMC to monitor and manage the Staging environment.
+* 1 instance of MMC to monitor and manage the Production environment.
+
+== Setup Decisions
+
+Answer these three basic questions, then proceed with the setup steps, as needed.
+
+[width="100%",cols=","]
+|===
+.6+|image:MMC-setup.png[MMC-setup] 2+|image:mmc-envdata.png[mmc-envdata]
+|By default, MMC persists environment data (such as created alerts, deployments, user data, etc.) within MMC on the same server as the Management Console application. a|It is recommended that you set up an external database to persist your environment data to guard against data loss in case of a catastrophic failure.
+
+See link:/docs/display/34X/Setting+Up+MMC#SettingUpMMC-DataPersistence[below] for links to supported databases and set up instructions.
+2+|image:mmc-transdata.png[mmc-transdata]
+|By default, MMC persists environment data (such as created alerts, deployments, user data, etc.) within MMC on the same server as the Management Console application. a|It is recommended that you set up an external database to persist your environment data to guard against data loss in case of a catastrophic failure.
+
+See link:/docs/display/34X/Setting+Up+MMC#SettingUpMMC-DataPersistence[below] for links to supported databases and set up instructions.
+2+|image:mmc-usermanagement.png[mmc-usermanagement]
+a|MMC includes built in user-management capabilities that allow you to define user groups, assign fine-grained access controls to those groups, and add and manage users.
+
+See link:/docs/display/34X/Setting+Up+and+Managing+Users+in+MMC[Setting Up and Managing Users in MMC] for more information. a|If you have an existing LDAP database to manage user data such as usernames and passwords, you can configure MMC to connect directly to the LDAP server for user management. Note that you will still need to link:/docs/display/34X/Managing+MMC+Users+and+Roles[define user groups and permissions] using the MMC interface.
+
+See link:/docs/display/34X/Setting+Up+and+Managing+Users+via+LDAP[Setting Up and Managing Users via LDAP] for more information.
+|===
+
+== Data Persistence
+
+Out of the box, the Mule Management Console uses internal databases to store two different kinds of data:
+
+* Environment data (alerts, deployments, user data, etc.)
+* Transaction data (business events)
+
+Since by default these databases resides on the same host as the Management Console, a catastrophic failure of the host would cause the loss of both environment and transaction data. You can avoid this situation by configuring the console to use external databases to store environment and transaction data. Following a catastrophic failure of the console host, you can set up the console on another sever, then configure it to use the same databases as the previous instance.
+
+[NOTE]
+Remember that *environment data and transaction data must exist in two separate databases* (regardless of whether they are on the same server or use the same platform).
+
+Externalizing information about Mule's current state of operations can facilitate disaster recovery in two different types of scenarios:
+
+* Mule _transaction-level_ failures: Failure to complete the obligatory sequence of message processing events for a single message.
+* Mule _system-level_ failures: Failure of the entire Mule system.
+
+You can externalize your data through JDBC to any supported database. Follow the links below for specific instructions for configuring the following databases to persist MMC environment and/or transaction data:
+
+* link:/docs/display/34X/Persisting+MMC+Data+to+Oracle[Oracle]
+* link:/docs/display/34X/Persisting+MMC+Data+to+PostgreSQL[PostgreSQL]
+* link:/docs/display/34X/Persisting+MMC+Data+to+MySQL[MySQL]
+* link:/docs/display/34X/Persisting+MMC+Data+to+MS+SQL+Server[MS SQL Server]
+
+=== User Management
+
+There are two ways of creating and configuring MMC user accounts:
+
+* link:/docs/display/34X/Setting+Up+and+Managing+Users+in+MMC[Through the MMC interface]
+* link:/docs/display/34X/Setting+Up+and+Managing+Users+via+LDAP[Through LDAP]
+
+To define user groups and assign fine-grained permissions to those groups, follow those instructions in link:/docs/display/34X/Managing+MMC+Users+and+Roles[Managing MMC Users and Roles]. You can manage user groups and their permissions only through MMC interface, even if you set up an LDAP server to manage user accounts.
+
+== See Also
+
+* Read more about link:/docs/display/34X/Managing+MMC+Users+and+Roles[Managing MMC Users and Roles].
+* Find out how to set up an link:/docs/display/34X/Persisting+MMC+Data+to+Oracle[Oracle], link:/docs/display/34X/Persisting+MMC+Data+to+PostgreSQL[PostgreSQL], link:/docs/display/34X/Persisting+MMC+Data+to+MySQL[MySQL], link:/docs/display/34X/Persisting+MMC+Data+to+MS+SQL+Server[MS SQL Server] database to persist your environment or transaction data.
+* Learn about the link:/docs/display/34X/Architecture+of+the+Mule+Management+Console[technical architecture of MMC].

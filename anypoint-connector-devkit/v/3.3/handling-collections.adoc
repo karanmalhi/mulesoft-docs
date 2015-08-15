@@ -1,0 +1,145 @@
+= Handling Collections
+
+The DevKit provides a very simple way to handle `java.util.Collection` and `java.util.Map` types, whether they appear in `@Configurable` fields or as parameters of `@Processor` or `@Source` methods. In addition, the DevKit allows more complex scenarios where theses types are nested such as `Map<String, List<String>>` or `List<Map<String, Object>>`.
+
+There are two ways to handle these types from Mule: one is to declare the elements explicitly and the other option is to pass a reference to them.
+
+_Note:_ all the examples and explanations on this page are valid both for `@Module` and `@Connector` classes.
+
+== Examples
+
+Let's consider the following custom Mule Module:
+
+[source, java]
+----
+import org.mule.api.annotations.Configurable;
+import org.mule.api.annotations.Module;
+import org.mule.api.annotations.Processor;
+import org.mule.api.annotations.param.Optional;
+ 
+import java.util.List;
+import java.util.Map;
+ 
+@Module(name = "collection")
+public class CollectionModule {
+     
+    @Configurable
+    @Optional
+    private List<String> strings;
+ 
+    @Configurable
+    @Optional
+    private Map<String, String> mapStrings;
+----
+
+And these Spring beans:
+
+[source, xml]
+----
+<spring:bean id="objectA" class="java.lang.String">
+        <spring:constructor-arg value="ObjectA"/>
+    </spring:bean>
+ 
+    <spring:bean id="objectB" class="java.lang.String">
+        <spring:constructor-arg value="ObjectB"/>
+    </spring:bean>
+ 
+    <spring:bean id="list" class="org.springframework.beans.factory.config.ListFactoryBean">
+        <spring:property name="sourceList">
+            <spring:list>
+                <spring:ref bean="objectA"/>
+                <spring:ref bean="objectB"/>
+            </spring:list>
+        </spring:property>
+    </spring:bean>
+----
+
+Then the Module can be configured in any of the following ways:
+
+* The elements of the list are declared explicitly:
+
+[source, xml]
+----
+<collection:config>
+        <collection:strings>
+            <collection:string>MuleSoft</collection:string>
+            <collection:string>FTW</collection:string>
+        </collection:strings>
+    </collection:config>
+----
+
+* The elements of the map are declared explicitly:
+
+[source, xml]
+----
+<collection:config>
+        <collection:map-strings>
+            <collection:map-string key="a">MuleSoft</collection:map-string>
+            <collection:map-string key="b">FTW</collection:map-string>
+        </collection:map-strings>
+    </collection:config>
+----
+
+* Equivalent to the previous map: the tag names (`a` and `b`) are used as keys of the maps:
+
+[source, xml]
+----
+<collection:count-map-of-strings config-ref="configC">
+            <collection:map-strings>
+                <collection:a>mulesoft</collection:a>
+                <collection:b>ftw</collection:b>
+            </collection:map-strings>
+        </collection:count-map-of-strings>
+----
+
+* One element declared explicitly and for the other one a reference is used:
+
+[source, xml]
+----
+<collection:config>
+        <collection:strings>
+            <collection:string>MuleSoft</collection:string>
+            <collection:string value-ref="objectA"/>
+        </collection:strings>
+    </collection:config>
+----
+
+* Instead of declaring the elements of the list, a reference to a bean of the same type is passed:
+
+[source, xml]
+----
+<collection:config name="configA">
+        <collection:strings ref="list" />
+    </collection:config>
+----
+
+== Nested Collections
+
+Let's consider the following `@Processor` method:
+
+[source, java]
+----
+@Processor
+    public void mapOfLists(Map<String, List<String>> map) {
+----
+
+The generated message processor can be invoked as follows:
+
+[source, xml]
+----
+<collection:map-of-lists>
+            <collection:map>
+                <collection:map key="key1" value-ref="list" />
+                <collection:map key="key2" value-ref="#[map-payload:anotherList]" />
+            </collection:map>
+        </collection:map-of-lists>
+----
+
+Or instead of passing the values of the map by reference, the map itself can be a reference:
+
+[source, xml]
+----
+<collection:map-of-lists>
+            <collection:map ref="#[map-payload:myMap]" />
+        </collection:map-of-lists>
+----
