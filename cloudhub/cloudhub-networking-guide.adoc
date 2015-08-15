@@ -5,7 +5,7 @@
 
 CloudHub provides a variety of tools to architect your integrations and APIs so that they are maintainable, secure, and scalable. This guide covers the basic network architecture, DNS, and firewall rules.
 
-image:CloudHub+Networking+Guide.jpeg[CloudHub+Networking+Guide]
+image:/docs/download/attachments/122752489/CloudHub+Networking+Guide.jpg?version=5&modificationDate=1432151814423[image]
 
 == Load Balancing
 
@@ -22,49 +22,40 @@ Each application deployed on CloudHub has a *CNAME* record that refers to the lo
 
 == DNS Records
 
-The following DNS records are exposed for your CloudHub applications:
+ The following DNS records are exposed for your CloudHub applications:
 
-[cols="2*"]
+[width="100a",cols="50a,50a",options="header"]
 |===
-
-| *myapp.cloudhub.io*
-| Load balancer. Ports 80 and 443 forward to  `${http.port}` and `${https.port}` respectively.
-
-| *mule-worker-myapp.cloudhub.io*
-| The external IP address of the Mule workers. HTTP services are exposed on: `${http.port}` and `${https.port}`
-
-| *mule-worker-internal-myapp.cloudhub.io*
-| The internal IP address of the Mule workers. The IPs for this DNS record are only accessible inside of the Amazon network or through a VPC. Public HTTP services are exposed on `${http.port}` and `${https.port}.` Internal HTTP services are exposed on ports 8091/8092.
-
+|*myapp.cloudhub.io* |Load balancer. Ports 80 and 443 forward to  `${http.port}` and `${https.port}` respectively.
+|*mule-worker-myapp.cloudhub.io* |The external IP address of the Mule workers. HTTP services are exposed on: `${http.port}` and `${https.port}`
+|*mule-worker-internal-myapp.cloudhub.io* |The internal IP address of the Mule workers. The IPs for this DNS record are only accessible within a customer's private VPC. *These IPs are not accessible for workers running in the MuleSoft shared VPC.* Public HTTP services are exposed on `${http.port}` and `${https.port}.` Internal HTTP services are exposed on ports 8091/8092.
 |===
-
 
 In certain situations, you may want to know an application’s internal IPs:
 
-* When communicating with the worker directly through the VPC without sending data over the public internet
-* When you already have services in Amazon, and do not want to pay the performance cost of leaving and returning to the Amazon network by using the public IP address
+* When communicating with the worker directly within the customer's VPC without sending data over the public internet
 * When you wish to setup your own load balancer (see below)
 
-These IP addresses can be accessed through the `mule-worker-internal-myapp.cloudhub.io` record. If you access the workers directly, any load distribution benefits from the CloudHub load balancing layer are lost.
+These IP addresses can be accessed through the `mule-worker-internal-myapp.cloudhub.io` record, from within the customer's VPC. If you access the workers directly, any load distribution benefits from the CloudHub load balancing layer are lost.
 
 == Firewall Rules and Port Access
 
 The only two ports exposed externally are `${http.port}` and `${https.port}`. If you wish to access other ports, you can do so through a VPC.
 
-If you wish to expose HTTP services only inside a VPC, these services can be exposed on ports 8091 and 8092, which are open by default on the internal network. In this case, these services are not  accessible on the public IPs or the load-balancer, ensuring that they are accessed securely.
+If you wish to expose HTTP services only inside a VPC, these services can be exposed on ports 8091 and 8092, which are open by default on the internal network. In this case, these services are not accessible on the public IPs or the load-balancer, ensuring that they can be accessed securely.
 
-Additional ports can be opened inside the VPC, for example, for JMX based monitoring. To do this, file a support ticket for the  ports you would like to be open.
+Additional ports can be opened inside the VPC, for example, for JMX based monitoring. You can file a MuleSoft support ticket requesting the ports you want opened.
 
 == IP Ranges and Static IPs
 
 As CloudHub deploys on Amazon EC2, IP addresses are chosen from the Amazon EC2 IP pool. For a list of these ranges,  consult http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html[their documentation].
 
-CloudHub supports allocating a static IP for applications so that they can be whitelisted for other services. To request a static IP for your application, see the  http://www.mulesoft.org/documentation/display/current/Community+and+Support#CommunityandSupport-Support[support portal]. After allocating a static IP for your application, it is visible under the application deployment tab.
+CloudHub supports allocating a static IP for applications so that they can be whitelisted for other services. To enable a static IP for your application, request a static IP via the link:/documentataion/display/current/Community+and+Support[support portal]. After a static IP has been allocated for your application, it is visible under the application deployment tab.
 
- Static IPs are not supported for private IP addresses inside a VPC.
+Static IPs are not supported for private IP addresses inside a VPC.
 
 [IMPORTANT]
-*If your application is deleted, the static IP is lost and you must request a new one.*
+If your application is deleted, the static IP is lost and you must request a new one.
 
 See the http://www.mulesoft.org/documentation/display/current/FAQ#FAQ-Technical/Troubleshooting[Cloudhub FAQs] for more things to consider when assigning Static IPs.
 
@@ -72,23 +63,23 @@ See the http://www.mulesoft.org/documentation/display/current/FAQ#FAQ-Technical/
 
 Depending on what region you deploy your application in, the DNS record and the load balancer for your integration may change. The following table summarizes what DNS record are available for your application for each region:
 
-[width="100%",cols="50%,50%",options="header"]
+[width="100a",cols="50a,50a",options="header"]
 |===
 |DNS Record |Regions
-|*myapp.cloudhub.io* a|
+|*myapp.cloudhub.io* |
 US West, US East
 
 All other regions
 
 |*myapp.eu.cloudhub.io* |Europe
-|*myapp.au.cloudhub.io* a|
+|*myapp.au.cloudhub.io* |
 Singapore
 
 Australia
 
 |===
 
-Deploying to a region also affects your internal and external worker DNS address. For example, if you deploy in Europe, the DNS records for internal and external IPs are *mule-worker-myapp.eu.cloudhub.io* and *mule-worker-internal-myapp.eu.cloudhub.io*.
+Deploying to a region also affects your internal and external worker DNS address. For example, if you deploy in Europe, the DNS records for internal and external IPs are `mule-worker-myapp.eu.cloudhub.io` and `mule-worker-internal-myapp.eu.cloudhub.io`.
 
 == Custom Load Balancing Configurations
 

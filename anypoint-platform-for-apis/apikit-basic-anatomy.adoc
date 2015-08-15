@@ -15,12 +15,11 @@ As a relatively simple-to-use construct, there are three main parts of APIkit wh
 
 . Interface 
 . Main flow
-. Backend flows
+. Backend flows +
 
+image:/docs/download/attachments/122752390/basic_anatomy.png?version=1&modificationDate=1409000162741[image]
 
-image:basic_anatomy.png[basic_anatomy]
-
-=== Interface
+== Interface
 
 The *Interface* is, as the name suggests, the mediator between the service exposed to the world, and the internal assets that need to be exposed.
 
@@ -34,40 +33,39 @@ See short example code below:
 |*action* |`get:`
 |===
 
-[source]
+[source,yaml,linenums]
 ----
-
 #%RAML 0.8
 ---
 title: Leagues
 version: 1.0
 baseUri: http://localhost:8080/api
 documentation:
-  - title: Getting Started
-    content: |
-      This sample API has been created as part of your APIkit project.
+  - title: Getting Started
+    content: |
+      This sample API has been created as part of your APIkit project.
 /teams:
-  displayName: Teams
-  #description: |
-  #  A collection of teams that are participating in La Liga. Teams API allow you add, remove and retrieve individual team information from La Liga.
-  get:
-    description: Obtain information from a collection of teams simultaneously
-    queryParameters:
-      city:
-        description: |
-          Filter the list of teams by home city.
-        type: string
-        required: false
-        example: Barcelona
-    responses:
-      200:
-        body:
-          application/json:
-            schema: !include schemas/teams-schema-input.json
-            example: !include examples/teams-example.json
+  displayName: Teams
+  #description: |
+  #  A collection of teams that are participating in La Liga. Teams API allow you add, remove and retrieve individual team information from La Liga.
+  get:
+    description: Obtain information from a collection of teams simultaneously
+    queryParameters:
+      city:
+        description: |
+          Filter the list of teams by home city.
+        type: string
+        required: false
+        example: Barcelona
+    responses:
+      200:
+        body:
+          application/json:
+            schema: !include schemas/teams-schema-input.json        
+            example: !include examples/teams-example.json
 ----
 
-[IMPORTANT]
+[WARNING]
 ====
 *Limitations*
 
@@ -78,7 +76,7 @@ RAML offers a broad range of functionality for defining APIs. APIkit is designed
 * https://github.com/raml-org/raml-spec/blob/master/04_basic_information.md[baseUriParameters]
 ====
 
-=== Main Flow
+== Main Flow
 
 The *Main flow* manages three critical functions:
 
@@ -88,71 +86,79 @@ The *Main flow* manages three critical functions:
 
 Essentially, this flow is where you "wire everything together", enabling the API to accept requests and send responses, and facilitating communication between the interface and the processes which do its bidding. In Mule, the Main flow in your config file handles the calls and routing. See example below.
 
-image:apikitmainflow.png[apikitmainflow]
-
-[source,xml]
+[tabs]
+------
+[tab,title="STUDIO Visual Editor"]
+....
+image:/docs/download/attachments/122752390/apikitmainflow.png?version=1&modificationDate=1409000162736[image]
+....
+[tab,title="XML Editor"]
+....
+[source,xml,linenums]
 ----
 <mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-
+ 
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-
+ 
 http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
-
+ 
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
-
+ 
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd" version="EE-3.5.0">
-    <apikit:config name="apiConfig" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router"/>
-    <apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping"/>
+    <apikit:config name="apiConfig" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router"/>
+    <apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping"/>
 ...
-
- <flow name="main" doc:name="main">
-        <http:inbound-endpoint address="http://localhost:8081" doc:name="HTTP" exchange-pattern="request-response">
-            <object-to-string-transformer />
-        </http:inbound-endpoint>
-        <apikit:router config-ref="Router" doc:name="APIkit Router"/>
-        <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
-    </flow>
+ 
+ <flow name="main" doc:name="main">
+        <http:inbound-endpoint address="http://localhost:8081" doc:name="HTTP" exchange-pattern="request-response">
+            <object-to-string-transformer />
+        </http:inbound-endpoint>
+        <apikit:router config-ref="Router" doc:name="APIkit Router"/>
+        <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow> 
 ...
 </mule>
 ----
+....
+------
 
 Within the application's config file, you can also define the API's exception strategies so that the backend flows "know" that when a message throws a certain type of exception, the error response must be delivered in an HTTP-status-code-friendly format. When a request cannot find a resource, for example, it should respond with a proper 404 error indicating that "The resource cannot be found"; the *APIkit exception strategies mappings* manage the return of such HTTP-status-code-friendly responses. Referenced within the main flow via an exception-strategy element, you define the actual exception strategy behavior outside the flows in the application. See the example below.
 
-[source,xml]
+[source,xml,linenums]
 ----
 <apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping">
-        <apikit:mapping statusCode="404">
-            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
-            <set-property propertyName="Content-Type" value="application/json" />
-            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" />
-        </apikit:mapping>
-        <apikit:mapping statusCode="400">
-            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
-            <set-property propertyName="Content-Type" value="application/json" />
-            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" />
-        </apikit:mapping>
-    </apikit:mapping-exception-strategy>
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" />
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
 ----
 
-=== Backend Flows
+== Backend Flows
 
 The *Backend flows* do the "heavy lifting" of actually performing the actions the interface defined.
 
 For example, where an API's interface enables an end user to GET a list of teams in a particular league, the backend flow mapped to that action in the interface accesses a database to look up a list of teams in a league, then provides the response to the request. In Mule, you build flows to perform the backend work to support the API's interface.  
 
-=== Console
+== Console
 
 Beyond the three above-listed parts of an API, there is a fourth part – technically, not a part of the REST API itself – that APIkit exposes when you deploy the API: the** Console**. 
 
 Not only does it document your API so that it is consumable and usable by application developers, APIkit can help you test your newly built API to ensure that it functions as intended. You can use your browser to point at the URL configured in your API Definition to access the auto-generated, fully testable documentation for your API. Through a Web-based user interface, you can browse all the actions your API supports – GETting this, POSTing that – and send test calls to your API to solicit responses. In addition to using it for testing, you can expose the console as API documentation, so that end users of your API have an excellent resource for learning how to consume your API. See the example below.
 
-image:APIkitconsole-tutorial.png[APIkitconsole-tutorial]
+image:/docs/download/attachments/122752390/APIkitconsole-tutorial.png?version=1&modificationDate=1409000162712[image]
 
 == How it Works
 
 The following outlines the high-level steps an APIkit-built API takes to process end user requests.
 
-image:how_it_works.png[how_it_works]
+image:/docs/download/attachments/122752390/how_it_works.png?version=1&modificationDate=1409000162754[image]
 
 . End user sends an HTTP request to the API.
 . The HTTP or Jetty endpoint in the main flow receives the request; passes the message to the APIkit Router.
@@ -166,8 +172,7 @@ image:how_it_works.png[how_it_works]
 . Flow2 returns a response to the router.
 . The router pushes the response to the HTTP or Jetty endpoint.
 . The HTTP or Jetty endpoint sends the response to the end user.
-. From the console, a developer can simulate the steps above by submitting requests via the Web user interface. +
-
+. From the console, a developer can simulate the steps above by submitting requests via the Web user interface.
 
 == Strengths of APIkit
 
@@ -182,6 +187,6 @@ If you want to migrate or copy an existing API Version, you don't need to go thr
 
 == See Also
 
-* Follow the link:/documentation/display/current/APIkit+Tutorial[APIkit Tutorial] to install APIkit, then build, deploy and test a REST API.
-* Learn more about APIkit features and functionality in the link:/documentation/display/current/APIkit+Beyond+the+Basics[Beyond the Basics] documentation.
+* Follow the link:/docs/display/current/APIkit+Tutorial[APIkit Tutorial] to install APIkit, then build, deploy and test a REST API.
+* Learn more about APIkit features and functionality in the link:/docs/display/current/APIkit+Beyond+the+Basics[Beyond the Basics] documentation.
 * Access http://raml.org[RAML.org] to learn more about the RESTful API Modeling Language and its http://raml.org/projects.html[clever tooling].

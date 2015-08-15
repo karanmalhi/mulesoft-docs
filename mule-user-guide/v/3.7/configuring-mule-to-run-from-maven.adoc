@@ -1,0 +1,32 @@
+= Configuring Mule to Run From Maven
+:keywords: anypoint, esb, on premises, on premise, amc, maven
+
+Let's say you are building and installing a Java web service with Maven, and you want to run SoapUI tests for it. You could use an automated test framework such as Hudson to run the SoapUI tests after it building the Java WS.
+
+In this case, you may want a Mule instance running for the SoapUI tests to run. You can add a task in Maven so that it starts up Mule (possibly passing the correct config file) and then runs the SoapUI tests.
+
+Use the http://mojo.codehaus.org/exec-maven-plugin/[exec-maven-plugin]'s _java_ goal to run the class `org.mule.MuleServer` and pass it a `'-config configname.xml'` parameter. Maven will work out the classpath for you.
+
+The following is an example of how you could configure the plugin in order to run the application with maven. The command in this case would be '*mvn test*'
+
+[source, xml]
+----
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>exec-maven-plugin</artifactId>
+    <version>1.4.0</version>
+    <executions>
+        <execution>
+            <phase>test</phase>
+            <goals>
+                <goal>java</goal>
+            </goals>
+            <configuration>
+                <classpathScope>compile</classpathScope>
+                <mainClass>org.mule.MuleServer</mainClass>
+                <commandlineArgs>-config <YOUR_CONFIG_XML></commandlineArgs>      
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+----

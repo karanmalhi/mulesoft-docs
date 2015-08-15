@@ -23,22 +23,19 @@ There are four common techniques that web sites and web APIs can use to avoid a 
 
 By default, the API Console, API Designer, and API Notebook route traffic through a proxy. However, this doesn't work for all scenarios, especially those where an API is located behind a firewall. In this case, you need to use one of the other options to make your API available from outside the firewall. These steps are described in the link:#AccessingYourAPIBehindaFirewall-disabling[Bypassing the Proxy] and link:#AccessingYourAPIBehindaFirewall-options[Options for Avoiding Same-Origin Restrictions] sections.
 
-=== Same-Origin Example
+==== Same-Origin Example
 
 Let's consider a user who visits foo.com in their browser. When the page loads, two scripts start running. The first script attempts to dynamically load content from foo.com, which works fine. The second script attempts to load content from bar.com; in this case, the request succeeds, but the response fails because the browser detects that the requested domain (bar.com) is not the same as the origin domain (foo.com). 
 
-=== Proxy Example
+==== Proxy Example
 
 To demonstrate how the Anypoint Platform's API Notebook uses a proxy, let's consider the https://api-notebook.anypoint.mulesoft.com/examples/twitter[Twitter example]. In this example, the browser makes a request to the following URL to get a list of your Twitter followers:
 
-----
-
-https://api-notebook.anypoint.mulesoft.com/proxy/https://api.twitter.com/1.1/followers/ids.json 
-----
+`https://api-notebook.anypoint.mulesoft.com/proxy/https://api.twitter.com/1.1/followers/ids.json`
 
 You'll notice that instead of simply calling the Twitter API directly, the desired URL is added as a parameter to the `/proxy/` endpoint in a request to the Anypoint Platform. This proxy makes it possible to make requests to a third party and return the response via the Anypoint Platform without being restricted by the browser's same-origin restrictions.
 
-=== CORS Example
+==== CORS Example
 
 Let's consider an API that is hosted on an internal network behind a firewall. If you attempt to use the API Console, API Designer, or API Notebook with a proxy enabled, the requests will fail because the proxy can't reach behind your firewall. However, if your browser sits behind your firewall and your API implements CORS, or if you have proxied your API on an API Gateway that has a CORS policy enabled, the requests to your API can succeed. This scenario works because the API Console, API Designer, and API Notebook tools are web applications that run in your browser, and because your browser is behind your firewall, they are able to make calls to your API if it supports CORS.
 
@@ -46,38 +43,27 @@ Let's consider an API that is hosted on an internal network behind a firewall. I
 
 If you are trying to use the Anypoint Platform in an environment where inbound requests are blocked by a firewall, you have a few options to make your scenario work. The first step for each option is to bypass the proxy.
 
-=== Bypassing the Proxy for the API Console and API Designer
+===== Bypassing the Proxy for the API Console and API Designer
 
-Go to the API Designer for your API. On the right pane, check the API is behind a firewall box, which bypasses the proxy.image:Screen+Shot+2014-09-03+at+6.09.09+PM.png[Screen+Shot+2014-09-03+at+6.09.09+PM]
+Go to the API Designer for your API. On the right pane, check the API is behind a firewall box, which bypasses the proxy.
 
-=== Bypassing the Proxy for the API Notebook
+image:/docs/download/attachments/122752393/Screen+Shot+2014-09-03+at+6.09.09+PM.png?version=1&modificationDate=1409793073576[image]
+
+===== Bypassing the Proxy for the API Notebook
 
 Go to the API Notebook for your API. In the initial code cell that creates a client, create a new code cell with the following code to set a new proxy configuration on the client:
 
-----
-
-API.set(client, 'proxy', false);
-----
+*`API.set(client, 'proxy', false);`*
 
 In the line above, `client` represents the name of your client that you used when you called `API.createClient().` For example:
 
-----
-
-API.createClient(<name of client>, ...);
-----
-
+*`API.createClient(<name of client>, ...);`*
 
 Combining these two lines together, the following example creates a new client and then bypass the default proxy:
 
-----
-API.createClient('myClient', 'http://api-portal.anypoint.mulesoft.com/my-client/api/test-api/test.raml');
-----
+*`API.createClient('myClient', 'http://api-portal.anypoint.mulesoft.com/my-client/api/test-api/test.raml');`*
 
-
-----
-API.set(myClient, 'proxy', false);
-----
-
+*`API.set(myClient, 'proxy', false);`*
 
 === Understanding and Disabling Mixed Content Blocking
 
@@ -105,13 +91,13 @@ Once the proxy has been bypassed, your API still may not be accessible by the AP
 . link:#AccessingYourAPIBehindaFirewall-gateway[Proxy your API through an API Gateway and Apply a CORS Policy]
 . link:#AccessingYourAPIBehindaFirewall-disable-same-origin[Disable Same-Origin Restrictions in your Browser]
 
-=== Option 1: Implement CORS for your API
+===== Option 1: Implement CORS for your API
 
 If your API is behind a firewall, one possible solution is that you implement CORS for it. Make sure that you understand the security implications of any CORS configuration that you implement. 
 
-=== Option 2: Proxy your API through an API Gateway and Apply a CORS Policy
+===== Option 2: Proxy your API through an API Gateway and Apply a CORS Policy
 
-If your API is behind a firewall and your API doesn't implement CORS, a possible solution is to proxy your API through an API Gateway that itself implements CORS. For more information, see link:/documentation/display/current/Proxying+Your+API[Proxying Your API] and link:/documentation/display/current/Configuring+an+API+Gateway[Configuring an API Gateway]. You can then apply a CORS policy to the API by using the API Administration page, as shown in the following steps:
+If your API is behind a firewall and your API doesn't implement CORS, a possible solution is to proxy your API through an API Gateway that itself implements CORS. For more information, see link:/docs/display/current/Proxying+Your+API[Proxying Your API] and link:/docs/display/current/Configuring+an+API+Gateway[Configuring an API Gateway]. You can then apply a CORS policy to the API by using the API Administration page, as shown in the following steps:
 
 [NOTE]
 Currently, the CORS policy available by using the API Administration page will allow all origins and all requests to your API. It cannot be configured with filters, specific origins, etc. Make sure that you understand the implications of enabling this kind of a policy.
@@ -119,26 +105,26 @@ Currently, the CORS policy available by using the API Administration page will a
 . On the API Administration page for your API, click on the *Policies* tab, expand the **Cross-Origin Resource Sharing** option, and then click *Apply*.
 . A **Cross-Origin Resource Sharing** dialog will appear that describes CORS and notifies you that there are no configuration options for the policy. Click *Apply policy*.
 
-=== Option 3: Disable Same-Origin Restrictions in your Browser
+===== Option 3: Disable Same-Origin Restrictions in your Browser
 
 Another possible solution, especially if you can't implement CORS for your API either directly or by using an API Gateway, is to disable the same-origin restrictions in your browser. Each browser handles these restrictions in a unique way; for example, after launching Google Chrome from the command line to disable the same-origin restrictions and then closing Chrome, your next Chrome session will automatically re-enable the restrictions. Internet Explorer's settings will persist across application sessions, so you will need to change your Internet Options manually. Mozilla Firefox doesn't currently support a way to disable same-origin restrictions without using a custom build of the browser.
 
 [NOTE]
 Make sure that you understand the potential security implications of changing your browser's security settings. You should only use these options for testing on your own web pages because your browser will be vulnerable to malicious scripts and other potential threats. 
 
-Google Chrome for Mac OS X:
+===== Google Chrome for Mac OS X:
 
 * Open a new Terminal window, paste the following line, and then press *Enter*: `open -a Google\ Chrome --args --disable-web-security`
 
-=== Google Chrome for Windows:
+===== Google Chrome for Windows:
 
 * Open a new Command Prompt window, navigate to the location of the Chrome executable (Chrome.exe), paste the following line, and then press *Enter*: `chrome.exe --disable-web-security`
 
-=== Mozilla Firefox:
+===== Mozilla Firefox:
 
 You can't disable the same-origin restrictions in Firefox without using a custom build of the browser's source code.
 
-=== Internet Explorer:
+===== Internet Explorer:
 
 . Open *Internet Properties*, click on the *Security* tab, and then click on the *Custom level* button in the *Security level for this zone* section.
 . A *Security Settings* dialog will appear. Scroll down the list of security settings and locate the *Miscellaneous* section, and then select *Enable* for the *Access data sources across domains* setting.

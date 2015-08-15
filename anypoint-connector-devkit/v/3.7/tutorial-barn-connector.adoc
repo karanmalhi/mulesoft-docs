@@ -8,15 +8,13 @@ The following tutorial describes how to create a simple connector that displays 
 == Before Creating a Connector
 
 . Install:
-.. http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase7-521261.html[Java 7]
+.. http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase7-521261.html[Java 7] 
 .. http://maven.apache.org/download.cgi[Maven]
 .. http://www.mulesoft.org/download-mule-esb-community-edition[Studio]
 . Start Anypoint Studio.
-. Configure Maven: +
-.. Click *Anypoint Studio* > *Preferences* > *Anypoint Studio* > *Maven Settings*. 
-.. Click *Browse* to locate the folder where you installed Maven. 
-.. Click *Test Maven Configuration* and when you see the green checkmark, click *OK*. 
-. In Anypoint Studio, install the DevKit Plugin:  +
+. Configure Maven:
+.. Click *Anypoint Studio* > *Preferences* > *Anypoint Studio* > *Maven Settings*. In DevKit 3.7, when you first create a connector, if Maven is not configured, you are prompted to install it.
+. Install the DevKit Plugin: 
 .. Click *Install New Software*.
 .. Click *Work with* > *Anypoint Addons Update Site* > *Anypoint Devkit Plugin*.
 .. Click *Next*, *Finish*, and restart Studio.
@@ -25,8 +23,7 @@ The following tutorial describes how to create a simple connector that displays 
 
 . Create your initial Barn connector. Use *File* > *New* > *Anypoint Connector Project*. Name the connector *Barn*. You can leave all other fields the same. Click *Finish*. You can ignore any warning messages in the Studio Console.
 . Review the scaffolded connector: 
-
-.Starting Connector Code
++
 [source,java]
 ----
 /**
@@ -98,81 +95,69 @@ public class BarnConnector
 
 To code the connector:
 
-. In Studio, open the main Java file,  `src/main/java/org/mule/modules/barn/BarnConnector.java`
+. In Studio, open the main Java file,  *`src/main/java/org/mule/modules/barn/BarnConnector.java`* 
 +
-image:/documentation/download/thumbnails/122752421/BarnJava.png?version=1&modificationDate=1421074785332[image] 
+image:/docs/download/thumbnails/122752421/BarnJava.png?version=1&modificationDate=1421074785332[image]
 +
-. Paste the following code in the connector class, before the final closing curly brackets, and after the existing `@Processor` block:
+. Paste the following code in the connector class, before the final closing curly brackets, and after the existing @Processor block:
 +
-[source,java]
+[source]
 ----
 /**
- * Custom processor that places an animal in the barn.
- *
- * {@sample.xml ../../../doc/barn-connector.xml.sample barn:putInBarn}
- *
- * @param animal Name of the animal to be place in the barn
- * @return returns processed message
- */
+ * Custom processor that places an animal in the barn.
+ *
+ * {@sample.xml ../../../doc/barn-connector.xml.sample barn:putInBarn}
+ *
+ * @param animal Name of the animal to be place in the barn
+ * @return returns processed message
+ */
 @Processor(friendlyName="Put an animal in the barn")
 public String putInBarn(@Placement(group="Parameters")
-  @FriendlyName("The animal's name") String animal) {
-        return animal + " has been placed in the barn";
-}
+  @FriendlyName("The animal's name") String animal) {
+        return animal + " has been placed in the barn";
+    }
 ----
 +
-The path name in the `@Sample` statement indicates the path to the Javadoc `*.xml.sample file` in Studio–it's not a filesystem path.
+The path name in the `@Sample` statement indicates the path to the Javadoc *.xml.sample file in Studio–it's not a filesystem path. For each Javadoc sample file in your connector, specify corresponding statements in the xml.sample file. +
+ +
+The line starting with @Processor identifies the processor function, which specifies the user interface for the connector. +
+The line starting with @FriendlyName indicates what the UI elements that display in the browser when the connector runs in Anypoint Studio. 
 +
-The line starting with `@Processor` identifies the processor function, which specifies the user interface for the connector.
+This code changes the operation name to "Put an animal in the barn", and changes the Animal prompt to "The animal's name". After inserting, @ Placement and @FriendlyName are underscored as an error condition. Mouse over each annotation and select the *import* command from the popup menu to add import commands to your connector:
 +
-The line starting with `@FriendlyName` indicates some of the UI elements that display in the browser when the connector runs in Anypoint Studio.  
-This code changes the operation name to "Put an animal in the barn", and changes the Animal prompt to "The animal's name". 
+image:/docs/download/attachments/122752421/BarnImportAnno2.png?version=1&modificationDate=1421360823465[image] +
 +
-. After inserting, `@Placement` and `@FriendlyName` are underscored as an error condition. Mouse over each annotation and select the *import* command from the popup menu to add import commands to your connector:
-+
-image:/documentation/download/attachments/122752421/BarnImportAnno2.png?version=1&modificationDate=1421360823465[image]
-+
-image:/documentation/download/attachments/122752421/BarnImportAnnotation.png?version=1&modificationDate=1421360893718[image]
+image:/docs/download/attachments/122752421/BarnImportAnnotation.png?version=1&modificationDate=1421360893718[image]
 +
 . Add loading statements for future Javadoc documentation in your connector by providing map-payload statements:
-.. Open the Javadoc `doc/barn-connector.xml.sample` file:
+.. Open *doc/barn-connector.xml.sample:*
 +
-.. Include one BEGIN/END block for each @Processor statement block in your connector.
-+
-[source,java]
+[source]
 ----
 <!-- BEGIN_INCLUDE(barn:my-processor) -->
-  <barn:my-processor config-ref="" content="#[map-payload:content]" />
+  <barn:my-processor config-ref="" content="#[map-payload:content]" />
 <!-- END_INCLUDE(barn:my-processor) -->
 ----
 +
-.. For the second  @Processor statement block, add these lines:
+.. Include one BEGIN/END block for each @Processor statement block in your connector. For the second  @Processor statement block, add these lines:
 +
-[source,java]
+[source]
 ----
 <!-- BEGIN_INCLUDE(barn:my-processor) -->
-  <barn:put-in-barn config-ref="" animal="#[map-payload:content]" />
+  <barn:put-in-barn config-ref="" animal="#[map-payload:content]" />
 <!-- END_INCLUDE(barn:my-processor) -->
 ----
 +
-.Completed barn-connector.xml.sample file
-[source,java]
-----
-<!-- BEGIN_INCLUDE(barn:my-processor) -->
-  <barn:my-processor config-ref="" content="#[map-payload:content]" />
-<!-- END_INCLUDE(barn:my-processor) -->
-<!-- BEGIN_INCLUDE(barn:my-processor) -->
-  <barn:put-in-barn config-ref="" animal="#[map-payload:content]" />
-<!-- END_INCLUDE(barn:my-processor) -->
-----
+// Complete barn-connector.xml.sample file
 .. Save this file. 
-. Disable spell checking by mousing over text with a red underline and clicking *Disable spell checking*: +
+. Disable spell checking by mousing over text with a red underline and clicking *Disable spell checking*:
 +
-image:/documentation/download/attachments/122752421/BarnDisableSpellChecking.png?version=1&modificationDate=1421360773416[image]
+image:/docs/download/attachments/122752421/BarnDisableSpellChecking.png?version=1&modificationDate=1421360773416[image]
 +
 . The completed connector code appears as follows:
 +
-.Completed Connector's Code
+View the Completed Connector's Code:
++
 [source,java]
 ----
 /**
@@ -259,16 +244,16 @@ public class BarnConnector
 
 When you create an Anypoint Connector Project, Studio creates the @Connector annotation containing a name, schema version, and friendly name. 
 
-Connectors use the @Connector annotation to describe the contents of a connector. The  `friendlyName` parameter defines the connector's label in the Studio palette.  
+Connectors use the @Connector annotation to describe the contents of a connector. The `friendlyName` parameter defines the connector's label in the Studio palette.  
 
-[source,java]
+[source]
 ----
 @Connector(name="barn", schemaVersion="1.0", friendlyName="Barn")
 ----
 
 After you install your connector in Studio, when users create a Mule Project, the friendlyName identifies your connector:
 
-image:/documentation/download/attachments/122752421/connector-display.png?version=2&modificationDate=1421097225033[image]
+image:/docs/download/attachments/122752421/connector-display.png?version=2&modificationDate=1421097225033[image]
 
 == Installing Your Connector
 
@@ -279,35 +264,35 @@ image:/documentation/download/attachments/122752421/connector-display.png?versio
 
 . After Studio restarts, create a Mule project using *File* > *New* > *Mule Project*.
 . Search for "http" and drag the HTTP connector to the canvas. The default settings are correct.
-. Search for "barn" and drag the Barn connector to the canvas. 
+. Search for "barn" and drag the Barn connector to the canvas.  +
 The canvas appears as:
 +
-image:/documentation/download/attachments/122752421/BarnFlow.png?version=1&modificationDate=1421015894536[image]
+image:/docs/download/attachments/122752421/BarnFlow.png?version=1&modificationDate=1421015894536[image]
 +
 To configure the Barn connector:
-
-..  Click the green plus: +
 +
-image:/documentation/download/attachments/122752421/BarnPanel1.png?version=1&modificationDate=1421013926697[image]
+.. Click the green plus:
 +
-.. Ensure that the screen appears as follows and click *OK*: +
+image:/docs/download/attachments/122752421/BarnPanel1.png?version=1&modificationDate=1421013926697[image]
 +
-image:/documentation/download/attachments/122752421/BarnPanel2.png?version=2&modificationDate=1421101951843[image]
+.. Ensure that the screen appears as follows and click *OK*:
++
+image:/docs/download/attachments/122752421/BarnPanel2.png?version=2&modificationDate=1421101951843[image]
 +
 The two values for My Property and My Strategy Property are supplied by the default connector. You can ignore these.
-.. In the first screen, click *Operation* and click *Put in barn*. In the *Animal* field specify a name such as the** `Mule`** animal: +
+.. In the first screen, click *Operation* and click *Put in barn*. In the *Animal* field specify a name such as the** `Mule`** animal:
 +
-image:/documentation/download/attachments/122752421/BarnPanel3.png?version=1&modificationDate=1421019279984[image]
-
+image:/docs/download/attachments/122752421/BarnPanel3.png?version=1&modificationDate=1421019279984[image]
++
 . Deploy your Mule project by clicking *Run* > *Run As* > *Mule Application*.
-. Open a browser and set the address to http://0.0.0.0:8081 - The browser displays: +
+. Open a browser and set the address to http://0.0.0.0:8081 - The browser displays:
 +
-image:/documentation/download/attachments/122752421/BarnBrowser.png?version=1&modificationDate=1421084016761[image]
-
-. You can change the Animal value, save your project, and refresh your browser to experiment with putting other animals in the barn. 
+image:/docs/download/attachments/122752421/BarnBrowser.png?version=1&modificationDate=1421084016761[image]
++
+. You can change the Animal value, save your project, and refresh your browser to put other animals in the barn. 
 
 == See Also
 
-* *NEXT STEP:*  Implement link:/documentation/display/current/Authentication[authentication] in your connector
-* More tutorials? See link:/documentation/display/current/Anypoint+Connector+Examples[Anypoint Connector Examples]
-* link:/documentation/display/current/Installing+and+Testing+Your+Connector+in+Studio[Building and Installing your Connector]
+* **NEXT STEP:**  Implement link:/docs/display/current/Authentication[authentication] in your connector
+* More tutorials? See link:/docs/display/current/Anypoint+Connector+Examples[Anypoint Connector Examples]
+* link:/docs/display/current/Installing+and+Testing+Your+Connector+in+Studio[Building and Installing your Connector]

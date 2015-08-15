@@ -1,16 +1,15 @@
 = Scripting Examples
+:keywords: tcat, script, examples
 
 This page provides examples of using link:/docs/display/TCAT/Automating+Tasks[scripts].
 
-== Executing custom shell scripts before and after deployment
+== Executing Custom Shell Scripts Before and After Deployment
 
 This script registers itself as a listener for pre and post deployment events. The callback methods are used to call custom shell scripts. Replace your own shell scripts with the ones listed in this example.
 
-[width="99a",cols="99a",options="header"]
-|===
-^|Pre and Post Deployment events
-|
-[source, java]
+=== Pre and Post Deployment Events
+
+[source,java]
 ----
 package com.mulesoft.tcat
 import org.mule.galaxy.event.annotation.Async
@@ -29,14 +28,14 @@ public class ScriptExecutor {
 
     public void install() {
         eventManager = applicationContext.getBean("eventManager");
-        // remove the previous listener, if any
+        // Remove the previous listener, if any
         eventManager.listeners.each {
             if (it.class.simpleName == "ScriptExecutor") {
                 eventManager.removeListener(it)
                 println "Removed previous listener"
             }
         }
-        // add the event listener again
+        // Add the event listener again
         eventManager.addListener(this)
     }
 
@@ -53,13 +52,13 @@ public class ScriptExecutor {
 }
 new ScriptExecutor(applicationContext).install();
 ----
-|===
+
 
 == Redeploying a Named Package
 
 This simple script grabs a package with a particular name and redeploys it using the provisioning service.
 
-[source]
+[source,java]
 ----
 def provisioningService = applicationContext.getBean("provisioningService")
 def deployment = provisioningService.getDeploymentByName("MyPackage")
@@ -70,7 +69,7 @@ provisioningService.redeploy(deployment.id)
 
 If you're using the link:/docs/display/TCAT/Maven+Publishing+Plug-in[Maven plug-in] or the API to update a WAR, you may want to listen for the update and automatically redeploy any packages associated with it. The following script installs an event listener, which listens for updates to an item's `artifact` property, which changes when the WAR file data has been changed. When this event occurs, the script searches for any deployment packages with this particular artifact and redeploys them.
 
-[source, java]
+[source,java]
 ----
 import com.mulesoft.tcat.DeploymentService;
 import com.mulesoft.tcat.DeploymentAction.Action;
@@ -147,7 +146,7 @@ new AutomaticRedeployer(applicationContext).install()
 
 This script watches for new artifact versions and sends an email to any user who is registered in the "contacts" property.
 
-[source, java]
+[source,java]
 ----
 import org.mule.galaxy.event.*;
 import org.mule.galaxy.event.annotation.*;
@@ -210,7 +209,7 @@ public class EmailNotifier {
     }
 }
  
-// remove the previous listener, if any
+// Remove the previous listener, if any
 eventManager.listeners.each {
     if (it.class.simpleName == "EmailNotifier") {
         eventManager.removeListener(it);
@@ -218,7 +217,7 @@ eventManager.listeners.each {
     }
 }
  
-// add the event listener again
+// Add the event listener again
 eventManager.addListener(new EmailNotifier(registry: registry));
 ----
 
@@ -230,7 +229,7 @@ Replication occurs by copying artifacts and entries from one workspace to anothe
 
 Once you have both your origin and destination workspace in mind, you can create a script that performs this replication. Following is an example script:
 
-[source, java]
+[source,java]
 ----
 import org.mule.galaxy.ee.util.*;
 // Create a replicator called "myReplicator"
@@ -244,45 +243,45 @@ This script copies all artifacts and entries from LocalWorkspace to RemoteWorksp
 
 == Restarting Servers
 
-If you need to restart a server, you can easily do it through the administration console. However, what if you wanted to schedule a automatic restart at a particular day/time? You can achieve this by writing a script and scheduling it with the link:/docs/display/TCAT/Automating+Tasks[scheduler]. Following is an example script:
+If you need to restart a server, you can easily do it through the administration console. However, what if you want to schedule a automatic restart at a particular day/time? You can achieve this by writing a script and scheduling it with the link:/docs/display/TCAT/Automating+Tasks[Tcat scheduler]. Following is an example script:
 
-[source]
+[source,java]
 ----
-def serverName= "Tcat-8081"; // replace this with your server name
+def serverName= "Tcat-8081"; // Replace this with your server name
 def serverManager = applicationContext.getBean("serverManager");
 def server = serverManager.getServerByName(serverName,false);
 def serverId = server.getId();
 serverManager.restartServerNow(serverId);
 ----
 
-To restart ALL servers, except the Tcat Admin Console Server, you could use the following script:
+The following script restarts all servers, except the Tcat Admin Console Server:
 
-[source]
+[source,java]
 ----
-// get the server manager
+// Get the server manager
 def sm = applicationContext.getBean("serverManager");
-// get all servers from all groups
+// Get all servers from all groups
 def results = sm.getServersForGroup(null,0,-1,null);
 def allServers =  results.getData();
-// this will hold all server id's
+// Server IDs array
 def serverIds = [];
-// loop through all servers and extract their id's except for the console
+// Loop through all servers and extract their IDs except for the console
 for(server in allServers){
-// replace the agentUrl with the url for your console agent
+// Replace the agentUrl with the URL for your console agent
  def agentUrl = "https://localhost:51443/agent";
-// skip the console server, we do not want to restart it, so do not need its id
+// Skip the console server, we do not want to restart it, so do not need its ID
  if(agentUrl.equals(server.getAgentUrl()))
    continue;
-// for the remaining servers, extract the id and add it to the list
+// For the remaining servers, extract the ID and add it to the list
  serverIds.add(server.getId());
 }
-// restart all servers
+// Restart all servers
 sm.restartServers(serverIds);
-// return the id of the restarted servers
+// Return the ID of the restarted servers
 return serverIds;
 ----
 
-Once you have saved this script, it is easy to schedule this script to be run periodically via the link:/docs/display/TCAT/Automating+Tasks[scheduler].
+After you save this script, it is easy to schedule this script to be run periodically via the link:/docs/display/TCAT/Automating+Tasks[scheduler].
 
 link:/docs/display/TCAT/Automating+Tasks[<< Previous: *Automating Tasks*]
 

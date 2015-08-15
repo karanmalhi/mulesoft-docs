@@ -1,0 +1,216 @@
+= HTTP Connector Reference
+:keywords: anypoint studio, esb, connectors, http, https, http headers, query parameters, rest, raml
+
+= HTTP Module
+
+Mule Utilities for HTTP Services.
+
+== Listener
+
+Listener for incoming HTTP requests.
+
+=== Attributes of <listener...>
+
+[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
+|===
+|Name |Type |Required |Default |Description
+|path |string |yes |  |Path were to listen for incoming request.
+|allowedMethods |string |no |  |Comma separated list of allowed HTTP methods by this listener. To allow all methods do not defined the attribute.
+|config-ref |string |yes |  |A reference to the configuration element for this listener. If no reference is provided, a default configuration will be created.
+|responseStreamingMode |enumeration |no |AUTO |Defines if the response should be sent using streaming or not. If this attribute is not present, the behavior will depend on the type of the payload (it will stream only for InputStream). If set to true, it will always stream. If set to false, it will never stream. As streaming is done the response will be sent user Transfer-Encoding: chunked.
+|parseRequest |string |no |  |By default, the request will be parsed (for example, a multi part request will be mapped as a Mule message with null payload and inbound attachments with each part). If this property is set to false, no parsing will be done, and the payload will always contain the raw contents of the HTTP request.
+|===
+
+=== Child Elements of <listener...>
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|Name |Cardinality |Description
+|response-builder |0..1 |Contains the definition of all the parameters that should be sent in the response (headers, status code, response phrase).
+|error-response-builder |0..1 |Contains the definition of all the parameters that should be sent in the response (headers, status code, response phrase).
+|===
+
+== Listener config
+
+Grouping configuration for a set of listener elements.
+
+=== Attributes of <listener-config...>
+
+[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
+|===
+|Name |Type |Required |Default |Description
+|name |name (no spaces) |yes |  |Identifies the configuration in the registry, so that it can be referenced by the request message processor.
+|protocol |httpProtocol |no |HTTP |Protocol to use for communication. Valid values are HTTP and HTTPS. Default value is HTTP. When using HTTPS the HTTP communication is going to be secured using TLS / SSL. If HTTPS was configured as protocol then the user needs to configure at least the keystore in the tls:context child element of this listener-config.
+|host |string |yes |  |Host where the requests will be sent.
+|port |integer |no |  |Port where the requests will be received. If the protocol attribute is HTTP (default) then the default value is 80, if the protocol attribute is HTTPS then the default value is 443.
+|basePath |string |no |  |Base path to use for all requests that reference this config.
+|tlsContext-ref |string |no |  |Reference to a TLS config element. This will enable HTTPS for this config.
+|parseRequest |string |no |  |By default, the request will be parsed (for example, a multi part request will be mapped as a Mule message with null payload and inbound attachments with each part). If this property is set to false, no parsing will be done, and the payload will always contain the raw contents of the HTTP request.
+|connectionIdleTimeout |integer |no |30000 |The number of milliseconds that a connection can remain idle before it is closed. The value of this attribute is only used when persistent connections are enabled.
+|usePersistentConnections |boolean |no |true |If false, each connection will be closed after the first request is completed.
+|===
+
+=== Child Elements of <listener-config...>
+
+[cols=",",options="header"]
+|===
+|Name |Cardinality |Description
+|tls:context |0..1 |
+|worker-threading-profile |0..1 |
+|===
+
+== Response builder
+
+HTTP response
+
+
+== Request
+
+Component that consumes an HTTP service.
+
+=== Attributes of <request...>
+
+[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
+|===
+|Name |Type |Required |Default |Description
+|path |string |yes |  |Path where the request will be sent.
+|method |string |no |  |The HTTP method for the request.
+|config-ref |string |yes |  |A reference to the configuration element for this requester. If no reference is provided, a default configuration will be created.
+|source |string |no |  |The expression used to obtain the body that will be sent in the request. Default is empty, so the payload will be used as the body.
+|target |string |no |#[payload] |The enricher expression used to enrich the current message with the body of the response. Default is "#[payload]", so after processing the response, the contents of its body will be set as payload of the message.
+|followRedirects |boolean |no |  |Specifies whether to follow redirects or not. Default value is true.
+|host |string |no |  |Host where the requests will be sent.
+|port |integer |no |  |Port where the requests will be sent. If the protocol attribute is HTTP (default) then the default value is 80, if the protocol attribute is HTTPS then the default value is 443.
+|parseResponse |boolean |no |true |By default, the response will be parsed (for example, a multi part response will be mapped as a Mule message with null payload and inbound attachments with each part). If this property is set to false, no parsing will be done, and the payload will always contain the raw contents of the HTTP response.
+|requestStreamingMode |enumeration |no |AUTO |Defines if the request should be sent using streaming or not. If this attribute is not present, the behavior will depend on the type of the payload (it will stream only for InputStream). If set to true, it will always stream. If set to false, it will never stream. As streaming is done the request will be sent user Transfer-Encoding: chunked.
+|sendBodyMode |enumeration |no |AUTO |Defines if the request should contain a body or not. If AUTO, it will depend on the method (GET, HEAD and OPTIONS will not send a body).
+|responseTimeout |integer |no |  |Maximum time that the request element will block the execution of the flow waiting for the HTTP response. If this value is not present, the default response timeout from the Mule configuration will be used.
+|===
+
+=== Child Elements of <request...>
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|Name |Cardinality |Description
+|request-builder |0..1 |Contains the definition of all the parameters that should be sent in the request (uri params, query params and headers).
+|success-status-code-validator |0..1 |Configures error handling of the response based on the status code.
+|failure-status-code-validator |0..1 |Configures error handling of the response based on the status code.
+|===
+
+== Request builder
+
+=== Attributes of <request-builder...>
+
+[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
+|===
+|Name |Type |Required |Default |Description
+|name |name (no spaces) |no |  |Identifies the builder so that other elements can reference it.
+|===
+
+== Request config
+
+=== Attributes of <request-config...>
+
+[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
+|===
+|Name |Type |Required |Default |Description
+|protocol |httpProtocol |no |HTTP |Protocol to use for communication. Valid values are HTTP and HTTPS. Default value is HTTP. When using HTTPS the HTTP communication is going to be secured using TLS / SSL. If HTTPS was configured as protocol then the user can customize the tls/ssl configuration by defining the tls:context child element of this listener-config. If not tls:context is defined then the default JVM certificates are going to be used to establish communication.
+|name |name (no spaces) |yes |  |Identifies the configuration in the registry, so that it can be referenced by the request message processor.
+|basePath |string |no |  |Base path to use for all requests that reference this config.
+|tlsContext-ref |string |no |  |Reference to a TLS context element. This will enable HTTPS for this config.
+|clientSocketProperties-ref |string |no |  |Reference to a TCP Client Socket properties element.
+|proxy-ref |string |no |  |Reference to a proxy context element.
+|maxConnections |integer |no |-1 |The maximum number of outbound connections that will be kept open at the same time. By default the number of connections is unlimited.
+|connectionIdleTimeout |integer |no |30000 |The number of milliseconds that a connection can remain idle before it is closed. The value of this attribute is only used when persistent connections are enabled.
+|usePersistentConnections |boolean |no |true |If false, each connection will be closed after the first request is completed.
+|followRedirects |boolean |no |  |Specifies whether to follow redirects or not. Default value is true.
+|host |string |no |  |Host where the requests will be sent.
+|port |integer |no |  |Port where the requests will be sent. If the protocol attribute is HTTP (default) then the default value is 80, if the protocol attribute is HTTPS then the default value is 443.
+|parseResponse |boolean |no |true |By default, the response will be parsed (for example, a multi part response will be mapped as a Mule message with null payload and inbound attachments with each part). If this property is set to false, no parsing will be done, and the payload will always contain the raw contents of the HTTP response.
+|requestStreamingMode |enumeration |no |AUTO |Defines if the request should be sent using streaming or not. If this attribute is not present, the behavior will depend on the type of the payload (it will stream only for InputStream). If set to true, it will always stream. If set to false, it will never stream. As streaming is done the request will be sent user Transfer-Encoding: chunked.
+|sendBodyMode |enumeration |no |AUTO |Defines if the request should contain a body or not. If AUTO, it will depend on the method (GET, HEAD and OPTIONS will not send a body).
+|responseTimeout |integer |no |  |Maximum time that the request element will block the execution of the flow waiting for the HTTP response. If this value is not present, the default response timeout from the Mule configuration will be used.
+|===
+
+=== Child Elements of <request-config...>
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|Name |Cardinality |Description
+|abstract-http-request-authentication-provider |0..1 |A security manager is a container for security providers. More than one security manager may be configured; each contains providers from a particular module and has that module type. This element is abstract - a security-related module or transport will provide a suitable implementation.
+|tcp:client-socket-properties |0..1 | 
+|tls:context |0..1 | 
+|raml-api-configuration |0..1 |Specifies a RAML configuration file for the API that is being consumed.
+|proxy |0..1 |Reusable configuration element for outbound connections through a proxy. A proxy element must define a host name and a port attributes, and optionally can define a username and a password.
+|ntlm-proxy |0..1 |Reusable configuration element for outbound connections through a proxy. A proxy element must define a host name and a port attributes, and optionally can define a username and a password.
+|===
+
+== Basic authentication
+
+Configures basic authentication for the requests.
+
+=== Attributes of <basic-authentication...>
+
+[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
+|===
+|Name |Type |Required |Default |Description
+|username |string |yes |  |The username to authenticate.
+|password |string |yes |  |The password to authenticate.
+|===
+
+
+== Digest authentication
+
+Configures digest authentication for the requests.
+
+=== Attributes of <digest-authentication...>
+
+[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
+|===
+|Name |Type |Required |Default |Description
+|username |string |yes |  |The username to authenticate.
+|password |string |yes |  |The password to authenticate.
+|===
+
+
+== Proxy
+
+Reusable configuration element for outbound connections through a proxy. +
+ A proxy element must define a host name and a port attributes, and optionally can define a username +
+ and a password.
+
+=== Attributes of <proxy...>
+
+[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
+|===
+|Name |Type |Required |Default |Description
+|name |name (no spaces) |yes |  |Identifies the proxy configuration in the registry, so that it can be referenced by the request config.
+|===
+
+
+== Ntlm proxy
+
+Reusable configuration element for outbound connections through a proxy. +
+ A proxy element must define a host name and a port attributes, and optionally can define a username +
+ and a password.
+
+=== Attributes of <ntlm-proxy...>
+
+[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
+|===
+|Name |Type |Required |Default |Description
+|name |name (no spaces) |yes |  |Identifies the proxy configuration in the registry, so that it can be referenced by the request config.
+|===
+
+
+== Config
+
+HTTP global configuration
+
+=== Attributes of <config...>
+
+[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
+|===
+|Name |Type |Required |Default |Description
+|useTransportForUris |boolean |no |false |Backwards Compatabilty Flag: Since Mule 3.6, default HTTP URIs are resolved with the new HTTP connector (for example when using MuleClient). If set to true, this behavior is changed so that the HTTP transport is used.
+|===

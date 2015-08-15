@@ -1,0 +1,323 @@
+= Connector Migration Guide - DevKit 3.6 to 3.7
+:keywords: migration, devkit, release notes
+
+*July 8, 2015*
+
+== Migrating from DevKit 3.6 to 3.7
+
+The sections that follow list DevKit changes between versions 3.6.n and 3.7.0.
+
+[WARNING]
+Although apps built with DevKit 3.7 support being deployed to environments that run on JDK 8, the environment in which you build your DevKit connector should use JDK 7. JDK 8 is not supported for compiling new connectors with DevKit.
+
+=== New Connector Functional Testing Framework
+
+The goal of this new framework is twofold. In the first place, it eases the test development phase by decoupling Mule flows with the test logic itself: no flow references are now defined within flows and therefore a notion of Mule flows is not required from the test developer side. In the second place, it now allows connector tests to run in different Mule versions, either locally or in CloudHub in an automatic manner. As a result, we can now test connector code against multiple Mule versions, assuring backward-compatibility, forward-compatibility, and library-compatibility.
+
+=== Old Mule Connector Test For DevKit 3.6.n and Previous Versions
+
+Consider the following when running a test with the old test framework. Let’s consider an example with the Salesforce connector test suite.
+
+. Extend from *ConnectorTestCase*. This class brings up methods such *initializeTestRunMessage*, *runFlowAndGetPayload,* or *upsertOnTestRunMessage*. These methods let you load test data through Spring beans, run a flow, get the resulting payload, and add data to a common test data container, respectively.
++
+[source,java,linenums]
+----
+package org.mule.modules.salesforce.automation.testcases;
+       import org.mule.modules.tests.ConnectorTestCase;
+       public abstract class AbstractTestCase extends ConnectorTestCase {
+}
+----
+
+. Load test data and set up the test context by loading test data through **initializeTestRunMessage(springName)**, running a particular flow by means of **runFlowAndGetPayload(flowName)**, and keeping the resulting value with **upsertOnTestRunMessage(key,value)**. These methods require a Spring bean definition file, normally called *automationSpringBeans.xml* and a Mule application flows file, normally called **automation-test-flows.xml**.
++
+[source,java,linenums]
+----
+package org.mule.modules.salesforce.automation.testcases;
+ ...
+public class AbortJobTestCases extends AbstractTestCase {
+@Before
+public void setUp() throws Exception {
+      initializeTestRunMessage("abortJobTestData");
+      JobInfo jobInfo = runFlowAndGetPayload("create-job");
+      upsertOnTestRunMessage("jobId", jobInfo.getId());
+}
+ ...
+----
+
+. Execute the test, where different flows can be called by means of **runFlowAndGetPayload(flowName)**, *runFlowAndExpectProperty(flowName, propertyName, expectedObject),* or **runFlowWithPayloadAndExpect(flowName, expectedObject, payload)**, among other available methods.
++
+[source,java,linenums]
+----
+@Category({RegressionTests.class})
+@Test
+  public void testAbortJob() {
+  try {
+    JobInfo jobInfo = runFlowAndGetPayload("abort-job");
+ 
+    assertEquals(com.sforce.async.JobStateEnum.Aborted,  jobInfo.getState());
+    assertEquals(getTestRunMessageValue("jobId").toString(), jobInfo.getId());                       
+    assertEquals(getTestRunMessageValue("concurrencyMode").toString(),jobInfo.getConcurrencyMode().toString());
+    assertEquals(getTestRunMessageValue("operation").toString(),jobInfo.getOperation().toString());
+    assertEquals(getTestRunMessageValue("contentType").toString(),
+    jobInfo.getContentType().toString());
+ 
+    } catch (Exception e) {
+       fail(ConnectorTestUtils.getStackTrace(e));
+    }
+  }
+}
+----
+
+=== Take-Away From the Pre-3.7 Test Framework
+
+The following is how a normal test looks like with the pre-3.7 test framework, where we can observe two things.
+
+* On the one hand, we have the test data in a Spring bean file, which normally looks like this:
++
+[source,xml,linenums]
+----
+<beans xmlns="http://www.springframework.org/schema/beans"
+       ...>
+ 
+    <context:property-placeholder location="${CREDENTIALS}"/>
+ 
+       <util:map id="abortJobTestData" map-class="java.util.HashMap"
+              key-type="java.lang.String" value-type="java.lang.Object">
+              <entry key="type" value="Account" />
+              <entry key="concurrencyMode" value="Parallel" />
+              <entry key="contentType" value="XML" />
+              <entry key="externalIdFieldName" value="Id" />
+              <entry key="operation" value="insert" />
+       </util:map>
+</beans>
+----
++
+This Spring file gathers all test data used through out the entire test execution phase.
+
+* On the other hand, we have a* Mule application flows* file, which looks like this:
+
+[source,xml,linenums]
+----
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"...>
+<context:property-placeholder location="CREDENTIALS"/>
+<sfdc:config name="Salesforce" doc:name="configDocName" password="${config.password}" username="${config.username}" ...>
+ 
+<flow name="create-job" doc:name="create-job">
+       <sfdc:create-job config-ref="Salesforce" doc:name="Create job"
+                      type="#[payload.type]" concurrencyMode="#[payload.concurrencyMode]" contentType="#[payload.contentType]"
+                      externalIdFieldName="#[payload.externalIdFieldName]" operation="#[payload.operation]"></sfdc:create-job>
+</flow>
+<flow name="abort-job" doc:name="abort-job">
+       <sfdc:abort-job config-ref="Salesforce" doc:name="Abort job" jobId="#[payload.jobId]">
+       </sfdc:abort-job>
+</flow>
+----
+
+This Mule application flows file defines the way a Salesforce operation (keeping in mind we are working with Salesforce as an example) is executed. A flow defines a particular operation to be carried out, a name, the connector configuration to be used and every parameter for that particular operation. A Mule application is formed by flows, which are define in one (or many) Mule application flows file.
+
+*  Therefore, in order to run a test (or a battery of tests), define a Spring bean file along with a flow files, mostly disaggregating test data, methods to be run and the logic of the test itself. It becomes virtually impossible to understand a test by simple reading a test class without either the Spring file or the flows file.
+
+The goal of the new connector test framework is to make a test self-contained, decoupling the test from Mule flows and Spring beans. You should have a minimum understanding of how Mule runs, keeping the test data within the test itself (or closed enough).
+
+The next section introduces the new connector test framework along with its features. We additionally show different use cases, including features such as pagination or Mule DataSense.
+
+=== Migration Guideline to the New Framework
+
+Migration from the previous Mule Connector Test approach to this new framework has been carefully thought and as a result we have easy-to-follow migration guidelines.
+
+=== Iterative Migration
+
+We strongly advise connector developers to move current connector tests to a legacy package. For example, if you currently have a package named **org.mule.modules.connector.automation.testcases**, rename it to **org.mule.modules.connector.automation.testcases.legacy**. Then create a package **org.mule.modules.connector.automation.testcases**, as before. This newly created package now contains every migrated test.
+
+Test resources are likely to be used within the migrated tests and therefore we advise to leave these resources as they are, normally within `src/test/resources`.
+
+Some tests might not be migrated, either due to framework limitations or to developer choices. If framework limitations or problem arise during migration, inform Mule Support.
+
+Take in mind that we currently do not pack the old framework Maven dependency required to run the legacy test suite. Said that, if you maintain the legacy suite is required to manually add the dependency in the pom.xml file.
+
+[source,xml,linenums]
+----
+<dependency>
+       <groupId>org.mule.modules</groupId>
+       <artifactId>mule-connector-test</artifactId>
+       <version>2.0.7</version>
+       <scope>test</scope>
+</dependency>
+----
+
+=== Calling a Connector Method Versus a Mule Flow
+
+The major change from Mule Connector Test to this new test framework is how operations are called and executed. Let’s consider the following example.
+
+[source,java,linenums]
+----
+...
+initializeTestRunMessage("sampleTestCaseData");
+JobInfo jobInfo = runFlowAndGetPayload("create-job");
+upsertOnTestRunMessage("jobId", jobInfo.getId());
+...
+----
+
+We first need to *load* the test data by means of a Spring bean, called sampleTestCaseData, defined in an external Spring beans file. Next, we need to run a Mule flow, called create-job, defined as well in an external file. Finally, we need to add to a common data container the recently obtained job identifier for a later use. This require to understand Spring beans, Mule flows and three different methods from *ConnectorTestCase* to execute a simple create job operation.
+
+We have radically changed this approach. We have simplified the way a test developer writes a test by enabling direct access to the operations of a connector. Only special operations, such as paginated ones, require alternative methods. Considering the same example as before, we now have a simplified interface, considering that we already have a connector mockup instance, as follows:
+
+[source,java,linenums]
+----
+...
+JobInfo jobInfo = connector.createJob(OperationEnum.insert, "Account", "Id", ContentType.XML, ConcurrencyMode.Parallel);
+----
+
+The main characteristic is that the concept of Mule flows disappears and test data is bundled within the test itself.
+
+=== Test Data Management
+
+Test data is currently maintained within Spring beans. We encourage to drop support for Spring beans and follow these practices:
+
+* If test objects are simple (String, Integers, etc.), just add to the test itself as in:
++
+[source,java,linenums]
+----
+JobInfo jobInfo = connector.createJob(OperationEnum.insert, "Account", "Id", ContentType.XML, ConcurrencyMode.Parallel);
+----
+
+* If test objects are complex such as Domain objects, implement a *DataBuilder* and use it as follows:
++
+[source,java,linenums]
+----
+List<Map<String, Object>> batchPayload = DataBuilder.createdBatchPayload();
+    batchInfo = connector.createBatch(jobInfo, batchPayload);
+----
++
+Implementing a DataBuilder is mandatory  to keep tests consistent. However, the DataBuilder can read the existent Spring beans to load already defined objects or create new ones from scratch following the build pattern . If loading existent Spring beans to build objects, a possible way is using an ApplicationContext as follows inside the data builder class:
++
+[source,java,linenums]
+----
+import ...
+public class TestDataBuilder {
+ 
+       public TestDataBuilder(){
+              ApplicationContext context = new ClassPathXmlApplicationContext(automationSpringBeans.xml);
+       }
+ 
+       public static CustomObjectType createCustomTestData(){
+              CustomObjectType ret = (CustomObjectType) context.getBean("customObject");
+              return ret;
+       }
+ 
+       public void shutDownDataBuilder(){
+       ((ConfigurableApplicationContext)context).close();
+       }
+}
+----
+
+=== @Configurable Fields Not Supported at @Connector/@Module Class Level
+
+In DevKit 3.7.n, @Configurable fields in @Connector and/or @Module classes are no longer encouraged. You should move @Configurable fields to a proper @Config.
+
+==== 3.6.n Connector Example
+
+The following shows how the @Connector class was coded in version 3.6.n:
+
+[source,java,linenums]
+----
+@Connector(name="my-connector", friendlyName="MyConnector")
+public class MyConnector
+{            
+   @Configurable
+   String token;
+ 
+   @Config
+   ConnectorConfiguration config;
+ 
+   @Processor
+   public String myProcessor(String param) {
+       ...
+   }
+}
+----
+
+==== 3.7.n Connector Example
+
+The following shows how the  @C onnector class is now coded in version 3.7.n:
+
+[source,java,linenums]
+----
+@Connector(name="my-connector", friendlyName="MyConnector")
+public class MyConnector
+{    
+   @Config
+   ConnectorConfiguration config;
+ 
+   @Processor
+   public String myProcessor(String param) {
+       ...
+   }
+}
+ 
+ 
+@Configuration(configElementName="config",friendlyName="Configuration")
+public class ConnectorConfiguration
+{    
+   @Configurable
+   String token;
+ 
+ 
+   // More Configurable Fields
+   …
+ 
+ 
+}
+----
+
+*Important*: If you want to share @Configurable fields between @Config classes, create an abstract class and make all your @Config classes extend that parent element that contains the shared @Configurable fields.
+
+=== @Inject is Not Supported at @Processor Level
+
+Mule 3.7 is compliant with the JSR-330 specification. Because of that, the @Inject annotation at @Processor level is invalid. Starting with DevKit 3.7, if the signature method has either MuleEvent or MuleMessage as a parameter, DevKit properly injects the parameter when the processor is called. 
+
+*Important: * DevKit does not support the JSR-330 specification.
+
+==== 3.6.n Legacy @Inject Example
+
+The following shows how @Inject was used in version 3.6.n:
+
+[source,java,linenums]
+----
+@Inject
+@Processor
+public boolean parameterInjectionModule(MuleEvent event, MuleMessage message)
+   throws Exception {
+   if(event == null || message == null) {
+       throw new RuntimeException("MuleEvent or MuleMessage cannot be null");
+   }
+   return true;
+}
+----
+
+==== 3.7.n @Processor Example With Parameter Injection
+
+The following shows how to inject a parameter in version 3.7.n:
+
+[source,java,linenums]
+----
+@Processor
+public boolean parameterInjectionModule(MuleEvent event, MuleMessage message)
+   throws Exception {
+   if(event == null || message == null) {
+       throw new RuntimeException("MuleEvent or MuleMessage cannot be null");
+   }
+   return true;
+}
+----
+
+== See Also
+
+[cols=",",options="header",]
+|===
+|Document |Description
+|link:/docs/display/current/Anypoint+Connectors[Anypoint Connectors] |MuleSoft connector user guides.
+|https://www.mulesoft.com/exchange#!/?types=connector&sortBy=name[Connectors] |Connectors available from MuleSoft or third party sources.
+|link:/docs/display/current/Anypoint+Connector+DevKit[Anypoint Connector DevKit] |Connector development information.
+|link:/docs/display/current/Annotation+Reference[Annotation Reference] |Describes DevKit elements that start with an at sign(@), which you can use in your connector to identify classes and functions for Anypoint functionality.
+|===
