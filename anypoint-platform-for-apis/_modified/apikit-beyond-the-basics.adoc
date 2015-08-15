@@ -1,0 +1,540 @@
+= APIkit Beyond the Basics
+:keywords: apikit, rest, raml, load balancer
+
+Beyond the link:/docs/display/current/APIkit+Basic+Anatomy[Basic Anatomy of APIkit], there are a few features and functionalities worth exploring a little deeper. This document highlights these elements, describing why they may be useful when building a REST API.
+
+== Assumptions
+
+This document assumes you are familiar with some of the design decisions and requirements for creating a REST API. It assumes you are familiar with link:/docs/display/current/First+30+Minutes+with+Mule[Anypoint Studio] and that you have a basic understanding of https://en.wikipedia.org/wiki/Representational_state_transfer[REST] as a Web service paradigm. Further, it assumes that you have read link:/docs/display/current/APIkit+Basic+Anatomy[APIkit Basic Anatomy], which offers an overview of basic functionality, and have followed the link:/docs/display/current/APIkit+Tutorial[APIkit Tutorial].
+
+== Auto-Generated Backend Flows
+
+When you create a new APIkit project and click Finish, Anypoint Studio uses the imported RAML file to automatically generate skeletal _backend flows_, one for each resource-action pairing in the RAML file. Further, Studio pre-populates each of the flows with one or more message processors which perform "mock" activities based upon the content of the example response included with each resource-action pairing in the RAML file. 
+
+For example, the message processors in the auto-generated `get:/machines:apiConfig` flow in the link:/docs/display/current/APIkit+Tutorial[APIkit tutorial] simply set a property on the message, then set the payload of a message to display a hard-coded list of vending machines (according the example in the RAML file) to the caller. See code below. 
+
+[TIP]
+Notice that the name of each flow corresponds to the resource-action pairing. For example, the flow named `get:/machines:apiConfig` maps to the resource `/machines` and its nested `get:` action.
+
+[tabs]
+------
+[tab,title="RAML"]
+....
+[source,yaml,linenums]
+----
+/machines:
+  type: base
+  is: [filterable]
+  get:
+    responses:
+      201:
+        body:
+          example: |
+            {
+                "count" : 3,
+                "machines" : [
+                  {
+                    "id" : "ZX4102",
+                    "location" : "Starbucks, 442 Geary Street, San Francisco, CA 94102"
+                  },
+                  {
+                    "id" : "ZX5322",
+                    "location" : "Starbucks, 462 Powell Street, San Francisco, CA 94102"
+                  },
+                  {
+                    "id" : "ZX6792",
+                    "location" : "Cafe La Taza, 470 Post Street, San Francisco, CA 94102"
+                  }
+                ]
+            }
+----
+....
+[tab,title="Backend Flow"]
+....
+[source,yaml,linenums]
+----
+/machines:
+  type: base
+  is: [filterable]
+  get:
+    responses:
+      201:
+        body:
+          example: |
+            {
+                "count" : 3,
+                "machines" : [
+                  {
+                    "id" : "ZX4102",
+                    "location" : "Starbucks, 442 Geary Street, San Francisco, CA 94102"
+                  },
+                  {
+                    "id" : "ZX5322",
+                    "location" : "Starbucks, 462 Powell Street, San Francisco, CA 94102"
+                  },
+                  {
+                    "id" : "ZX6792",
+                    "location" : "Cafe La Taza, 470 Post Street, San Francisco, CA 94102"
+                  }
+                ]
+            }
+----
+....
+------
+
+The reason APIkit auto-generates skeletal backend flows is two-fold:
+
+. *To obviate* the need to manually create a flow for each resource-action pairing in your API interface; Studio does it for you.
+. *To mock* the responses of the API so that you can send test calls via the console and receive expected, though fake, responses. Once satisfied with the behavior of the mock requests and responses, you can properly build out the backend flow so they act upon real resources with real data.
+
+If you have created an API Definition file manually in Studio (see link:#APIkitBeyondtheBasics-creatingaramlfile[Creating a RAML File in Studio] below), you also have the option of generating skeletal backend flows. In the *Package Explorer*, right-click your project's name, then select **APIkit > Generate Flows**. Studio generates skeletal backend flows, one for each of the resource-action pairings in your RAML file.
+
+If you prefer _not_ to use the flow-generation feature, simply do not import the RAML file into your project when creating a New Mule Project in Studio (see image below). Refer to the link:#APIkitBeyondtheBasics-CreateaRAMLFileinStudio[section below] to learn how to create a new RAML file in Studio. 
+
+image:newProject-apikit.png[newProject-apikit]
+
+== Input Metadata
+
+Once your backend flows have been autogenerated, you now have to work them into functional processes that take the expected input and carry out what each must do. Your API's RAML definition contains information about what parameters and content is expected with each type of REST request that your API deals with. Anypoint Studio infers what the metadata will be in each flow's input and exposes this information through link:/docs/display/current/DataSense[DataSense].
+
+Thanks to DataSense, when selecting any element in one of your flows, the Metadata Explorer will display an estimate of the metadata that the mule message will carry when transitioning through it. If you select the first element on any of the autogenerated flows, you will see that the metadata matches what the RAML describes for the corresponding combination of resource + action + body type.
+
+=== Extracting Metadata from the RAML
+
+In a REST API, input data may arrive in the following forms:
+
+* request body
+* query parameters
+* uri parameters
+* headers
+
+==== Request Body
+
+On the right is part of a RAML file that provides an example of the body of a particular type of request. On the left is the metadata explorer viewing the first element of the flow that matches that combination of resource + action + body type. Notice  that the message payload matches the example JSON structure.
+
+image:body.jpeg[body]
+
+[source,yaml,linenums]
+----
+/sales:
+  type: collection
+  post:
+    body:
+      example: |
+        {
+            "machineId" : "ZX4102",
+            "trayId" : "A1",
+            "dateAndTime" : "2013-10-22 16:17:00",
+            "exchange" : {
+                "value" : 450,
+                "in" : 500,
+                "out" : 50
+            }
+        }
+----
+
+==== Query Parameters
+
+On the right is part of a RAML file that defines a trait with two queryParameters. On the left is the metadata explorer viewing the first element of a flow for a combination of resource + action + body type that implements this trait. Notice that the map of `http.query.params` includes these parameters.
+
+image:query+params.jpeg[query+params]
+
+==== Headers
+
+On the right is part of a RAML file that defines a header for a particular type of request. On the left is the metadata explorer viewing the first element of the flow that matches that combination of resource + action + body type. Notice that the map of `http.headers` includes this header.
+
+image:headers.jpeg[headers]
+
+==== URI Parameters
+
+On the right is part of a RAML file that defines a URI parameter for a particular type of request. On the left is the metadata explorer viewing the first element of the flow that matches that combination of resource + action + body type. Notice that the existing flow variable matches the name of the URI parameter.
+
+image:uri+params.jpeg[uri+params]
+
+=== Autocompletes and Suggestions Based on Metadata
+
+link:/docs/display/current/DataSense[DataSense] doesn't only display the metadata of the mule message, it also provides smart autocompletes and suggestions based on it. Using this tool when designing your flows saves you from having to consult external sources or doing guesswork, which reduces the chances of human error.
+
+Suppose that you're constructing a flow for a combination of resource + action + body type that receives query parameters. If you add a logger to your flow (or any other element that has fields that support being completed with link:/docs/display/current/Mule+Expression+Language+MEL[MEL Expressions]), you will be offered suggestions while typing in the logger's Message field, these are based on the contents of the Mule message. Among these suggestions, you'll find the query parameters defined in the RAML. You can also see a full list of suggestions by typing **`#[payload.`**  and then pressing **ctrl + space bar**.
+
+image:logger.jpeg[logger]
+
+For another example, suppose you're building a flow for a type of request that includes a JSON body, and that you want to map this JSON structure into a different one that matches what you use in your backend. By dropping a DataMapper component as the first element on your flow, you will see that the input fields of the DataMapper are automatically populated with the known payload of the Mule message, which is the JSON in the request's body, infered from the RAML definition.
+
+image:datamapper.jpeg[datamapper]
+
+Once you add an output type and click on *Create Mapping*, you will see the entire JSON structure on the input section of the DataMapper, and you'll be able to drag and drop the elements in it to match those in the output structure.
+
+image:datamapper+2.jpeg[datamapper+2]
+
+== Exception Strategies
+
+When you begin a new APIkit project, Studio auto-generates a main flow and several global *exception strategy mappings*. The main flow in your APIkit project references these mappings to send error responses in HTTP-status-code-friendly format. Defined at a global level within the project's XML config, this standard set of exception strategy mappings ensures that any time a backend flow throws an exception, the API responds to the caller with an HTTP status code and corresponding plain-language message.
+
+By default, Studio generates five exception strategy mappings which handle five widely-used HTTP status code responses. See code below. 
+
+[source,xml,linenums]
+----
+<apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json" />
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" />
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+----
+
+Every time a message throws an exception, Studio checks to see if the exception matches the value of any of the `apikit:exceptions` defined in the project. 
+
+* If it *finds a match*, Studio returns an HTTP-status-code-friendly response using the property and payload defined in the exception mapping. For example, if an exception matches `org.mule.module.apikit.exception.BadRequestException`, Studio returns a `400` error which indicates that the content of the request was bad. 
+* If it **does _not_ find a match**, Studio returns a `500 Internal Server Error` response.
+
+You can adjust or add to the five default exception strategy mappings as needed. Note that if you remove _all_ exception mappings, all errors thrown in the project will elicit a `500 Internal Server Error` response.
+
+You have no need to manually adjust the auto-generated exception strategies or manually reference them within the flows. However, if you have manually created your main flow (refer to link:#APIkitBeyondtheBasics-Backend-FirstDesign[section below]), you must also manually create, then reference the exception strategy mappings. To reference the `apikit:mapping-exception-strategy`, including all the exception mappings you created, add a *Reference Exception Strategy* to your main flow (see below).
+
+[tabs]
+------
+[tab,title="STUDIO Visual Editor"]
+....
+image:apikitflow.png[apikitflow]
+....
+[tab,title="XML Editor"]
+....
+image:refexcstrat.png[refexcstrat]
+....
+------
+
+== Backend-First Design
+
+Best practice for API design with APIkit would have you start by defining your API interface with RAML, then importing the file into a Studio project to construct your main and backend flows. However, different circumstances may dictate that you build an API from the opposite direction – starting with the backend flows, then building the API interface, then the main flow. Indeed, you may wish to leverage an existing Studio application by "putting an API on it".   
+
+ In any case, if you find yourself building an API "backend-first," APIkit provides features to facilitate your work.
+
+=== Creating a RAML File in Studio
+
+Within a project in Studio, you can manually create an API Definition file in which to define your API.
+
+. In the *Package Explorer*, right-click the project name, then select *New* > *API Definition*.
+. In the *New* wizard, click to expand the *General* folder, then select *API Definition*. Click *Next*. +
+
++
+image:new_api_defn2.png[new_api_defn2] +
++
+
+. Enter a *File Name* for the API Definition file, then click *Finish*.
+. Studio creates and opens a new file in the `src/main/api` folder in your project. +
+
++
+image:new_raml.png[new_raml] +
++
+
+. Define your API interface using https://github.com/raml-org/raml-spec[RAML].   +
+
+
+[TIP]
+Though you have the ability to create a fresh RAML file directly in Studio, you may still want to consider using the powerful *http://raml.org[RAML tooling]* to define your API interface. When complete, you can simply import the file into the `src/main/api` folder in your Studio project.
+
+=== Custom Mapping
+
+There are two circumstances in which you must customize the mapping of your *resource* to *action* to *flow*:
+
+* if you have manually built both the backend flows and the API Definition (i.e. interface) for your API and now need to get them to work together
+* if Studio auto-generated your backend flows, and you have _renamed_ one of those flows
+
+This mapping functionality exists within the **APIkit router.** 
+
+[tabs]
+------
+[tab,title="STUDIO Visual Editor"]
+....
+. Within your APIkit project, build a new flow with a request-response HTTP (or Jetty) connector, and an APIkit router. +
+
++
+image:apikitflow-main-new.png[apikitflow-main-new] +
++
+
+. Click the APIkit router to reveal the *Properties Editor* in the console. Next to the *Router configuration* field, click the plus sign to create a new mapping. +
+
++
+image:APIkit-router-pe.png[APIkit-router-pe] +
++
+
+. In the *Global Element Properties* wizard, enter the filename of the file in which your API is defined (i.e. the RAML file).
+. Click the plus sign under *Mappings* to create a new mapping. +
+
++
+image:Ramlfile.png[Ramlfile] +
++
+
+. In the *New Mapping* pane, use the drop-downs to map the 1:1:1 relationship of *Resource* : *Action* : *Flow* so that calls to a particular resource using a particular method route appropriately to the backend flow that performs the activity. Click *OK* to save. +
+
++
+image:mapping2.png[mapping2] +
++
+
+. Repeat steps 4-5 for each resource-action pairing in your API Definition file (i.e. RAML file).
+....
+[tab,title="XML Editor"]
+....
+. To your project, above all the flows, add a global *`apikit:config`* element, configuring the attributes according to the table below.
++
+
+[source,xml,linenums]
+----
+<apikit:config name="Router" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router">
+    </apikit:config>
+----
+
++
+[cols=",",options="header",]
+|===
+|Attribute |Value
+|*name* |Unique name for the global `apikit:config` element.
+|*raml* |Filename of the file in which your API is defined (i.e. the RAML file).
+|*consoleEnabled* |True. (Enables you to use the APIkit console for testing and documentation.)
+|*doc:name* |Same value as name attribute.
+|===
+
+. Add an `apikit:flow mapping` child element to the `apikit:config` element. Configure the attributes according to the table below to map the 1:1:1 relationship of *Resource* : *Action* : *Flow* so that calls to a particular resource using a particular method route appropriately to the backend flow that performs the activity.
++
+
+[source,xml,linenums]
+----
+<apikit:config name="Router" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router">
+        <apikit:flow-mapping resource="/machines" action="get" flow-ref="get:/machines:apiConfig"/>
+    </apikit:config>
+----
+
++
+[cols=",",options="header",]
+|===
+|Attribute |Value
+|*resource* |The name of the resource in the RAML file.
+|*action* |The name of the action in the RAML file.
+|*flow-ref* |The name of the backend flow which performs the activity to produce a response for the call.
+|===
+
+. Repeat step 2 for each resource-action pairing in your API Definition file (i.e. RAML file).
+. To your project, add a new flow called main. Into the flow, insert a request-response *HTTP connector*, and an *APIkit router*. In the APIkit router, include an attribute called *`config-ref`* with a value that identifies the global mapping element you created above.
+
+[source,xml,linenums]
+----
+<http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081"/>
+    <flow name="main" doc:name="main">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="remote-vending/api" doc:name="HTTP Connector"/>
+        <apikit:router config-ref="apiConfig" doc:name="APIkit Router"/>
+    </flow>
+----
+....
+------
+
+== Tightening the Interface with External Files
+
+Within a RAML-built API interface, you have the option to tighten some of the code by making use of `!includes`.
+
+For example, where you might define a schema in the root of your RAML file so that you can reference it in the RAML body for schema validation, you can, instead, define the schema in an independent RAML or text file. Then, instead of defining the whole schema within the "master" RAML file, you can define it elsewhere (store any external files within your APIkit project in Studio) and simply reference the external file using an `!include`. Refer to the code in the tabs below to compare options. 
+
+Read more about `!includes` in the https://github.com/raml-org/raml-spec/blob/master/02_includes.md[RAML spec].
+
+[tabs]
+------
+[tab,title="Defined in Master"]
+....
+[source,yaml,linenums]
+----
+#%RAML 0.8
+---
+title: Remote Vending API
+version: v1.0
+baseUri: https://remote-vending-api.cloudhub.io/api/{version}
+mediaType: application/json
+schemas:
+  - post-sale: |
+      {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type" : "object",
+        "properties" : {
+          "machineId" : "string",
+          "trayId" : "string",
+          "dateAndTime" : "string",
+          "exchange" : {
+            "type" : "object",
+            "properties" : {
+              "value" : "integer",
+              "in" : "integer",
+              "out" : "integer"
+            }
+          }
+        }   
+      }
+----
+....
+[tab,title="Defined in External File"]
+....
+[source,yaml,linenums]
+----
+#%RAML 0.8
+---
+title: Remote Vending API
+version: v1.0
+baseUri: https://remote-vending-api.cloudhub.io/api/{version}
+mediaType: application/json
+ 
+external: !include schemas.txt
+----
+....
+------
+
+== APIkit and Load Balancers
+
+If your API implementation involves putting a load balancer in front of your APIkit application, be sure to configure the load balancer to rewrite all URLs that reference the `baseUri` of the application directly.
+
+If the load balancer does not rewrite URLs, any calls that reach the load balancer looking for your application will not reach their destination. For example, suppose you deploy your APIkit application to `myapp.mycompany.com`, ten top it with a load balancer at `www.exampleloadbalancer.com`. Any calls to the application must go through `www.exampleloadbalancer.com`, but the load balancer does not know to direct the calls to `myapp.mycompany.com` to get a response.
+
+To avoid this issue, be sure to configure your load balancer to rewrite every URL that references the original `baseUri` address of your APIkit application. Thus, in the example above, every time a call to `myapp.mycompany.comgoes` through the load balancer, the load balancer knows to rewrite the URL to `www.exampleloadbalancer.com`.
+
+== Working with the RAML Editor
+
+The *RAML Editor* is an IDE plugin that allows you to create RAML files to define your API. 
+
+* Within the RAML Editor, you can use CTRL +spacebar to **auto-complete RAML entries**. For example, type "ver" then use CTRL + spacebar to display options for auto-completing the entry which, in this example, is the word "version".  +
+
+* Use the minus sign icon next to the line number in the RAML Editor to *collapse any content* contained within a section of the document. If you need to quickly see the collapsed content, you can hover over the plus sign next to the line number to display the collapsed content (see image below).
+
++
+image:apikit_hover.png[apikit_hover] +
+
+* You can change the** color scheme** of your RAML Editor in Studio.  +
+. From the *Anypoint Studio* menu, select *Preferences*. 
+. Expand *RAML Editor Preferences*, then select *Color Theme*.
+. Select a color scheme, then click *OK* to save your change.
+
+* Use Command+O (CTRL+O in Windows) to open an *Outline View* of your RAML Editor. Arranged as a simplified tree-structure, you can easily scan the top-level contents of your API.  +
+
++
+image:apikit_outlineView.png[apikit_outlineView]
+
+== Generating `!include`
+
+Within a RAML-built API interface, you have the option to tighten some of the code by making use of `!includes`.
+
+For example, where you might define a schema in the root of your RAML file so that you can reference it in the RAML body for schema validation, you can, instead, define the schema in an independent RAML or text file. Then, instead of defining the whole schema within the "master" RAML file, you can define it elsewhere (store any external files within your APIkit project in Studio) and simply reference the external file using an `!include`. Refer to the code in the tabs below to compare options. Read more about `!includes` in the https://github.com/raml-org/raml-spec/blob/master/02_includes.md[RAML spec].
+
+In the version of APIkit bundled with Early Access version of Mule 3.5.0, you can generate `!includes` from within the API Definition file. 
+
+. In the API Defintion file, set your cursor on the content you wish to convert into an `!include`.
+. Right-click the selection, then select **RAML API Editor  > Generate include from "<your_content>" value**. Alternatively, you can use Command+Shift+I (or CTRL+Shift+I in Windows) to generate an `!include`. +
+ 
++
+image:generate_includes.png[generate_includes] +
++
+
+. Use the wizard to register a file name for the `!include`, then click *Finish*. Studio saves the `!include` file in your Studio project and automatically inserts the include into your RAML API Definition. +
+
+Additionally:
+
+* For quick reference, hover your mouse over the line number of the line that contains the `!include`. Studio presents the contents of the `!include` file like a tool tip. 
+* To quickly open the `!include` file, hold down the Command key (CTRL key in Windows), then click the filename of the `!include`. Studio opens the `!include` file in a separate tab.
+
+== Working with the APIkit Console
+
+By default, APIkit automatically opens an *APIkit Console* panel in Studio when you run your APIkit project. The APIkit Console gives you access to the auto-generated, fully testable, interactive documentation for your API. 
+
+image:apiConsole.png[apiConsole]
+
+To run your application _without_ automatically opening the APIkit Console, right-click your project, then select *Run As* >** Run Configurations...**  Click to uncheck *Show APIkit console*, then click *Run*.
+
+By default, the console is offered at the same host, port, and path as your routing flow's listener, with the addition of the path `/console`. You can customize the path in your router's global configuration, as shown in the image below. Note that you can also uncheck the box to disable the console completely, if you want.
+
+image:routerconfig-console.png[routerconfig-console]
+
+If you wish to access your console in a browser, go to the full address of your project's routing flow and append /console (or whatever custom console path you have defined) to the end. For example, if your API is hosted at `http://localhost:8081/api`, then the URL for accessing the console would be: `http://localhost:8081/api/console.`
+
+=== Console Limitations
+
+* Note that the console does not support the Client Credentials and Resource Owner Password Credentials grant types in the embedded console inside Studio. To use these grant types, access the console in a Web browser.
+* The API console does not support scopes.
+
+=== Hosting Additional Consoles
+
+If you need to host a console at a different URI than the one defined in your routing flow, you can do so by creating a separate flow to host the console. Because the API Console is a client that is accessing your API by making calls against it, hosting the console in the same URI as the API itself means that your calls to load up the console and the favicon.ico "count" against you in terms of any policies you've applied to the API. For example, if you have a rate-limiting policy applied, loading the API console consumes two of your allotted API calls – one to load the console in the browser and one for the favicon.ico. If your HTTP listener is protected with Basic Authentication, you will need to authenticate in order to access or use the console. In particular, the API Console doesn't know the steps of the OAuth dance, so if you apply an OAuth policy to your API in API Manager, you will not be able to access the API Console at all if you attempt to host in the same URI.
+
+To host the console in a separate flow:
+
+. Create a new flow in the project for your console, then add an *HTTP connector*. 
+. Configure the HTTP connector to be request-response, with a URI of your choice where you want to access the console. 
+. If you selected a URI with a _different host and/or port_ than you use in your router flow, add a `cors:validate` element to your router flow. Do this in the XML configuration view, adding the `cors:validate` element as shown below.
++
+
+[source,xml,linenums]
+----
+<flow name="routerFlow" doc:name="routerFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="api" doc:name="HTTP Connector"/>
+        <cors:validate publicResource="true"/>
+        <apikit:router config-ref="api-config" doc:name="APIkit Router"/>
+        <exception-strategy ref="fullRaml-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow>
+----
+
++
+The `cors:validate` element allows the console to access the router configuration, despite being hosted in another host and/or port.
+. Back in your console flow, add a *console component* from the palette after the HTTP connector. In the *Console configuration* field, select the name of your existing router configuration. Your console flow should look like this: +
+ +
+image:consoleflow.png[consoleflow]
++
+
+[source,xml,linenums]
+----
+<flow name="apiFlow1" doc:name="apiFlow1">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="consoletest" doc:name="HTTP Connector"/>
+        <apikit:console doc:name="APIkit Console" config-ref="api-config"/>
+    </flow>
+----
+
+Run your project, then note that Studio opens two console tabs – one for your original console (the one that is automatically generated in the routing flow) and one supplied by your APIkit console component. +
+ +
+image:twoconsoles.png[twoconsoles]
+
+== Limitations
+
+RAML offers a broad range of functionality for defining APIs. APIkit is designed to work very tightly with RAML interfaces, but, out of the box, does not currently import the following items from the RAML definition:
+
+* https://github.com/raml-org/raml-spec/blob/master/08_security.md[securitySchemes]
+* https://github.com/raml-org/raml-spec/blob/master/04_basic_information.md[protocols]
+* https://github.com/raml-org/raml-spec/blob/master/04_basic_information.md[baseUriParameters]
+
+If you wish to build out security for your API to match the securitySchemes defined in your interface, you can either
+
+* build security directly into your APIkit project using link:/docs/display/current/HTTP+Listener+Connector[basic authentication filters on your listener connector], Mule's link:/docs/display/current/Configuring+Security[Security Manager] capabilities, or the OAuth 2.0 feature of link:/docs/display/current/Anypoint+Enterprise+Security[Anypoint Enterprise Security]. 
+* apply security policies using the link:/docs/display/current/Applying+Runtime+Policies[runtime policy management] capabilities of the link:/docs/display/current/Anypoint+Platform+for+APIs[Anypoint Platform for APIs].
+
+[TIP]
+Separating your security enforcement into your governance layer with the link:/docs/display/current/Anypoint+Platform+for+APIs[Anypoint Platform for APIs] is the recommended approach for flexibility and optimal lifecycle management. 
+
+The protocol and the URI host and path defined in your RAML file are disregarded in favor of the ones that you define in the APIkit project's HTTP Connector.
+
+== See Also
+
+* Read the https://github.com/raml-org/raml-spec[RAML spec] to learn how to build your API interface using an exceptionally lightweight modeling language.
+* Read about http://raml.org/projects.html[RAML tooling] that facilitates the creation of an API interface.

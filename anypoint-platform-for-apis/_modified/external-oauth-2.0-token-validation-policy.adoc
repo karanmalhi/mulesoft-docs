@@ -1,0 +1,173 @@
+= External OAuth 2.0 Token Validation Policy
+:keywords: oauth, raml,
+
+This page describes the configuration and runtime application instructions for the OAuth 2.0 Token Validation Policy for the Anypoint Platform for APIs. This new OAuth 2.0 Token Validation Policy allows you to use HTTPS communication and to configure a single OAuth provider for multiple APIs.
+
+[WARNING]
+====
+This policy can only be applied in a Gateway version 2.0 or newer. On older versions of the Gateway Runtime, you can instead apply the link:/docs/display/current/OAuth+2.0+Provider+and+Token+Validation+Policies[OAuth 2.0 Provider and Token Validation Policies].
+====
+
+[WARNING]
+====
+To apply this policy you must create an external OAuth provider app, which can be hosted anywhere but must run on the Gateway 2.0 Runtime. This may be on a different server or gateway instance, but it must be configured with the same Client ID and Client Secret.
+====
+
+Here is a high-level overview of how the policy works to enforce OAuth 2.0 protection of an API.
+
+image:oauth+policy1.png[oauth+policy1]
+
+. Client App *requests a Token*. The way this occurs may vary depending on the OAuth grant type being used, but in all cases it must occur before any request can be sent to the API.
+. The OAuth Provider *returns a token*, which may optionally be related to a scope or set of scopes.
+. Client application sends a *request to the API*, which includes the received token either as an authentication header or a query parameter
+. The *OAuth 2.0 Token Enforcement Policy* intercepts this request and *validates the token* against the validation URL of the OAuth Provider. If scopes are provided in the policy, it also assures that the token is valid for those specific scopes.
+. If the Token is properly validated, it is whitelisted and kept on record for as long as it doesn't expire. Any further requests that contain this same token aren't validated against the OAuth provider. If the Token isn't properly validated, a `403` error message is returned to the client app.
+. If the token is valid, the request is forwarded to the API.
+. The API returns whatever it must return to the Client application.
+
+== Prerequisites
+
+This document assumes that you are an API Version Owner for the API version that you want to manage, or that you are an Organization Administrator.
+
+This document also assumes that you are familiar with OAuth 2.0. If you need a refresher, read this link:/docs/display/current/Mule+Secure+Token+Service[overview].
+
+To apply this policy, you must have an link:/docs/display/current/Building+an+External+OAuth+2.0+Provider+Application[external OAuth 2.0 provider app] deployed separately. This app can be deployed anywhere – on premises or on the cloud – it must however run with a Gateway Runtime 2.0 which is configured with the same Client ID and Client Secret as the organization where the you manage the API over which you want to apply the policy.
+
+== Prerequisites for RAML APIs
+
+If your API is defined using RAML (recommended), your RAML securitySchemes must be defined for OAuth 2.0. Refer to the https://github.com/raml-org/raml-spec/blob/master/raml-0.8.md#oauth-20[RAML spec] for details on defining this section. Before configuring your OAuth policies in the API Version Details page, determine any prerequisites and requirements determined by your securitySchemes definition in your RAML file.
+
+[WARNING]
+====
+Keep in mind that scopes are not supported by the RAML console yet.
+====
+
+==== OAuth Dance URIs
+
+Within the RAML securitySchemes definition, you must include URIs for the authorization and access token.
+
+[TIP]
+====
+If you are deploying the API to a cloud API Gateway, you must configure the host and port as follows in your OAuth Provider policy on your API Version Details page.
+
+[width="90a",cols="10a,90a"]
+|===
+|URI in RAML |Configuration in OAuth Provider Policy for Host and Port. For On-Premises Deployment. For Cloud Deployment
+| *`authorizationUri`* |No specific limitations. Host must be 0.0.0.0. Port should be set to `${http.port}` and the value set in the mule-app.properties file. For HTTP, specify `http.port=8081` and for HTTPS, specify `http.port=8082`.
+|*`accessTokenUri`* |No specific limitations. Host must be 0.0.0.0. Port should be set to `${http.port}` and the value set in the mule-app.properties file. For HTTP, specify `http.port=8081` and for HTTPS, specify `http.port=8082` .
+|===
+
+====
+
+==== Grant Types
+
+You must configure your policy to match the grant types specified in your RAML securitySchemes. Refer to the table below for reference on how the grant type specifications in RAML map to the grant type names in the policy configuration. 
+
+[width="99a",cols="33a,33a,33a",options="header"]
+|===
+|Authorization Grant Types Defined in RAML Definition |Equivalent Authorization Grant Type to Enable in the OAuth Provider Policy |Supported in embedded APIkit Console?
+|`[token]` |Implicit |Yes
+|`[credentials]` |Client Credentials |No
+|`[owner]` |Resource Owner Password Credentials |No
+|`[code]` |Authorization Code |Yes
+|===
+
+Configuring the OAuth 2.0 Token Validation Policy
+
+[WARNING]
+====
+Before applying this policy, make sure you have modified your API's RAML to support OAuth authentication and that you have deployed an OAuth provider app.
+====
+
+Configure the OAuth 2.0 Token Validation policy as shown. The Scopes field is optional, if you are going to use the console, no scopes must be provided and CORS policy must be applied as well.
+
+image:Pasted+image+at+2015_07_10+06_37+PM.png[Pasted+image+at+2015_07_10+06_37+PM]
+
+[width="100a",cols="10a,80a,10a",options="header"]
+|===
+|Field |Description |Example
+|*Scopes* |A space-separated list of supported OAuth scopes. These should match one or more of the scopes defined on the referenced OAuth 2.0 Provider app. If no scopes were defined on the OAuth 2.0 Provder app, no scopes are required here. |`read write`
+|*Access Token Validation Endpoint URL* |The URL to the external OAuth 2.0 Provider used for granting the access token. |`www.myserver.com/myoauthapp`
+|===
+
+=== Creating an External OAuth Provider App
+
+To create an external app to reference in this policy, follow the steps below:
+
+[TIP]
+====
+For a more detailed step by step explanation, see link:/docs/display/current/Building+an+External+OAuth+2.0+Provider+Application[Building an External OAuth 2.0 Provider Application]
+====
+
+. From Anypoint Studio, access Anypoint Exchange and download the .zip file for one of these two applications:
++
+.. https://anypoint.mulesoft.com/exchange/#!/api-gateway-external-oauth2-provider?types=template[External OAuth2.0 server for Anypoint Platform]
+.. https://anypoint.mulesoft.com/exchange/#!/external-AES-template-LDAP?types=template[ExternalOAuth 2.0 server for Anypoint Platform with LDAP Validation]
++
+
+[NOTE]
+====
+The first of these is very basic and relies on simple validation of credentials, it's intended for testing and demo purposes. The second one uses LDAP validation and is better suited for a proper implementation in production.
+====
+
+. Import the downloaded .zip file into Anypoint Studio as an *Anypoint Studio Generated Deployable Archive (.zip)*
+. Open the `mule.dev.properties` file in the folder `src/main/resources`
+. Fill in the required credentials in this file`: `
++
+
+[TIP]
+====
+Check the template's documentation if you have any doubts about what each of these fields must contain.
+====
+
+. link:/docs/display/current/Deploying+Your+API+or+Proxy[Deploy] your OAuth 2.0 provider app, either to CloudHub or on premises.
+
+== Using an API Protected by the OAuth 2.0 Token Validation Policy
+
+Depending on the OAuth grant type you want to use, the OAuth Provider application may expose two or three endpoints:
+
+* `/authorize`: provides an access code for later obtaining a token
+* `/access_token`: returns a new token
+* `/validate`: verifies a token's validity
+
+Depending on the grant type being used, you may have to resort to only `/access_token` , to both `/authorize` and `/access_token` or to none of them. In whichever case, accessing them is not handled by this policy, this must be done before attempting to send requests to the API that's protected by the policy.
+
+Once a token is obtained, you must include it in all requests sent to the API. There are two ways you can include it:
+
+[width="99a",cols="33a,33a,33a",options="header"]
+|===
+|Places to include Token |Example |Notes
+|Query parameter |`?access_token=123` |Included as part of the URI
+|Authorization header |`Authorization:Bearer 123` |The header consists of a key:value pair, where Authorization is the key and the value is composed as follows:
+ `"Bearer" + <space> + <token, for example, 123>`
+|===
+
+When a request is received, the OAuth 2.0 Token Validation Policy sends a request to the `/validate` URL of the OAuth provider to ensure the token's validity.
+
+== Testing That Your OAuth Validation Works
+
+You can test an API that has the policy applied using the API notebook and API console after registering an API within a portal in the platform.
+
+== Obtaining User Credentials
+
+In some cases, you might want to have access to information about what externally authenticated users are using your API. To do so, place the following script in any place between your proxy's inbound and outbound endpoints. The script executes after the OAuth 2.0 Token Validation Policy:
+
+[source,xml,linenums]
+----
+<expression-component>
+    message.outboundProperties.put('X-Authenticated-userid', _muleEvent.session.securityContext.authentication.principal.username)
+</expression-component>
+----
+
+The script above stores the username in the mule message as an outbound-property named `X-Authenticated-userid`. The HTTP Connector, used to generate the proxy's output, transforms any outbound properties that reach it into HTTP message headers. In this way the message that reaches your API after passing through your proxy includes an HTTP header named `X-Authenticated-userid` , containing the username.
+
+[TIP]
+====
+You can modify this code to change the name of the header being created.
+====
+
+== See Also
+
+* link:/docs/display/current/Building+an+External+OAuth+2.0+Provider+Application[Building an External OAuth 2.0 Provider Application]
+* link:/docs/display/current/AES+OAuth+FAQ[AES OAuth FAQ]
+* Return to the link:/docs/display/current/Applying+Runtime+Policies[Applying Runtime Policies] page.

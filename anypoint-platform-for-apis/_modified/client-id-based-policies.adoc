@@ -1,0 +1,141 @@
+= Client ID Based Policies
+:keywords: sla, api, portal, raml
+
+This page describes the configuration and runtime application instructions for the three Client ID based policies for the Anypoint Platform for APIs:
+
+* *<<Client ID enforcement>>*
+* *<<Rate Limiting - SLA Based>>*
+* *<<Throttling - SLA Based>>*
+
+If you wish to track application access to your API or enforce SLA limits, you must:
+
+* *You must Apply* one or more of the policies that handles Client ID authentication.
+* If you want to use *Rate Limiting - SLA Based* or **Throttling - SLA Based**, you must also create at least one *SLA Tier* to define request amount limits.
+* Ask that your users register an application via the link:/docs/display/current/Engaging+Users+of+Your+API[API Portal] of your API – this grants them a Client ID and a Client Secret.
+* If a user requested to add his app to an SLA Tier that you configured with manual approval, you must *approve this request*.
+* Applications must *provide their application's Client ID and Secret* in every request they make to your API.
+
+== Assumptions
+
+This document assumes that you are an API Version Owner for the API version that you want to manage, or that you are an Organization Administrator.
+
+== Client ID Regulating Policies
+
+The Anypoint Platform for APIs currently offers three policies that deal with Client IDs. One of them simply enforces that an ID is provided, the other two use this ID as a reference to impose limits on the number of request that each application can make in a given period of time.
+
+=== Client ID enforcement
+
+With this policy enabled, all calls to your API must include a valid client ID and client secret. To obtain these, users must register an application in your API Portal. When applying the policy, you'll see that by default, these credentials are expected in the form of query parameters named *client_id* and **client_secret**. You can alter the link:/docs/display/current/Mule+Expression+Language+Basic+Syntax[Mule expression] that points to this, and obtain these values from elsewhere in the HTTP message.
+
+=== Rate Limiting - SLA Based
+
+Rate limiting consists of putting a limit on how many requests can be accepted within a defined period of time. Any messages beyond the maximum amount within the time period are rejected. There are two policies in the Anypoint Platform that allow you to do this: *Rate Limiting* and **Rate Limiting - SLA Based**.
+
+With the regular rate limiting policy, a limit is imposed globally over all of the requests that reach your API. If you want to apply this, you don't need to create any SLA Tiers nor have your users register applications or send Client IDs.
+
+With the SLA based rate limiting policy, the requests from each application that accesses your API are managed separately. Each application has a contract that references one of the SLA Tiers that you will define. SLA tiers dictate the number of requests per time period that are allowed for an application.
+
+By default, the Client ID and token credentials are expected in the form of query parameters named *client_id* and **client_secret**. You can alter the link:/docs/display/current/Mule+Expression+Language+Basic+Syntax[Mule expression] that points to this, and obtain these values from elsewhere in the HTTP message.
+
+=== Throttling - SLA Based
+
+Throttling works a lot like rate limiting, except that requests that exceeed the SLA limits aren’t rejected, they are delayed and put in a queue. They can then be processed in the following period, or eventually rejected if they get left out repeatedly for an established number of times. There are two policies in the Anypoint Platform that allow you to do this: *Throttling* and **Throttling - SLA Based**.
+
+With the regular throttling policy, a limit is imposed globally over all of the requests that reach your API. If you want to apply this, you don't need to create any SLA Tiers nor have your users register applications or send Client IDs.
+
+With the SLA based throttling policy, the requests from each application that accesses your API are managed separately. Each of these applications has a contract that references one of the SLA Tiers that you will define. SLA tiers dictate the number of requests per time period that are allowed for the application.
+
+By default, the Client ID and secret credentials are expected in the form of query parameters named *client_id* and **client_secret**. You can alter the link:/docs/display/current/Mule+Expression+Language+Basic+Syntax[Mule expression] that points to this, and obtain these values from elsewhere in the HTTP message.
+
+You can also set the delay time in between attempts for when requests are not accepted, as well as the amounts of attempts to try.
+
+== Creating SLA Tiers
+
+[WARNING]
+SLA Tiers are ONLY needed if you're applying *Rate Limiting - SLA Based* or **Throttling - SLA Based**. Other policies aren't dependent on these.
+
+Go to your API version page and select the *SLA Tiers* in the bottom section of the screen. There you are able to create and manage SLA Tiers.
+
+image:tiers1.png[tiers1]
+
+When creating a new Tier, assign a name and a maximum allowed throughput. If you set up your tier to have manual approval, any application requests for it must be manually approved by an admin in your organization.
+
+image:SLA.png[SLA]
+
+== Registering Applications
+
+Your users now need to send an ID and a token with every request to your API to have them accepted by your Client ID Based Policies. To obtain this ID and token, they must *Request API Access* through your API's link:/docs/display/current/Engaging+Users+of+Your+API[API Portal].
+
+image:request+api+access.png[request+api+access]
+
+After users click the *Request API Access* button, they are prompted to select an existing application or create a new one. If they create a new application – and if you created at least one SLA Tier – they must pick an SLA Tier for it. You can offer as many different SLA tiers as you want, these define the amount of requests this application is allowed within a given time lapse once an SLA Based policy is activated. If SLA Tiers are being used, depending on how the selected SLA Tier is configured, the request for API access can be automatically approved or it can rely on an approval by an admin of the API.
+
+image:request+API+access+2.png[request+API+access+2]
+
+== Managing API Access Requests
+
+If the selected SLA Tier is set to automatic, then all requests for API access automatically approve, and your users can immediately send authenticated requests to your API. If the selected SLA Tier was configured with manual approval, an admin of your organization has to approve it before a user can start to send valid requests to your API.
+
+To approve API access requests, go to the API version page, and select the *Applications* tab in the bottom section of the screen.
+
+image:approve+applications.png[approve+applications]
+
+There you can view details about your pending and processed requests and manage them.
+
+== Required Fields in API Calls
+
+If you're implementing a Client ID based policy, all of the requests made to your API must contain a *Client ID* and a *Client* *Secret*. By default, these values are expected to arrive as query parameters, by the names *client_id* and **client_secret**, this is expressed by the following link:/docs/display/current/Mule+Expression+Language+Basic+Syntax[Mule expressions]:
+
+[source,linenums]
+----
+#[message.inboundProperties['http.query.params']['client_id']]
+ 
+#[message.inboundProperties['http.query.params']['client_secret']]
+----
+
+You can change this expression to expect these values in any other element in the Mule Message.
+
+[TIP]
+====
+When an HTTP request is transformed into a Mule Message, the following transformations occur:
+
+* Query parameters become part of `message.inboundProperties`
+* Headers become part of `message.inboundProperties`
+* Form parameters become a map in `message.payload`
+* Attachments become  `message.inboundAttachments`
+====
+
+=== Considerations for RAML APIs
+
+If your API exposes a http://raml.org[RAML] definition that users may need to reference (perhaps via the link:/docs/display/current/Engaging+Users+of+Your+API[API Console], which is generated from a RAML file), then the RAML definition should reliably detail every element that is expected in calls to your API.
+
+As established, applying one of these Client ID policies implies that all requests coming to your API need to include both a Client ID and Client Secret (which by default are both expected to be query parameters). This required information must be explicit in the RAML of your API, as users that turn to it for reference will otherwise find that their requests are rejected.
+
+The recommended way of doing this is to create a *trait* at the start of your RAML definition and then reference this trait in every operation of your API. Your trait might look like this:
+
+[source,yaml,linenums]
+----
+traits:
+  - rate-limited:
+      queryParameters:
+       client_id:
+        type: string
+      client_secret:
+        type: string
+----
+
+And then you can apply this trait in each individual operation like this:
+
+[source,yaml,linenums]
+----
+/products:
+  get:
+    is: [rate-limited]
+    description: Gets a list of all the inventory products.
+----
+
+Refer to the https://github.com/raml-org/raml-spec/blob/master/raml-0.8.md#query-strings[RAML spec] for details on defining these inputs.
+
+== See Also
+
+* Return to the http://www.mulesoft.org/documentation/display/current/Applying+Runtime+Policies[Applying Runtime Policies] page.

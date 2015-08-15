@@ -1,0 +1,87 @@
+= OpenAM OAuth Token Enforcement Policy
+
+This page describes the configuration and runtime application instructions for the OpenAM OAuth Token Enforcement policy for the Anypoint Platform for APIs. The OpenAM OAuth Token Enforcement policy connects to your existing OpenAM authorization server and enforces access according to your configuration.
+
+== Prerequisites
+
+This policy is available only if the following prerequisites are met:
+
+* Your organization is OpenAM
+* Your user is the organization's administrator, or has permissions to create or manage APIs
+
+== Policy Implementation
+
+This diagram presents a high-level overview of how the OpenAM OAuth Token Enforcement policy works with your existing OpenAM authorization server to protect access to your API version.
+
+image:OpenAM.png[OpenAM]
+
+To improve performance, the API Gateway caches the call to OpenAM, which is only performed once during the lifetime of the token.
+
+If the OAuth token is not valid, OpenAM returns one of the following errors:
+
+* *OpenAM 11.0.0* returns `404 NOT FOUND`
+* *OpenAM 12.0.0* returns `400 BAD REQUEST`
+
+[NOTE]
+====
+OpenAM defines and supports two kinds of OAuth clients: a _confidential_ client, which must keep its credentials confidential; or a _public_ client, which can share its credentials with other parties. Each type of client supports three of the four OAuth grant types. For this reason, when configuring API Gateway for the client, you will be able to select only three of the four grant types, and the unavailable grant type will appear grayed-out. API Gateway does not display information on whether your client is public or confidential; this depends on the grant types that you select.
+====
+
+== Configuration
+
+There is minimal configuration necessary for the OpenAM OAuth Token Enforcement policy. The connection to your OpenAM authorization server is handled behind the scenes, so the only field that you need to configure to apply the policy to your API version is the *scopes*. Enter a space-separated list of strings that indicate the scopes to which applications must have access per their credentials defined for that application in OpenAM.
+
+You kneed to know the names of the scopes as defined in OpenAM. Bear in mind that scope names are case-sensitive.
+
+== Note for API Developers
+
+If you want to include user authorization at the API implementation level, applying this policy to an API proxy or an API running directly on the API Gateway allows you to use link:/docs/display/current/Mule+Expression+Language+MEL[MEL expressions] to access a map of user information that is associated with the valid token, using the flow variable `['_agwUser']`. To access a particular value in the map, specify it directly.
+
+This example accesses the user ID of the end user who is calling the API through the application:
+
+[source]
+----
+#[flowVars['_agwUser']['uid']]
+----
+
+[width="80a",cols="10a,90a",options="header"]
+|===
+|'_agwUser' Map Key |Description
+|*uid* |User ID of the end user who is calling the API through the application.
+|*group* |An array of groups with which the user is associated.
+|*email* |The email of the user.
+|===
+
+== Obtaining User Credentials
+
+You can access information about what externally authenticated users or applications are using your API. 
+
+The OpenAM policy returns a Mule message that includes outbound properties that are useful for this. Depending on the grant type of the incoming request's token, this is expressed in different headers:
+
+* If the token of the request is of Grant types *resource owner credentials* *implicit*, or *authorization code*, the header `X-AGW-userid` contains the ID of the user that made the request.
+* If the token of the request is of Grant type *client credentials*, the header`X-AGWclient_id` contains the ID of the application that made the request.
+
+Either of the two properties are available to be referenced and used internally in your proxy by any component that follows it in the flow.
+
+The HTTP Connector that generates the proxy's output, transforms any outbound properties that reach it in the HTTP message headers, so the message that reaches your API after passing through your proxy includes either an HTTP header named `X-AGW-userid`with the username, or an HTTP header named `X-AGW-client_id` with a client ID.
+
+=== Token Validation Response Example
+
+Below is an example of the information returned by OpenAM, from which the HTTP message headers are formed.
+
+[source]
+----
+HTTP/1.1 200 OK
+Cache-Control: no-cache, no-store
+Date: Mon, 09 Mar 2015 19:08:07 GMT
+Accept-Ranges: bytes
+Server: Restlet-Framework/2.1.1
+Vary: Accept-Charset, Accept-Encoding, Accept-Language, Accept
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+{"uid":"john.doe","mail":"john.doe@example.com","scope":["uid","mail","cn","givenName"],"grant_type":"password","cn":"John Doe Full","realm":"/","token_type":"Bearer","expires_in":580,"givenName":"John","access_token":"fa017a0e-1bd5-214c-b19d-03efe9f9847e"}
+----
+
+== See Also
+
+* Return to the link:/docs/display/current/Applying+Runtime+Policies[Applying Runtime Policies] page.
