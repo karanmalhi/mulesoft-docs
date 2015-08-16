@@ -4,7 +4,7 @@
 A flow *processing strategy* determines how Mule implements message processing for a given flow. 
 
 * Should the message be processed synchronously (on the same thread) or asynchronously (on a different thread)?
-* Should the message be link:#FlowProcessingStrategies-nonblock[non-blocking]? (Available in Mule 3.7 and newer)
+* Should the message be <<Non-Blocking Processing Strategy>>? (Available in Mule 3.7 and newer)
 * If asynchronously, what are the properties of the pool of threads used to process the messages?
 * If asynchronously, how do messages wait for their turn to be processed in the second thread? 
 
@@ -20,10 +20,10 @@ This page assumes that you are familiar with link:/docs/display/current/Mule+Con
 
 Even if you do not configure a processing strategy for your flow, the flow follows a processing strategy automatically applied by Mule. The processing strategy can ge:
 
-* *link:#FlowProcessingStrategies-TheSynchronousFlowProcessingStrategy[Synchronous]* : Mule processes messages in a single thread.
-* *link:#FlowProcessingStrategies-TheQueued-AsynchronousFlowProcessingStrategy[Queued-asynchronous]* : Mule uses a queue to decouple the receiver thread from the rest of the flow.
+* *<<Queued-Asynchronous Flow Processing Strategy>>* : Mule processes messages in a single thread.
+* *<<Queued-Asynchronous Flow Processing Strategy>>* : Mule uses a queue to decouple the receiver thread from the rest of the flow.
 
-For the majority of use cases, the implicit strategy selected by Mule is optimal. See link:#FlowProcessingStrategies-ChangingtheProcessingStrategy[Changing the Processing Strategy] for more information about why and how you can override the implicit processing strategy, if your use case demands it.
+For the majority of use cases, the implicit strategy selected by Mule is optimal. See <<Changing the Processing Strategy>> for more information about why and how you can override the implicit processing strategy, if your use case demands it.
 
 === How Mule Selects a Flow Processing Strategy
 
@@ -58,17 +58,17 @@ The following table summarizes how Mule chooses a flow processing strategy:
 
 Mule's choice of processing strategy is almost always optimal for the flow to which it is applied. However, the following options exist:
 
-* *Change to Synchronous* - In cases where Mule has selected queued-asynchronous processing for a flow, you can link:#FlowProcessingStrategies-SpecifyingaSpecificProcessingStrategy[specify a synchronous flow instead]. You might want to specify a synchronous flow to achieve reliability. Remember that the synchronous strategy is ideally suited for flows where the flow's inbound endpoint must be notified of all errors that occur during the processing of the message. The link:/docs/display/current/Reliability+Patterns[Reliability Patterns] document discusses this situation further. Although this is not applicable to most use cases, if Mule has selected queued-asynchronous processing for a flow, you can specify another kind of asynchronous processing strategy instead. *Note*: You cannot force a queued-asynchronous processing strategy on a synchronous flow. 
+* *Change to Synchronous* - In cases where Mule has selected queued-asynchronous processing for a flow, you can specify a synchronous flow instead. You might want to specify a synchronous flow to achieve reliability. Remember that the synchronous strategy is ideally suited for flows where the flow's inbound endpoint must be notified of all errors that occur during the processing of the message. The link:/docs/display/current/Reliability+Patterns[Reliability Patterns] document discusses this situation further. Although this is not applicable to most use cases, if Mule has selected queued-asynchronous processing for a flow, you can specify another kind of asynchronous processing strategy instead. *Note*: You cannot force a queued-asynchronous processing strategy on a synchronous flow. 
 
-* *Fine Tune*: You can accept Mule's choice of the queued-asynchronous flow processing strategy, but then link:#FlowProcessingStrategies-Fine-TuningaProcessingStrategy[fine-tune the processing strategy]. *Note*: You cannot fine-tune a synchronous flow.
+* *Fine Tune*: You can accept Mule's choice of the queued-asynchronous flow processing strategy, but then fine-tune the processing strategy. *Note*: You cannot fine-tune a synchronous flow.
 
 * *Wrap a Flow:* You can wrap one or more message processors within your synchronous flow in an link:/docs/display/current/Async+Scope+Reference[asynchronous scope] to define a processing block that Mule processes asynchronously with the main flow. You can also create an asynchronous flow by wrapping a flow-ref in an asynchronous scope. 
 
 * *Subflow*: You can call out to a subflow (which always processes synchronously) or a synchronous flow from any flow, regardless of what processing strategy is applied to the triggering flow. The triggering flow waits until this synchronous processing block returns a message before proceeding with processing. See link:/docs/display/current/Flows+and+Subflows[Flows and Subflows] for more information about subflows and synchronous flows.
 
-* *Non-Blocking*: You can use the new link:#FlowProcessingStrategies-nonblock[Non-Blocking processing] strategy available in Mule 3.7 and newer to take advantage of NIO with the link:/docs/display/current/HTTP+Connector[HTTP Connector] and avoid having threads blocked while waiting for HTTP responses, which also requires less tuning. *Note*: Not all components are currently supported, unsupported components cause a flow to fall back to synchronous processing. 
+* *Non-Blocking*: You can use the new <<Non-Blocking Processing Strategy>> strategy available in Mule 3.7 and newer to take advantage of NIO with the link:/docs/display/current/HTTP+Connector[HTTP Connector] and avoid having threads blocked while waiting for HTTP responses, which also requires less tuning. *Note*: Not all components are currently supported, unsupported components cause a flow to fall back to synchronous processing. 
 
-* *Custom*: You can create a link:#FlowProcessingStrategies-CreatingaProcessingStrategy[custom flow processing strategy] to fit your exact needs. For instance, you might prefer a queued-asynchronous flow that uses an increased number of threads to handle high peak loads. 
+* *Custom*: You can create a custom flow processing strategy to fit your exact needs. For instance, you might prefer a queued-asynchronous flow that uses an increased number of threads to handle high peak loads. 
 
 [width="100%",cols="50%,50%",options="header",]
 |===
@@ -87,8 +87,8 @@ Mule's choice of processing strategy is almost always optimal for the flow to wh
 applied by Mule] |Can you specify a different +
 processing strategy? |Can you fine-tune +
 the processing strategy? |Can you create a processing block that executes using a different processing strategy from the main flow? |Can you apply a custom processing strategy using Spring?
-|*Synchronous* |*No.* You cannot force a flow with a request-response exchange pattern and/or transactionality to be asynchronous. |*No*. You cannot fine-tune the synchronous processing strategy. You can, however, customize the inbound endpoint connector receiver link:/docs/display/current/Tuning+Performance[threading profile]. | *Yes.* You can use an Async Scope or an asynchronous flow to cause Mule to process a selected block of message processors asynchronously. link:#FlowProcessingStrategies-CreatinganAsynchronousProcessingBlock[See below]. |*Yes.* link:#FlowProcessingStrategies-CreatingaCustomProcessingStrategy[See below].
-|*Queued-Asynchronous* |*Yes.* You can override an implicitly selected queued-asynchronous processing strategy by explicitly declaring a synchronous processing strategy (or, in rare use cases, a different kind of asynchronous processing strategy) instead. link:#FlowProcessingStrategies-SpecifyingaProcessingStrategy[See below]. |*Yes.* You can fine-tune the queued-asynchronous processing strategy to meet your needs. link:#FlowProcessingStrategies-Fine-TuningaQueued-AsynchronousProcessingStrategy[See below]. |*Yes.* A synchronous link:/docs/display/current/Flows+and+Subflows[flow or subflow] processes a selected block of message processors synchronously, regardless of the processing strategy of the main flow. |*Yes.* link:#FlowProcessingStrategies-CreatingaCustomProcessingStrategy[See below].
+|*Synchronous* |*No.* You cannot force a flow with a request-response exchange pattern and/or transactionality to be asynchronous. |*No*. You cannot fine-tune the synchronous processing strategy. You can, however, customize the inbound endpoint connector receiver link:/docs/display/current/Tuning+Performance[threading profile]. | *Yes.* You can use an Async Scope or an asynchronous flow to cause Mule to process a selected block of message processors asynchronously. <<Creating an Asynchronous Processing Block>>. |*Yes.* <<Creating a Custom Processing Strategy>>.
+|*Queued-Asynchronous* |*Yes.* You can override an implicitly selected queued-asynchronous processing strategy by explicitly declaring a synchronous processing strategy (or, in rare use cases, a different kind of asynchronous processing strategy) instead. <<Specifying a Processing Strategy>>. |*Yes.* You can fine-tune the queued-asynchronous processing strategy to meet your needs. <<Fine-Tuning a Queued-Asynchronous Processing Strategy>>. |*Yes.* A synchronous link:/docs/display/current/Flows+and+Subflows[flow or subflow] processes a selected block of message processors synchronously, regardless of the processing strategy of the main flow. |*Yes.* <<Creating a Custom Processing Strategy>>.
 |=====
 
 === Specifying a Processing Strategy
@@ -282,7 +282,7 @@ A flow with a synchronous processing strategy executes on the same node of the c
 
 == Non-Blocking Processing Strategy
 
-Mule has traditionally always used a threaded processing model for handling incoming requests from a Message Sources using the request-response Message Exchange Pattern. This means that the whole Mule Flow, both request and response phases, are executed using the same thread. This same thread is also used to send the response back to the client. This threaded request-response processing is used whenever the link:#FlowProcessingStrategies-SyncProc[Synchronous Processing Strategy] is used, either explicitly or by Mule  implicitly selecting this strategy when one isn’t specified.  This processing model can more easily be shown with this diagram:
+Mule has traditionally always used a threaded processing model for handling incoming requests from a Message Sources using the request-response Message Exchange Pattern. This means that the whole Mule Flow, both request and response phases, are executed using the same thread. This same thread is also used to send the response back to the client. This threaded request-response processing is used whenever the <<Fine-Tuning a Queued-Asynchronous Processing Strategy>> is used, either explicitly or by Mule  implicitly selecting this strategy when one isn’t specified.  This processing model can more easily be shown with this diagram:
 
 image:/docs/download/attachments/131957124/SyncProcStrat.png?version=1&modificationDate=1436407277534[image]
 

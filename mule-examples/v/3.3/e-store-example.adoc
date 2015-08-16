@@ -25,7 +25,7 @@ To operate as a fully functional example, this application also includes three c
 . *Bank* +
  A RESTful Web service which performs complex validations on data — including both syntactic and semantic validation — in order to authorize end-user payments.
 
-Further, this Mule ESB example includes an AJAX-based graphical user interface (GUI) with which an end user interacts on a browser. This document describes the *E-store User Interface* further in a link:#E-storeExample-TheE-storeUserInterface[section] below.
+Further, this Mule ESB example includes an AJAX-based graphical user interface (GUI) with which an end user interacts on a browser. This document describes the *E-store User Interface* further in a <<The E-store User Interface>> below.
 
 This example should help you to make informed decisions about using Mule ESB to build or support e-commerce transactions. Learn how to:
 
@@ -102,11 +102,11 @@ From a Web browser, a user sends requests to the E-store to perform several task
 [width="100%",cols="50%,50%",options="header",]
 |===
 |User Request |e-storeBackend Activities
-|*link:#E-storeExample-ListAllProducts[List all products]* |Contacts both the Barber's Paradise Store Web service and Van Gogh Store Web service to fetch a list of all the available products from each, then transforms the list of products JSON http://en.wikipedia.org/wiki/Canonicalization[canonical] format.
-|*link:#E-storeExample-AddProducttoCart[Add product to cart]* |Registers a selected product on the end-user’s shopping cart. An embedded, application-layer Derby database maintains the state of the cart.
-|*link:#E-storeExample-ViewCart[View cart]* |Queries the embedded Derby database for a list of products in the end user’s cart, then contacts 3rd-party service providers to fetch up-date prices and details of each product. Displays the current contents of the shopping cart on the end user’s browser.
-|*link:#E-storeExample-CheckOut[Check out]* |Uses end user’s credit card information to verify payment authorization with the bank. Aggregates products for each service provider — all the Barbers Paradise products together, all the Van Gogh Paint products together — then submits one fulfillment order to each provider.
-|*link:#E-storeExample-ClearCartContents[Clear cart contents]* |Clears the contents of database table which contains the end user’s cart contents.
+|*<<List All Products>>* |Contacts both the Barber's Paradise Store Web service and Van Gogh Store Web service to fetch a list of all the available products from each, then transforms the list of products JSON http://en.wikipedia.org/wiki/Canonicalization[canonical] format.
+|*<<Add Product to Cart>>* |Registers a selected product on the end-user’s shopping cart. An embedded, application-layer Derby database maintains the state of the cart.
+|*<<View Cart>>* |Queries the embedded Derby database for a list of products in the end user’s cart, then contacts 3rd-party service providers to fetch up-date prices and details of each product. Displays the current contents of the shopping cart on the end user’s browser.
+|*<<Checkout>>* |Uses end user’s credit card information to verify payment authorization with the bank. Aggregates products for each service provider — all the Barbers Paradise products together, all the Van Gogh Paint products together — then submits one fulfillment order to each provider.
+|*<<Clear Cart Contents>>* |Clears the contents of database table which contains the end user’s cart contents.
 |===
 
 image:estore.png[estore]
@@ -355,7 +355,7 @@ image:dataMapping1.png[dataMapping1]
 }
 ----
 
-Mule then uses a an *Object to String Transformer* to convert the list data from a Java object to a string. This action prepares the content for Mule to add it to the list variable. The *Expression Transformer* uses an link:#[*expression*] to add the payload to the `allProducts` variable.
+Mule then uses a an *Object to String Transformer* to convert the list data from a Java object to a string. This action prepares the content for Mule to add it to the list variable. The *Expression Transformer* uses an *expression* to add the payload to the `allProducts` variable.
 
 image:expression_transform.png[expression_transform]
 
@@ -874,7 +874,7 @@ In the *PaymentAuthorizationToBank* subflow, Mule first prepares a request to se
 <remove-property propertyName="cartContents" doc:name="Remove cart contents property to call bank"/>
 ----
 
-Then, the request-response HTTP endpoint sends a request to the bank’s RESTful Web service to authorize payment. The link:#E-storeExample-3rd-PartyWebServices[*bank* flow] (in the `bank.mflow` file) performs the following validations:
+Then, the request-response HTTP endpoint sends a request to the bank’s RESTful Web service to authorize payment. The <<3rd-Party Web Services>> (in the `bank.mflow` file) performs the following validations:
 
 * *syntactic* - confirms that XML format of the message conforms to its http://en.wikipedia.org/wiki/XML_schema[XSD schema]; for example, that the security code contains three integers
 * *semantic* - confirms that the data conforms to specific business rules; for example, that the security code matches the credit card number, or that the amount of the transaction does not exceed $1000
@@ -890,7 +890,7 @@ When it has completed processing the request, the bank’s Web service returns o
 |no |failed syntactic validation |failed |none |included
 |===
 
-If the response from the bank includes an exception — perhaps the credit card number is missing a digit — Mule catches the exception in the **link:/docs/display/33X/Catch+Exception+Strategy[Catch Exception Strategy]**. The expression transformer in the exception strategy (located in the footer of the *doCheckout* flow) uses expressions to prepare an error for the end user. Mule sends the error message as a response to the e-storeFrontend flow, then to the end user’s browser. (If the response from the bank involves a failure of the semantic validation, Mule deals with the error further in the flow; see link:#E-storeExample-...BackinthedoCheckoutFlow[*...Back in the doCheckout Flow*] section below.)
+If the response from the bank includes an exception — perhaps the credit card number is missing a digit — Mule catches the exception in the **link:/docs/display/33X/Catch+Exception+Strategy[Catch Exception Strategy]**. The expression transformer in the exception strategy (located in the footer of the *doCheckout* flow) uses expressions to prepare an error for the end user. Mule sends the error message as a response to the e-storeFrontend flow, then to the end user’s browser. (If the response from the bank involves a failure of the semantic validation, Mule deals with the error further in the flow; see *...Back in the doCheckout Flow* section below.)
 
 The *subflow-requestPaymentAuthorizationToBank* sends the bank’s response to the *subflow-authorizePayment* which, in turn, sends the result to the main *doCheckout* flow.
 

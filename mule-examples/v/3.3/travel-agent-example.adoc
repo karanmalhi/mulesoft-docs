@@ -29,7 +29,7 @@ Follow the procedure below to create, then run the Travel Agent example applicat
 
 . Complete the procedure in link:/docs/display/33X/Mule+Examples[Examples and Exercises] to create, then run, the Travel Agent template in Mule Studio.
 . Open your Web browser.
-. Type `http://localhost:8787/populate` in the address bar of your browser, then press *enter* to activate the Travel Agent application and elicit a response in your browser that reads `db populated`. (Refer to the link:#TravelAgentExample-DatabaseInitialisationFlow[DatabaseInitialisation flow] section below to learn why Mule populates this database.)
+. Type `http://localhost:8787/populate` in the address bar of your browser, then press *enter* to activate the Travel Agent application and elicit a response in your browser that reads `db populated`. (Refer to the <<DatabaseInitialisation Flow>> section below to learn why Mule populates this database.)
 . Type `http://localhost:8090/travelAgent/` into the address bar of your browser, then press *enter* to access the Travel Agent Web browser form (see image below).
 +
 image:launch_page.png[launch_page]
@@ -67,22 +67,22 @@ The Mule ESB Travel Agent application contains multiple link:/docs/display/33X/M
 ////
  List of Flows and Subflows
 
-link:#TravelAgentExample-TravelAgentRequestFlow[TravelAgentRequest Flow] +
-link:#TravelAgentExample-RequestProxyFlow[RequestProxy Flow] +
-link:#TravelAgentExample-ReservationsFlow[Reservations Flow] +
-link:#TravelAgentExample-ReserveFlightSubflow[ReserveFlight Subflow] +
-link:#TravelAgentExample-GetAvailableRoomsSubflow[GetAvailableRooms Subflow] +
-link:#TravelAgentExample-GetBestHotelRoomSubflow[GetBestHotelRoom Subflow] +
-link:#TravelAgentExample-GetCommissionRateSubflow[GetCommissionRate Subflow] +
-link:#TravelAgentExample-ConfirmReservationsFlow[ConfirmReservations Flow] +
-link:#TravelAgentExample-ThrowExceptionFlow[ThrowException Flow] +
-link:#TravelAgentExample-CommissionServiceFlow[CommissionService Flow] +
-link:#TravelAgentExample-DatabaseInitialisationFlow[DatabaseInitialisation Flow] +
-link:#TravelAgentExample-ConfirmFlightSubflow[ConfirmFlight Subflow] +
-link:#TravelAgentExample-ConfirmHotelRoomSubflow[ConfirmHotelRoom Subflow] +
-link:#TravelAgentExample-AuthorisePaymentSubflow[AuthorisePayment Subflow] +
-link:#TravelAgentExample-CancelFlightSubflow[CancelFlight Subflow] +
-link:#TravelAgentExample-CancelPaymentSubflow[CancelPayment Subflow]
+<<TravelAgentRequest Flow>> +
+<<RequestProxy Flow>> +
+<<Reservations flow>> +
+<<ReserveFlight Subflow>> +
+<<GetAvailableRooms Subflow>> +
+<<GetBestHotelRoom Subflow>> +
+<<GetCommissionRate Subflow>> +
+<<ConfirmReservations Flow>> +
+<<ThrowException Flow>> +
+<<CommissionService Flow>> +
+<<DatabaseInitialisation Flow>> +
+<<ConfirmFlight Subflow>> +
+<<ConfirmHotelRoom Subflow>> +
+<<AuthorisePayment Subflow>> +
+CancelFlight Subflow +
+<<CancelFlight and CancelPayment Subflows>>
 ////
 [TIP]
 ====
@@ -105,7 +105,7 @@ image:travAgReq.png[travAgReq]
 
 The end user’s Web browser submits a request in http://en.wikipedia.org/wiki/JSON[JSON] format; the link:/docs/display/33X/Ajax+Endpoint+Reference[*AJAX Endpoint*] receives the message, then passes it to the next **link:/docs/display/33X/Mule+Studio+Essentials[message processor]** in the flow.
 
-The TravelAgentRequest flow must, eventually, pass the message to the link:#TravelAgentExample-Reservations[Reservations] flow via the request-response **link:/docs/display/33X/HTTP+Endpoint+Reference[HTTP Endpoint].** Because the Reservations flow only accepts XML messages, the TravelAgentRequest flow must first transform the data format of the message payload from JSON to XML. To perform the transformation, this flow uses an  **link:/docs/display/33X/DataMapper+Transformer+Reference[Anypoint DataMapper]**.
+The TravelAgentRequest flow must, eventually, pass the message to the <<ConfirmReservations Flow>> flow via the request-response **link:/docs/display/33X/HTTP+Endpoint+Reference[HTTP Endpoint].** Because the Reservations flow only accepts XML messages, the TravelAgentRequest flow must first transform the data format of the message payload from JSON to XML. To perform the transformation, this flow uses an  **link:/docs/display/33X/DataMapper+Transformer+Reference[Anypoint DataMapper]**.
 
 This flow next employs an **link:/docs/display/33X/XSLT+Transformer+Reference[XSLT Transformer]** to wrap the message in a SOAP envelope. Then, it uses the HTTP endpoint to push the message to the Reservations flow for processing.
 
@@ -187,7 +187,7 @@ Using another flow reference component, the Reservations flow invokes a third su
 
 Next, the **link:/docs/display/33X/Session+Variable+Transformer+Reference[Session Variable Transformer]** adds the flight and hotel costs, then appends the total travel cost to the message as a session variable.
 
-Then, the *VM Endpoint* invokes the link:#TravelAgentExample-ConfirmReservations[ConfirmReservations] flow to confirm all reservations and process the charges on a credit card.
+Then, the *VM Endpoint* invokes the <<ConfirmReservations Flow>> flow to confirm all reservations and process the charges on a credit card.
 
 The last element in the flow, the `Create TravelResponse` **link:/docs/display/33X/Expression+Transformer+Reference[Expression Transformer]**, prepares a response to return to the SOAP component. Mule uses expressions to define the contents of the response (see image below); in this case, the expressions defines two:
 
@@ -470,7 +470,7 @@ image:authorisePayment.png[authorisePayment]
 
 // View the XML
 
-Mule uses a credit card to pay for the total cost of the hotel room and flight bookings. This subflow uses a link:#[*JDBC Endpoint*] to retrieve credit card information from a database. Mule uses an SQL query (see image and code snippet below) to determine which credit card to use, and which data to retrieve.
+Mule uses a credit card to pay for the total cost of the hotel room and flight bookings. This subflow uses a *JDBC Endpoint* to retrieve credit card information from a database. Mule uses an SQL query (see image and code snippet below) to determine which credit card to use, and which data to retrieve.
 
 image:SQL_query.png[SQL_query]
 

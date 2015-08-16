@@ -6,58 +6,58 @@ This page covers the structural features you can build into Mule applications.
  Click here for a list of topics covered on this page
 [collapsed content]
 
-* link:#MuleApplicationArchitecture-MuleApplicationArchitecture[Mule Application Architecture]
+* Mule Application Architecture
 
-** link:#MuleApplicationArchitecture-AboutMule[About Mule]
+** <<About Mule>>
 
-** link:#MuleApplicationArchitecture-AboutMuleApplications[About Mule Applications]
+** <<About Mule Applications>>
 
-** link:#MuleApplicationArchitecture-AboutMuleApplicationDeployment[About Mule Application Deployment]
+** <<About Mule Application Deployment>>
 
-* link:#MuleApplicationArchitecture-AboutMuleExecutionUnits[About Mule Execution Units]
+* <<About Mule Execution Units>>
 
-** link:#MuleApplicationArchitecture-Flows[Flows]
+** <<Flows>>
 
-** link:#MuleApplicationArchitecture-ConfigurationPatterns[Configuration Patterns]
+** <<Configuration Patterns>>
 
-** link:#MuleApplicationArchitecture-AboutFlows[About Flows]
+** <<About Flows>>
 
-** link:#MuleApplicationArchitecture-FlowBuildingBlocks[Flow Building Blocks]
+** <<Flow Building Blocks>>
 
-*** link:#MuleApplicationArchitecture-MessageSource(Optional)[Message Source (Optional)]
+*** <<Message Source (Optional)>>
 
-*** link:#MuleApplicationArchitecture-MessageProcessors[Message Processors]
+*** <<Message Processors>>
 
-*** link:#MuleApplicationArchitecture-MessageProcessingBlocks[Message Processing Blocks]
+*** <<Message Processing Blocks>>
 
-*** link:#MuleApplicationArchitecture-Endpoints[Endpoints]
+*** <<Endpoints>>
 
-**** link:#MuleApplicationArchitecture-InboundEndpoints[Inbound Endpoints]
-**** link:#MuleApplicationArchitecture-OutboundEndpoints[Outbound Endpoints]
-**** link:#MuleApplicationArchitecture-Request-ResponseEndpoints[Request-Response Endpoints]
+**** <<Inbound Endpoints>>
+**** <<Outbound Endpoints>>
+**** <<Request-Response Endpoints>>
 
-*** link:#MuleApplicationArchitecture-ProcessingStrategies[Processing Strategies]
+*** <<Processing Strategies>>
 
-*** link:#MuleApplicationArchitecture-ExceptionStrategies[Exception Strategies]
+*** <<Exception Strategies>>
 
-** link:#MuleApplicationArchitecture-FlowArchitecture[Flow Architecture]
+** <<Flow Architecture>>
 
-** link:#MuleApplicationArchitecture-ChildFlows[Child Flows]
+** <<Child Flows>>
 
-*** link:#MuleApplicationArchitecture-Synchronous[Synchronous]
+*** <<Synchronous>>
 
-**** link:#MuleApplicationArchitecture-Subflows[Subflows]
-**** link:#MuleApplicationArchitecture-SynchronousChildFlowsthatarenotSubflows[Synchronous Child Flows that are not Subflows]
+**** <<Subflows>>
+**** <<Synchronous Child Flows that are not Subflows>>
 
-*** link:#MuleApplicationArchitecture-Asynchronous[Asynchronous]
+*** <<Asynchronous>>
 
-*** link:#MuleApplicationArchitecture-CallingChildFlows[Calling Child Flows]
+*** <<Calling Child Flows>>
 
-** link:#MuleApplicationArchitecture-FlowConfiguration[Flow Configuration]
+** <<Flow Configuration>>
 
-** link:#MuleApplicationArchitecture-AdvancedUseCase[Advanced Use Case]
+** <<Advanced Use Case>>
 
-*** link:#MuleApplicationArchitecture-HowItWorks[How It Works]
+*** <<How It Works>>
 ////
 
 == About Mule
@@ -314,7 +314,7 @@ image:XMLCatalogApp.png[XMLCatalogApp]
 ====
 *Key to Understanding the Schematics* +
 
-A solid line (below, left) indicates *synchronous* processing along a single thread, which is ideally suited to link:#MuleApplicationArchitecture-transactionalprocessing[transactional processing]. A dashed line (below, right) indicates simultaneous, parallel, *asynchronous* processing along multiple threads. +
+A solid line (below, left) indicates *synchronous* processing along a single thread, which is ideally suited to transactional processing. A dashed line (below, right) indicates simultaneous, parallel, *asynchronous* processing along multiple threads. +
  +
  image:DiagramKey.png[DiagramKey]
 ====
@@ -350,7 +350,7 @@ The application can then “roll back” (i.e., undo) all the successully comple
 
 Sometimes, in addition to rolling back all the steps in the original, failed processing instance, the application can recover the original message and reprocess it from the beginning. Since all traces of the previous, failed attempt have been erased, a single message ultimately produces a only single set of results.
 
-Typically, transactionality is difficult to implement for Mule flows that transfer processing control across threads, which occurs for most types of branch processing. However, certain measures (such as the use of VM endpoints at the beginning and end of each child flow that does not run on the main flow’s thread) can ensure that each of these child flows executes successfully _as a unit_, although this architecture does not ensure that each message processor within one of these child flows completes its task sucessfully. For details see: link:#MuleApplicationArchitecture-TwoQueueExample[Two Queue Example].
+Typically, transactionality is difficult to implement for Mule flows that transfer processing control across threads, which occurs for most types of branch processing. However, certain measures (such as the use of VM endpoints at the beginning and end of each child flow that does not run on the main flow’s thread) can ensure that each of these child flows executes successfully _as a unit_, although this architecture does not ensure that each message processor within one of these child flows completes its task sucessfully. For details see: Two Queue Example.
 ====
 ////
 
@@ -378,9 +378,9 @@ Asynchronous Flows begin processing when triggered by the main flow (or a child 
 
 The Flow Reference Component can call three distinct types of child flows.
 
-The first type, known as a link:#MuleApplicationArchitecture-Subflows[*Subflow*], is synchronous and always inherits both the processing strategy and exception strategy employed by the parent flow. While a Subflow is running, processing on the parent flow pauses, and it resumes only after the Subflow completes and hands control back to the parent flow. Also, because a subflow must be named, it can be referenced multiple times by Flow Reference Components scattered about the main flow.
+The first type, known as a <<Subflows>>, is synchronous and always inherits both the processing strategy and exception strategy employed by the parent flow. While a Subflow is running, processing on the parent flow pauses, and it resumes only after the Subflow completes and hands control back to the parent flow. Also, because a subflow must be named, it can be referenced multiple times by Flow Reference Components scattered about the main flow.
 
-The second type of child flow is called a link:#MuleApplicationArchitecture-SynchronousChildFlowsthatarenotSubflows[*Synchronous Child Flow*], which is named, and therefore can be reused just like a Subflow. Also just like a Subflow, a Synchronous Child Flow causes the parent flow to pause until it completes execution. _However_, unlike a Subflow, a Synchronous Child Flow does *not* inherit the exception strategy used by the parent flow. This allows special error handling measures to be applied to just the message processing events within the Synchronous Child Flow.
+The second type of child flow is called a <<Synchronous Child Flows that are not Subflows>>, which is named, and therefore can be reused just like a Subflow. Also just like a Subflow, a Synchronous Child Flow causes the parent flow to pause until it completes execution. _However_, unlike a Subflow, a Synchronous Child Flow does *not* inherit the exception strategy used by the parent flow. This allows special error handling measures to be applied to just the message processing events within the Synchronous Child Flow.
 
 The third type of child flow you can call through the *Flow Reference* Component is called an *Asynchronus Child Flow*. Note that an asynchronous flow called in this manner must be named, and because it exists outside the parent flow, it can be called (i.e., reused) multiple times.
 

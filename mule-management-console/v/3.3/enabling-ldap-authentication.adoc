@@ -29,14 +29,14 @@ When using LDAP, the console needs to authenticate _itself_ on the LDAP server t
 
 For example, you can create a user on the LDAP database called `mmc`, and configure the console to connect to the LDAP server using `mmc`'s credentials. When a user logs into the console — as user `admin`, for example — the console first authenticates _itself_ on the LDAP server using `mmc`'s credentials, then it sends `admin`'s credentials to the LDAP server. If `admin`'s credentials are valid, the LDAP server provides the console with `admin`'s group information. The console then grants appropriate permissions to `admin` in accordance with the permissions specified for the groups to which `admin` belongs.
 
-The last section of this document provides an link:#EnablingLDAPAuthentication-Example[example] detailing this configuration.
+The last section of this document provides an <<Example: A Simple LDAP Setup>> detailing this configuration.
 
 To configure the console to authenticate users via LDAP, perform the following high-level tasks:
 
-* link:#EnablingLDAPAuthentication-ObtainLDAPparameters[Obtain LDAP parameters]
-* link:#EnablingLDAPAuthentication-SetupusersandgroupsonLDAP[Set up users and groups on LDAP]
-* link:#EnablingLDAPAuthentication-EnablingtheLDAPSpringprofile[Enable the LDAP Spring profile]
-* link:#EnablingLDAPAuthentication-EnablingLDAPontheconsole[Enable LDAP on the console]
+* <<Obtain LDAP parameters>>
+* <<Set up users and groups on LDAP>>
+* <<Enabling the LDAP Spring Profile>>
+* <<Enabling LDAP on the console>>
 
 == Obtain LDAP parameters
 
@@ -44,13 +44,13 @@ Ask your LDAP server administrator for the following information:
 
 * *The LDAP host and listening port*. The host can be an IP address or hostname. Example: `192.168.1.14` on port `389`.
 * *The LDAP user account credentials that the console uses to connect to LDAP*. This is the user account configured on the LDAP server that allows the console access to the database storing information about the console users. Example: user: `mmc` password: `mmc123`
-* *Structure of the LDAP tree that stores user and group information for console users*. This data provides the base context and attributes that the console uses to search within LDAP for users. The LDAP server administrator can export these values from the LDAP server onto a text file called an LDIF file (for LDAP Data Interchange Format). The link:#EnablingLDAPAuthentication-Example[example] provided in this document includes the LDIF export for the illustrated working configuration (see link:#EnablingLDAPAuthentication-PopulatingtheLDAPdatabasebyimportinganLDIFfile[Populating the LDAP database by importing an LDIF file])
+* *Structure of the LDAP tree that stores user and group information for console users*. This data provides the base context and attributes that the console uses to search within LDAP for users. The LDAP server administrator can export these values from the LDAP server onto a text file called an LDIF file (for LDAP Data Interchange Format). The <<Example: A Simple LDAP Setup>> provided in this document includes the LDIF export for the illustrated working configuration (see Populating the LDAP database by importing an LDIF file)
 
 == Set up users and groups on LDAP
 
 You must create all users on the LDAP server. In other words, it is not possible to create users on LDAP via the console, since the console can only read the LDAP database, and cannot write to it.
 
-User groups must be created on LDAP, and _also on the console_. As described link:#EnablingLDAPAuthentication-ManagementandStorageTable[above], group permissions are defined and stored on the console.
+User groups must be created on LDAP, and _also on the console_. As described above, group permissions are defined and stored on the console.
 
 The following table lists user- and group-related tasks, specifying whether they are performed on the console or the LDAP server (or both).
 
@@ -70,8 +70,8 @@ You must create all console users under the same subtree of the LDAP database, s
 
 You must enable LDAP on the console so that the console can authenticate users against the LDAP server. The procedure involves two steps:
 
-. link:#EnablingLDAPAuthentication-EnablingtheLDAPSpringprofile[Enabling the LDAP Spring profile]
-. link:#EnablingLDAPAuthentication-CreatingtheLDAPConfigurationfile[Creating the LDAP Configuration file]
+. <<Enabling the LDAP Spring Profile>>
+. <<Creating the LDAP Configuration File>>
 
 These steps involve the following two files:
 
@@ -172,7 +172,7 @@ On the LDAP server:
 On the console:
 
 . Stop the console.
-. Enable LDAP on the console (see instructions link:#EnablingLDAPAuthentication-EnablingLDAPontheconsole[above]).
+. Enable LDAP on the console (see instructions <<Enabling LDAP on the console>>).
 . Re-start the console.
 . Log in as user `admin`, using the password set on the LDAP server.
 
@@ -210,11 +210,11 @@ This example was created using the following system specifications:
 
 This example provides a basic overview of the following tasks:
 
-* link:#EnablingLDAPAuthentication-DownloadinginstallingOpenLDAP[Download and install the OpenLDAP server and utilities]
-* link:#EnablingLDAPAuthentication-DownloadingandinstallingtheApacheDirectoryStudioLDAPbrowser[Download and install the Apache Directory Studio LDAP browser]
-* link:#EnablingLDAPAuthentication-ConfiguringtheLDAPServer[Configure the LDAP server and create the database]
-* link:#EnablingLDAPAuthentication-PopulatingtheLDAPdatabaseusingaGUI[Create LDAP users and groups using Apache Directory Studio] (or alternatively, link:#EnablingLDAPAuthentication-PopulatingtheLDAPdatabasebyimportinganLDIFfile[create the users and groups by importing an LDIF file])
-* link:#EnablingLDAPAuthentication-ConfiguretheconsoleforLDAP[Configure the console for use with LDAP]
+* Download and install the OpenLDAP server and utilities
+* <<Downloading and installing the Apache Directory Studio LDAP browser>>
+* <<Configuring the LDAP Server>>
+* Create LDAP users and groups using Apache Directory Studio (or alternatively, create the users and groups by importing an LDIF file)
+* Configure the console for use with LDAP
 
 === Downloading and installing the OpenLDAP server
 
@@ -280,10 +280,10 @@ The OpenLDAP server runs as a daemon called `slapd`. After installing the distri
 
 In this example, we modify `slapd`'s configuration to read its parameters from the system-wide LDAP configuration file, `/etc/ldap/ldap.conf`. We then modify this file to include the definition for the database containing the LDAP users. This includes four steps:
 
-. link:#EnablingLDAPAuthentication-Stoppingtheslapddaemon[Stop the `slapd` daemon]
-. link:#EnablingLDAPAuthentication-ModifyingLDAP&#39;sdefaultparametersfile[Modify slapd's default parameters file, `/etc/default/slapd`]
-. link:#EnablingLDAPAuthentication-Modifyingthesystem-wideLDAPconfigurationfile[Modify the system-wide LDAP configuration file, `/etc/ldap/ldap.conf`]
-. link:#EnablingLDAPAuthentication-Restartingthe{{slapd}}daemon[Restart the `slapd` daemon]
+. <<Stopping the slapd daemon>>
+. Modify slapd's default parameters file, `/etc/default/slapd`
+. Modify the system-wide LDAP configuration file, `/etc/ldap/ldap.conf`
+. Restart the `slapd` daemon
 
 ==== Stopping the `slapd` daemon
 
@@ -368,7 +368,7 @@ The following table describes LDAP configuration file parameters:
 
 [TIP]
 ====
-As shown link:#EnablingLDAPAuthentication-System-wideLDAPconfigurationfile[above], the LDAP configuration file stores the user name and password for the root user of the database. The password can be stored in clear text; however, this constitutes a security risk, since the LDAP configuration file is world-readable. To generate a hash for the password, run the following command: `slappasswd -h <scheme> -s <secret>`
+As shown above, the LDAP configuration file stores the user name and password for the root user of the database. The password can be stored in clear text; however, this constitutes a security risk, since the LDAP configuration file is world-readable. To generate a hash for the password, run the following command: `slappasswd -h <scheme> -s <secret>`
 
 `<scheme>` is an RFC 2307 scheme such as \{MD5}, \{CRYPT} or \{SSHA} (the default), and `<secret>` is the secret to hash. If invoked with no arguments, the command prompts for the secret and outputs the resulting \{SSHA} hash.
 
@@ -461,8 +461,8 @@ We log in with this user in order to populate the database.
 
 There are two methods for populating the LDAP database: manually defining each database object by means of a graphical user interface, or writing an LDIF file with the database object definitions, then importing the file into LDAP. This example describes both methods:
 
-link:#EnablingLDAPAuthentication-PopulatingtheLDAPdatabaseusingaGUI[Populating the LDAP database using a GUI (Apache Studio)] +
-link:#EnablingLDAPAuthentication-PopulatingtheLDAPdatabasebyimportinganLDIFfile[Populating the LDAP database by importing an LDIF file]
+<<Populating the LDAP database using a GUI (Apache Studio)>> +
+Populating the LDAP database by importing an LDIF file
 
 ===== Populating the LDAP database using a GUI (Apache Studio)
 
@@ -664,7 +664,7 @@ Following the procedures outlined above, create a user called *testuser1* and a 
 
 ==== Configure the console for LDAP
 
-Follow the procedure outlined link:#EnablingLDAPAuthentication-EnablingLDAPontheconsole[above] to Enable LDAP on the console. For this example, the contents of the `mmc-ldap.properties` file are as follows:
+Follow the procedure outlined <<Enabling LDAP on the console>> to Enable LDAP on the console. For this example, the contents of the `mmc-ldap.properties` file are as follows:
 
 [source]
 ----

@@ -16,7 +16,7 @@ You can use a cache scope to reduce the processing load on the Mule instance and
 
 For instance, you can use a cache scope to manage customer requests for flight information. Many customers may request the same pricing information about flights from San Francisco to Buenos Aires. Rather than using a lot of processing power to send separate requests to several airline databases with each customer query, you can use a cache scope to arrange to send a request to the databases fewer times – say, once every ten minutes – and present users with the cached flight pricing information. Where timeliness of data is not critical, cache scope can save time and processing power.
 
-*link:#CacheScope-CompleteCodeExample[Skip to the Code]*
+**
 
 == Caching Strategy
 
@@ -32,7 +32,7 @@ You can customize a global caching strategy in Mule for the cache scopes in your
 By default, all cache scopes in Mule applications follow the caching strategy procedure described below.
 
 [NOTE]
-The default caching strategy uses an InMemoryObject store and should only be used for testing; on actual implementations you should link:#CacheScope-CreatingaCachingStrategy[provide a custom caching strategy].
+The default caching strategy uses an InMemoryObject store and should only be used for testing; on actual implementations you should <<Creating a Caching Strategy>>.
 
 . A message enters the cache scope.
 . Cache scope determines whether the message’s payload is consumable. A **consumable payload **can only be read once before it is lost – such as a streaming payload – and cannot be cached. +
@@ -56,7 +56,7 @@ If you want to enable the old behavior on your caching strategy (i.e. provide a 
 * *entryTTL*: -1
 * *expirationInterval*: 1000
 
-For details on configuring caching strategies, see link:#CacheScope-cachingstrat[Creating a Caching Strategy].
+For details on configuring caching strategies, see <<Creating a Caching Strategy>>.
 
 == Adding and Configuring a Cache Scope
 
@@ -81,8 +81,8 @@ image:cache_scope.png[cache_scope] +
 |===
 |Field |Value |Description |XML
 |*Display Name* |Cache |Customize to display a unique name for the scope in your application. |`doc:name="Cache"`
-.2+|*Caching strategy reference* |Use Default caching strategy |(Default) Select if you want the cache scope to follow Mule’s link:#CacheScope-DefaultCachingStrategy[default caching strategy]. |n/a
-|Reference to a strategy |Select to configure the cache scope to follow a link:#CacheScope-CreatingaGlobalCachingStrategy[global caching strategy] that you have created; select the global caching strategy from the drop-down menu or create one by clicking the image:/docs/s/en_GB/3391/c989735defd8798a9d5e69c058c254be2e5a762b.76/_/images/icons/emoticons/add.png[(plus)]. |`cachingStrategy-ref="Caching_Strategy"`
+.2+|*Caching strategy reference* |Use Default caching strategy |(Default) Select if you want the cache scope to follow Mule’s <<Default Caching Strategy>>. |n/a
+|Reference to a strategy |Select to configure the cache scope to follow a global caching strategy that you have created; select the global caching strategy from the drop-down menu or create one by clicking the image:/docs/s/en_GB/3391/c989735defd8798a9d5e69c058c254be2e5a762b.76/_/images/icons/emoticons/add.png[(plus)]. |`cachingStrategy-ref="Caching_Strategy"`
 .3+|*Filter* |Process all messages |(Default) Select if you want the cache scope to execute the caching strategy for all messages that enter the scope. |n/a
 |Filter messages using an expression |Select if you want the cache scope to execute the caching strategy ONLY for messages that match the expression(s) defined in this field. +
  +
@@ -118,7 +118,7 @@ Note: Attribute not required in Mule Standalone configuration.
 
 |*filterExpression* |  |(Optional) Specify one or more expressions against which the cache scope should evaluate the message to determine whether the caching strategy should be executed.
 |*filter-ref* |  |(Optional) Specify the name of a filtering strategy that you have defined as a global element. This attribute is mutually exclusive with filterExpression.
-|*cachingStrategy-ref* |  |(Optional) Specify the name of the global caching strategy that you have defined as a global element. If no `cachingStrategy-ref` is defined, Mule will use the link:#CacheScope-DefaultCachingStrategy[default caching strategy].
+|*cachingStrategy-ref* |  |(Optional) Specify the name of the global caching strategy that you have defined as a global element. If no `cachingStrategy-ref` is defined, Mule will use the <<Default Caching Strategy>>.
 |===
 
 . Add nested elements beneath your `ee:cache` element to define what processing should occur within the scope. The cache scope can contain any number of message processors as well as references to child flows.
@@ -153,7 +153,7 @@ image:caching_strategy_general.png[caching_strategy_general] +
 |===
 |Field |Value |Description |XML
 |*Name* |Caching_Strategy |Customize to create a unique name for your global caching strategy. |`name="Caching_Strategy"`
-|*Object Store* | |(Optional) Configure an object store in which Mule will store all of the scope’s cached responses. Refer to the link:#CacheScope-ConfiguringanObjectStoreforCache[Configuring an Object Store for Cache] section below for configuration specifics. Unless otherwise configured, Mule stores all cached responses in an InMemoryObjectStore by default. |`<custom-object-store>` +
+|*Object Store* | |(Optional) Configure an object store in which Mule will store all of the scope’s cached responses. Refer to the <<Configuring an Object Store for Cache>> section below for configuration specifics. Unless otherwise configured, Mule stores all cached responses in an InMemoryObjectStore by default. |`<custom-object-store>` +
  +
 `<in-memory-store>` +
  +
@@ -218,7 +218,7 @@ If you configure neither a keyGenerationExpression or a keyGenerator-ref, Mule u
 |*ee:serializable-event-copy-strategy* |Use if data is mutable or the Mule flow has mutated the data. The payload that Mule caches is not the same as that returned by the flow, which has been serialized/deserialized in order to create a new copy of the object. Every generated response will contain a new payload. +
  +
 _If you do not configure this child element, Mule will follow the simple event copy strategy by default._ Data is either immutable, like a String, or the Mule flow has not mutated the data. The payload that Mule caches is the same as that returned by the flow. Every generated response will contain the same payload.
-|*custom-object-store* .3+|See link:#CacheScope-ConfiguringAnObjectStoreforCache[Configuring An Object Store for Cache], below
+|*custom-object-store* .3+|See <<Configuring an Object Store for Cache>>, below
 |*in-memory-store*
 |*managed-store*
 |*simple-text-file-store*
@@ -228,7 +228,7 @@ _If you do not configure this child element, Mule will follow the simple event c
 
 == Configuring an Object Store for Cache
 
-By default, Mule stores all cached responses in an InMemoryObjectStore. link:#CacheScope-CreatingaCachingStrategy[Create a caching strategy] and define a new link:/docs/display/current/Mule+Object+Stores[object store] if you want to customize the way Mule stores cached responses.
+By default, Mule stores all cached responses in an InMemoryObjectStore. <<Creating a Caching Strategy>> and define a new link:/docs/display/current/Mule+Object+Stores[object store] if you want to customize the way Mule stores cached responses.
 
 [width="100%",cols="50%,50%",options="header",]
 |===
