@@ -1,5 +1,7 @@
 = Extending the Mule Agent
-:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
+:license-info: Enterprise
+:version-info: 3.6.0 and later
+:keywords: esb, enterprise, agent, api
 
 This document contains an overview of how to extend the Mule agent. It provides instructions on implementing a complete service, external handler and internal hander using a simple method to revert a string.
 
@@ -11,14 +13,14 @@ The Mule agent contains the following extensible components:
 * link:#ExtendingtheMuleAgent-ext_mh[External message handers]
 * link:#ExtendingtheMuleAgent-int_mh[Internal message handlers]
 
-== https://github.com/mulesoft/mule-agent/blob/master/mule-agent-documentation/mule-agent-documentation-extending/src/doc/asciidoc/2_mule-agent-component-structure.adoc#mule-agent-custom-component-structure[]Mule Agent Custom Component Structure
+== Mule Agent Custom Component Structure
 
 A Mule agent custom component should comply with the following structure:
 
 * `/lib` contains component dependencies
 * `/classes` contain compiled classes
 
-For this example, in order to acquire the libraries necessary to extend the agent, add the following dependencies to your `pom.xml`:
+For this example, to acquire the libraries necessary to extend the agent, add the following dependencies to your `pom.xml`:
 
 [source,xml]
 ----
@@ -50,13 +52,13 @@ To add a new service, you must implement the link:#ExtendingtheMuleAgent-MuleAge
 Considerations for custom services:
 
 * The service can execute any internal handler registered in the Mule Agent environment, by using the `@Inject` annotation.
-* You don't have to follow the Mule Agent architecture in order to create a new service.
+* You don't have to follow the Mule Agent architecture to create a new service.
 
 === Writing Your Service
 
 ==== Implementing MuleAgentService
 
-[source, java]
+[source,java]
 ----
 @Named("my.company.service")
 @Singleton
@@ -90,7 +92,7 @@ To add your new Service, just drop the jar containing your classes under the `l
 
 As explained link:#ExtendingtheMuleAgent-overview[above], this document uses a simple example to explain how to write a full extension to revert a string. The first step is to add a service for this purpose.
 
-[source, java]
+[source,java]
 ----
 @Named("com.company.service.reverse")
 @Singleton
@@ -137,17 +139,16 @@ To add a new external message handler, you have to implement the Mule agent lin
 
 Considerations for custom external message handlers:
 
-* The external message handler will be injected into a transport
+* The external message handler is injected into a transport
 * The external message handler must be thread-safe
 * An external message handler is executed by a transport and cannot interact with Mule. *Only Services can interact with Mule*
 
 === Writing Your External Message Handler
 
-====REST
+==== REST
 
-[source, java]
+[source,java]
 ----
-
 @Named("my.external.handler")
 @Path("somePath")
 @Singleton
@@ -177,25 +178,25 @@ public class MyRequestHandler implements ExternalMessageHandler
 
 ==== WebSockets
 
-[source, java]
+[source,java]
 ----
 @Named("TYPE_OF_MESSAGE_THAT_MUST_DISPATCH")
 @Singleton
 public class MyRequestHandler implements ExternalMessageHandler
 {
-    @Inject
-    private MuleService muleServiceInTheAPIModule;
- 
-    @Override
-    public void enable(boolean state) throws AgentEnableOperationException {
-        // TODO: enable the Handler
-    }
- 
-    @Override
-    public boolean isEnabled() {
-        // TODO: return Handler status
-    }
- 
+    @Inject
+    private MuleService muleServiceInTheAPIModule;
+
+    @Override
+    public void enable(boolean state) throws AgentEnableOperationException {
+        // TODO: enable the Handler
+    }
+
+    @Override
+    public boolean isEnabled() {
+        // TODO: return Handler status
+    }
+
 }
 ----
 
@@ -205,34 +206,34 @@ To add your new external message handler, just drop the jar containing your clas
 
 Following the Reverse String example, the External Handler is shown below.
 
-[source, java]
+[source,java]
 ----
 @Named("com.company.externalhandler.reverse")
 @Path("revert")
 @Singleton
 public class ReverseExternalHandler implements ExternalMessageHandler
 {
- 
-    @Inject
-    private ReverseService reverseService;
- 
-    @Override
-    public void enable(boolean b) throws AgentEnableOperationException
-    {
- 
-    }
- 
-    @Override
-    public boolean isEnabled()
-    {
-        return true;
-    }
- 
-    @GET
-    public String getReversedString(@QueryParam("string") String string)
-    {
-        return reverseService.getConvertedString(string);
-    }
+
+    @Inject
+    private ReverseService reverseService;
+
+    @Override
+    public void enable(boolean b) throws AgentEnableOperationException
+    {
+
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+        return true;
+    }
+
+    @GET
+    public String getReversedString(@QueryParam("string") String string)
+    {
+        return reverseService.getConvertedString(string);
+    }
 }
 ----
 
@@ -244,31 +245,31 @@ To add a new internal message handler, you have to implement the link:#Extendin
 
 Considerations for custom internal message handlers:
 
-* The internal message handler will be injected into a service based on the message types it handles
+* The internal message handler is injected into a service based on the message types it handles
 * The internal message handler must be thread-safe
 * An internal message handler is executed by a service and cannot interact with Mule. *Only Services can interact with Mule*
 
 === Writing Your Internal Message Handler
 
-[source, java]
+[source,java]
 ----
 @Named("my.company.internal.handler")
 @Singleton
 public class MyInternalMessageHandler<T> implements InternalMessageHandler<T>{
- 
-    boolean handle(T t){
-          // TODO handle message
-    }
- 
-    @Override
-    public void enable(boolean state) throws AgentEnableOperationException {
-        // TODO: enable the Handler
-    }
- 
-    @Override
-    public boolean isEnabled() {
-        // TODO: return Handler status
-    }
+
+    boolean handle(T t){
+          // TODO handle message
+    }
+
+    @Override
+    public void enable(boolean state) throws AgentEnableOperationException {
+        // TODO: enable the Handler
+    }
+
+    @Override
+    public boolean isEnabled() {
+        // TODO: return Handler status
+    }
 }
 ----
 
@@ -278,78 +279,78 @@ To add your new internal message handler, just drop the jar containing your clas
 
 The code below shows an internal message handler for the reverse string example.
 
-[source, java]
+[source,java]
 ----
 @Named("com.mulesoft.agent.test.extension.internalHandler")
 @Singleton
 public class ReverseInternalHandler extends BufferedHandler<String>
 {
- 
-    @Configurable("true")
-    protected boolean enabled;
- 
-    @Configurable
-    public String host;
- 
-    @Configurable
-    public String port;
- 
-    @Inject
-    public ReverseInternalHandler()
-    {
-        super();
-    }
- 
-    @Override
-    protected boolean canHandle(String t)
-    {
-        return true;
-    }
- 
-    @Override
-    protected boolean flush(Collection<String> ts)
-    {
-        String tempDir = System.getProperty("java.io.tmpdir");
-        File revertedStringFile = new File(tempDir, "revertedString.txt");
- 
-        try
-        {
-            FileOutputStream fos = new FileOutputStream(revertedStringFile);
- 
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
- 
-            for (String string : ts)
-            {
-                bw.write(string);
-                bw.newLine();
-            }
- 
-            bw.close();
-        }
-        catch (IOException e)
-        {
-            System.out.println("Error writing reversed string");
-            return false;
-        }
-        return true;
-    }
- 
-    @PostConfigure
-    public void postConfigure()
-    {
-    }
- 
-    @Override
-    public void enable(boolean b) throws AgentEnableOperationException
-    {
-      enabled = b;
-    }
- 
-    @Override
-    public boolean isEnabled()
-    {
-        return enabled;
-    }
+
+    @Configurable("true")
+    protected boolean enabled;
+
+    @Configurable
+    public String host;
+
+    @Configurable
+    public String port;
+
+    @Inject
+    public ReverseInternalHandler()
+    {
+        super();
+    }
+
+    @Override
+    protected boolean canHandle(String t)
+    {
+        return true;
+    }
+
+    @Override
+    protected boolean flush(Collection<String> ts)
+    {
+        String tempDir = System.getProperty("java.io.tmpdir");
+        File revertedStringFile = new File(tempDir, "revertedString.txt");
+
+        try
+        {
+            FileOutputStream fos = new FileOutputStream(revertedStringFile);
+
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+
+            for (String string : ts)
+            {
+                bw.write(string);
+                bw.newLine();
+            }
+
+            bw.close();
+        }
+        catch (IOException e)
+        {
+            System.out.println("Error writing reversed string");
+            return false;
+        }
+        return true;
+    }
+
+    @PostConfigure
+    public void postConfigure()
+    {
+    }
+
+    @Override
+    public void enable(boolean b) throws AgentEnableOperationException
+    {
+      enabled = b;
+    }
+
+    @Override
+    public boolean isEnabled()
+    {
+        return enabled;
+    }
 }
 ----
 
@@ -359,106 +360,108 @@ This internal message handler writes the message processed by the service to a f
 
 === Mule Service
 
-[source, java]
+[source,java]
 ----
-**
- * <p>
- * Implementations of this interface provides new functionality to the Mule Agent. These services handle data from the
- * Mule server and interact with mule.
- * </p>
- *
- * @see com.mulesoft.agent.handlers.ExternalMessageHandler , InternalMessageHandler
- * @since 1.0
- */
+/**
+ * <p>
+ * Implementations of this interface provides new functionality
+ * to the Mule Agent. These services handle data from the
+ * Mule server and interact with Mule.
+ * </p>
+ *
+ * @see com.mulesoft.agent.handlers.ExternalMessageHandler , InternalMessageHandler
+ * @since 1.0
+ */
 public interface MuleAgentService extends Switcher
 {
- 
-    public List<InternalMessageHandler> getInternalHandlers();
- 
+
+    public List<InternalMessageHandler> getInternalHandlers();
+
 }
 ----
 
 === External Message Handler
 
-[source, java]
+[source,java]
 ----
 /**
- * <p>
- * Gets  messages coming from an external system and executes {@link com.mulesoft.agent.services.MuleAgentService} based
- * the request.
- * </p>
- * <p>
- * This is just a marker interface for the communication layer to recognize the interface as a External message receiver
- * </p>
- *
- * @since 1.0
- */
+ * <p>
+ * Gets messages coming from an external system and executes
+ * {@link com.mulesoft.agent.services.MuleAgentService} based
+ * on the request.
+ * </p>
+ * <p>
+ * This is just a marker interface for the communication layer to
+ * recognize the interface as a External message receiver
+ * </p>
+ *
+ * @since 1.0
+ */
 public interface ExternalMessageHandler extends Switcher
 {
- 
+
 }
 ----
 
 === Internal Message Handler
 
-[source, java]
+[source,java]
 ----
 /**
- * <p>
- * Internal messages come generally from mule side. {@link InternalMessageHandler} are use to handle those messages depending on,
- * for example, the transport.
- * </p>
- *
- * @param <Rq> is the type of the message it must handle
- * @since 1.0
- */
+ * <p>
+ * Internal messages come generally from mule side. {@link InternalMessageHandler}
+ * are use to handle those messages depending on, for example, the transport.
+ * </p>
+ *
+ * @param <Rq> is the type of the message it must handle
+ * @since 1.0
+ */
 public interface InternalMessageHandler<Rq> extends Switcher
 {
- 
-    /**
-     * <p>
-     * Process an internal message
-     * </p>
-     *
-     * @param message The message to be processed
-     * @return true if the message could be processed
-     */
-    boolean handle(@NotNull Rq message);
- 
+    /**
+     * <p>
+     * Process an internal message
+     * </p>
+     *
+     * @param message The message to be processed
+     * @return true if the message could be processed
+     */
+    boolean handle(@NotNull Rq message);
 }
 ----
+
 === Switcher
 
-[source, java]
+[source,java]
 ----
 /**
- * <p>
- * All the classes implementing this interface will be able to enable/disable themselves
- * </p>
- *
- * @since 1.0
- */
+ * <p>
+ * All the classes implementing this interface are able to enable/disable themselves
+ * </p>
+ *
+ * @since 1.0
+ */
 public interface Switcher
 {
-    /**
-     * <p>
-     * Turn the feature on, the class will be behave as expected
-     * <br/>
-     * If the feature is being disabled, any resources it has allocated should be freed and taken again when it is reenabled
-     * </p>
-     * @param state true if enabled, false otherwise
-     * @throws AgentEnableOperationException if the end state is not the requested one
-     */
-    void enable(boolean state) throws AgentEnableOperationException;
- 
-    /**
-     * <p>
-     * Check the state of the class
-     * </p>
-     *
-     * @return true if it is on, false otherwise
-     */
-    boolean isEnabled();
- 
+    /**
+     * <p>
+     * Turn the feature on, the class behaves as expected
+     * <br/>
+     * If the feature is being disabled, any resources it has allocated
+     * should be freed and taken again when it is reenabled
+     * </p>
+     * @param state true if enabled, false otherwise
+     * @throws AgentEnableOperationException if the end state is not the requested one
+     */
+    void enable(boolean state) throws AgentEnableOperationException;
+
+    /**
+     * <p>
+     * Check the state of the class
+     * </p>
+     *
+     * @return true if it is on, false otherwise
+     */
+    boolean isEnabled();
 }
 ----

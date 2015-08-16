@@ -1,0 +1,614 @@
+= Connector Testing Framework
+:keywords: devkit, test, framework
+:imagessdir: ./img/
+
+The Connector Testing Framework eases the creation of a connector functional tests, where the developer is not necessarily involved with Mule's internals, such as flows, configuration and Spring beans. The objective of this framework is twofold. On the one hand, we decouple how Mule works and how functional tests are written. On the other hand, we enable a runtime platform to run connector tests with multiple Mule versions by executing the tests in remote Mule instances, achieving a decoupled runtime environment.
+
+The document is organised as follows:
+
+. Overview of the framework
+. Framework Interfaces
+. A Practical Example
+. Testing @Paged methods and DataSense
+. Framework Configuration
+
+If you are coming from the old testing framework, the Mule Connector Test, first read the migration guide here.
+
+== Overview
+
+The Connector Testing Framework is the default testing framework for writing connector functional tests. It has evolved from a previous testing framework, where the notion of Mule flows and Spring beans were used. We now have a simple and well-defined interface to run functional tests in different ways: Embedded orRemote.
+
+The overall approach is to decouple the test itself from where it is executed, thus enabling a developer to determine whether a test runs in different Mule versions. For instance, a connector written for Mule 3.5 can now be automatically tested in Mule releases 3.x and determine backward-compatibility and forward-compatibility issues, as well as class-loading problems.
+
+The following scheme simply illustrates how a connector test is executed. The main idea is that the test is decoupled from the Mule runtime in which it is executed. The Connector Testing Framework enables us to execute a connector operation in a remote Mule instance, either standalone or a CloudHub instance.
+
+image::connector-testing-framework-1.png[image]
+
+== Framework Interfaces
+
+This framework provides a simple, yet complete, interface to keep a connector test simple and readable. The following class diagram illustrates the framework user interface.
+
+image::connector-testing-framework-1.png[image]
+
+There are three main components:
+
+. `ConnectorTestContext<T>`: Main class of the framework, providing an interface for the other two important classes: the `ConnectorDispatcher` and the Platform Manager. This class contains the following methods:
+.. `initialize(Class<T> connectorClass)`: A class method to initialize the entire framework, possible including the packaging of the connector, which might take a while to execute. It requires the class of the connector under test.
+.. `getInstance()`: A class method that returns the only instance of the connector context prior to initialization. Otherwise, it throws an exception if the framework has not been initialized.
+.. `getPlatformManager()`: Returns the only instance of the platform manager in charge of dealing with the framework life cycle.
+.. `getConnectorDispatcher()`: Returns the only instance of the connector dispatcher, which is in charge of executing the connector operations.
+. `ConnectorDispatcher<T>`: An interface enabling the execution of connector operations, including paginated and DataSense operations. It contains the following methods:
+.. `createMockup()`: Returns an instance of the connector being tested, which is the same class type as used as an argument in the initialization of the framework through  `ConnectorTestContext.initialize(connectorClass)`. Tests operations are executed through this instance, except for operations annotated with `@Paged`.
+.. `runPaginatedMethod(String methodName, Object[] args)`: Connector operations annotated with @Paged are executed through this method, which requires the operation name (camel case) and an array of arguments for that operation.
+.. `fetchMetaDataKeys()`: Returns a Result (from org.mule.commons) containing a list of `MetaDataKeys` (from `org.mule.common.metadata`) in order to test DataSense.
+.. `fetchMetaData(MetaDataKey key)`: Returns a MetaData object (from `org.mule.common.metadata`) for a particular `MetaDataKey` (from `org.mule.common.metadata`).
+. `PlatformManager`: An interface representing the underlying platform manager in charge of initializing and shutting down the framework. It exposes two operations to deal with this behaviour accordingly and maintains a `PlatformState`, which can be STOPPED or STARTED.
+
+The next section introduces a practical example and the correct use of these interfaces.
+
+== A Practical Example
+
+The testing framework is completely agnostic to the actual unit testing framework used within a connector. Normally we use JUnit test cases within Mule connector test cases; however we can employ this new testing framework with any other unit testing tools, such as TestNG.
+
+In this practical example, we consider JUnit as our unit testing framework, where the following two steps detail a simple use case of this framework.
+
+. Normally a test suite is used, either a SmokeTestSuite, a RegressionTestSuite, or similar. This example uses a RegressionSuite, which aggregates all available tests within a connector. We add the following initialization code to our test suite. If no test suite is used, the following initialization code should go within the test itself:
++
+[source,java]
+----
+package org.mule.modules.connector.automation.testrunners;
+import org.mule.tools.devkit.ctf.mockup.ConnectorTestContext;
+import org.mule.tools.devkit.ctf.platform.PlatformManager;
+...
+@RunWith(Categories.class)
+@IncludeCategory(RegressionTestSuite.class)
+@SuiteClasses({
+    SampleTestCase.class,
+})
+public class RegressionTestSuite {
+    @BeforeClass
+    public static void initializeSuite(){
+        ConnectorTestContext.initialize(Connector.class);
+    }
+    @AfterClass
+    public static void shutdownSuite() throws Exception{
+        ConnectorTestContext<Connector> context = ConnectorTestContext.getInstance(Connector.class);
+        PlatformManager platform =  context.getPlatformManager();
+        platform.shutdown();
+    }
+}
+----
++
+On the one hand, we initialize the connector test context with the connector class that we are testing with ConnectorTestContext.initialize(Connector.class). This initializes the entire framework. This can recompile and package the entire connector, and therefore it can take a while. Because the connector test context shares among all tests, it is normal to place this initialization phase within a method and specify the JUnit @`BeforeClass` annotation when using test suites.
+. On the other hand, after all tests complete, the test context is shutdown, which frees all test resources (Mule instances, for example). A Platform Manager is requested from the connector test context and a shutdown is performed. PlatformManager manages the entire life cycle of the test framework. As with the initialization phase, this procedure is placed within a method that contains the JUnit @AfterClass annotation.
+
+For this practical example, let's consider that this test suite has a single test, called SampleTestCase, which is describe next.
+
+We now need to use this initialized connector test context within our test as follows:
+
+[source,java]
+----
+package org.mule.modules.connector.automation.testcases;
+import org.mule.tools.devkit.ctf.mockup.ConnectorDispatcher;
+import org.mule.tools.devkit.ctf.mockup.ConnectorTestContext;
+...
+public class SampleTestCase {
+    private static Connector connector;
+    private String jobId;
+    @Before
+    public void setUp() throws Exception {
+        //Current connector context instance
+        ConnectorTestContext<Connector> context = ConnectorTestContext.getInstance(Connector.class);
+        //Connector dispatcher
+        ConnectorDispatcher<Connector> dispatcher = context.getConnectorDispatcher();
+        connector = dispatcher.createMockup();
+        JobInfo jobInfo = connector.createJob(OperationEnum.insert, "Account", "Id", ContentType.XML, ConcurrencyMode.Parallel);
+        jobId = jobInfo.getId();
+    }
+    @Category({ RegressionTestSuite.class })
+    @Test
+    public void testSample() {
+        try {
+            JobInfo jobInfo = connector.abortJob(jobId);
+            assertEquals(com.sforce.async.JobStateEnum.Aborted, jobInfo.getState());
+            assertEquals(jobId, jobInfo.getId());
+            assertEquals(ConcurrencyMode.Parallel.toString(), jobInfo.getConcurrencyMode().toString());
+            assertEquals(OperationEnum.insert.toString(), jobInfo.getOperation().toString());
+            assertEquals(ContentType.XML.toString(), jobInfo.getContentType().toString());
+        } catch (Exception e) {
+            fail(ConnectorTestUtils.getStackTrace(e));
+        }
+    }
+}
+----
+
+We first need to get the current connector test context with ConnectorTestContext.getInstance(Connector.class).
+
+This connector test context allows us to retrieve two things:
+
+* The previously mentioned Platform Manager
+* A Connector Dispatcher through context.getConnectorDispatcher().
+
+The Connector Dispatcher allows us to retrieve a Connector Mockup, run DataSense methods, as well as Paginated methods.
+
+Let's start with the connector mockup, which is retrieved with:
+
+`Connector connector = dispatcher.createMockup()`
+
+This method returns an instance of the current connector being developed to be used throughout the test. This connector mockup abstracts the test developer from how and where a connector method executes.
+
+For example, to execute the `createJob` method, we use `connector.createJob(..)` with its actual parameters. The test is self-contained and fully readable on its own. To execute the `abortJob` method, we call `connector.abortJob(jobID)`, with a previously stored `jobID`. Test assertions are now computed over the `JobInfo` object defined as an instance variable and particular values defined within the test.
+
+== Using a FunctionalTestParent for Multiple Tests
+
+It is worth mentioning that when considering several test cases within a test suite, aFunctionalTestParent is advised. This class contains the following:
+
+[source,java]
+----
+package org.mule.modules.connector.automation.testcases;
+
+import org.mule.tools.devkit.ctf.mockup.ConnectorDispatcher;
+import org.mule.tools.devkit.ctf.mockup.ConnectorTestContext;
+...
+
+public class FunctionalTestParent {
+
+    private static Connector connector;
+    private String jobId;
+
+    @Before
+    public void setUp() throws Exception {
+
+        //Current connector context instance
+        ConnectorTestContext<Connector> context = ConnectorTestContext.getInstance(Connector.class);
+
+        //Connector dispatcher
+        ConnectorDispatcher<Connector> dispatcher = context.getConnectorDispatcher();
+        connector = dispatcher.createMockup();
+
+        setUp();
+    }
+
+    protected void setUp() throws Exception{
+    //Do not complete this method here. If you wish to add @Before behaviour in your test case, extend it the subclasses.
+    }
+
+    }
+}
+----
+
+Now, every test, such as SampleTestCase extends from FunctionalTestCase and implements, if needed, the setUp method.
+
+== Testing @Paged Operations and DataSense
+
+The previous example presented a simple use case for testing operations over a connector instance. A connector mockup is used to access the connector operations. However, there are different features in Mule, such as pagination, that require a slightly different approach when testing them.
+
+== Paginated Methods
+
+A connector method can be annotated as @Paged, which means that when calling that method, several calls to the underlying API generate so as to avoid retrieving a possible big set of results in one API call. As a result, the user consumes the entire set of results with a single call to the method, although Mule automatically generates different API calls.
+
+Let's consider the following `Query(..)` method, which is annotated as `@Paged` and defined as:
+
+[source,java]
+----
+@Processor
+@OAuthProtected
+@Category(name = "Category name", description = "A description here.")
+@Paged
+public ProviderAwarePagingDelegate<Map<String, Object>, Connector> query(@Query @Placement(group = "Query") final String query, final PagingConfiguration pagingConfiguration, @Placement(group = "SOAP Headers") @FriendlyName("Headers") @Optional final Map<Header, Object> headers) {
+...
+}
+----
+
+To test this paginated method, we enable the following mechanism within the test:
+
+[source,java]
+----
+  ...
+
+@Before
+    public void setUp() throws Exception {
+
+        //Current connector context instance
+        ConnectorTestContext<Connector> context = ConnectorTestContext.getInstance(Connector.class);
+
+        //Connector dispatcher
+        ConnectorDispatcher<Connector> dispatcher = context.getConnectorDispatcher();
+        connector = dispatcher.createMockup();
+
+        JobInfo jobInfo = connector.createJob(OperationEnum.insert, "Account", "Id", ContentType.XML, ConcurrencyMode.Parallel);
+        jobId = jobInfo.getId();
+    }
+
+@Category({RegressionTestSuite.class})
+    @Test
+    public void testQuery() {
+
+        List<String> queriedRecordIds = sObjectsIds;
+        List<String> returnedSObjectsIds = new ArrayList<String>();
+
+        try {
+            Object[] args = new Object[] { "SELECT Id, Name, FROM Account WHERE BillingCity = 'Chicago'", null, null };
+
+            Collection<Map<String, Object>> list = (Collection<Map<String, Object>>) dispatcher.runPaginatedMethod("query", args);
+
+            int count = 0;
+            Iterator<Map<String, Object>> iter = list.iterator();
+            while (iter.hasNext()) {
+                Map<String, Object> sObject = iter.next();
+                returnedSObjectsIds.add(sObject.get("Id").toString());
+                count++;
+            }
+
+            assertTrue(returnedSObjectsIds.size() > 0);
+            assertEquals(count,  list.size());
+
+            for (int index = 0; index < queriedRecordIds.size(); index++) {
+                assertTrue(returnedSObjectsIds.contains(queriedRecordIds.get(index).toString()));
+             }
+
+        } catch (Exception e) {
+            fail(ConnectorTestUtils.getStackTrace(e));
+        }
+    }
+----
+
+This test extract illustrates how pagination works. If we try to execute `connector.Query(...)`, a runtime exception `UnsupportedMethodAnnotationException` is thrown by the framework. We need to use the dispatcher instead, which exposes a `runPaginatedMethod(methodName, args)`.
+
+The first parameter is the method name (camel case), while the second is the list of parameters taken by the method in the same order as defined in its signature. In this case the first parameter is the query itself, while the last two parameters (a `PagingConfiguration` instance and a `Map` of headers) are not present.
+
+It is important to notice that we provide a mechanism to test operations annotated with `@Paged`, which indirectly tests the underlying pagination mechanism. However, testing how the pagination mechanisms works, such as testing the number of pages retrieved and the values within each page, cannot be currently performed with this testing framework, since most likely it is a unit test and not a functional test.
+
+== Testing DataSense
+
+DataSense allows a connector to gather metadata from the remote service in design time, enabling Anypoint developers to deal with actual object types and objects descriptions.
+
+To test DataSense, two operations are provided by the connector dispatcher. This scenario is illustrated in the following example:
+
+[source,java]
+----
+...
+@Before
+    public void setUp() throws Exception {
+
+        //Current connector context instance
+        ConnectorTestContext<Connector> context = ConnectorTestContext.getInstance(Connector.class);
+
+        //Connector dispatcher
+        ConnectorDispatcher<Connector> dispatcher = context.getConnectorDispatcher();
+    }
+
+@Category({RegressionTestSuite.class})
+    @Test
+    public void testGetMetaDataKeys() {
+        try {
+
+            Result<List<MetaDataKey>> metaDataKeysResult = dispatcher.fetchMetaDataKeys();
+
+            assertTrue(Result.Status.SUCCESS.equals(metaDataKeysResult.getStatus()));
+            List<MetaDataKey> metaDataKeys = metaDataKeysResult.get();
+
+            for (MetaDataKey key : metaDataKeys) {
+                if (accountKey == null && key.getId().equals("Account")) {
+                    accountKey = key;
+                }
+                if (contactKey == null && key.getId().equals("Contact")) {
+                    contactKey = key;
+                }
+                if (customObjectKey == null && key.getId().equals("CustomObject")) {
+                    customObjectKey = key;
+                }
+                if (customFieldKey == null && key.getId().equals("CustomField")) {
+                    customFieldKey = key;
+                }
+                if (externalDataSourceKey == null && key.getId().equals("ExternalDataSource")) {
+                    externalDataSourceKey = key;
+                }
+            }
+
+            assertNotNull(accountKey);
+            assertNotNull(contactKey);
+            assertNotNull(customObjectKey);
+            assertNotNull(customFieldKey);
+            assertNotNull(externalDataSourceKey);
+
+           Result<MetaData> accountKeyResult = dispatcher.fetchMetaData(accountKey);
+            assertTrue(Result.Status.SUCCESS.equals(accountKeyResult.getStatus()));
+
+            Result<MetaData> contactKeyResult = dispatcher.fetchMetaData(contactKey);
+            assertTrue(Result.Status.SUCCESS.equals(contactKeyResult.getStatus()));
+
+            Result<MetaData> customObjectKeyResult = dispatcher.fetchMetaData(customObjectKey);
+            assertTrue(Result.Status.SUCCESS.equals(customObjectKeyResult.getStatus()));
+
+            Result<MetaData> customFieldKeyResult = dispatcher.fetchMetaData(customFieldKey);
+            assertTrue(Result.Status.SUCCESS.equals(customFieldKeyResult.getStatus()));
+
+            Result<MetaData> externalDataSourceKeyResult = dispatcher.fetchMetaData(externalDataSourceKey);
+            assertTrue(Result.Status.SUCCESS.equals(externalDataSourceKeyResult.getStatus()));
+
+        } catch (Exception e) {
+            fail(ConnectorTestUtils.getStackTrace(e));
+        }
+    }
+----
+
+The connector dispatcher exposes two methods, fetchMetaDataKeys() and fetchMetaData(keyName). The first fetches all keys from the DataSense underlying service, while the second retrieves the descriptor for a particular MetadataKey.
+
+== Framework Configuration
+
+This section introduces the dependency to add in order to use the framework and the different configuration values.
+
+First, we need to add a dependency to our `pom.xml` file. We currently do not pack the framework Maven dependency within the DevKit Maven Dependency required to develop a connector and therefore it is required to manually add it within the `pom.xml`.
+
+The dependency to add is as follows:
+
+Released version:
+
+[source,xml]
+----
+<dependency>
+   <groupId>org.mule.tools.devkit</groupId>
+   <artifactId>connector-testing-framework</artifactId>
+   <version>0.9.0</version>
+    <scope>test</scope>
+</dependency>
+----
+
+Snapshot version:
+
+[source,xml]
+----
+<dependency>
+   <groupId>org.mule.tools.devkit</groupId>
+   <artifactId>connector-testing-framework</artifactId>
+   <version>0.9.1-SNAPSHOT</version>
+    <scope>test</scope>
+</dependency>
+----
+
+We need to inject framework properties through Maven options or VM arguments (in eclipse, for instance). If no configurable parameters are desired, we can just add these properties with `System.setProperty(key,value)` within our code. The following framework parameters are configurable:
+
+. Automations Credentials Properties File: Optional. This file includes the required credentials to run a test suite and it is specified as `-Dautomation-credentials.properties=FILENAME`. If no option is given and no file named `automation-credentials.properties` exists, a default file creates within src/test/resources and an exception is thrown. If a file already exists with this name, it is used by default and a warning ise issued. It is mandatory to specify the file as follows:
++
+[source,java]
+----
+configName1.configurationAttribute1=value
+configName1.configurationAttribute2=value
+...
+configName2.configurationAttribute1=value
+configName2.configurationAttribute2=value
+...
+----
++
+. This file can contains different credentials for different connection strategies of the connector. It is important to notice that the configuration name must be the same as defined within the connector and the attributes those defined within the configuration. For example, let's consider the following configuration within our connector:
++
+[source,java]
+----
+@OAuth2(configElementName = "config-with-oauth", ...)
+
+public class OAuth2Strategy extends CustomStrategy {
+
+    @Configurable
+    @OAuthConsumerKey
+    private String consumerKey;
+
+    @Configurable
+    @OAuthConsumerSecret
+    private String consumerSecret;
+
+    @OAuthAccessToken
+    private String accessToken;
+
+    @Configurable
+    @Default("0")
+    private Integer readTimeout;
+
+    ...
+----
++
+. Complete the automation credentials file as follows:
++
+[source,java]
+----
+config-with-oauth.consumerKey= <value>
+config-with-oauth.consumerSecret= <value>
+config-with-oauth.accessToken= <value>
+config-with-oauth.readTimeout= <value>
+...
+----
++
+. We parse this file and compare the found values with the defined configuration. If a required configuration attribute is missing within the automation credentials file, an exception is thrown.
++
+. Deployment Profile: Optional. The deployment profile can take a value from: embedded, local, remote, or cloudhub. The profile defines where the tests execute:
+** Embedded: The tests execute within the same environment the connector is being developed. The Mule version where the tests execute is the same as the one bound with the DevKit version used.
+** Local: The tests execute in the local machine, with the Mule runtime specified by the user.
+** Remote: Similar to local, except that the runtime is located in a remote machine, most likely a dedicated test machine.
+** CloudHub: Tests execute within an instance of Mule CloudHub.
++
+Specify this option with:
++
+[source]
+----
+-Ddeploymentprofile={embedded | local | remote | cloudhub}
+----
++
+If no option is given, an embedded deployment profile is used.
++
+*Note*: Currently, only *embedded* and *local* are supported.
++
+The profile contains:
++
+*** Mule Version: Partially Required. Use when running tests and specify with:
++
+[source]
+----
+-Dmuleversion={mule34 | mule35 | mule36 | mule37}
+----
++
+This is a mandatory parameter when running in remote or CloudHub. When running in local, the Mule version is extracted from Mule directory that you specify.
+*** Mule Directory: Partially Required. When running in local mode, define the Mule runtime directory or otherwise an exception is thrown. +
+Set this parameter with:
++
+[source]
+----
+-Dmuledirectory=yourMuleDirectory
+----
++
+Point to the root directory of the Mule runtime.
+*** Force Compiling: Optional. A connector needs to be compiled and packaged before tests can be deployed, which might take a while. However, it is only necessary to recompile and repackage a connector if the code itself has been modified. If we are modifying exclusively the test code, we can skip the compilation/packaging with `-Dforcecompiling=false`. If the option is not given, it is set to FALSE by default, which means the connector compiles every time a test is run.
+*** Active Configuration: Optional. This option is mandatory and specifies which configuration, within those in the automation credentials properties file, is used when running the tests. It can be set with `-Dactiveconfiguration=CONFIGURATION`. For instance, considering the previous configuration, we might use `-Dactiveconfiguration=config-with-oauth`. If no option is set, then the first detected configuration is used and a warning is issued.
+*** M2 Home: Optional. The current M2 Maven home. It can be set with `-Dm2home=M2Home`. If not set, DevKit tries to detect your current M2 repository folder.
+*** Maven Home: *Required*. The current Maven home, pointing to the root folder of an existing Maven installation. It can be set with `-Dmavenhome=MavenHome`.
+
+=== Example configurations
+
+* Embedded:
++
+[source]
+----
+-Dautomation-credentials.properties=salesforce-credentials.properties
+-Ddeploymentprofile=embedded
+-Dforcecompiling=false
+-Dactiveconfiguration=config
+-Dmavenhome=/Users/mulesoft/apache-maven-3.2.3
+----
++
+* Local with the Mule 3.6 Runtime:
++
+[source]
+----
+-Dautomation-credentials.properties=salesforce-credentials.properties
+-Ddeploymentprofile=local
+-Dactiveconfiguration=config-with-oauth
+-Dm2home=/Users/mulesoft/.m2
+-Dmavenhome=/Users/mulesoft/apache-maven-3.2.3
+-Dmuledirectory=/Users/mulesoft/mule-enterprise-standalone-3.6.0
+----
+
+== Test Configurations
+
+There are cases when more than one configuration need to be used within a test suite. For example, two different set of credentials or a different URL. In every case, the parameters of the configuration files are different. In order to support different configurations, we encourage the use of different test suites.
+
+Let's consider a practical example as follows. We have three test cases, SampleTestCaseA, SampleTestCaseB and SampleTestCaseC. The first two test cases use the following configuration in file automation-credentials-short-timeout.properties:
+
+[source,java]
+----
+config-with-oauth.consumerKey= AABBCCDD
+config-with-oauth.consumerSecret= DDCCBBAA
+config-with-oauth.accessToken= A1B2C3D4
+config-with-oauth.readTimeout= 100
+...
+SampleTestCaseC needs a longer readTimeout and therefore uses the following configuration in file automation-credentials-long-timeout.properties:
+
+config-with-oauth.consumerKey= AABBCCDD
+config-with-oauth.consumerSecret= DDCCBBAA
+config-with-oauth.accessToken= A1B2C3D4
+config-with-oauth.readTimeout= 5000
+...
+----
+
+To run these three tests with these two different configurations, we have two different test suites. On the one hand we have `TestSuiteShortTimeOut` as follows:
+
+[source,java]
+----
+package org.mule.modules.connector.automation.testrunners;
+
+import org.mule.tools.devkit.ctf.mockup.ConnectorTestContext;
+import org.mule.tools.devkit.ctf.platform.PlatformManager;
+...
+
+@RunWith(Categories.class)
+@IncludeCategory(TestSuiteShortTimeOut.class)
+
+@SuiteClasses({
+    SampleTestCaseA.class,
+    SampleTestCaseB.class,
+})
+
+public class TestSuiteShortTimeOut {
+
+    @BeforeClass
+    public static void initialiseSuite(){
+
+       //This replaces using -Dautomation-credentials.properties as VM arguments or Maven options
+        System.setProperty("automation-credential.properties", "automation-credentials-short-timeout.properties");
+
+        ConnectorTestContext.initialize(Connector.class);
+    }
+
+    @AfterClass
+    public static void shutdownSuite() throws Exception{
+
+        ConnectorTestContext.shutDown();
+    }
+}
+----
+
+Alternatively, we have `TestSuiteLongTimeOut` as follows:
+
+[source,java]
+----
+package org.mule.modules.connector.automation.testrunners;
+
+import org.mule.tools.devkit.ctf.mockup.ConnectorTestContext;
+import org.mule.tools.devkit.ctf.platform.PlatformManager;
+...
+
+@RunWith(Categories.class)
+@IncludeCategory(TestSuiteLongTimeOut.class)
+
+@SuiteClasses({
+    SampleTestCaseC.class,
+})
+
+public class TestSuiteLongTimeOut {
+
+    @BeforeClass
+    public static void initialiseSuite(){
+
+        //This replaces using -Dautomation-credentials.properties as VM arguments or Maven options
+        System.setProperty("automation-credential.properties", "automation-credentials-long-timeout.properties");
+
+        ConnectorTestContext.initialize(Connector.class);
+    }
+
+    @AfterClass
+    public static void shutdownSuite() throws Exception{
+
+        ConnectorTestContext.shutDown();
+    }
+}
+----
+
+We can aggregate both suites in a single test suite as follows:
+
+[source,java]
+----
+package org.mule.modules.connector.automation.testrunners;
+
+import org.mule.tools.devkit.ctf.mockup.ConnectorTestContext;
+import org.mule.tools.devkit.ctf.platform.PlatformManager;
+...
+
+@RunWith(Categories.class)
+@IncludeCategory(FullTestSuite.class)
+
+@SuiteClasses({
+    TestSuiteShortTimeOut.class,
+    TestSuiteLongTimeOut.class
+})
+
+public class FullTestSuite {
+}
+----
+
+Thus we now have two separate test suites with their own configurations. By executing the `FullTestSuite`, both `TestSuiteShortTimeOut` and `TestSuiteLongTimeOut` execute with their respective test cases.
+
+We observe that a `ConnectorTestContext.shutDown()` method is introduced. This method replaces the manipulation of the `PlatformManager` when the context is shut down and initializes more than once, as with multiple test suites.
+
+== See Also
+
+* link:/anypoint-connector-devkit/[Anypoint Connector DevKit]
+* link:/anypoint-connector-devkit/developing-devkit-connector-tests[Developing DevKit Connector Tests]
+* link:/anypoint-connector-devkit/installing-and-testing-your-connector-in-studio[Installing and Testing Your Connector]

@@ -1,0 +1,112 @@
+= Testing with HAPI TestPanel
+:keywords: hl7, hapi, testpanel
+
+http://hl7api.sourceforge.net/hapi-testpanel/[HAPI TestPanel] is an HL7 receiver, transmitter and message editor. It is free software distributed under the http://hl7api.sourceforge.net/license.html[MPL/GPL] licenses, and runs on Mac OSX, Linux and Windows. Check the http://hl7api.sourceforge.net/hapi-testpanel/install.html[instructions for installing with WebStart], or the http://sourceforge.net/projects/hl7api/files/hapi-testpanel/[download page] for the latest application bundles.
+
+Since HAPI TestPanel can transmit HL7 messages to a listening application, you can use it to test your Mule flows which handle HL7. The following section provides an example of a simple flow tested with HAPI TestPanel.
+
+== Simple Example
+
+In this example, you can:
+
+* Build a simple Studio application to process the HL7 messages, then send responses
+* Configure the HAPI TestPanel application to send and receive HL7 messages on specific ports
+* Test that the setup works as intended
+
+== Configuration and Illustration
+
+HAPI TestPanel is uses the following default Host and Port configurations:
+
+* To send HL7 messages – localhost, port 50609
+* To listen for HL7 messages – localhost, port 51609
+
+The diagram below illustrates the steps the HAPI TestPanel and Mule take to process HL7 messages.
+
+The HAPI TestPanel:
+
+. Generates an HL7 message.
+. Sends an HL7 message to the Mule application over port 50609.
+. Receives an HL7 message.
+. Anypoint Studio processes the HL7 message
+. Sends an ACK reply (general acknowledge) to localhost port 51609 and transforms the original HL7 message to XML. Simultaneously, Mule stores the message on a file on the local filesystem.
+. Receives the ACK reply.
+
+image:testing-with-hapi-testpanel-1.png[image]
+
+== Anypoint Studio Application
+
+This example application performs the following actions:
+
+* Listens for incoming HL7 messages
+* when it receives a message, it sends an HL7 ACK message to the sending application
+* Transforms the received message from ER7 to XML
+* Writes the resulting XML to a text file
+
+image:testing-with-hapi-testpanel-2.png[image]
+
+The first building block is an link:/mule-healthcare-toolkit/hl7-endpoint-reference[HL7 inbound endpoint], configured with the following parameters:
+
+* *Host*: `localhost`
+* *Port*: `50609`
+
+After the HL7 inbound endpoint, an link:/mule-user-guide/all-flow-control-reference[All Flow Control] sends the HL7 message to two link:/mule-user-guide/cache-scope[Cache Scopes] for parallel processing.
+
+In the `Send ACK` scope, an link:/mule-healthcare-toolkit/hl7-ack-component-reference[HL7 ACK Component] processes the original HL7 message and generates an ACK message. Then, an HL7 outbound endpoint sends the ACK message to the originating application. The HL7 outbound endpoint has been configured with the following parameters:
+
+* *Host*: `localhost`
+* *Port*: `51609`
+
+In the `To XML and file` scope, the first building block, an link:/mule-healthcare-toolkit/hl7-encoding-transformer[HL7 Encoding Transformer] transforms the original HL7 message from ER7 to XML, and a link:/mule-user-guide/file-connector[File Endpoint] writes the output to a file (in this example, `/tmp/hl7-2test`).
+
+==== HAPI TestPanel Configuration
+
+This section explains how to set up HAPI TestPanel to work with this example.
+
+HAPI TestPanel configuration involves the following tasks:
+
+* Configuring HAPI TestPanel to send a sample HL7 message to localhost port 50609
+* Configuring HAPI TestPanel to listen for incoming HL7 connections on localhost 51609
+* Starting the listening port
+* Sending a sample HL7 message
+* Checking the listening port's Activity log for the ACK reply from Mule
+
+To configure the HAPI TestPanel:
+
+. In the *Sending Connections* pane to the right of HAPI TestPanel's main window, click the displayed `localhost` connection (see the mouse cursor in the image below). The application displays the *Outgoing Message Sender* pane for configuring outgoing connections.
++
+image:testing-with-hapi-testpanel-3.png[image]
++
+. At the *Outgoing Message Sender *pane, configure the following settings (highlighted above):
+** *Host*: `localhost`
+** *Port*: `50609`
+. In the *Receiving Connections* pane to the right, click the displayed `localhost` connection. The application displays the *Incoming Message Receiver* pane, which is identical to the Outgoing Message Sender pane displayed above.
+. At the *Incoming Message Receiver* pane, configure the following settings:
+** *Host*: `localhost`
+** *Port*: `51609`
+. Click  *Start*  near the top of the *Incoming Message Receiver* pane. HAPI TestPanel  starts listening for HL7 messages on the configured host and port.
+. Click the *Messages* pane to the right of the application window. The application displays a predefined sample HL7 message (see image below).
++
+image:testing-with-hapi-testpanel-4.png[image]
++
+. Click the *Send* button near the top of the pane. The application sends the sample message once to the specified host and port. Mule receives the HL7 message, then returns an ACK message to HAPI TestPanel.
+. Click the `localhost` connection in the *Receiving Connections* pane, then check the *Activity* log for the HL7 response from Mule. The image below displays the HL7 ACK messages sent by Mule.
++
+image:testing-with-hapi-testpanel-5.png[image]
+
+
+== See Also
+
+Learn more about configuring the elements in the Toolkit:
+
+* link:/mule-healthcare-toolkit/hl7-ack-component-reference[HL7 ACK Component Reference]
+* link:/mule-healthcare-toolkit/hl7-append-segment-component-reference[HL7 Append Segment Component Reference]
+* link:/mule-healthcare-toolkit/hl7-delete-segment-component-reference[HL7 Delete Segment Component Reference]
+* link:/mule-healthcare-toolkit/hl7-encoding-transformer[HL7 Encoding Transformer]
+* link:/mule-healthcare-toolkit/hl7-endpoint-reference[HL7 Endpoint Reference]
+* link:/mule-healthcare-toolkit/hl7-exception-strategy[HL7 Exception Strategy]
+* link:/mule-healthcare-toolkit/hl7-global-connector[HL7 Global Connector]
+* link:/mule-healthcare-toolkit/hl7-message-component[HL7 Message Component]
+* link:/mule-healthcare-toolkit/hl7-message-validation[HL7 Message Validation]
+* link:/mule-healthcare-toolkit/hl7-mule-expression-language-support[HL7 Mule Expression Language Support]
+* link:/mule-healthcare-toolkit/hl7-profile-validator-filter[HL7 Profile Validator Filter]
+* link:/mule-healthcare-toolkit/testing-with-hapi-testpanel[Testing with HAPI TestPanel]

@@ -1,5 +1,7 @@
 = Mule Agent Architecture
-:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
+:license-info: Enterprise
+:version-info: 3.6.0 and later
+:keywords: esb, enterprise, agent, api
 
 The Mule agent is a Mule plugin that exposes the Mule ESB JAVA API as a service, allowing users to manipulate and monitor Mule ESB instances from external systems.
 
@@ -29,21 +31,15 @@ The agent has three ways to communicate with Mule, outlined below.
 
 === Synchronous communication
 
-Example: Get deployed applications.
-
-image:synchronous.png[synchronous]
+image:mule-agent-architecture-1.png[image]
 
 === Asynchronous Communication
 
-Example: Deploy and notify about the deployment stages.
-
-image:asynchronous.png[asynchronous]
+image:mule-agent-architecture-2.png[image]
 
 === Push Communication
 
-Example: Push JMX information to an external system.
-
-image:push.png[push]
+image:mule-agent-architecture-3.png[image]
 
 == Architecture Diagram
 
@@ -53,11 +49,8 @@ The agent's architecture is quite simple:
 * The external message handlers dispatch messages
 * The services connect to Mule API
 * The internal message handlers dispatch Mule notifications
-+
-image:architecture.png[architecture] +
-+
 
- +
+image:mule-agent-architecture-4.png[image]
 
 The interaction of each component is shown in the diagram below for each of the three types of messages (synchronous, asynchronous and push):
 
@@ -74,15 +67,15 @@ Below is an outline of a typical sequence of component interaction:
 
 == Mule Agent Configuration
 
-At startup, the Mule agent reads its configuration from the file `$MULE_HOME/conf/mule-agent.yml`. You must manually add, then edit this file with your installation's configuration parameters. The format is self-explanatory; a sample file is link:#[available for download].
+At startup, the Mule agent reads its configuration from the file `$MULE_HOME/conf/mule-agent.yml`. You must manually add, then edit this file with your installation's configuration parameters. The format is self-explanatory; a sample file is link:/documentation/download/attachments/122751362/mule-agent.yml?version=1&modificationDate=1421251068897[available for download].
 
-During installation, you also have the option to configure the Mule agent via a quick-start script. For details, see link:/docs/display/current/Installing+Mule+Agent[Installing Mule Agent].
+During installation, you also have the option to configure the Mule agent via a quick-start script. For details, see link:/documentation/display/EARLYACCESS/Copy+of+Installing+the+Agent[Installing the Agent].
 
 == Configurable Components
 
 You can configure component attributes in the `mule-agent.yml` file. For this purpose, you can annotate the class attributes as `@Configurable`.
 
-[source, java]
+[source,java]
 ----
 @Singleton
 public class MyRequestHandler implements ExternalMessageHandler
@@ -107,6 +100,8 @@ Handshaking is a process specific to the WebSocket transport. On startup, the ag
 ==== The Handshake Request
 
 Below is an example of a handshake request.
+
+[source]
 ----
 POST handshake HTTP/1.1
 Content-Type: application/json
@@ -124,12 +119,16 @@ Content-length: 1234
 ==== Handshake Response
 
 Authorized:
+
+[source]
 ----
 HTTP 200 OK
 Message-Id: ${messageId}
 ----
 
 Unauthorized:
+
+[source]
 ----
 HTTP 401 UNAUTHORIZED
 Message-Id: ${messageId}

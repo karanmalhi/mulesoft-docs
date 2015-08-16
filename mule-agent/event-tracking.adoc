@@ -1,5 +1,7 @@
 = Event Tracking
-:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
+:license-info: Enterprise
+:version-info: 3.6.0 and later
+:keywords: esb, enterprise, agent, api
 
 == Overview
 
@@ -11,7 +13,7 @@ Event tracking provides you with visibility into business transactions and event
 
 Mule provides notifications about execution of a flow's components as shown below.
 
-image:event_tracking.png[event_tracking]
+image:event-tracking-1.png[image]
 
 Available notification types:
 
@@ -56,19 +58,61 @@ Available debugging levels:
 
 The following table lists the types of notifications active in each debugging level.
 
-[cols=",,,,",options="header",]
+[cols="5*", options="header"]
 |===
-|NOTIFICATIONS |NONE |BE |TRACKING |DEBUG
-|Pipeline Message |  |√ |√ |√
-|Async Message |  |√ |√ |√
-|Exception |  |√ |√ |√
-|Event |  |√ |√ |√
-|Exception Strategy |  |  |√ |√
-|Transaction |  |  |√ |√
-|Endpoint Message |  |  |√ |√
-|Message Processor |  |  |  |√
-|Component Message |  |  |  |√
+|NOTIFICATIONS
+|NONE
+|BE
+|TRACKING
+|DEBUG
+
+|Pipeline Message
+|
+|√
+|√
+|√
+|Async Message
+|
+|√
+|√
+|√
+|Exception
+|
+|√
+|√
+|√
+|Event
+|
+|√
+|√
+|√
+|Exception Strategy 
+|
+|
+|√
+|√
+|Transaction 
+|
+|
+|√
+|√
+|Endpoint Message
+|
+|
+|√
+|√
+|Message Processor
+|
+|
+|
+|√
+|Component Message
+|
+|
+|
+|√
 |===
+
 
 == Configuring Event Tracking
 
@@ -84,8 +128,7 @@ Bear in mind that performance may be affected depending on the debugging level.
 This configuration affects all the applications in the Mule instance, as well as their flows. In the example below, the tracking level is set to `TRACKING`.
 
 In `mule-agent.yml`:
-
-[source, yaml]
+[source,yaml]
 ----
 mule.agent.tracking.service:
      globalTrackingLevel: TRACKING
@@ -99,8 +142,7 @@ If `globalTrackingLevel` is not specified, the default value is `NONE`.
 In the example below, the tracking level for application `mule-example-echo` and its flow is set to `TRACKING`.
 
 In `mule-agent.yml`:
-
-[source, yaml]
+[source,yaml]
 ----
 mule.agent.tracking.service:
       trackedApplications:
@@ -113,7 +155,7 @@ mule.agent.tracking.service:
 In the example below, different tracking levels are set for specific flows in application `mule-example-echo`. Tracking level `TRACKING` is set for the whole application, but tracking level `DEBUG` is set for the flow `EchoFlow`.
 
 In `mule-agent.yml`:
-[source, yaml]
+[source,yaml]
 ----
 mule.agent.tracking.service:
     trackedApplications:
@@ -128,14 +170,14 @@ mule.agent.tracking.service:
 
 This example sets the following configuration:
 
-* Application `mule-example-echo`:link:/docs/download/attachments/122751359/event_tracking.png?version=1&modificationDate=1421251570795[event_tracking.png]
+* Application `mule-example-echo`:link:/documentation/download/attachments/122751359/event_tracking.png?version=1&modificationDate=1421251570795[event_tracking.png] +
 ** Level `TRACKING `for application
 ** Level `DEBUG` for flow `EchoFlow`
 * All other applications in the Mule instance, and their flows: +
 ** Level Business Event (`BE`)
 
 In `mule-agent.yml`:
-[source, yaml]
+[source,yaml]
 ----
 mule.agent.tracking.service:
     globalTrackingLevel: BE
@@ -156,12 +198,12 @@ The agent API allows you to change the agent tracking configuration during runti
 This below retrieves the information about the tracking service. The retrieved information includes the configurable fields with their current values.
 
 *Request:*
-----
-GET <Mule agent URL>/mule/agent/mule.agent.tracking.service
-----
+
+`GET <Mule agent URL>/mule/agent/mule.agent.tracking.service`
 
 *Response:*
-[source, json]
+
+[source]
 ----
 "configurableFields": [
     {
@@ -199,7 +241,8 @@ To modify the current configuration during runtime, send a request with the JSON
 The following example request overrides the `globalTrackingLevel` and `trackedApplications` fields. All other fields are left unchanged.
 
 *Request:*
-[source, json]
+
+[source]
 ----
 PATCH <Mule agent URL>/mule/agent/mule.agent.tracking.service HTTP/1.1
 
@@ -221,7 +264,8 @@ PATCH <Mule agent URL>/mule/agent/mule.agent.tracking.service HTTP/1.1
 ----
 
 *Response:*
-[source, json]
+
+[source]
 ----
 {
   "configurableFields": [
@@ -261,5 +305,5 @@ PATCH <Mule agent URL>/mule/agent/mule.agent.tracking.service HTTP/1.1
     "serviceHandlerTypes": [
     "class com.mulesoft.agent.domain.tracking.AgentTrackingNotification"
     ]
-  }
+}
 ----

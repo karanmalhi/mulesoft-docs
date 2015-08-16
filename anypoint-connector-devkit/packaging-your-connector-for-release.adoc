@@ -1,0 +1,99 @@
+= Packaging Your Connector for Release
+:keywords: devkit, connector, packaging, documenting use cases, readme
+
+When your connector is ready for release to a broad audience, take the following additional steps to ensure user success:
+
+* Create a license agreement for your connector.
+* Develop end-to-end walkthroughs to illustrate performing common use cases with your connector.
+* Create a compressed file for distribution.
+
+== Prerequisites
+
+This document assumes you have:
+
+* Developed your connectors
+* Documented them in preparation for their release. Additional information about documenting your connector is provided in link:#PackagingYourConnectorforRelease-usecases[Documenting with Use Cases].
+* Completed testing as described in link:/anypoint-connector-devkit/developing-devkit-connector-tests[Developing DevKit Connector Tests].
+
+== Customize License Agreement
+
+During connector installation, Studio presents you with a license agreement. You can customize the contents of this agreement to reflect your terms and the wording you want for your connector license.
+
+Maven first searches for a `LICENSE.md` file in the same directory as the `pom.xml` file during the build process.
+
+If this file is not found, Maven goes through the following steps to locate a license agreement: 
+
+. Maven checks for a `LICENSE.txt` file in the same directory as the `pom.xml` file. 
+. If the `pom.xml` file contains a *Licenses* section (as described in the http://maven.apache.org/pom.html#Licenses[Maven documentation]), the DevKit attempts to to download the text from the license's URL, then saves the downloaded content as a new `LICENSE.md` file.
+. If no license text is found by the above steps, the build fails.
+
+In addition to the global license file, the DevKit requires that your source files also contains a license header. To apply the license header to every source file in your project, run the following command in a command console at the root of your project, which contains your connector project's `pom.xml` file: 
+
+[source,xml]
+----
+mvn license:format
+----
+
+This command goes through your whole project and applies the license header defined in the `LICENSE_HEADER.txt` file to each source file. This includes Java files, SQL scripts, XML files, and more.
+
+Run the following command to install your connector with your updated license information into your local Maven repository. 
+
+*Important*: Run *mvn license:format* before running this Maven install command because Maven verifies the license headers first before installing: 
+
+[source,xml]
+----
+mvn clean install
+----
+
+[NOTE]
+====
+To enable verbose logging, use:
+
+[source,xml]
+----
+mvn clean install -Ddevkit.verbose.logging=true
+----
+
+====
+
+You can also use the following Maven command to package the connector instead of installing. This creates an update site that you can use to install the connector in Anypoint Studio. This update site contains everything you need to use the connector inside your Mule applications (icons for the palette, XSDs, source files, etc.) Therefore it is important that your source files have the license headers before packaging.
+
+*Note*: Packaging the connector does not check for license headers in your source files. To package your connector, run the following command at the root folder:
+
+[source,xml]
+----
+mvn clean package
+----
+
+== Creating a Compressed Project File
+
+To create a compressed file of your project:
+
+. In Anypoint Studio, right-click your project name in the Package Explorer, and click *Export*.
+. Click *General* > *Archive* File with these settings. Choose whether you want a TAR file (for Linux or Mac) or a ZIP file for Mac or Windows. (Windows users can also uncompress TAR files using third-party software such as 7zip.) +
+*Important*: Uncheck the *target* folder. +
++
+image:packaging-your-connector-for-release-1.png[image]
+
+. Click the down arrow next to your project name and unclick *target*: +
++
+image:packaging-your-connector-for-release-2.png[image]
+
+. Click *Browse* in *To archive file* and choose the name and location of the zip or tar file.
+. Click *Finish* to create the compressed file.
+
+== Documenting With Use Cases
+
+Before releasing your connector, document your connector effectively. Useful documentation can help reduce your support and training costs, as well as improving customer satisfaction.
+
+Documentation tips:
+
+* *Readme* - Provide a Readme file that customers can readily access. The best Readme file appears automatically during installation, such as part of an installation wizard. The Readme needs to contain installation information and explain any required software that customers need to install or configure first before they can install your connector.
+* *Use Cases*: Explain why, when, and how a customer uses your connector. For each use case, provide examples with explanations. For information, see http://en.wikipedia.org/wiki/Use_case[Wikipedia's Use Case] topic.
+* *Release Notes*: Ensure your connector is versioned and that you help customers understand what changes between releases. We recommend that you list new features, known issues, and what issues were fixed. 
+
+The https://github.com/mulesoft/box-connector/blob/master/doc/sample.md[Box connector] provides an excellent example of an effective connector use case, including a step-by-step walkthrough of installing and using the connector. 
+
+== Certify and Publish Your Connector
+
+MuleSoft's program certifies and publishes third party connectors to be distributed to the community on mulesoft.org. For more information about this program, please mailto:connectors-certification@mulesoft.com[contact us]. _* *_  

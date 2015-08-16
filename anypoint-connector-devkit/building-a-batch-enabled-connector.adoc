@@ -1,0 +1,53 @@
+= Building a Batch Enabled Connector
+:keywords: devkit, batch, bulk
+
+One of Mule's abilities is to process messages in link:/mule-user-guide/batch-processing[batches]. This functionality, which is provided by the `<batch:commit>` block, is particularly useful when you need to collect a subset of records for bulk upsert to an external source or service. However, unless the connector in question supports bulk operations, it cannot be used inside a batch block.
+
+Batch benefits include:
+
+* Parallel processing of records
+* Handling of large quantities of incoming data from an API into a legacy system
+* Synchronizing data sets between business applications
+
+Some of the already existing connectors, such as link:/mule-user-guide/salesforce-connector[Salesforce] and http://www.mulesoft.com/cloud-connectors/netsuite-integration-connector[NetSuite], have been supporting batch operations for years. However, with the introduction of the new batch module, developers no longer need to parse the response of the connector to determine which of the records failed. Instead, this is handled automatically by `<batch:commit>`.
+
+This document explains how you can leverage your own connector to take advantage of this feature introduced in the link:/mule-user-guide/batch-processing[Batch Processing] documentation.
+
+* link:#BuildingaBatchEnabledConnector-Prerequisites[Prerequisites]
+* link:#BuildingaBatchEnabledConnector-BackwardsCompatibility[Backwards Compatibility]
+* link:#BuildingaBatchEnabledConnector-SeeAlso[See Also]
+
+== Prerequisites
+
+This document assumes you are familiar with link:/mule-user-guide/batch-processing[Batch Processing], that you have link:/anypoint-connector-devkit/creating-an-anypoint-connector-project[created a connector project], and have link:/anypoint-connector-devkit/defining-attributes-operations-and-data-model[defined the operations] to use.
+
+== How It Works
+
+The implementation of this feature for new connectors is pretty straightforward. It consists of applying slight modifications to the connector such that all bulk operations return a `BulkOperationResult`. BulkOperationResult allows the Batch module to understand all types of bulk operations results.
+
+Basically, the above class is a Master-Detail relationship in which:
+
+* `BulkOperationResult` represents the operation as a whole, playing the role of the master.
+* `BulkItem` represents the result for each individual record, playing the role of the detail.
+* Both classes are immutable.
+* There’s an ordering relationship between the master and the detail. The first item in the `BulkItem` list has to correspond to the first record in the original bulk. The second has to correspond to the second one, and so forth.
+
+== Backwards Compatibility
+
+When considering existing connectors, you need to take a few extra steps to ensure they remain backward compatible with any Mule applications in which they are being used. Typically, these Mule applications would be handling the output of bulk operations themselves. As a result, these connectors would need to incorporate a transformer.
+
+Each connector needs to translate its own bulk operation representation to a `BulkOperationResult` object. This translation  differs from one connector to the other, given the different API implementations.
+
+In the above snippet, notice that the operation  returns a list of `BatchResult` objects. Thus, the transformer has to transform `BatchResults` objects to `BulkOperationResult`.
+
+There are some important things to notice about the above transformer:
+
+* It needs to extend the `AbstractDiscoverableTransformer` class. This is so that the batch module can dynamically find it at runtime.
+* It defines the source and target data types on its constructor.
+* The `doTransform()` method does the transformation process.
+* Notice how `BulkOperationResult` and `BulkItem` classes provide convenient Builder objects to decouple their inner representations from your connector’s code.
+
+== See Also
+
+* *NEXT*: Learn how to add link:/anypoint-connector-devkit/developing-devkit-connector-tests[tests] to your connector.
+* Generate the link:/anypoint-connector-devkit/connector-reference-documentation[Reference Documentation].

@@ -1,9 +1,11 @@
-:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
-
 = Administration Service
+:license-info: Enterprise
+:version-info: 3.6.0 and later
+:keywords: esb, enterprise, agent, api
+
+*_Enterprise Edition_*
 
 This document describes how to perform operations over the Mule agent administration service API.
-
 
 == Configuring Components
 
@@ -13,19 +15,15 @@ This operation lists components including services, external message handlers an
 
 *Request:*
 
-----
-GET <Mule agent URL>/components HTTP/1.1
-----
+`GET <Mule agent URL>/components HTTP/1.1`
 
 *Example:*
 
-----
-GET http://localhost:9999/mule/agent/components HTTP/1.1
-----
+`GET http://localhost:9999/mule/agent/components HTTP/1.1`
 
 *Response:*
 
-[source,json]
+[source]
 ----
 [
   {
@@ -39,11 +37,11 @@ GET http://localhost:9999/mule/agent/components HTTP/1.1
 ==== Operation: Get a Component Configuration
 
 *Request:*
-----
-GET <Mule agent URL>/<component> HTTP/1.1 Content-Type: application/json
-----
+
+`GET <Mule agent URL>/<component> HTTP/1.1 Content-Type: application/json`
 
 *Example:*
+
 ----
 GET http://localhost:9999/mule/agent/myservice/ HTTP/1.1
 Content-Type: application/json
@@ -51,9 +49,8 @@ Content-Type: application/json
 
 *Response:*
 
-[source,json]
+[source]
 ----
-
 {
    "serviceHandlerTypes": [
        "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
@@ -91,17 +88,15 @@ This operation modifies the configuration of a component by overriding the confi
 
 *Request:*
 
-----
-PATCH <Mule agent URL>/<component> HTTP/1.1
-----
+`PATCH <Mule agent URL>/<component> HTTP/1.1`
 
 *Example:*
-----
-PATCH <Mule agent URL>/myservice HTTP/1.1
-----
+
+`PATCH <Mule agent URL>/myservice HTTP/1.1`
 
 *JSON sent with the request:*
-[source, json]
+
+[source]
 ----
 {
   "frequencyTimeUnit": "<unit>",
@@ -110,7 +105,7 @@ PATCH <Mule agent URL>/myservice HTTP/1.1
 ----
 
 *Example:*
-[json]
+
 ----
 PATCH http://localhost:9999/mule/agent/myservice HTTP/1.1
 
@@ -121,7 +116,8 @@ PATCH http://localhost:9999/mule/agent/myservice HTTP/1.1
 ----
 
 *Response if configuration changed successfully:*
-[source,json]
+
+[source]
 ----
 {
    "serviceHandlerTypes": [
@@ -159,6 +155,7 @@ PATCH http://localhost:9999/mule/agent/myservice HTTP/1.1
 This operation replaces the configuration of a component with the properties contained in the JSON request.
 
 *Request:*
+
 ----
 PUT <Mule agent URL>/<component> HTTP/1.1
 {
@@ -167,71 +164,64 @@ PUT <Mule agent URL>/<component> HTTP/1.1
 ----
 
 *Response:*
-[source,json]
+
+[source]
 ----
 {
-   "serviceHandlerTypes": [
-       "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
-   ],
-   "injectedHandlers": [
-       {
-           "name": "com.mulesoft.agent.monitoring.publisher.CloudwatchMonitorPublisher",
-           "path": "/mule/agent/cloudwatch.agent.monitor.publisher/configuration",
-           "type": "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
-       },
-       {
-           "name": "com.mulesoft.agent.monitoring.publisher.GraphiteMonitorPublisher",
-           "path": "/mule/agent/mule.agent.graphite.jmx.internal.handler/configuration",
-           "type": "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
-       },
-       {
-           "name": "com.mulesoft.agent.monitoring.publisher.NagiosMonitorPublisher",
-           "path": "/mule/agent/mule.agent.nagios.jmx.internal.handler/configuration",
-           "type": "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
-       },
-       {
-           "name": "com.mulesoft.agent.monitoring.publisher.ZabbixMonitorPublisher",
-           "path": "/mule/agent/mule.agent.zabbix.jmx.internal.handler/configuration",
-           "type": "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
-       }
-   ],
-   "frequencyTimeUnit": null,
-   "frequency": "30"
+  "serviceHandlerTypes": [
+      "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
+  ],
+  "injectedHandlers": [
+      {
+          "name": "com.mulesoft.agent.monitoring.publisher.CloudwatchMonitorPublisher",
+          "path": "/mule/agent/cloudwatch.agent.monitor.publisher/configuration",
+          "type": "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
+      },
+      {
+          "name": "com.mulesoft.agent.monitoring.publisher.GraphiteMonitorPublisher",
+          "path": "/mule/agent/mule.agent.graphite.jmx.internal.handler/configuration",
+          "type": "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
+      },
+      {
+          "name": "com.mulesoft.agent.monitoring.publisher.NagiosMonitorPublisher",
+          "path": "/mule/agent/mule.agent.nagios.jmx.internal.handler/configuration",
+          "type": "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
+      },
+      {
+          "name": "com.mulesoft.agent.monitoring.publisher.ZabbixMonitorPublisher",
+          "path": "/mule/agent/mule.agent.zabbix.jmx.internal.handler/configuration",
+          "type": "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
+      }
+  ],
+  "frequencyTimeUnit": null,
+  "frequency": "30"
 }
 ----
 
 ==== Operation: Enable a Component
 
 *Request:*
-----
-PUT <Mule agent URL>/<component>/enable HTTP/1.1
-----
+
+`PUT <Mule agent URL>/<component>/enable HTTP/1.1`
 
 *Example:*
-----
-PUT http://localhost:9999/mule/agent/myservice/enable
-----
+
+`PUT http://localhost:9999/mule/agent/myservice/enable`
 
 *Response (if the service was successfully enabled):*
-[source,json]
-----
-HTTP 200
-----
+
+`HTTP 200`
 
 ===== Operation: Disable a Component
 
 *Request:*
-----
-PUT <Mule agent URL>/<service>/disable HTTP/1.1
-----
+
+`PUT <Mule agent URL>/<service>/disable HTTP/1.1`
 
 *Example:*
-----
-PUT http://localhost:9999/mule/agent/myservice/disable
-----
+
+`PUT http://localhost:9999/mule/agent/myservice/disable`
 
 *Response (if successfully disabled):*
-[source,json]
-----
-HTTP 200
-----
+
+`HTTP 200`

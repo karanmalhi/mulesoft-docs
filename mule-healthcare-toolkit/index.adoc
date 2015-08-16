@@ -1,0 +1,136 @@
+= Mule Healthcare Toolkit
+:keywords: hl7, healthcare, toolkit, hapi, mllp, er7
+:license-info: Enterprise, CloudHub
+
+The *Mule Healthcare Toolkit* is a collection of features that facilitates integration with healthcare systems by providing the tools needed to easily create, read, and transform HL7 messages within Mule.
+
+[NOTE]
+This document assumes a working knowledge of Mule ESB and Anypoint Studio. To find out more about these applications, consult the link:/mule-user-guide/[Mule User Guide].
+
+
+== Overview
+
+http://www.hl7.org[Health Level Seven International] is a standards development organization that has defined a set of standards for the transport and communication of healthcare information. 
+
+The connector currently supports the following versions of HL7: *v2.1*, *v2.2*, *v2.3.1*, *v2.3*, *v2.4, v2.5.1, v2.5, v2.6.* Versions 2.7 and 2.8 are not currently supported.
+
+The Mule Healthcare toolkit supports, and allows transformation between, the following message types:
+
+* HL7 ER7: A human-readable format based on line segments and pipe delimiters
+* HL7 XML: An XML representation of HL7 ER7 messages
+* HAPI Message Objects: The native message format of the http://hl7api.sourceforge.net/[HAPI] (HL7 Application Programming Interface) message parser. HAPI is an open source object-oriented parser that works with HL7 XML (version 2.X) and ER7 formats.
+
+The Mule Healthcare toolkit allows you to send and receive HL7 messages over MLLP (using the link:/mule-healthcare-toolkit/hl7-endpoint-reference[HL7 connector]) and other transport protocols (and corresponding connectors) supported by Mule, such as link:/mule-user-guide/http-connector[HTTP].
+
+Other features:
+
+* link:/mule-healthcare-toolkit/hl7-message-validation[HL7 Message Validation], which you can apply at a global connector level or for specific message processors only
+* link:/mule-healthcare-toolkit/hl7-mule-expression-language-support[HL7 Mule Expression Language Support] allows you to access and modify the contents of an HL7 message using the link:/mule-user-guide/mule-expression-language-mel[Mule Expression Language MEL]
+
+This page describes the functionality included in the Mulesoft Healthcare toolkit, and provides installation instructions.
+
+== Toolkit Contents
+
+The Mule Healthcare Toolkit includes the following elements.
+
+[width="100%",cols="10a,20a,15a,15a,40a",options="header"]
+|===
+|Type
+|Tool
+|Input
+|Output
+|Use
+
+|Connector
+|link:/mule-healthcare-toolkit/hl7-global-connector[HL7 Global Connector]
+|N/A
+|N/A
+|Use to configure a link:/mule-fundamentals/global-elements[global connector] which connectors in Mule can reference.
+
+|Connector
+|link:/mule-healthcare-toolkit/hl7-endpoint-reference[HL7 Connector Reference]
+|N/A
+|N/A
+|Use to receive or send HL7 messages over MLLP.
+
+|Components
+|link:/mule-healthcare-toolkit/hl7-message-component[HL7 Message Component]
+|N/A
+|HL7 ER7
+|Use to generate an ER7-encoded HL7 message with user-defined parameters. Please note that this component does not generate the HL7 _payload_ of a message, only the message structure. Use the link:/mule-healthcare-toolkit/hl7-append-segment-component-reference[Append Segment Component] to add the payload.
+
+||link:/mule-healthcare-toolkit/hl7-ack-component-reference[HL7 ACK Component Reference]
+|HL7 ER7
+|HL7 ER7
+|Use to return ACK (general acknowledge) messages to confirm message receipt and validation, and NACK (negative general acknowledge) in case of message errors.
+
+||link:/mule-healthcare-toolkit/hl7-append-segment-component-reference[HL7 Append Segment Component Reference]
+|HAPI Message Object
+|HAPI Message Object
+|Use in conjunction with the link:/mule-healthcare-toolkit/hl7-message-component[HL7 Message Component] to add content to an HL7 message.
+
+||link:/mule-healthcare-toolkit/hl7-delete-segment-component-reference[HL7 Delete Segment Component Reference]
+|HAPI Message Object
+|HAPI Message Object
+|Use to delete content from an HL7 message.
+
+|Transformer
+|link:/mule-healthcare-toolkit/hl7-encoding-transformer[HL7 Encoding Transformer]
+|HAPI Message Object, HL7 XML, or HL7 ER7
+|HAPI Message Object, HL7 XML, or HL7 ER7
+|Transforms an HL7 message to and from the ER7, XML and HAPI message object formats.
+
+|Filter
+|link:/mule-healthcare-toolkit/hl7-profile-validator-filter[HL7 Profile Validator Filter]
+|N/A
+|N/A
+|Use to conform a message to http://wiki.hl7.org/index.php?title=Conformance_Profile[message profiles], which define constraints that go beyond the standard HL7 specifications.
+
+|Exception Strategy
+|link:/mule-healthcare-toolkit/hl7-exception-strategy[HL7 Exception Strategy]
+|N/A
+|N/A
+|Sets a flow's link:/mule-user-guide/error-handling[exception strategy] to HL7, instead of the link:/documentation/display/current/Error+Handling#ErrorHandling-DefaultExceptionStrategy[default], and sends an (N)ACK message to the originating application.
+|===
+
+== Installing the Mule Healthcare Toolkit
+
+[NOTE]
+*The Healthcare Toolkit is available for free on a trial basis.* Contact mailto:support@mulesoft.com[MuleSoft Support] to request a license to use the Healthcare Toolkit components in a production environment.
+
+To install:
+
+. In Anypoint Studio, click *Help* > *Install New Software*. 
+. In the *Work With* field of the *Install* wizard, use the drop-down menu to click: *Anypoint Connectors Update Site*
++
+[NOTE]
+====
+Are you behind a firewall?
+
+If you are on a network with firewall restrictions, you may find that the Studio update sites are blocked and you are unable to download extensions.
+
+Allow the following sites on your firewall to allow Studio to connect to the update sites:
+
+* http://studio.mulesoft.org/[http://studio.mulesoft.org]
+* http://repository.mulesoft.org/connectors/releases/
+* http://download.eclipse.org/technology/m2e/releases
+* http://download.eclipse.org/eclipse/updates
+* http://subclipse.tigris.org/[http://subclipse.tigris.org]
+* http://findbugs.cs.umd.edu/eclipse/
+====
++
+. Expand *Premium* and check *Mule HL7 Transport*. Click *Next*.
+. Click *Next* to confirm the installation details.
+. Click *I accept the terms of the license agreement*, then click *Finish*.
+. After installation finishes, the installer asks you to restart Studio. Click *Yes* to restart. After Studio restarts, type `HL7` in the palette search to quickly find HL7 building blocks (see image below).
++
+image:mule-healthcare-toolkit-1.png[image]
+
+
+== See Also
+
+* Use the link:/mule-healthcare-toolkit/testing-with-hapi-testpanel[HAPI TestPanel] to test your HL7 application.
+* Learn more about link:/mule-user-guide/transformers[transformers] in Studio.
+* Learn more about link:/mule-user-guide/components[components] in Studio.
+* Learn more about link:/mule-user-guide/filters[filters] in Studio.
+* Learn more about link:/mule-user-guide/anypoint-connectors[connectors] in Studio.

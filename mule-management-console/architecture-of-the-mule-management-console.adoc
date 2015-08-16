@@ -1,0 +1,51 @@
+= Architecture of the Mule Management Console
+
+This diagram below summarizes the architecture of the Mule Management Console.
+
+image:architecture-of-the-mule-management-console-1.png[image]
+
+*KEY*
+
+[cols="0,2a"]
+|===
+
+|*1* |The Mule ESB instances monitored by MMC. These can be standalone or embedded instances, or clusters.
+
+|*2* |The MMC agent contained in the Mule instance, which is responsible for:
+
+* facilitating data transfer between the Mule instance and the MMC
+* applying changes (i.e. thread pools, and configuration file changes) to the Mule applications
+
+|*3* |The MMC instance, the Web-based interface that interacts with Mule through:
+
+* the MMC agent
+* JMX functionality exposed by Mule. (For more information on JMX management, see the link:/mule-user-guide/jmx-management[JMX Management] page)
+
+The MMC instance is a Web application packaged as a WAR file that executes from within your Web servlet container (i.e. Tomcat, JBoss, etc.).
+
+|*4* |The transactional database, that stores business event transactional data collected by the MMC agent within the Mule instance. This database by default is an H2 database, but you can configure MMC to use other relational databases. For an official list of tested and supported databases, see link:/documentation/display/current/Setting+Up+MMC#SettingUpMMC-DataPersistence[Data Persistence]. Follow the links there for instructions on how to configure transactional data persistence to one of the supported databases.
+
+|*5* |The environment database, that stores state information about the various Mule instances and applications managed by MMC, including alerts, deployments, configurations, etc. The database is by default Apache Jackrabbit, but you can configure MMC to use other relational databases. For an official list of tested and supported databases, see link:/documentation/display/current/Setting+Up+MMC#SettingUpMMC-DataPersistence[Data Persistence]. Follow the links there for instructions on how to configure environment data persistence to one of the supported databases.
+
+|*6* |MMC's REST interface, which exposes MMC functionality through a REST API. MMC users can invoke this API to programmatically Mule instances paired with MMC. For more details about MMC's REST API, see *this link is missing link:/documentation/display/current/Setting+Up+MMC#SettingUpMMC-MMCRESTAPI[MMC REST API].
+
+|===
+
+== Registration of MMC with Mule Instances
+
+Once Mule and its embedded MMC agent have started, within the Mule folder structure, you will notice a new folder called `.mule` that contains several subfolders and files, including `keystore.jks`.
+
+To pair the MMC with a Mule instance, you provide the complete address, port and location of the listening Mule agent, in the form `http://<hostname>:<port>/mmc-support`, i.e. `http://localhost:7777/mmc-support`. MMC will attempt to pair with the Mule agent in the specified URL, then report success or failure.
+
+Additionally, in the `.mule` folder in the paired Mule instance, you will notice that an additional file called `truststore.jks` is created. At this point, a secure connection over HTTPS will have been created between MMC and the Mule instance.
+
+Each Mule instance can only be registered with one MMC instance, but each MMC instance can manage several Mule instances. There is no logical limit to the number of Mule instances that can be paired with a single MMC instance.
+
+You can unregister Mule instances from MMC with via the *Servers* tab in MMC. After you unregister a Mule instance, the `truststore.jks` file is deleted from the `.mule` directory.
+
+== See Also
+
+* link:/mule-management-console/installing-mmc[Install] MMC.
+* Learn more about link:/mule-management-console/setting-up-mmc[how to set up] MMC.
+* Get oriented to the link:/mule-management-console/orientation-to-the-console[console].
+* Get familiar with the link:/mule-management-console/mmc-rest-api[MMC REST API].

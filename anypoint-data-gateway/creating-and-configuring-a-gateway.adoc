@@ -1,165 +1,54 @@
 = Creating and Configuring a Gateway
+:version-info: 3.6.0 and later
 :keywords: data gateway, salesforce, sap, oracle
 
 == Overview
 
-To create and manage gateways, access Anypoint Gateway Designer from your Salesforce account by clicking the *MuleSoft* tab.
-
-image:MS_tab-1.2.png[MS_tab-1.2]
-
-In Gateway Designer, you can perform actions such as:
+You create and manage gateways through the Anypoint Platform Designer, where you can perform actions such as:
 
 * View, add or modify gateways
 * Configure connections and VPC
 * View gateway logs
 
-image:gateways_list-1.2.png[gateways_list-1.2]
-
-Roles and permissions in Gateway Designer match those defined in Anypoint Platform. For details, see *User Roles and Permissions* in link:/docs/display/current/Managing+Gateways[Managing Gateways].
+image:creating-and-configuring-a-gateway-1.png[image]
 
 == Creating a New Gateway
 
-To create a new gateway, click *Create Gateway*. The Anypoint platform takes you through the creation process via simple configuration screens, explained below.
+To create a new gateway, click *Add Gateway*. The Anypoint platform takes you through the creation process via four screens:
+
+* link:#CreatingandConfiguringaGateway-conf.prop[Configure Properties]
+* link:#CreatingandConfiguringaGateway-apply.pol[Apply Policies]
+* link:#CreatingandConfiguringaGateway-setup.gate[Validate & create]
+* link:#CreatingandConfiguringaGateway-validate.gate[Publish Gateway]
 
 === Configuring Properties
 
-The gateway creation wizard displays the *New Gateway* screen, shown below. Here you define the following parameters:
+The gateway creation wizard first displays the *Configure Properties* screen, shown below. Here you define the following parameters:
 
-* The connection to use. You can use the drop-down menu to select from existing connections, or click *Create* to create a new connection
+* The connection to use. You can select from existing connections (such as *SAP* in the image below) or configure a new connection
 * A name for the gateway
-* A description for the gateway (optional)
-* Username and password for the gateway
-* Throttling (optional)
+* A description for the gateway
 
-+
-image:newgateway-1.2.png[newgateway-1.2]
-
-Fill in the required parameters, and select whether to use an existing connection or link:#CreatingandConfiguringaGateway-conntype[create a new connection].
-
-If you check *Apply Throttling*, the wizard prompts you for the throttling parameters:
-
-image:throttle_params-1.2.png[throttle_params-1.2]
-
-==== Throttling
-
-This optional setting limits the max. number of messages that an API can process per millisecond. Throttling is applied to all API calls, regardless of the source. Messages that exceed the established limit are queued for later processing. The available parameters are:
-
-* *Delay Time in Milliseconds:* The amount of time that responses will be delayed after the SLA has been exceeded
-* *DelayAttempts:* Number of attempts to process the request before fully exhausted
-* *Maximum Requests Per Period:* Number of requests to allow per specified time period
-
-When configuring throttling, you can click an input field to view its brief description:
-
-image:throttle_desc-1.2.png[throttle_desc-1.2]
-
-After filling in the required parameters, click *Create Gateway*. Gateway creation takes a few minutes, but you can immediately continue working if you click *Return to Gateway list*.
-
-image:creating_gw-1.2.png[creating_gw-1.2]
-
-After gateway creation completes, you can link:#CreatingandConfiguringaGateway-pub[publish] your gateway.
-
-The next section explains how to create a new connection for your gateway, during the process of creating a gateway.
+image:creating-and-configuring-a-gateway-1.png[image]
 
 === Configuring a New Connection
 
-As detailed link:#CreatingandConfiguringaGateway-prop[above], when you create a new gateway you have the option to use an existing connection, or create a new connection. If you select to create a new connection, the wizard prompts you to select from the available connection types, as shown below.
+If you select to configure a new connection, the wizard prompts you to select from the available connection types, as shown below.
 
-image:create_conn-1.2.png[create_conn-1.2]
+image:creating-and-configuring-a-gateway-1.png[image]
 
-Click the desired connection type, then click *Next*. The wizard displays a connection parameters configuration window. The image below displays the configuration parameters for Oracle.
+Click the desired connection type. The wizard displays a connection parameters configuration window. The image below displays the configuration parameters for Oracle.
 
-image:oracle.conn.param.png[oracle.conn.param]
+image:creating-and-configuring-a-gateway-1.png[image]
 
-After filling in the required parameters, click *Next*. The wizard displays a dialogue that allows you to test your connection, and also to specify whether your connection is behind a firewall.
+[TIP]
+Click the *Test Connection* button to test the connection before creating it.
 
-image:configur_oracle_db-1.2.png[configur_oracle_db-1.2]
-
-Click *Test Connection* to ensure connectivity before actually creating the connection.
-
-If your data source is on a private network, click **<Datasource name> datasource is behind a firewall**. The wizard enables you to download *Cloud* Extender, an agent which allows communication between Data Gateway and the data source, as explained link:#CreatingandConfiguringaGateway-confpriv[below].
-
-=== Configuring a New Connection for a Private Network
-
-The configuration procedure allows you to specify whether your data source is on a private network (see screenshot link:#CreatingandConfiguringaGateway-privnet[above]). If this is the case, the wizard takes you through the process of downloading *Cloud Extender*, an agent which allows communication between Data Gateway and the data source without the need to modify your firewall. You must install Cloud Extender on a machine that resides within the private network, and which has access to the data source (valid user credentials).
-
-You can download and install Cloud Extender during the process for configuring a new gateway, as described below.
-
-==== Downloading Cloud Extender
-
-When creating a new connection, you are prompted to select the connection type (for example SAP, Oracle, etc. as described link:#CreatingandConfiguringaGateway-conntype[above]). When you select the connection type, the wizard displays the initial configuration window for your connection (see link:#CreatingandConfiguringaGateway-initconf[above]). After filling in the parameters required in this window, the wizard allows you to select whether your data source is on a private network.
-
-In the example below, you are configuring a connection to an Oracle data source. To specify that the MySQL server resides on a private network, click *MySQL datasource is behind a firewall*. The wizard will prompt you to complete several steps, as shown in the image below.
-
-image:conf_privnet-1.2.png[conf_privnet-1.2]
-
-. Select a name for your new configuration
-. Use the drop-down menu to download the version of Cloud Extender appropriate for your operating system. Cloud Extender is available for Windows, OS X and Linux.
-. Install Cloud Extender on your target machine. (For details, see link:#CreatingandConfiguringaGateway-install[Installing Cloud Extender on Your Local Machine].)
-. The Cloud Extender installer prompts you for an authorization code. Enter the code provided by the wizard (in the image above, `5mFRE`).
-. Cloud Extender automatically tests the connection to the gateway, and displays a message with the result.
-+
-image:test_conn_succ-1.2.png[test_conn_succ-1.2]
-+
-
-. In your Web browser, complete the wizard for the new configuration.
-
-At this point, Cloud Extender should be running on your local machine, enabling connections to the data source.
-
-==== Installing Cloud Extender on Your Local Machine
-
-As described in the link:#CreatingandConfiguringaGateway-cloudext[previous section], you download Cloud Extender during the process of configuring a new connection for a private network. This section contains installation details.
-
-===== Cloud Extender Description
-
-Cloud Extender is an agent that opens a connection to Data Gateway, which Data Gateway can use for subsequent communications. Cloud Extender relays data between Data Gateway and the data source within the private network. Cloud Extender needs access to the data source, i.e. network connectivity and valid user credentials. The advantage of Cloud Extender is that it eliminates the need to open ports in your firewall.
-
-Cloud Extender tunnels socket connections via SSH over HTTP. It configures itself automatically — all you have to do is run it.
-
-===== Supported Operating Systems
-
-Cloud Extender is available for:
-
-* Windows (7 and above)
-* OS X (10.x and above)
-* GNU/Linux
-
-===== Installation Requisites
-
-For Windows:
-
-* Microsoft Windows 7 or later
-* JAVA_HOME environment variable set to JRE/JDK home
-
-For OS X:
-
-* Mac OS X 10.x or later
-* JAVA_HOME environment variable set to JRE/JDK home
-
-For Linux
-
-* JAVA_HOME environment variable set to JRE/JDK home
-
-In all cases, to install and run the agent you need Java 7.x or later installed.
-
-===== Installing and Running Cloud Extender
-
-Install Cloud Extender according to the normal procedure installing software on your operating system. Once installed, run the application. The first time it runs, Cloud Extender requests the authorization code provided by the wizard during the gateway configuration process (see link:#CreatingandConfiguringaGateway-cloudext[above]).
-
-image:cloudext_auth_code-1.2.png[cloudext_auth_code-1.2]
-
-Enter the authorization code you were given, then click *OK*.
-
-===== Removing Cloud Extender
-
-You remove Cloud Extender like any other piece of software on your machine. You can also remove the Cloud Extender _connection_ from Data Gateway itself, without the need to remove Cloud Extender from the machine where it is installed. If you do this, Data Gateway will cease to accept connections from the Cloud Extender instance installed on the machine listed in the connection. Communication with the data source on that network will be lost.
-
-For details on removing a Cloud Extender connection, see the *Cloud Extender* section in link:/docs/display/current/Managing+Gateways[Managing Gateways].
-
-=== Configuring a New Connection for SAP
+==== Configuring a New Connection for SAP
 
 There are a few requirements for connecting Data Gateway to SAP; these are described below.
 
-==== SAP Libraries
+===== SAP Libraries
 
 When configuring a new SAP connection, you need to have the SAP library files available on your local machine. The connection configuration window will prompt you to upload the libraries necessary for a SAP connection:
 
@@ -171,7 +60,7 @@ Download these SAP libraries from the official SAP https://websmp109.sap-ag.de/c
 
 For more information on SAP libraries, refer to the http://help.sap.com/saphelp_nwpi711/helpdata/en/48/70792c872c1b5ae10000000a42189c/content.htm?frameset=/en/48/707c54872c1b5ae10000000a42189c/frameset.htm&current_toc=/en/b4/3f9e64bff38c4f9a19635f57eb4248/plain.htm&node_id=444&show_children=false[SAP help portal].
 
-==== Required Function Module `Z_AW_RFC_READ_TABLE`
+===== Required Function Module `Z_AW_RFC_READ_TABLE`
 
 In order to deploy a gateway to an environment, function module `Z_AW_RFC_READ_TABLE` used by Data Gateway must exist in the SAP instance. If the module is present in the SAP instance, then no action is necessary.
 
@@ -181,16 +70,44 @@ If the SAP instance does not contain any of the above-listed function modules, t
 
 Note that in all cases the `Z_AW_RFC_READ_TABLE` module must be available on all SAP instances which will be accessed by Data Gateway.
 
-The RFC transport is http://www.mulesoft.org/documentation/download/attachments/124125785/SAP_transport.zip?version=1&modificationDate=1426784273177[available for download].
+The RFC transport is link:/documentation/download/attachments/124125785/SAP_transport.zip?version=1&modificationDate=1426784273177[available for download].
 
-== Publishing Your Gateway
+=== Applying Policies
 
-Once you've created your gateway, it appears on the list in the *Gateways* page. To publish it to Salesforce, click the *Edit* button for the gateway, then select *Publish*.
+In the *Apply Policies* screen, you set the gateway authentication parameters and optionally apply throttling.
 
-image:publish-1.2.png[publish-1.2]
+image:creating-and-configuring-a-gateway-1.png[image]
 
-At this point, you have set up, created and published your gateway, and are ready to populate it with objects. To do this, you also use the *Edit* menu, which also allows you to stop, delete or modify a gateway. For details on these operations, see link:/docs/display/current/Managing+Gateways[Managing Gateways].
+Hover your mouse over the question mark icons image:creating-and-configuring-a-gateway-1.png[image] for tooltips.
+
+==== Basic Authentication
+
+Allows you to set the values for the login credentials for the gateway. You can optionally click *Generate Password* to have a password created for you.
+
+==== Throttling
+
+This optional setting limits the max. number of messages that an API can process per millisecond. Throttling is applied to all API calls, regardless of the source. Messages that exceed the established limit are queued for later processing. The available parameters are:
+
+* *Delay Time in Milliseconds:* The amount of time that responses will be delayed after the SLA has been exceeded
+* *Delay* *Attempts:* Number of attempts to process the request before fully exhausted
+* *Maximum Requests Per Period:* Number of requests to allow per specified time period
+
+=== Setting Up the Gateway
+
+When you click *Next* at the *Apply Policies* screen described above, the Anypoint platform sets up the gateway you've just defined, but does not yet create or publish it. The process can take a few minutes. Do not close your Web browser or navigate away from the page until the process is complete.
+
+image:creating-and-configuring-a-gateway-1.png[image]
+
+After the process is finished, the wizard displays the *Validate & Create* screen, shown in the section below.
+
+=== Validating, Creating and Publishing the Gateway
+
+image:creating-and-configuring-a-gateway-1.png[image]
+
+To publish the gateway in Salesforce, click *Publish Now*.
+
+At this point, you have set up, created and published your gateway, and are ready to populate it with objects. For details on creating an object, see *Creating a New Object* in link:/anypoint-data-gateway/managing-gateways[Managing Gateways].
 
 == See Also
 
-* Learn about defining connections and parameters, viewing and modifying existing gateways in link:/docs/display/current/Managing+Gateways[Managing Gateways].
+* Learn about defining connections and parameters, viewing and modifying existing gateways in link:/anypoint-data-gateway/managing-gateways[Managing Gateways].
