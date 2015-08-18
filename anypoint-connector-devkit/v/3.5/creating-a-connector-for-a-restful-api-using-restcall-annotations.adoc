@@ -1,4 +1,4 @@
-= Creating a Connector for a RESTful API using `@RESTCall` Annotations
+= Creating a Connector for a RESTful API using @RESTCall Annotations
 
 This example walks you through the implementation of an Anypoint Connector for a RESTful API. Anypoint DevKit provides a convenient set of annotations called `@RESTCall` for creating a Connector for a RESTful API.
 
@@ -12,7 +12,7 @@ image:6-package.png[6-package]
 
 This document assumes you are familiar with RESTful APIs, and with the DevKit connector architecture described in link:/docs/display/35X/Anypoint+Connector+DevKit[Anypoint Connector DevKit].
 
-`@RestCall`-Based Connector Architecture
+== @RestCall-Based Connector Architecture
 
 DevKit has built-in client functionality that can handle many "well-behaved" RESTful Web services, which require clean URLs, correct HTTP verb usage, etc.
 
@@ -32,7 +32,7 @@ DevKit generates the entire REST client in a subclass that implements the abstra
 
 This level of simplicity is possible because the patterns for accessing a well-defined RESTful API are extremely consistent. 
 
-== About the `@RestCall` Client and Annotations
+== About the @RestCall Client and Annotations
 
 DevKit provides a set of annotations to simplify working with RESTful APIs. These annotations handle all necessary operations, generating each REST call, and incorporating each REST call parameter.
 
@@ -52,15 +52,15 @@ As explained below, you can use the `@RestUriParam` annotation, as well as other
 
 When generating the request call, DevKit includes a non-annotated argument and an argument annotated with `@Payload` as the body of the call.
 
-== `@RestCall` Annotations Reference
+== @RestCall Annotations Reference
 
 The sections below detail the full set of annotations for implementing a connector against a RESTful API.
 
-=== `@RestCall`
+=== @RestCall
 
 Used with the `@Processor` annotation. Indicates that upon invocation, the processor makes a RESTful request.
 
-===== Required arguments:
+==== Required Arguments
 
 * `uri`: URI of the REST resource to query
 * `method`: HTTP method to use
@@ -76,11 +76,11 @@ Used with the `@Processor` annotation. Indicates that upon invocation, the proc
 
 The example above uses a static URI. For details on using dynamically-generated URIs, see `@RestURIParam`.
 
-=== `@RestQueryParam`
+=== @RestQueryParam
 
 Specifies URI query parameters, which are appended to the path of the URI after a `?` or `&` symbol. You can apply this annotation to `@Processor` method arguments or to connector fields marked `@Configurable`. This enables you to use dynamically-generated arguments as query parameters.
 
-===== Required Arguments
+==== Required Arguments
 
 * String representation of the name of the parameter to append
 
@@ -93,11 +93,11 @@ Specifies URI query parameters, which are appended to the path of the URI after 
    String numID)
 ----
 
-=== `@RestURIParam`
+=== @RestURIParam
 
 Allows you to insert URI parameters that are part of the URI path itself, which is required by some URIs. As with the `@RestQueryParam` annotation, you can apply this annotation to `@Processor` methods arguments or to connector fields marked `@Configurable`. This enables you to use dynamically-generated arguments as URI parameters.
 
-===== Required Arguments
+==== Required Arguments
 
 * Argument to the message processor to replace using a URI parameter
 
@@ -116,11 +116,11 @@ Reference the argument in the `@RestURIParam` annotation:
 Public abstract String setPath(@RestURIParam String path ...
 ----
 
-=== `@RestHeaderParam`
+=== @RestHeaderParam
 
 Allows you to insert custom headers in the call. You can apply this annotation to `@Processor` method arguments or to a `@Configurable` field of the HTTP header marked in the annotation. This enables you to use dynamically-generated arguments as query parameters.
 
-===== Required Arguments
+==== Required Arguments
 
 * Name of the header to include in the call.
 
@@ -135,17 +135,17 @@ Allows you to insert custom headers in the call. You can apply this annotation t
    String bucketName);
 ----
 
-=== `@RestPostParam`
+=== @RestPostParam
 
 Allows you to set parameters in the body of POST method calls. You can apply this annotation to `@Processor` method arguments or to connector fields marked `@Configurable`. DevKit ensures that you apply this annotation only to POST methods.
 
 Processor methods annotated with `@RestPostParam` cannot use a non-annotated argument or a `@Payload` annotated argument.
 
-== Implementing a `@RestCall` Connector
+== Implementing a @RestCall Connector
 
 The remainder of this document walks you through implementing a `@RestCall` connector. You can follow the walkthrough literally to build this specific example, or you can apply the same process to build a connector for your own API.
 
-=== Example `@RestCall` Connector: Facebook Graph API
+=== Example @RestCall Connector: Facebook Graph API
 
 The Facebook Graph API is the primary way for apps to get data into and out of Facebook's social graph and interact with the Facebook platform. For background information, see Facebook's https://developers.facebook.com/docs/getting-started/graphapi/[Getting Started: The Graph API].
 
@@ -163,7 +163,7 @@ The Graph API supports unauthenticated access for reading public information, bu
 
 For details on setting up authenticated API access, see the http://developers.facebook.com/docs/samples/meals-with-friends/register-facebook-application/[Facebook documentation]. Facebook generates a *Consumer Key* and *Consumer Secret*, which you need to complete the exercise.
 
-== Implementing the `@Connector` Class
+== Implementing the @Connector Class
 
 The RestCall client can be used with the `@OAuth` authentication annotations or the connection management framework. In this case, the Facebook connector uses OAuth 2.0 authentication. The abstract `@Connector` class, `FacebookConnector`, gets the `@RestCall` annotations and OAuth-related annotations on the class.
 
@@ -171,7 +171,47 @@ The following code excerpt is taken from the `@Connector` class `FacebookConnec
 
 [source]
 ----
-https://developer.mulesoft.com/docs/display/35X/Creating+a+Connector+for+a+RESTful+API+using+@RESTCall+Annotations#[expand source]
+/**
+ * Facebook OAuth2 connector
+ *
+ */
+@OAuth2(accessTokenUrl = "https://graph.facebook.com/oauth/access_token",
+        authorizationUrl = "https://graph.facebook.com/oauth/authorize",
+        accessTokenRegex = "access_token=([^&]+?)&", expirationRegex = "expires=([^&]+?)$")
+@Connector(name = "facebook-connector")
+public abstract class FacebookConnector {
+ 
+    /**
+     * Your application's client identifier (consumer key in Remote Access Detail).
+     */
+    @Configurable
+    @OAuthConsumerKey
+    private String consumerKey;
+ 
+ 
+    /**
+     * Your application's client secret (consumer secret in Remote Access Detail).
+     */
+    @Configurable
+    @OAuthConsumerSecret
+    private String consumerSecret;
+ 
+    //@RestQueryParam("access_token")
+    @OAuthAccessToken
+    private String accessToken;
+ 
+ 
+    @OAuthCallbackParameter(expression = "#[json:id]")
+    private String userId;
+ 
+    @OAuthAccessTokenIdentifier
+    public String getUserId() {
+        return userId;
+    }
+ 
+ 
+    /* ...Getters and setters omitted */
+}
 ----
 
 Notes:
@@ -196,7 +236,229 @@ The full definition for `User.java` follows:
 
 [source]
 ----
-https://developer.mulesoft.com/docs/display/35X/Creating+a+Connector+for+a+RESTful+API+using+@RESTCall+Annotations#[expand source]
+package com.fb;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.Generated;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.codehaus.jackson.annotate.JsonAnyGetter;
+import org.codehaus.jackson.annotate.JsonAnySetter;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonPropertyOrder;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@Generated("com.googlecode.jsonschema2pojo")
+@JsonPropertyOrder({
+    "id",
+    "name",
+    "first_name",
+    "last_name",
+    "link",
+    "username",
+    "gender",
+    "locale"
+})
+public class User {
+    /**
+     * User ID
+     *
+     */
+    @JsonProperty("id")
+    private String id;
+    /**
+     * User name
+     *
+     */
+    @JsonProperty("name")
+    private String name;
+    /**
+     * User first name
+     *
+     */
+    @JsonProperty("first_name")
+    private String first_name;
+    /**
+     * User last name
+     *
+     */
+    @JsonProperty("last_name")
+    private String last_name;
+    /**
+     * Link
+     *
+     */
+    @JsonProperty("link")
+    private String link;
+    /**
+     * Username
+     *
+     */
+    @JsonProperty("username")
+    private String username;
+    /**
+     * Gender
+     *
+     */
+    @JsonProperty("gender")
+    private String gender;
+    /**
+     * Locale
+     *
+     */
+    @JsonProperty("locale")
+    private String locale;
+    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    /**
+     * Get user ID
+     *
+     */
+    @JsonProperty("id")
+    public String getId() {
+        return id;
+    }
+    /**
+     * Set user ID
+     *
+     */
+    @JsonProperty("id")
+    public void setId(String id) {
+        this.id = id;
+    }
+    /**
+     * Get user name
+     *
+     */
+    @JsonProperty("name")
+    public String getName() {
+        return name;
+    }
+    /**
+     * Set user name
+     *
+     */
+    @JsonProperty("name")
+    public void setName(String name) {
+        this.name = name;
+    }
+    /**
+     * Get user first name
+     *
+     */
+    @JsonProperty("first_name")
+    public String getFirst_name() {
+        return first_name;
+    }
+    /**
+     * Set user first name
+     *
+     */
+    @JsonProperty("first_name")
+    public void setFirst_name(String first_name) {
+        this.first_name = first_name;
+    }
+    /**
+     * Get user last name
+     *
+     */
+    @JsonProperty("last_name")
+    public String getLast_name() {
+        return last_name;
+    }
+    /**
+     * Set user last name
+     *
+     */
+    @JsonProperty("last_name")
+    public void setLast_name(String last_name) {
+        this.last_name = last_name;
+    }
+    /**
+     * Get the link
+     *
+     */
+    @JsonProperty("link")
+    public String getLink() {
+        return link;
+    }
+    /**
+     * Set the link
+     *
+     */
+    @JsonProperty("link")
+    public void setLink(String link) {
+        this.link = link;
+    }
+    /**
+     * Get the username
+     *
+     */
+    @JsonProperty("username")
+    public String getUsername() {
+        return username;
+    }
+    /**
+     * Set the username
+     *
+     */
+    @JsonProperty("username")
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    /**
+     * Get user gender
+     *
+     */
+    @JsonProperty("gender")
+    public String getGender() {
+        return gender;
+    }
+    /**
+     * Set user gender
+     *
+     */
+    @JsonProperty("gender")
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+    /**
+     * Get the locale
+     *
+     */
+    @JsonProperty("locale")
+    public String getLocale() {
+        return locale;
+    }
+    /**
+     * Set the locale
+     *
+     */
+    @JsonProperty("locale")
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
+    }
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+    @Override
+    public boolean equals(Object other) {
+        return EqualsBuilder.reflectionEquals(this, other);
+    }
+    @JsonAnyGetter
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
+    }
+    @JsonAnySetter
+    public void setAdditionalProperties(String name, Object value) {
+        this.additionalProperties.put(name, value);
+    }
+}
 ----
 
 Notes:
@@ -204,7 +466,7 @@ Notes:
 * The @Generated("com.googlecode.jsonschema2pojo") annotation indicates that this class was generated using the https://github.com/joelittlejohn/jsonschema2pojo/wiki/Getting-Started#the-maven-plugin[JSONSchema2POJO] tool, hosted at http://www.jsonschema2pojo.org/. 
 * The multiple imports from package `org.codehaus.jackson.annotate` and the specific annotations used (such as `@JsonProperty, @JsonAnySetter, @JsonAnyGetter`) reflect the fact that the RestCall client uses Jackson internally to serialize and deserialize JSON data exchanged with the service. Be sure to use JSONSchema2POJO in Jackson mode. 
 
-== Adding Operations to the `@Connector` Class
+== Adding Operations to the @Connector Class
 
 When implementing operations on the `@Connector` class, note that for `RESTCall` connectors the operation methods, like the class itself, are abstract. Annotations on the methods specify:
 
@@ -216,9 +478,8 @@ When implementing operations on the `@Connector` class, note that for `RESTCal
 * The class to expect as the return value
 * The HTTP request method to use (such as GET, POST, or PUT)
 
-[WARNING]
+[IMPORTANT]
 ====
-
 *Apply a Test-Driven Approach* +
 
 Based on MuleSoft experience, most successful connector implementation projects follow a cycle similar to test-driven development when building out operations on a connector:
@@ -244,13 +505,54 @@ However, this does not diminish the value of the test-driven approach. Many conn
 For details on developing connector tests, see link:/docs/display/35X/Developing+DevKit+Connector+Tests[Developing DevKit Connector Tests].
 ====
 
-=== Example: `FacebookConnector` Operation Methods
+=== Example: FacebookConnector Operation Methods
 
 The following connector exposes the `getUser()` and `publishWall()` operations: 
 
-[source]
+[source,java]
 ----
-https://developer.mulesoft.com/docs/display/35X/Creating+a+Connector+for+a+RESTful+API+using+@RESTCall+Annotations#[expand source]
+/**
+     * GET a user profile.
+     * {@sample.xml ../../../examples/Facebook.default.xml.sample facebook-connector:default}
+     *
+     * @param user
+     * Represents the ID of the user object.
+     * @param metadata
+     * The Graph API supports introspection of objects, which lets
+     * you see all of the connections an object has without knowing
+     * its type ahead of time.
+     * @return  a User object.
+     * @throws IOException
+     * when the call fails
+     */
+    @Processor
+    @RestCall(uri = "https://graph.facebook.com/{user}", method = HttpMethod.GET)
+    public abstract User getUser(
+        @RestUriParam("user") String user,
+        @RestQueryParam("metadata") String metadata)
+        throws IOException
+    ;
+
+    /**
+     * Post a message on a user's wall
+     * {@sample.xml ../../../examples/Facebook.default.xml.sample facebook-connector:default}
+     *
+     * @param message
+     * Message to be published
+     * @param user
+     * User ID
+     * @return  No return information available
+     * @throws IOException
+     * when the call fails
+     */
+    @OAuthProtected
+    @Processor
+    @RestCall(uri = "https://graph.facebook.com/{user}/feed", method = HttpMethod.POST, contentType = "application/json")
+    public abstract String publishWall(
+        @RestUriParam("user") String user,
+        @RestPostParam("message") String message)
+        throws IOException
+    ;
 ----
 
 Notes:

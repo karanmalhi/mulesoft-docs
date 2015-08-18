@@ -8,13 +8,15 @@ This document leads you through building the connector, beginning with the servi
 
 image:6-package.png[6-package]
 
-== Assumptions
+== Prerequisites
 
 This document assumes you are familiar with RESTful Web services, and have some understanding of Jersey. You can find useful background on Jersey in the https://jersey.java.net/documentation/1.6/user-guide.html[Jersey User Guide].
 
 [NOTE]
 ====
-The straightforward path described here should produce a working connector for any RESTful API that uses JSON to represent requests and responses. Note that
+The straightforward path described here should produce a working connector for any RESTful API that uses JSON to represent requests and responses.
+
+Note that:
 
 * Jersey is the JAX-RS reference implementation, and is widely used for developing Java clients for RESTful Web services. Jersey also adds JAX-RS additional features and utilities, further simplifying RESTful service and client development.
 * This example uses the common 1.x branch of Jersey. Mule currently uses Jersey v1.6, so refer to the https://jersey.java.net/documentation/1.6/user-guide.html[Jersey 1.6 User Guide] for details where needed.
@@ -27,10 +29,10 @@ The straightforward path described here should produce a working connector for a
 
 On a new connector project:
 
-* create a `@Connector` class and add authentication logic.
-* create Java classes (unless you are using Maps) that represent any entities passed to or returned from the service operations
-* build a Jersey-based client in Java that works against the web service API, and converts POJOs or Maps to and from JSON for use in Mule
-* wrap the Jersey-based client class with the `@Connector` class that integrates it with Mule
+* Create a `@Connector` class and add authentication logic.
+* Create Java classes (unless you are using Maps) that represent any entities passed to or returned from the service operations
+* Build a Jersey-based client in Java that works against the web service API, and converts POJOs or Maps to and from JSON for use in Mule
+* Wrap the Jersey-based client class with the `@Connector` class that integrates it with Mule
 
 The final architecture looks like the image below.
 
@@ -67,16 +69,16 @@ The connector also exposes a second operation at the Mule level. `LogInfo` logs
 
 There are several major tasks in developing a connector with Jersey Client; these are outlined below.
 
-. Assuming you've prepared an initial connector project: +
+. Assuming you've prepared an initial connector project:
 .. Add Jersey and Jackson dependencies to POM.
 .. Create any client or entities packages.
 .. Rebuild project with the new dependencies.
-. Create the Jersey Client class. +
+. Create the Jersey Client class.
 .. Enable Jersey Client JSON-POJO mapping.
-. Create the Connector class. +
+. Create the Connector class.
 .. Add OAuth.
 .. Build and test connector.
-. Add an operation. +
+. Add an operation.
 .. Add operation to client class, and add required POJOs to project.
 .. Expose client operation via Connector class.
 .. Build and test manually (Optional).
@@ -125,11 +127,62 @@ Add these to the `<dependencies>` element in your POM, along with any other depe
 
 The complete POM for the Dropbox sample connector project as generated from the Devkit 3.5 connector Maven archetype is shown below.
 
-*Dropbox RESTful Connector pom.xml*
-
+.Dropbox RESTful Connector pom.xml:
 [source]
 ----
-https://developer.mulesoft.com/docs/display/35X/Creating+a+Connector+for+a+RESTful+API+Using+Jersey#[expand source]
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.mule.samples.devkit</groupId>
+    <artifactId>dropboxrest</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>mule-module</packaging>
+    <name>Mule ${serviceName} Cloud Connector</name>
+    <parent>
+        <groupId>org.mule.tools.devkit</groupId>
+        <artifactId>mule-devkit-parent</artifactId>
+        <version>3.5.0-andes</version>
+    </parent>
+    <properties>
+        <junit.version>4.9</junit.version>
+        <mockito.version>1.8.2</mockito.version>
+        <jdk.version>1.6</jdk.version>
+        <category>Cloud Connectors</category>
+        <licensePath>LICENSE.md</licensePath>
+        <devkit.studio.package.skip>false</devkit.studio.package.skip>
+        <serviceName>DropBox REST Sample</serviceName>
+
+        <!-- required for Jersey Client -->
+        <jersey.client.version>1.6</jersey.client.version>
+        <jersey.multipart.version>1.3</jersey.multipart.version>
+    </properties>
+
+ <dependencies>
+        <!-- Add this to use OAuth support in DevKit-->
+        <dependency>
+            <groupId>oauth.signpost</groupId>
+            <artifactId>signpost-core</artifactId>
+            <version>1.2.1.2</version>
+        </dependency>
+
+        <!-- Add this to use Jersey Client -->
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>${jersey.client.version}</version>
+        </dependency>
+
+        <!-- Add this to use Mule support for JSON -->
+
+        <dependency>
+            <groupId>org.mule.modules</groupId>
+            <artifactId>mule-module-json</artifactId>
+            <version>${mule.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+ </dependencies>
+</project>
 ----
 
 ==== Creating Packages for Supporting Classes
@@ -265,11 +318,64 @@ Note that while Jackson is the default provider of serialization/deserialization
 
 The complete code for our sample connector, before adding operations and references to entities used, is shown below.
 
-*DropboxRESTClient.java Before Adding Operations*
-
+.DropboxRESTClient.java Before Adding Operations:
 [source]
 ----
-https://developer.mulesoft.com/docs/display/35X/Creating+a+Connector+for+a+RESTful+API+Using+Jersey#[expand source]
+package org.mule.examples.restjerseyconnector.client;
+
+import javax.ws.rs.core.MediaType;
+
+import com.sun.jersey.api.client.*;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
+import com.sun.jersey.oauth.client.OAuthClientFilter;
+import com.sun.jersey.oauth.signature.OAuthParameters;
+import com.sun.jersey.oauth.signature.OAuthSecrets;
+import org.mule.examples.restjerseyconnector.RestJerseyConnector;
+import org.mule.examples.restjerseyconnector.entities.AccountInfo;
+import org.mule.examples.restjerseyconnector.exception.RestJerseyConnectorException;
+import org.mule.examples.restjerseyconnector.exception.RestJerseyConnectorTokenExpiredException;
+
+public class DropboxClient {
+
+    private Client client;
+    private WebResource apiResource;
+    private RestJerseyConnector connector;
+
+    public DropboxClient(RestJerseyConnector connector) {
+        setConnector(connector);
+
+        ClientConfig clientConfig = new DefaultClientConfig();
+        clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+        this.client = Client.create(clientConfig);
+        this.apiResource = this.client.resource(getConnector().getApiUrl() + "/" + getConnector().getApiVersion());
+    }
+
+    public Client getClient() {
+        return client;
+    }
+
+    public void setClient(Client client) {
+        this.client = client;
+    }
+
+    public WebResource getApiResource() {
+        return addSignHeader(apiResource);
+    }
+
+    public void setApiResource(WebResource apiResource) {
+        this.apiResource = apiResource;
+    }
+
+    public RestJerseyConnector getConnector() {
+        return connector;
+    }
+
+    public void setConnector(RestJerseyConnector connector) {
+        this.connector = connector;
+    }
+}
 ----
 
 === Completing the `@Connector` Class
