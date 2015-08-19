@@ -144,12 +144,12 @@ The alias password in the keystore.
 
 ==== Insecure Connection Channel
 
-This option configures the Mule agent to use an unencrypted connection. It is valid for the REST transport only. You can interact with the API using a browser or other tool for making HTTP requests.
+This option configures the Mule Agent to use an unencrypted connection. It is valid for the REST transport only. You can interact with the API using a browser or other tool for making HTTP requests.
 
 
 ==== Hybrid Management
 
-Configures the Mule agent to connecto to the Anypoint Management Center (AMC). This option requires a token (provided by the AMC console and an instance name. For further information, link:http://www.mulesoft.com/support-login[contact us].
+Configures the Mule Agent to connecto to the Anypoint Management Center (AMC). This option requires a token (provided by the AMC console and an instance name. For further information, link:http://www.mulesoft.com/support-login[contact us].
 
 ==== Installation Via Proxy
 
@@ -226,6 +226,39 @@ To learn more on how to configure the Mule Agent, refer to the documentation of 
 ==== Configuring During Runtime
 
 Some Agent components allow you to configure them during runtime. For further information, see link:[Administration Service].
+
+== Enabling REST Agent Transport and Websocket Transport
+
+When you register the API Gateway in AMC, the generated `mule-agent.yml` disables the REST Agent Transport.
+
+Conversely, if you run `./amc_setup -I`, you enable the REST Agent Transport and disable the WebSocket Transport, that is the one used to connect to AMC.
+
+To run both transports, you need to modify the `mule-agent.yml` by hand and do a merge as follow:
+
+[source,yaml]
+----
+transports:
+  websocket.transport:
+    consoleUri: wss://mule-manager.anypoint.mulesoft.com:443/mule
+    security:
+      keyStorePassword: f3b533c4-4036-4a17-a572-4d6da6a5f508
+      keyStoreAlias: agent
+      keyStoreAliasPassword: f3b533c4-4036-4a17-a572-4d6da6a5f508
+      handshake:
+        enabled: true
+        body:
+          agentVersion: 1.1.0
+          muleVersion: 3.7.0
+          gatewayVersion: 2.0.2
+  rest.agent.transport:
+    port: 8888
+
+services:
+  mule.agent.jmx.publisher.service:
+    enabled: true
+    frequency: 15
+    frequencyTimeUnit: MINUTES
+----
 
 == See Also
 
