@@ -15,7 +15,7 @@ Mule invokes a *System Exception Strategy* when an exception is thrown at the�
 
 When a system exception strategy occurs, Mule sends an exception notification to registered listeners, logs the exception, and — if the exception was caused by a connection failure — executes the link:/docs/display/33X/Configuring+Reconnection+Strategies[reconnection strategy]. System Exception Strategies are not configurable in Mule.
 
-==== Example Scenario
+=== Example Scenario
 
 Mule establishes a connection to a JMS broker in order to receive a message. When Mule attempts to use the connection to consume a message the connection fails, which causes Mule to invoke the system exception strategy. Because the failure occurred before any message was received for processing, Mule invoked the _system_, rather than _messaging_, exception strategy.
 
@@ -64,11 +64,11 @@ Mule supports five types of messaging exception strategies, each of which is cap
 
 Mule ESB’s default exception strategy implicitly and globally handles all messaging exceptions that are thrown in Mule applications. You can override Mule’s default exception strategy by adding a catch, rollback, or choice exception strategy to a flow. Otherwise, when an exception is thrown in a flow, Mule automatically rolls back any pending transaction and logs the exception; if no transaction is involved, the default exception strategy simply logs the exception.
 
-==== When to Use
+=== When to Use
 
 Allow Mule’s default exception strategy to activate whenever you don’t require a customized strategy for handling errors.
 
-==== Configuring a Default Exception Strategy
+=== Configuring a Default Exception Strategy
 
 Because the default exception strategy is implicitly applied to all Mule flows, you don’t need to specify it explicitly. Mule’s default exception strategy automatically activates whenever an error occurs in any of your flows. The default exception strategy cannot be configured using the Studio interface. However, you can build a global default exception strategy to customize the way Mule implicitly handles errors in your application. Refer to the <<Custom Default Exception Strategies>> section below.
 
@@ -78,7 +78,7 @@ You can create one or more global exception strategies to reuse in flows through
 
 Consult the individual link:/docs/display/33X/Catch+Exception+Strategy[catch], link:/docs/display/33X/Rollback+Exception+Strategy[rollback] or link:/docs/display/33X/Choice+Exception+Strategy[choice] exception strategy pages for details on how to create them globally; consult the link:/docs/display/33X/Reference+Exception+Strategy[reference] exception strategy page for details on how to reuse them globally.
 
-==== Creating a Global Default Exception Strategy
+=== Creating a Global Default Exception Strategy
 
 Create a global default exception strategy to customize the way Mule _implicitly_ handles all exceptions that occur in your application. To do so, you must first create a global catch, rollback or choice exception strategy for the global default exception strategy to reference. Then, create a global default exception strategy, configuring it to reference the other global exception strategy.
 
@@ -86,15 +86,16 @@ Create a global default exception strategy to customize the way Mule _implicitl
 ------
 [tab,title="Studio Visual Editor"]
 ....
+
 . Decide which type of exception strategy to configure to best meet your default exception strategy requirements: catch, rollback or choice.
 . Follow the procedure detailed in one of the following documents to *create a global catch, rollback or choice exception strategy* for your global default strategy to reference:
 * link:/docs/display/33X/Catch+Exception+Strategy[Catch Exception Strategy]
 * link:/docs/display/33X/Choice+Exception+Strategy[Choice Exception Strategy]
 * link:/docs/display/33X/Rollback+Exception+Strategy[Rollback Exception Strategy]
-. In Studio, create a simple *Global Configuration* element (below, left), configure it to reference the global exception strategy you created in step 2 (below, right), then click *OK* to save.  +
+. In Studio, create a simple *Global Configuration* element (below, left), configure it to reference the global exception strategy you created in step 2 (below, right), then click *OK* to save.
 
 +
-image:global_config_all.png[global_config_all] +
+image:global_config_all.png[global_config_all]
 +
 
 . Mule implicitly invokes your customized global exception strategy each time an exception is thrown in a flow in the application. +
@@ -105,7 +106,7 @@ image:global_config_all.png[global_config_all] +
 
 You can create a global catch, rollback or choice exception strategy (i.e. access the Choose Global Type panel) from the *Global Configuration's* properties panel. Click on the *+* button next to the *Default Exception Strategy* drop-down combo box to create a global exception strategy.
 
- image:global_access.png[global_access]
+image:global_access.png[global_access]
 ====
 
 [TIP]
@@ -118,16 +119,18 @@ Right-click your global exception strategy in the canvas (below, right), then se
 
 image:global_rightclick2.png[global_rightclick2]
 ====
+
 ....
 [tab,title="Studio XML Editor or Standalone"]
 ....
+
 . Decide which type of exception strategy to configure to best meet your default exception strategy requirements: catch, rollback or choice.
 . Follow the procedure detailed in one of the following documents to *create a global catch, rollback or choice exception strategy* for your global default strategy to reference:
-+
+
 * link:/docs/display/33X/Catch+Exception+Strategy[Catch Exception Strategy]
 * link:/docs/display/33X/Choice+Exception+Strategy[Choice Exception Strategy]
 * link:/docs/display/33X/Rollback+Exception+Strategy[Rollback Exception Strategy]
-+
+
 
 [source, xml]
 ----
@@ -144,11 +147,8 @@ image:global_rightclick2.png[global_rightclick2]
 </flow>  
 ----
 +
-
-View the Namespace
+*Namespace*:
 +
-////
-[collapsed content]
 [source, xml]
 ----
 <mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.4.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
@@ -159,8 +159,6 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
  
 http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd">
 ----
-////
-+
 
 . Add another global element, **`configuration`**, below the global exception strategy.
 . To the configuration global element, add the attributes according to the table below. Refer to code sample below.
@@ -185,9 +183,10 @@ http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/
     <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" doc:name="HTTP"/>
     <cxf:jaxws-service doc:name="SOAP">
     </cxf:jaxws-service>
-....
+    ...
 </flow>  
 ----
+
 ....
 ------
 
