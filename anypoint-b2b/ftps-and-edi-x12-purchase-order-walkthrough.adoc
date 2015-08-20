@@ -1,17 +1,13 @@
 = FTPS and EDI X12 Purchase Order Walkthrough
+:keywords: b2b, ftps, edi x12 purchase, order, walkthrough, amazon, s3
 
-=== Audience
-
- This document is aimed at a technical audience possessing basic knowledge of AS2, X12, and Anypoint Platform. Familiarity of http://modusintegration.github.io/mule-connector-ftps/readme.html[FTPS Connector], https://developer.mulesoft.com/docs/display/current/X12+Module[X12 Module] and https://developer.mulesoft.com/docs/display/current/Datamapper+User+Guide+and+Reference[DataMapper] is assumed.
+ This document is aimed at a technical audience possessing basic knowledge of AS2, X12, and Anypoint Platform. Familiarity of http://modusintegration.github.io/mule-connector-ftps/readme.html[FTPS Connector], link:/docs/current/X12+Module[X12 Module] and link:/docs/current/Datamapper+User+Guide+and+Reference[DataMapper] is assumed.
 
 === Prerequisites
 
 * Anypoint Studio with Mule Server 3.6.1 EE runtime
-
 * FTPS Connector 1.0.0, B2B Connector 1.0, and X12 Module 1.0 installed
-
 * Anypoint Platform account
-
 * Amazon S3 bucket for FTPS and EDI file storage (optional)
 
 == To run this example follow the steps below:
@@ -22,14 +18,14 @@
 . In Anypoint, click on the file "customer.xml" in the app folder, and select the Global view tab. Then open the configurations of B2B, and insert the API Key you got from the B2B Portal.
 . Right click on the imported project folder, "ftps-doc", select Run As, and click Mule Application.
 . Inside the project is a file in src/test/resources called "po.xml". Create a copy and place it in the "outbox" folder.
-. The file should disappear from the directory since the File inbound endpoint will delete the file once it reads it.
+. The file should disappear from the directory since the File inbound endpoint  deletes the file once it reads it.
 . Access the B2B Transmissions view in the B2B Portal to confirm that the AS2 and X12 transmissions have taken place.
 
 = Anypoint B2B Platform FTPS and EDI X12 Purchase Order Example
 
-This example shows how to leverage the Anypoint B2B Platform to manage and track B2B exchanges. The goal is to develop a Mule application, representing a customer, that transforms an XML purchase order read from the filesystem to an X12 850 and sends it to a supplier over FTPS. The supplier returns an X12 997 to a FTPS server the application is aware of in order to inform the customer whether the 850 was accepted or rejected. All B2B transactions will be managed and recorded by Anypoint B2B Platform while the actual files exchanged will optionally be stored in an Amazon S3 bucket.
+This example shows how to leverage the Anypoint B2B Platform to manage and track B2B exchanges. The goal is to develop a Mule application, representing a customer, that transforms an XML purchase order read from the filesystem to an X12 850 and sends it to a supplier over FTPS. The supplier returns an X12 997 to a FTPS server the application is aware of in order to inform the customer whether the 850 was accepted or rejected. All B2B transactions are managed and recorded by Anypoint B2B Platform while the actual files exchanged are optionally  stored in an Amazon S3 bucket.
 
-image:https://docs.google.com/drawings/u/1/d/sGfzJadUrjlILOJhRWZ8RNQ/image?w=624&h=439&rev=9&ac=1[image]
+image:b2b_ftps_walk_01.png[b2b_ftps_01]
 
 == 1. Partnership Set Up
 
@@ -39,90 +35,70 @@ The first stage of the solution is to create a partnership between your organisa
 
 . Login into https://anypoint.mulesoft.com/b2b[Anypoint B2B Portal]:
 +
-image:https://lh5.googleusercontent.com/rzGB61cNVuZGurrE1igSBhQOBD76Ap0Dlksjj-HEmGJEDsQfzQVS5SxHUkf_EM7pY3ockl7eQsnmaW_NbpXo0i1DGMOFJXtPj2hjtMyc_ax3Hj4tSTeVzS1T340wd1REPcoC2-4[image]
-
+image:b2b_ftps_walk_02.png[b2b_ftps_02]
++
 . Click on *Trading Partners* found on the left hand side menu:
 +
-image:https://lh5.googleusercontent.com/cNZy5tgwjM9LSMPatpKpRYlHOXNv24PEnOfBrjj_XXTUWxvHas1v5G_JzFjSIGxfoQlaCvkanpK7hYBpyg3GY5t9Q-YzTcKaJJHQOoMw8dS8d8F7muN968npxGeb8Naoihbavu4[image]
-
+image:b2b_ftps_walk_02.png[b2b_ftps_02]
++
 . Press *Create* on the lower right hand side corner.
-
 . Enter _My Supplier_ as *Company Name* and press *Save*.
++
+image:b2b_ftps_walk_03.png[b2b_ftps_03]
++
+With a partnership in place, we can set the runtime parameters in which the FTPS Connector and X12 Module operates when sending to the supplier or receiving from said supplier.
 
-image:https://lh4.googleusercontent.com/FeWh98IQgoRPhwdcfAuI5EX32q9H5t02-qBX3lhlRxIQA8jnMnZ-NQhWq5T9n0vH1lJ_qrbw3XBDB9BjmVfIB9KdCphkqqIRAgMureWUngPUnaT4IcUfA7y6BPGNYcaZyh59aDk[image]
+=== Specify FTPS Settings
 
-With a partnership in place, we can set the runtime parameters in which the FTPS Connector and X12 Module will operate when sending to the supplier or receiving from said supplier.
-
-=== Set up FTPS settings
-
-. Click on the **FTP/S** transport settings on the left hand side menu.
-
-. Enter the following values in the **FTP Settings - Outbound** sections +
-
+. Click the *FTP/S* transport settings on the left hand side menu.
+. Enter the following values in the *FTP Settings - Outbound* sections:
 .. _dev.modusintegration.com_ in the *Server Address* field.
 .. _9900_ in the *Port* field.
 .. _demo_ in the *User Name* field
 .. _b2bd3mo#1_ in the *Password* field
 .. _Passive_ in the *Transfer Mode* field
 .. _Implicit_ in the *SSL Mode* field
-
 . Leave checkbox, ‘*Enable server validation field*’ unchecked.
-
-. Reuse those fields values to fill in the **FTP Settings - Inbound** section.
+. Reuse those fields values to fill in the *FTP Settings - Inbound* section.
 +
-image:https://lh6.googleusercontent.com/yvL35y32QLFncZrtqHNA4jsRB4RzZ0-aB3-RcRTJxhrRErsXFVoFgj-5rZYNcyDwxW61vLx8cmMFRdt63rfQmwpy7O-Lep_2AhDko_eX129Y2IGWS19nKZuGs90JH_wSOcWt0-c[Selection_047.png]
-
+image:b2b_ftps_walk_04.png[b2b_ftps_04]
++
 . Press Save.
 
-=== Set up FTPS transactions
+=== Specify FTPS Transactions
 
 The settings configured in the previous section are meant to be reused by all inbound and outbound transactions within the application. Now we need to create transactions for exchanging files with the supplier.
 
 In order to send the 850 to the supplier, we need to create an Outbound Transaction.
 
-. Click on *Transactions* on the left hand side menu.
-
-. Click on *New* on the top right corner.
-
+. Click  *Transactions* on the left hand side menu.
+. Click  *New* on the top right corner.
 . In the *Profile* section, select _FTP_ from *Transport* the drop down menu.
-
 . Select _Outbound_ in the *Direction* drop down menu.
-
 . Select _X12_ as *Format* and 850 as *Transaction*.
-
-. Then enter the following details
-
-* /demo/supplier-inbox/ as *Path*
-
-* leave the *File Name* field empty, the FTPS connector will assign a name for it
-
-. Click on *Save*.
-
+. Then enter the following details:
+** /demo/supplier-inbox/ as *Path*
+** Leave the *File Name* field empty, the FTPS connector assigsn a name for it
+. Click  *Save*.
++
 Now the inbound transaction for receiving the 997 file from the supplier needs to be created
-
-. Click on *Transactions* on the left hand side menu.
-
-. Click on *New* on the top right corner.
-
++
+. Click  *Transactions* on the left hand side menu.
+. Click  *New* on the top right corner.
 . In the *Profile* section, select _FTP_ from *Transport* the drop down menu.
-
 . Select _Inbound_ in the *Direction* drop down menu.
-
 . Select _X12_ as *Format* and _997_ as custom value for *Transaction*.
-
-. Then enter the following details
-
+. Enter the following details
 * _/demo/consumer-inbox/_ as *Path*
 * _*.dat_ as *File Name*
 * _2000_ as *Polling Frequency*
+. Click  *Save*.
 
-. Click on *Save*.
-
-=== Set up X12
+=== Set Up X12
 
 . Return to the *Trading Partners* page and select the newly created *My Supplier* from your list of partners. Click on the X12 format settings found on the left hand side menu.
 
-. In the *Outbound* section, fill out the fields according to the table below: 
+. In the *Outbound* section, fill in the fields according to the table below: 
 +
 
 [cols=",",]
@@ -148,7 +124,6 @@ Now the inbound transaction for receiving the 997 file from the supplier needs t
 
 . Scroll down to the *Inbound* section and fill out the fields according to the table below:
 +
-
 [cols=",",]
 |===
 |*Field* |*Value*
@@ -162,28 +137,26 @@ Now the inbound transaction for receiving the 997 file from the supplier needs t
 |Require unique transaction set control numbers (ST 02) |FALSE
 |===
 +
-
-image:https://lh4.googleusercontent.com/gpCCaJD2toKJyP31zhdISwYqXzTXvsxIglhmKgJn2qoZ8V18olp3CqsG6NBDVGZi0PSOrnZT_uA7_9GZFciKgFHSw50iPW_Sr1kPxL3FkpqcXhi0AvwNafxmkkEd4-94roU6m6k[image]
-
-. Press *Save*.
+image:b2b_ftps_walk_05.png[b2b_ftps_05]
++
+. Click *Save*.
 
 == 2. Mule Project Set Up
 
-The next stage of the solution is to develop a Mule application that transforms an XML purchase order read from the filesystem to an X12 850 and sends it to the supplier over FTPS. The supplier returns an X12 997 to a FTPS server the application is aware of in order to inform the customer whether the 850 was accepted or rejected. The exchange of data will operate in the context of the partnership we created in https://docs.google.com/document/d/1R6H0-pKoO7n5swWerkpKXfO6liDFG3TNsnBnhqKfbTc/edit#heading=h.afo4sqok4iqk[Partnership Set Up]. The application will be split into two parts:
+The next stage of the solution is to develop a Mule application that transforms an XML purchase order read from the filesystem to an X12 850 and sends it to the supplier over FTPS. The supplier returns an X12 997 to a FTPS server the application is aware of in order to inform the customer whether the 850 was accepted or rejected. The exchange of data  operates in the context of the partnership we created in https://docs.google.com/document/d/1R6H0-pKoO7n5swWerkpKXfO6liDFG3TNsnBnhqKfbTc/edit#heading=h.afo4sqok4iqk[Partnership Set Up]. The application is split into two parts:
 
 * A customer part that sends an 850 and receives a 997.
+* A mock supplier that  permits us to test the application without any external dependencies.
 
-* A mock supplier that will permit us to test the application without any external dependencies.
-
-Each part will have its own Mule configuration file.
+Each part  has its own Mule configuration file.
 
 . Launch Anypoint Studio and create a new Mule project.
-
++
 . Rename the initial Mule config file created by Studio to _customer.xml_
-
 . Create a new Mule config and name it _mock-supplier_
++
+image:b2b_ftps_walk_63.png[b2b_ftps_06]
 
-image:https://lh5.googleusercontent.com/jq9rM2bEuhtDU08hyBOYTL_QzZ4C-skt7J-L2-u7KD89buCSZL7F90LsGmVdlcZbHuS2TPiC5Z67X15tJg-idnFAjw5r3iwN-AoV0L7BfHIcjFyzi6kJAEvCArdLf2G1GgokjQM[image]
 
 == 3. Customer Connector Configs
 
@@ -195,71 +168,72 @@ The B2B Connector acts like a bridge between Mule and Anypoint‘s B2B services.
 
 . Click on the *Global Elements* view. Go to *Create* -> *Connector Configuration* -> *B2B*.
 
-. Enter your secret API key which is retrieved from your home organisation’s *Contacts* settings page in the B2B portal. To get there follow these steps:
+. Enter your secret API key which is retrieved from your home organisation’s *Contacts* settings page in the B2B portal.
+
+Follow these steps:
+
+. Click *Trading Partners* on the left
+. Click the home icon on the right
 +
-
-* click on *Trading Partners* on the left
-
-* click on the home icon on the right
+image:b2b_ftps_walk_07.png[b2b_ftps_07]
 +
-image:https://lh4.googleusercontent.com/pkA2ynCFF8_EU9Vwfh8_N_u-3zFe4S_Jz8b1xmaLITQib8pPuLsL7eaztAxwdO-svTddU_7t_fqARvldgzdKioJpHzu1AXvR8nZZZu8C8os36pbVgU4ZpcdlIya-ylowQcF5GY4[Selection_048.png]
-
-* copy the API Key that shows up on the top right
+. Copy the API Key that shows up on the top right
 +
-image:https://lh6.googleusercontent.com/nV1E-i6hHJ0qX4I1tfAScBOIPr-hNsJs7AyDcRzQZdVvx9DOj5Q3eAmRXCO-Jq5JvU1xbpg964-y9-WhQTIakEG27_c67qTk7GX9QRK7jXYHI1HfP1A8Oh0PvQc8jED48xcDQ7k[Selection_049.png]
-
-. If you have an Amazon S3 bucket available, you should select *s3* as the *File Storage Type*. Setting this option will tell the B2B Connector to persist X12 documents and AS2 message content to S3.
+image:b2b_ftps_walk_08.png[b2b_ftps_08]
 +
-image:https://lh3.googleusercontent.com/rY2sOVAvY-cbnZZOM3tjXJnGKpG7zSvSywMy94XE-HLiI22nObq7geNQusZdDiIx9HN6IigjMMypNeoz6TrlJBG3Gi3VCHXU9Reh8390LX4tmX0rNnssxNDSCpAzPT4xZ1bmKDs[image]
-
-. Press *OK*.
+. If you have an Amazon S3 bucket available, you should select *s3* as the *File Storage Type*. Setting this option  tells the B2B Connector to persist X12 documents and AS2 message content to S3.
++
+image:b2b_ftps_walk_09.png[b2b_ftps_09]
++
+. Click *OK*.
 
 === Create FTPS Connector Configs
 
-. Remain in the **Global Elements _view_** to create a FTPS Connector config by going to *Create* -> *Connector Configuration* -> *FTPS*. Name IT _b2b-based-ftps_.
+. Remain in the *Global Elements _view_* to create a FTPS Connector config by going to *Create* > *Connector Configuration* > *FTPS*. Name IT _b2b-based-ftps_.
 
 . Enable the *Use B2B Provider* option on configs to allow Anypoint B2B platform to manage the FTPS processors.
 
 === Create X12 Module Config
 
-. Create an X12 Module config in the *Global Elements* view, name it **X12_EDI**
+. Create an X12 Module config in the *Global Elements* view, name it *X12_EDI*
 
 . Enable *Use B2B Provider* to allow Anypoint B2B platform to manage the X12 processors.
 
 . Check the *Create Object Manually* radio button and open the *Object Builder* to enter the schema path _/x12/005010/850.esl_ in the first entry list.
 +
 
-image:https://lh6.googleusercontent.com/zHu4Q5IQmwnf4cQAL5bqcfXZ3hKfmqmnM3JBs4VCF5MlObFclJUwRaTfTSVzr-hIyII7-fxbM7DvzLm8fryvtabr3wG6I2r95vRP-Co09uXueLodLNPW_7zUrAwrO0wcYVOAJ_c[image]
+image:b2b_ftps_walk_10.png[b2b_ftps_10]
+
 
 . Set the interchange identifier attributes so that they correspond with the interchange identifiers you configured in the B2B Portal:
 
-** Self Identification** +
+*Self Identification* +
 
-**Interchange sender/receiver ID qualifier (ISA05/ISA07)** = _ZZ_
+*Interchange sender/receiver ID qualifier (ISA05/ISA07)* = _ZZ_
 
-** Interchange sender/receiver ID (ISA06/ISA08)** = _MOUNTAINOUT_
+* Interchange sender/receiver ID (ISA06/ISA08)* = _MOUNTAINOUT_
 
- **Application sender/receiver code (GS02/GS03)** = _MOUNTAINOUT_
+ *Application sender/receiver code (GS02/GS03)* = _MOUNTAINOUT_
 
-** Partner Identification** +
+* Partner Identification* +
 
-**Interchange sender/receiver ID qualifier (ISA05/ISA07)** = _ZZ_
+*Interchange sender/receiver ID qualifier (ISA05/ISA07)* = _ZZ_
 
- **Interchange sender/receiver ID (ISA06/ISA08)** = _MY-SUPPLIER_
+ *Interchange sender/receiver ID (ISA06/ISA08)* = _MY-SUPPLIER_
 
- **Application sender/receiver code (GS02/GS03)** = _MY-SUPPLIER_
+ *Application sender/receiver code (GS02/GS03)* = _MY-SUPPLIER_
 
 The interchange identifiers are the key for looking up the partnership to use for X12 processing.
 
-image:https://lh4.googleusercontent.com/HqFBEtKRHUQsE1OQ4La2w_Be_MkY6laUXHzlKbevt4cXGAXtVYFzqfQL7CzUWzRC2nz_ovSdn762WyiWQcG8PoJu8bpmkfQqGyoTd6pK_VO_ahrGYSZIHRVuLtfQ3dseEJBPj5k[Selection_050.png]
+image:b2b_ftps_walk_11.png[b2b_ftps_11]
 
  The following screenshot should match what you have in the *Global Elements* view:
 
-image:https://lh5.googleusercontent.com/5u3BVGV5URgZNsV_BdtVW2JdNFko6XXe9KtJ3NuTFDFABt0R-qAPW6EzbRCnGcU1FXxno3Pc2R_VUhPluZCCcAUvHvx7ebh6CstmyUjW9JUPXQuA8Q4uJOeOVZtd6d4yHWfqCpI[Selection_012.png]
+image:b2b_ftps_walk_12.png[b2b_ftps_12]
 
 == 4. Transform and Send 850 over FTPS
 
-With the connector configs out of the way, we’ll build a flow to read an XML purchase order from the filesystem, transform it to a canonical EDI message structure, and finally, write it out as an X12 850 document to send it out to your supplier over FTPS.
+With the connector configs out of the way, we now build a flow to read an XML purchase order from the filesystem, transform it to a canonical EDI message structure, and finally, write it out as an X12 850 document to send it out to your supplier over FTPS.
 
 . Remain in the customer Mule config but change to the *Message Flow* view.
 
@@ -292,27 +266,27 @@ With the connector configs out of the way, we’ll build a flow to read an XML p
 |'TT' |Summary -> 100 CTT -> 0200 AMT -> AMT01 - Amount Qualifier Code
 |===========
 
-. The last message processor in the flow is an FTPS processor that sends the 850. Set the *operation* to *Write*. Additionally, set *SpecId* in the *B2B options* section to the **FTP/S Settings ID** value of the in the *Transactions* section of the B2B Portal for the 850 transaction:
+. The last message processor in the flow is an FTPS processor that sends the 850. Set the *operation* to *Write*. Additionally, set *SpecId* in the *B2B options* section to the *FTP/S Settings ID* value of the in the *Transactions* section of the B2B Portal for the 850 transaction:
 
-image:https://lh4.googleusercontent.com/pO5sidmMD9yaOo_CeuUdFynQw62n3AyzhwPtQow6L3kHVTnJLsjU83aW0wwQxwCh-SUqj8yhBK2bRsiNZu_G--6urYRzYIR6LDxBfKbYGxovGveBmXs149vh6gRXlHI_sX9ozJY[image]
+image:b2b_ftps_walk_13.png[b2b_ftps_13]
 
 Note that this identifier was configured in the B2B Portal. Copy and paste it into your FTPS processor:
 
-image:https://lh3.googleusercontent.com/SFbLqZq6wbypflkdEIpu758pKfDny_obHo4lSRGvpuT8btSPsfUrEu2DureEwlUbbpGdELzcUeLn_M-JbH_dbRt18QGUF0OOrQLX0XkkGXvtIExoV-wf88wjKRI8rt-jvQDErY[image]
+image:b2b_ftps_walk_14.png[b2b_ftps_14]
 
-image:https://lh4.googleusercontent.com/aH023Nz0knsnxAJIyBrBZU6f_CDPjT1zrym0YyYrEQ_Hat5W2-C84e0x_9_SQJ2sUI_YYMY6cKmNWZ8aUXbfGrVqciLyEtEele0gaVCD7iZVvnfac56vZNoiouZ7w3vIqMMPSwo[Selection_017.png]
+image:b2b_ftps_walk_15.png[b2b_ftps_15]
 
 == 5. Receive 997 over FTPS
 
-The subsequent flow to develop will receive a 997 over  FTPS from the supplier in response to the 850 sent by you. In the _customer.xml_ Mule config:
+The subsequent flow to develop receives a 997 over  FTPS from the supplier in response to the 850 sent by you. In the _customer.xml_ Mule config:
 
 . Drag the FTPS processor to the canvas so as to create it as a message source of a new flow. Select the *Read* operation and set *SpecId* in the *B2B options* section to the FTP/S Settings ID value of the in the *Transactions* section of the B2B Portal for the 997 transaction:
 +
-image:https://lh4.googleusercontent.com/Z99WPtb_V5RLH5gOliE6XgNzg8bXglSSgNLuZIq44LzKvReyXmdQ_UHtppw8JaiwdChgDNCzE1hGL4Uwrcwz_IF6WSkZogyxij8c3N7ohviwSc_706Fhdsgzg5eDl83I3qqJYCk[Selection_018.png]
+image:b2b_ftps_walk_16.png[b2b_ftps_16]
 +
 The FTP/S Settings ID identifiers are the key for looking up the partnership to use for receiving FTPS transfers. Copy and paste it in your FTPS processor configuration:
 +
-image:https://lh6.googleusercontent.com/7zug1xRvC-FjcPTf8cVGPeJ0ErGTh3RoflD3moR0TOwu_Lwl4ePb6oXwsHVr7FJrANwKOAww6G2IAqlsymN9HQgmYH7hsrmqvLRUxogyt5_bBtxFYtTX36JVTzvaLyZpa7hfutc[Selection_022.png]
+image:b2b_ftps_walk_17.png[b2b_ftps_17]
 +
 Note that when using a B2B  based configuration for FTPS all locally defined fields are ignored.
 +
@@ -320,11 +294,11 @@ Note that when using a B2B  based configuration for FTPS all locally defined fi
 
 . Add an *X12* processor next to message source and select the *Read* operation. Point the *Connector Configuration* to the X12 Module config that you created in the previous section
 
-image:https://lh5.googleusercontent.com/udWUCmXTHyuO2RBQP0laYdB4xUqqcGKHnXcIgW-D8UxhYQnvXVgUzrt3B_DOLSPFIyxo9j3yr6tonOJ5Z0d4ub9HaU8yBBkbBPyRmXajyERStn1w7q8yctKIt2K7aFpZyFZbBvw[Selection_028.png]
+image:b2b_ftps_walk_18.png[b2b_ftps_18]
 
 == 6. Develop Mock Supplier
 
-The mock supplier will receive the 850 and generate a 997 to send back to the customer over FTPS:
+The mock supplier  receives the 850 and generate a 997 to send back to the customer over FTPS:
 
 . Open the _mock-supplier.xml_ Mule config.
 
@@ -336,45 +310,45 @@ The mock supplier will receive the 850 and generate a 997 to send back to the cu
 +
 The following screenshot should match what you have in the mock supplier’s *Global Elements* view:
 +
-image:https://lh5.googleusercontent.com/RfZtUbBHM73n64kcJiYTgMpVoBDZ-7glFxTuR_MLTKIcQxIxTfrFYeLruMgNnmW7ceEs3xnc0rpvHJJe5JsEyW_fi2WzpcloE4M4k1RNZbTweON6sZZ7XTcCd_oVRZ37A80Q9Z8[Selection_024.png]
+image:b2b_ftps_walk_19.png[b2b_ftps_19]
 +
 . Switch to the *Message Flow* view. Drag the FTPS processor to the canvas and select the *Read* operation. Make sure that *Connector Configuration* points to the mock supplier’s FTPS config (highlighted above).
 
 . Enter _/demo/supplier-inbox/_ as *Path* and _*.dat_ in *Filename*. Note that we’re leaving the B2B options unset. The polling setting can be safely ignored by now. +
 
 +
-image:https://lh4.googleusercontent.com/YYDEwNIZ26wCoPZLsCXEu3aEftisX8ZNsHQYJuMuu2KdD2-dMevCaiuSettZwDvT_96i-7dZOzYwO85vKV1w884zJkS9FLyNIloCjPLzrhgbNSy-1joqu_aupHSr9egPgsGOBls[Selection_026.png]
+image:b2b_ftps_walk_20.png[b2b_ftps_20]
 +
 
 . Add a *ByteArray to String* transformer.
 
-. The next processor in the chain is an *X12* processor that has its operation set to *Read* and Connector Configuration set to **X12_EDI**.
+. The next processor in the chain is an *X12* processor that has its operation set to *Read* and Connector Configuration set to *X12_EDI*.
 
 . After the 850 is parsed by the X12 processor, the generated 997 needs to be extracted from the payload. Add the *Set Payload* processor to the processor chain and set *Value* to: _#[ ['Transactions' : ['997' : *payload*.FunctionalAcksGenerated] ] ]_
 +
-image:https://lh5.googleusercontent.com/G1x9dL3NprlH225EGdVyJn3nwRHIBdJPvpLgvF70Z242itz9MDAwsHJ1vXga5NsnLkxFAI_qsneu7B5xbGd8hGGSl_klGthUg6JGrltqpX4NO526a0lMw1Ovc328ry7um4rUkcs[Selection_025.png]
-
-. Add Another *X12* processor to serialize the 997. Expand the *Operation* drop-down menu and select *Write*; set the *Connector Configuration* to **X12_EDI**.
+image:b2b_ftps_walk_21.png[b2b_ftps_21]
++
+. Add Another *X12* processor to serialize the 997. Expand the *Operation* drop-down menu and select *Write*; set the *Connector Configuration* to *X12_EDI*.
 
 . The last step in the flow to send the 997 over FTPS. Append a FTPS processor to the flow; select the same local FTPS global configuration for the FTPS message source of point 3, select the *Write* operation and enter _/demo/consumer-inbox/_ in *Path*.
 
-image:https://lh5.googleusercontent.com/zV-UUPcTnW1kix95j1qDfXO928CqJTtkjWJQQcT03jJF3wEzBaFWUt3mrUBqKmxNdS3-Kr8PP1wew05nrWS5uEa4gs1vo7dK8jAtHKA9M2QA9QZ68280ngbdQLh994Zc_kRuaaY[Selection_027.png]
+image:b2b_ftps_walk_22.png[b2b_ftps_22]
 
 == 7. Run Application when S3 storage is disabled
 
 . Run the application as a *Mule Application*. On startup, the application creates the _outbox_ directory in the project’s root directory. If the _outbox_ directory isn’t visible, try refreshing the project in the *Package Explorer* view.
 
-. Drop the purchase order file _po.xml_, included with this document, in the _outbox_ directory. The file should disappear from the directory since the *File* inbound endpoint will delete the file once it reads it.
+. Drop the purchase order file _po.xml_, included with this document, in the _outbox_ directory. The file should disappear from the directory since the *File* inbound endpoint  deletes the file once it reads it.
 
 . Access the B2B Transmissions view in the B2B Portal to confirm that the AS2 and X12 transmissions have taken place.
 +
-image:https://lh5.googleusercontent.com/cBC3M_nobEQ7h6vzhqRPWdkdYlMoH2MQYBM2mcHMMYmioFLxADDjDQ_j12fjsnow7OZ0M-Sb57faX9jFD8JDZlSEodf-AJv4DWj5zG26sV6-P5NmOVEk_qB84Ubpy7aUj1DJSZA[Selection_029.png]
+image:b2b_ftps_walk_23.png[b2b_ftps_23]
 
 == 8. Run Application when S3 storage is enabled
 
 If you have enabled S3 storage configured in the B2B Connector config, then you need to add the AWS and S3 parameters to the Mule application VM arguments.
 
-. From the *Run As* menu, select **Mule Application (configure)**.
+. From the *Run As* menu, select *Mule Application (configure)*.
 
 . Click on the *Arguments* tab.
 
@@ -386,4 +360,4 @@ If you have enabled S3 storage configured in the B2B Connector config, then you 
 
 The value of each property needs to be substituted with the required setting retrieved from your AWS Management Console.
 
-image:https://lh4.googleusercontent.com/RQvXxynzpdlbUB8H2KmHV0km5bSDSjflroCACiVm_nFNf3vs3yxr300m4w2PfubF_AliyNvZuHk0PPd_ELVaSwueQ8b_ERXCbvvLqFKeCUsT6HcBg_36FmSA9BgmFJH_M_04mcg[image]
+image:b2b_ftps_walk_24.png[b2b_ftps_24]

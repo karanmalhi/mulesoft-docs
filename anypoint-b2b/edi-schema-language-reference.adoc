@@ -1,12 +1,13 @@
 = EDI Schema Language Reference
+:keywords: b2b, edi, schema, yaml, language, reference
 
 The EDI Module uses a YAML format called ESL (for EDI Schema Language) to represent EDI schemas. Basic ESLs define the structure of EDI messages in terms of_ structures, segments, composites, and elements_.  Currently, ESLs for the X12 0004010 and 005010 versions and EDIFACT D.96A, D.98B, and D.01B versions are included out of the box. This document describes the EDI Schema Language structure so that you can customize schemas and/or build your own.
 
-== *Components of an ESL document*
+== Components of an ESL Document
 
 The top-level definitions in an ESL document give the EDI standard being used (currently “X12” and "EDIFACT" are supported), the version of that standard, an optional list of import ESLs, and any combination of lists of structure, segment, composite, and element definitions. Here's a sample of what these top-level definitions look like, from the _/x12/005010/850.esl_ schema:
 
-[source]
+[source,yaml]
 ----
 form: X12
 version: '005010'
@@ -20,13 +21,13 @@ structures:
 
 The module contains an ESL for each X12 and EDIFACT version named _basedefs.esl_, which provides the standard segment, composite, and element definitions. This example of an 850 purchase order imports these to reuse the definitions in defining the purchase order structure.
 
-== *Structure definitions*
+== Structure Definitions
 
 Structure definitions (representing X12 transaction sets or EDIFACT messages) are composed of some key-value pairs for standard characteristics along with lists of segments making up the actual structure. The segment lists are organized into “heading”, “detail”, and “summary” sections. Segments may be further organized into groups consisting of a potentially repeated sequence of segments.
 
 Here's a portion of a sample structure definition, again from the _/x12/005010/850.esl_ schema:
 
-[source]
+[source,yaml]
 ----
 - id: '850'
   name: Purchase Order
@@ -59,12 +60,12 @@ The basic structure values are:
 [cols=",",options="header",]
 |===
 |Structure Key/Section |Description
-|id |structure identifier
-|name |structure name
-|class |class of structure, equivalent to an X12 functional group identifier (ignored in EDIFACT structure definitions)
-|heading |list of segments (and groups within the heading section of the structure
-|detail |list of segments (and groups within the detail section of the structure
-|summary |list of segments (and groups) within the heading section of the structure
+|id |Structure identifier
+|name |Structure name
+|class |Class of structure, equivalent to an X12 functional group identifier (ignored in EDIFACT structure definitions)
+|heading |List of segments (and groups within the heading section of the structure
+|detail |List of segments (and groups within the detail section of the structure
+|summary |List of segments (and groups) within the heading section of the structure
 |===
 
 The lists of segments for the different sections of the structure all use the same form. Each item in the list is either a segment reference or a group definition. Segment references are shown using a compact YAML syntax where the values for each reference are given as comma-separated key-value pairs enclosed in curly braces. The values are:
@@ -72,28 +73,28 @@ The lists of segments for the different sections of the structure all use the s
 [width="100%",cols="50%,50%",options="header",]
 |===
 |Segment Property |Description
-|idRef |the referenced segment id
-|position |the segment position within the section (by EDI convention these are numeric values which may include leading zeroes, so are quoted and handled as strings)
-|usage |usage code, which may be M for Mandatory, O for Optional, C for Conditional, or U for Unused
-|count |maximum repetition count value, which may be a number or the special value '>1' meaning any number of repeats (optional, count value of 1 is used if not specified)
+|idRef |The referenced segment id
+|position |The segment position within the section (by EDI convention these are numeric values which may include leading zeroes, so are quoted and handled as strings)
+|usage |Usage code, which may be M for Mandatory, O for Optional, C for Conditional, or U for Unused
+|count |Maximum repetition count value, which may be a number or the special value '>1' meaning any number of repeats (optional, count value of 1 is used if not specified)
 |===
 
 Group definitions are shown in expanded form, with key-value pairs on separate lines. The values in a group definition are:
 
 [cols=",",options="header",]
 |===
-|  | 
-|groupId |the group identifier
+|Value| Description
+|groupId |The group identifier
 |usage |Usage code, which may be M for Mandatory, O for Optional, C for Conditional, or U for Unused
-|count |maximum repetition count value, which may be a number or the special value '>1' meaning any number of repeats (optional, count value of 1 is used if not specified)
-|items |list of segments (and potentially nested groups) making up the group
+|count |mMximum repetition count value, which may be a number or the special value '>1' meaning any number of repeats (optional, count value of 1 is used if not specified)
+|items |List of segments (and potentially nested groups) making up the group
 |===
 
-== *Segment definitions*
+== Segment Definitions
 
 Segment definitions are again composed of some key-value pairs for standard characteristics along with lists of values (elements and composites) making up the actual segment. Here's a portion of a sample segment definition, from the _/x12/005010/basedefs.esl_ schema:
 
-[source]
+[source,yaml]
 ----
 - id: 'BAK'
   name: Beginning Segment for Purchase Order Acknowledgment
@@ -121,18 +122,18 @@ The values list references elements and composites by id, shown using a compact 
 [cols=",",options="header",]
 |===
 |Section |Description
-|idRef |the referenced element or composite id
-|position |the value position within the segment (optional, normally not used; by default, the positions start at 1 and increment by 1 for each successive value)
-|name |the name of the value in the segment (optional, element or composite name used by default)
-|usage |usage code, which may be M for Mandatory, O for Optional, C for Conditional, or U for Unused
-|count |maximum repetition count value, which may be any number or the special value '>1' meaning any number of repeats (optional, count value of 1 is used if not specified)
+|idRef |The referenced element or composite id
+|position |The value position within the segment (optional, normally not used; by default, the positions start at 1 and increment by 1 for each successive value)
+|name |The name of the value in the segment (optional, element or composite name used by default)
+|usage |Usage code, which may be M for Mandatory, O for Optional, C for Conditional, or U for Unused
+|count |Maximum repetition count value, which may be any number or the special value '>1' meaning any number of repeats (optional, count value of 1 is used if not specified)
 |===
 
-== *Composite definitions*
+== Composite Definitions
 
 Composite definitions are very similar to segment definitions, again composed of some key-value pairs for standard characteristics along with lists of values (elements and composites) making up the actual composite. Here's a portion of a sample composite definition, from the _/x12/005010/basedefs.esl_ schema:
 
-[source]
+[source,yaml]
 ----
 - id: 'C022'
   name: 'Health Care Code Information'
@@ -154,21 +155,21 @@ Composite definition values are:
 |values |list of elements and composites within the composite
 |===
 
-The values list references elements and composites by id, shown using a compact YAML syntax where the values for each reference are given as comma-separated key-value pairs enclosed in curly braces. The values for these references are:
+The values list references elements and composites by ID, shown using a compact YAML syntax where the values for each reference are given as comma-separated key-value pairs enclosed in curly braces. The values for these references are:
 
 [cols=",",options="header",]
-|=================
+|===
 |Name |Description
-|idRef |the referenced element or composite id
-|position |the value position within the composite (optional, normally not used; by default, the positions start at 1 and increment by 1 for each successive value)
-|usage |usage code, which may be M for Mandatory, O for Optional, C for Conditional, or U for Unused
-|=================
+|idRef |The referenced element or composite ID
+|position |The value position within the composite (optional, normally not used; by default, the positions start at 1 and increment by 1 for each successive value)
+|usage |Usage code, which may be M for Mandatory, O for Optional, C for Conditional, or U for Unused
+|===
 
-== *Element definitions*
+== Element Definitions
 
 Element definitions are very simple, consisting of basic key-value pairs for standard characteristics. Here are several element definitions, from the _/x12/005010/basedefs.esl_ schema:
 
-[source]
+[source,yaml]
 ----
 elements:
   - { id: '1', name: 'Route Code', type: AN, minLength: 1,
@@ -182,11 +183,11 @@ elements:
 Element definition values are:
 
 [width="100%",cols="50%,50%",options="header",]
-|=========================
+|===
 |Name |Description
-|id |element identifier
-|name |element name
-|type |value type code, which may be N for an integer number, N0-N9 for a number with an implied decimal point at the indicated position (N0 is equivalent to N), R for decimal number, ID for an identifier, AN for an alphanumeric string, DT for date, and TM for time (the Binary data type is not currently supported)
-|minLength |minimum number of significant characters in value
-|maxLength |maximum number of significant characters in value
-|=========================
+|id |Element identifier
+|name |Element name
+|type |Value type code, which may be N for an integer number, N0-N9 for a number with an implied decimal point at the indicated position (N0 is equivalent to N), R for decimal number, ID for an identifier, AN for an alphanumeric string, DT for date, and TM for time (the Binary data type is not currently supported)
+|minLength |Minimum number of significant characters in value
+|maxLength |Maximum number of significant characters in value
+|===

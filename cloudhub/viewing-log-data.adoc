@@ -1,12 +1,87 @@
 = Viewing Log Data
-:keywords: cloudhub, logging, log, log events, log data, search
+:keywords: cloudhub, logging, enhanced log management, r44
 
-CloudHub provides access to log data so that you can monitor your application and diagnose any potential issues. CloudHub stores log data in Universal Time (UTC); however, the console displays the log using your computer's local time zone. CloudHub saves 100,000 log events per application. Logs that exceed the limit are truncated every 24 hours to 100,000 events by discarding the oldest events past the limit. Individual log entries are limited to a maximum length of 100K characters; longer log entries are truncated to the limit.
+CloudHub provides access to log data so that you can monitor your application and diagnose any potential issues. CloudHub stores log data in Universal Time (UTC); however, the console displays the log using your computer's local time zone. 
+
+== Enhanced Log Management
+
+The August 2015 (r44) version of CloudHub provides a new optional user interface and expanded storage capabilities. With the new Enhanced Log Management setting, logs can be up to 100 MB or up to 30 days, whichever limit is hit first. This change applies only to apps created with Mule 3.5.3, 3.6.2, 3.7.1, and API Gateway 2.0.3, or newer versions of each. 
+
+[IMPORTANT]
+====
+Before using enhanced logging, download all existing logs. When you enable this feature, the verify prompt contains a link to download your logs to your computer. The logs are saved as a text file.
+
+When you enable enhanced logging, CloudHub restarts your application.
+====
+
+To enable this feature:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform] and click *CloudHub*.
+.Click an application to expand the details view:
++
+image:CHApps.png[CHApps]
++
+. Click *Settings* > *Enhanced Log Management*. 
++
+image:EnLogMgmt.png[EnLogMgmt]
++
+The verification prompt appears:
++
+image:ELMEnableChangeSettingsPrompt.png[ELMEnableChangeSettingsPrompt]
++
+. Click *Download logs*. Your computer opens a Save File dialog box where you can locate the directory to save the log file in. The log is saved as a text file with the .log file type. 
+. After you save your files, click the *I understand log history will be lost* ... prompt, and click *Change Settings*. 
+. In the bottom of the CloudHub Settings screen, click *Apply Changes*.
+. Click *Logs*. The new Enhanced Log Management screen appears. The application restarts after setting enhanced logging. The logs list deployment messages and events for each worker. You can use Advanced search to list errors or different message priorities--see link:[Search by Message Priority].
++
+image:ELMStart.png[ELMStart]
++
+. The Filters section on the right of the enhanced logging screen lets you selectively view the output by day, Deployment, System Log, and Workers. The *Less Filters* button above the Filters disables the Filters view. You can re-establish the Filters view by clicking *More Filters*.
++
+image:ELMfilters.png[ELMfilters]
++    
+. The Filters section also contains the download button that you can use to download the log of the current worker and deployment:
++
+image:DownloadLogs.png[DownloadLogs]
++    
+. You can also search for log content, or click *Advanced* to search for a time or day, or date range, or by message priority. After you choose, click *Apply*. For more information, see link:[Advanced Search]. 
++
+image:ELMAdvancedSearch.png[ELMAdvancedSearch]
+
+*Note*: Enhanced logging combines both live and archive views into a single UI, so there is no longer a way to pause or clear the live view window.
+
+=== Downloading Logs in Enhanced Logging
+
+For the best audit trail, you may wish to download logs from enhanced logging. In enhanced logging, there are logs for each worker in each deployment.
+In the following example, there are 3 logs you may wish to back up:
+
+image:ELMmanyLogs.png[ELMmanyLogs]
+
+When you click a download symbol, your computer displays a dialog box to let you save the log file. The log file is a text file with the .log file type. You can view this file with a text editor.
+
+The log file is named in the format of: _deployment-ID_`.`_instance-ID_`.log`
+
+=== Disabling Enhanced Logging
+
+*Important*: Before disabling enhanced logging, back up each worker's logs from each deployment. Disabling enhanced logging deletes all logs and restarts your application.
+
+To disable enhanced logging:
+
+. Click *Settings* and uncheck *Enhanced Log Management*.
+. In the following prompt, click the *I understand* ... message and click *Change Settings:
++
+image:ELMChangingLogSettings.png[ELMChangingLogSettings]
+
+
+== Default Log Management
+
+If you do not click *Enhanced Log Management*, CloudHub saves 100,000 log events per application. Logs that exceed the limit are truncated every 24 hours to 100,000 events by discarding the oldest events past the limit. Individual log entries are limited to a maximum length of 100K characters; longer log entries are truncated to the limit.
+
+The default interface differs from that of enhanced logging:
 
 image:chlog.png[chlog]
 
-== Pausing and Clearing a Log
-
+=== Pausing and Clearing a Log
 To pause the log so that entries are temporarily stopped from writing, click *Live view* and click *Pause*. While the log is paused, a green *Resume* button appears. Click *Resume* to enable more content to be written.
 
 image:ResumeLog.png[ResumeLog]
@@ -15,57 +90,8 @@ In *Live view*, you can click the *Clear* button to clear the viewing window, so
 
 image:LogClear.png[LogClear]
 
-== Log Search Filters
-
-The *Live view* setting provides a live, continually updated stream of current log data from all an application's workers.
-
-To search:
-
-. From the *Applications* menu, click an application to view its details menu, and click *Manage Application*.
-. Click *Settings* > *Logs*.
-. Click *Archive* view and *Advanced* to set search filters to limit the log display to entries listed by date and time, or by priority:
-
-image:LogArchiveSearch.png[LogArchiveSearch]
-
-=== Search by Date and Time
-
-The *Date & time* filter lets you specify a date range to search the log. Possible values are:
-
-* Last hour
-* Last 24hrs
-* Last week
-* Last month
-
-=== Search by Message Priority
-
-The Priority filter lets you view specific events in the log. You can also specify different priorities by typing __priority:<type>__ in the search box, as shown in the Command column in the table.
-
-Possible values are:
-
-[width="90",cols="33a,33a,33a",options="header"]
-|===
-|Value |Description |Command
-|All Priorities |List all messages |--
-|ERROR |List only error messages, such when an exception occurs. |priority:ERROR
-|FATAL |List only fatal messages for when an application fails |priority:FATAL
-|INFO |List informative messages |priority:INFO
-|SYSTEM |List messages about application and worker startup |priority:SYSTEM
-|CONSOLE |List message about console events such as setting the objectstore |priority:CONSOLE
-|WARN |List warning messages |priority:WARN
-|DEBUG |List debugging messages |priority:DEBUG
-|===
-
-=== Wildcard Searching
-
-You can also filter log data by entering search terms into the search box at the top of the log page that match results in the log message. You can search for any exact term in the log message as well as a few common quantifiers for wildcard searching:
-
-[width="10",cols="10,90"]
-|===
-|? |The question mark matches zero or one of the preceding element.
-|* |The asterisk matches zero or more of the preceding element.
-|===
-
-== Log Page Controls
+ 
+=== Log Page Controls
 
 CloudHub provides page controls to help you move through the logs when you view historical data. The most recent logs are on page one. The data gets older as you step through the higher pages. 
 
@@ -74,11 +100,84 @@ You can configure the number of results that display on each page by clicking *A
 image:LogsPages.png[LogsPages]
 
 Click *FIRST*, *LAST*, or the number of entries to view per page, *10*, *25*, or *50*.
-
-== Downloading Log Data
+=== Downloading Log Data
 
 Click *Archive* and click *Download* to save a copy of the current log view to your computer:
 
 image:LogsDownload.png[LogsDownload]
 
 You are prompted for a save location. You can download a maximum of 10,000 lines of log data with a single save. However, using repeated views with contiguous time windows as search criteria, the entire log may be downloaded.
+
+=== Advanced Search
+
+Advanced search lets you search logs by date and priority. The Advanced search interface is the same for enhanced logging and default logging.
+
+*Enhanced logging* - Click *Advanced* in the search field. Enhanced only provides a live console.
+
+*Default logging* - Click *Live view* to provide a live, continually updated stream of current log data from all an application's workers. Click  *Advanced*  in the search field to search only for strings in the logs. Click *Archive view* and *Advanced* to set search by text, date, or priority.
+
+The Advanced search interface is as follows (shown for enhanced logging):
+
+image:ELMAdvSearch.png[ELMAdvSearch]
+
+=== Search by Date and Time
+
+The *Date & Time* filter lets you specify a date range to search the log. Possible values are:
+
+* Last hour
+* Last 24hrs
+* Last week
+* Last month
+
+=== Search by Message Priority
+
+The Priority filter lets you view specific events in the log. You can also specify different priorities by typing `priority<type>` in the search box, as shown in the Command column in the table.
+
+Possible values are:
+
+[width="100%",cols="33a,33a,33a",options="header"]
+|===
+| Value
+| Description
+| Command
+
+| All Priorities
+| List all messages
+| N/A
+
+| ERROR
+| List only error messages, such when an exception occurs.
+| priority:ERROR
+
+| FATAL
+| List only fatal messages for when an application fails
+| priority:FATAL
+
+| INFO
+| List informative messages
+| priority:INFO
+
+| SYSTEM
+| List messages about application and worker startup
+| priority:SYSTEM
+
+| CONSOLE
+| List message about console events such as setting the objectstore
+| priority:CONSOLE
+
+| WARN
+| List warning messages
+| priority:WARN
+
+| DEBUG
+| List debugging messages
+| priority:DEBUG
+
+|===
+
+=== Wildcard Searching
+
+You can also filter log data by entering search terms into the search box at the top of the log page that match results in the log message. You can search for any exact term in the log message as well as a few common quantifiers for wildcard searching:
+
+* `?` - The question mark matches zero or one of the preceding element.
+* `*` - The asterisk matches zero or more of the preceding element.

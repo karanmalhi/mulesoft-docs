@@ -1,0 +1,112 @@
+= Creating and Managing Clusters
+
+Need more information on clusters? See 
+link:[Mule High Availability HA Clusters].
+
+This guide helps you manage on premises server clusters in CloudHub. An on-premises cluster enables up to 8 servers to participate in a high availability processing unit so that should one server fail, another server takes over processing applications. A cluster can run multiple applications. All servers in a cluster must run the same version of the Mule Runtime. A cluster can only be made up of servers that are not already in a server group or part of another cluster.
+
+The minimum Mule version that supports this feature is Mule version 3.7.0 and newer. The minimum CloudHub version is August 2015 (R44).
+
+CloudHub lets you create clusters, add servers to a cluster, and delete servers from a cluster.
+
+A cluster differs from a server group in that a server group runs one application on many servers, whereas a cluster is a group of servers that run multiple applications as a unit distributed on multiple nodes, sharing its common information and synchronizing its status.
+
+For information on managing servers and server groups, see 
+link:[Managing Applications and Servers in the Cloud and On Premises].
+
+== Multicast Versus Unicast
+
+A cluster can be created on Anypoint Management Center from servers that are already registered with the Anypoint Management Center console. While configuring a cluster, you can specify either unicast or multicast options for identifying a node within the cluster:
+
+* *Unicast*. A unicast cluster requires that you configure the IP addresses of which nodes to associate together. No special network configuration is necessary other than to indicate which the server IP addresses make up the cluster. Each server needs to be in Running status when it is added to a unicast cluster in CloudHub. Mule relies on the IP address as the unique handle for identifying a server, which means it is impossible to have IP addresses dynamically assigned using DHCP for servers in a unicast cluster. If a server has multiple interfaces, use the internal IP, the one that allows a node to have a direct communication with other nodes. Clustering across different subnets is not supported. If a server restarts and it uses DHCP to get a new IP address, it needs to be rejoined with the cluster using its new IP address.
+
+* *Multicast*. A multicast cluster groups servers that automatically detect each other. Servers that are part of a multicast cluster should be on the same network segment.
+
+One advantage of using multicast is that a server does not need to be running to be configured as a node in a cluster. Another is that you can add nodes to the cluster dynamically without restarting the cluster. *Note*: Check with your network administrator if multicast is allowed in your network, as many networks block multicast.
+
+== Creating a Cluster On Premises
+
+To create a cluster at your site (on premises):
+
+. Download and install the same version of link:https://www.mulesoft.com/platform/mule[Mule Runtime] on all servers you want to participate in the cluster.
+. From each server in the cluster, run the link:/docs/display/current/Managing+Applications+and+Servers+in+the+Cloud+and+On+Premises#ManagingApplicationsandServersintheCloudandOnPremises-AddaServer[amc_setup] script to register the server with Anypoint Management Center.
+
+== Creating a Cluster in CloudHub
+
+To create a cluster in CloudHub:
+
+. Download and install link:https://www.mulesoft.com/platform/enterprise-integration[Mule Runtime] on two or more physical or virtual servers in your site.
+. Log into Anypoint Platform and click *CloudHub*:
++
+image:CloudHubStartPage.png[CloudHubStartPage]
++
+. Click the *Servers* tab and add each server. For more information, see
+link:[Managing Applications and Servers in the Cloud and On Premises]
+. 
+After all servers are added in CloudHub, click *Create Cluster*. Servers can be added to a cluster in any status.
++
+image:CreateCluster.png[CreateCluster]
++
+. Give the cluster a name. The cluster name must not start or end with a dash, must be at least 3 characters long, no more than 40 characters, must be unique, and contain only letters, numbers, or dashes.
+. Choose *Multicast* or *Unicast*. For more information, see link:[Multicast Versus Unicast]
+. Click the names of the servers to add to your cluster, and click *Create Cluster*. Multicast servers can be in any link:/docs/display/current/Managing+Applications+and+Servers+in+the+Cloud+and+On+Premises#ManagingApplicationsandServersintheCloudandOnPremises-StatusStates[Status State], whereas unicast servers must have a Status of Running. All servers in a cluster must be running the same Mule Runtime version.
++
+image:CreateACluster.png[CreateACluster]
++
+. Click the cluster name to list details about the cluster. This view also lets you add additional servers, remove servers, and delete the cluster:
++
+image:ClusterDetail.png[ClusterDetail]
+
+ 
+== Deleting a Server From a Cluster
+
+A server can only be removed from a cluster if its link:/docs/display/current/Managing+Applications+and+Servers+in+the+Cloud+and+On+Premises#ManagingApplicationsandServersintheCloudandOnPremises-StatusStates[Status State] is Running.
+
+To delete a server from a cluster:
+
+. From the CloudHub *Servers* tab, click the name of a cluster.
+. Click the *X* to the right of the server's name:
++
+image:DeleteServerX.png[DeleteServerX]
++
+A prompt appears to be sure you really want to remove the server from the cluster.
++
+. Click the checkbox to verify your choice, and click *Remove* to complete the action:
++
+image:DeleteMessage.png[DeleteMessage]
+
+== Deleting a Cluster From CloudHub
+
+To delete a cluster from CloudHub:
+
+. From the CloudHub *Servers* tab, click the name of a cluster to show details.
+. Click the down arrow next to the cluster status and click *Delete Cluster*:
++
+image:DeleteServerDownArrow.png[DeleteServerDownArrow]
++
+. A prompt appears to be sure you want to continue. Click the check box and click *Delete Cluster*:
++
+image:DeleteACluster.png[DeleteACluster]
+
+
+== Adding Additional Servers to a Cluster
+
+To add an additional server to a cluster:
+
+. In the CloudHub Servers tab, click the name of a cluster to open the details view. 
+. Click *Add Servers*.
++
+image:AddServers.png[AddServers]
++
+. Click the checkbox for each server to add to the cluster, and click *Add Servers*
++
+image:AddAnotherServer.png[AddAnotherServer]
+
+
+== See Also
+
+* link:[Configuring Mule HA Clustering]
+* link:[Managing Mule Servers Clusters and Groups]
+* link:[Managing Mule High Availability (HA) Clusters]
+* link:[Managing Applications and Servers in the Cloud and On Premises]
+ 
