@@ -1,4 +1,5 @@
-= *[MULE3EXAMPLES:Mule 3.2]* CEP Example
+= CEP Example
+:keywords: cep, drools
 
 [ link:#CEPExample-Description[Description] ] [ link:#CEPExample-Runningtheexample[Running the example] ] [ link:#CEPExample-WalkingthroughtheMuleConfiguration[Walking through the Mule Configuration] ] [ link:#CEPExample-WalkingThroughtheRulesDefinition[Walking Through the Rules Definition] ] [ link:#CEPExample-References[References] ]
 
@@ -36,8 +37,8 @@ Run `mvn` from the example source folder. This will compile the example classes,
 
 *Initial Facts*
 
-code,code-xml----
- code,code-xml
+[source,xml]
+----
 <spring:bean name="companies" class="org.mule.example.cep.CompanyRegistry" factory-method="getCompanies" />
 ----
 
@@ -45,8 +46,8 @@ A Spring Factory Bean provides a Collection object which will be used as initial
 
 *Declare Drools as the Rules Engine*
 
-code,code-xml----
- code,code-xml
+[source,xml]
+----
 <bpm:drools />
 ----
 
@@ -54,102 +55,49 @@ We declare Drools as the Rules Engine implementation, for more info. on this, re
 
 *AJAX Connector*
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
----- code,code-xml
 <ajax:connector name="ajaxServer" serverUrl="http://0.0.0.0:8087/services/cepExample"         resourceBase="${app.home}/docroot" disableReplyTo="true" />
-----
-----
-----
-----
 ----
 
 Declare the link:/documentation-3.2/display/32X/AJAX+Transport+Reference[AJAX connector] which will be used to update the Web UI.
 
 *In-memory Queues*
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
-----
-----
-- code,code-xml
 <vm:endpoint name="stockTick" path="stock.tick" /><vm:endpoint name="alerts" path="stock.alerts" />
 ----
-----
-----
-----
-----
-----
-----
--
 
 To keep things simple for the example, we define link:/documentation-3.2/display/32X/VM+Transport+Reference[in-memory ("VM") queues] to transport messages. If this were a real application, the incoming stock ticks would probably be received via a web service and the outgoing alerts would probably be delivered to a link:/documentation-3.2/display/32X/JMS+Transport+Reference[JMS queue] or via link:/documentation-3.2/display/32X/XMPP+Transport+Reference[IM]/SMS/link:/documentation-3.2/display/32X/Email+Transport+Reference[E-mail].
 
 *Generate stock tick*
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
-----
-----
-----
-----
-- code,code-xml
 <flow name="generateStockTicks">    <quartz:inbound-endpoint jobName="eventTimer" repeatInterval="2000">        <quartz:event-generator-job>            <quartz:payload>tick-tock</quartz:payload>        </quartz:event-generator-job>    </quartz:inbound-endpoint>    <component>        <singleton-object class="org.mule.example.cep.TickFeed" />    </component>    <outbound-endpoint ref="stockTick" /></flow>
 ----
-----
-----
-----
-----
-----
-----
-----
-----
--
 
 In this flow, we use link:/documentation-3.2/display/32X/Quartz+Transport+Reference[Quartz] to generate a periodic signal which triggers our `TickFeed` component. The `TickFeed` component simulates a new stock tick by reading in a line from a text file and putting it on the `stockTick` queue.
 
 *Process stock tick*
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
-----
-----
------------- code,code-xml
 <flow name="processStockTicks">    <inbound-endpoint ref="stockTick" />    <all>        <ajax:outbound-endpoint channel="/services/cepExample/stockTick" />        <bpm:rules rulesDefinition="broker.drl" cepMode="true" entryPoint="StockTick stream" initialFacts-ref="companies" />    </all></flow>
 ----
-----
-----
-----
-----
-----
-----
-------------
 
 Here we receive the incoming stock ticks and simultaneously send them to two different places: 1. The Web UI (via AJAX) 2. The Rules Engine +
 For more info. on the configuration of the Rules Engine, refer to the link:/documentation-3.2/display/32X/Drools+Module+Reference[Drools Module Reference].
 
 *Process stock tick*
 
-code,code-xml----
-----
+
+[source,xml]
 ----
 - code,code-xml
 <flow name="sendAlerts">    <inbound-endpoint ref="alerts" />    <ajax:outbound-endpoint channel="/services/cepExample/alerts" /></flow>
 ----
-----
-----
--
 
 The rules we have defined in Drools (see following section) will generate alerts on the Alerts queue. This flow simply receives those alerts and routes them to the Web UI via AJAX.
 
@@ -159,27 +107,19 @@ The file `broker.drl` contains the rules definition for Drools. I will point out
 
 *Declare Mule callback inside Drools*
 
-code,code-java----
+[source,java]
 ----
-----
------ code,code-java
 global org.mule.module.bpm.MessageService mule;
 ----
-----
-----
------
 
 Here we define a callback to Mule as a global variable within our rules definition file. We can then use this global callback to generate Mule messages from our rules.
 
 *Generate alert message*
 
-code,code-java----
+[source]
 ----
------------- code,code-java
 rule "sudden drop"when    ...cut...then    ...cut...    mule.generateMessage("alerts", msg, null, MessageExchangePattern.ONE_WAY);end
 ----
-----
-------------
 
 Here we use the global variable defined above to generate a Mule message and send it to the `alerts` endpoint (defined in our Mule configuration, above).
 
@@ -189,23 +129,3 @@ Here we use the global variable defined above to generate a Mule message and sen
 * http://www.jboss.org/drools/documentation.html[Drools Documentation]
 * link:/documentation-3.2/display/32X/AJAX+Transport+Reference[AJAX Transport Reference]
 * link:/documentation-3.2/display/32X/Quartz+Transport+Reference[Quartz Transport Reference]
-
-image:loading_mini.png[loading_mini]image:rater.png[rater]
-
-Your Rating:
-
-Thanks for voting!
-
-link:/documentation-3.2/plugins/rate/rating.action?decorator=none&displayFilter.includeCookies=true&displayFilter.includeUsers=true&ceoId=41910427&rating=1&redirect=true[image:blank.png[blank]]link:/documentation-3.2/plugins/rate/rating.action?decorator=none&displayFilter.includeCookies=true&displayFilter.includeUsers=true&ceoId=41910427&rating=2&redirect=true[image:blank.png[blank]]link:/documentation-3.2/plugins/rate/rating.action?decorator=none&displayFilter.includeCookies=true&displayFilter.includeUsers=true&ceoId=41910427&rating=3&redirect=true[image:blank.png[blank]]link:/documentation-3.2/plugins/rate/rating.action?decorator=none&displayFilter.includeCookies=true&displayFilter.includeUsers=true&ceoId=41910427&rating=4&redirect=true[image:blank.png[blank]]link:/documentation-3.2/plugins/rate/rating.action?decorator=none&displayFilter.includeCookies=true&displayFilter.includeUsers=true&ceoId=41910427&rating=5&redirect=true[image:blank.png[blank]]
-
-image:/documentation-3.2/download/resources/com.adaptavist.confluence.rate:rate/resources/themes/v2/gfx/blank.gif[Please Wait,title="Please Wait"]
-
-Please Wait
-
-Results:
-
-image:/documentation-3.2/download/resources/com.adaptavist.confluence.rate:rate/resources/themes/v2/gfx/blank.gif[Pathetic,title="Pathetic"]image:/documentation-3.2/download/resources/com.adaptavist.confluence.rate:rate/resources/themes/v2/gfx/blank.gif[Bad,title="Bad"]image:/documentation-3.2/download/resources/com.adaptavist.confluence.rate:rate/resources/themes/v2/gfx/blank.gif[OK,title="OK"]image:/documentation-3.2/download/resources/com.adaptavist.confluence.rate:rate/resources/themes/v2/gfx/blank.gif[Good,title="Good"]image:/documentation-3.2/download/resources/com.adaptavist.confluence.rate:rate/resources/themes/v2/gfx/blank.gif[Outstanding!,title="Outstanding!"]
-
-17
-
-rates
