@@ -1,10 +1,9 @@
 = Scatter-Gather
 
-The routing message processor **Scatter-Gather** sends a request message to multiple targets concurrently. It collects the responses from all routes, and aggregates them into a single message.
+The routing message processor *Scatter-Gather* sends a request message to multiple targets concurrently. It collects the responses from all routes, and aggregates them into a single message.
 
 Scatter-Gather replaces the http://www.mulesoft.org/documentation/display/current/Routing+Message+Processors#RoutingMessageProcessors-All[All] message processor, which is deprecated as of Mule 3.5.0. Note that, unlike All, Scatter-Gather executes routes concurrently instead of sequentially. Parallel execution of routes can greatly increase the efficiency of your application and provides more information than sequential processing. Refer to <<Migrating to Scatter-Gather from the All Message Router>> below for more information about the differences you can expect.
 
-**
 
 == Assumptions
 
@@ -20,8 +19,8 @@ If there are no failures, Mule aggregates the results from each of the routes in
 
 By default, if any route fails, Scatter-Gather performs the following actions:
 
-* sets the exception payload accordingly for each route
-* throws a CompositeRoutingException, which maps each exception to its corresponding route using a sequential route ID
+* Sets the exception payload accordingly for each route
+* Throws a CompositeRoutingException, which maps each exception to its corresponding route using a sequential route ID
 
 Catching the CompositeRoutingException allows you to gather information on all routes, whether successful or failed. 
 
@@ -54,12 +53,12 @@ In Mule 3.5.1 and above, the application will not start if Scatter-Gather has be
 
 [tabs]
 ------
-[tab,title="STUDIO Visual Editor"]
+[tab,title="Studio Visual Editor"]
 ....
 
 === Modeling Scatter-Gather in a Flow
 
-Add a **scatter-gather** element to your flow, then, inside the dashed-line scope area of the scatter-gather element, drag and drop two or more message processors or connectors, placing them parallel to one another, as shown.
+Add a *scatter-gather* element to your flow, then, inside the dashed-line scope area of the scatter-gather element, drag and drop two or more message processors or connectors, placing them parallel to one another, as shown.
 
 image:studio-scattergather.png[studio-scattergather]
 
@@ -138,7 +137,7 @@ timeout="6000"
 [cols=",",options="header",]
 |===
 |Optional Child Element |Description
-|**custom-aggregation-strategy**  |Allows you to define a custom gathering strategy using either a custom class or a reference to a spring bean. Note that you cannot set `class` and `ref` at the same time. Doing so will result in an exception when starting the application. See http://www.mulesoft.org/#CustomizingGatherStrategies[Customizing Gather Strategies] above and the <<Complete Code Example>> below.
+|*custom-aggregation-strategy*  |Allows you to define a custom gathering strategy using either a custom class or a reference to a spring bean. Note that you cannot set `class` and `ref` at the same time. Doing so will result in an exception when starting the application. See http://www.mulesoft.org/#CustomizingGatherStrategies[Customizing Gather Strategies] above and the <<Complete Code Example>> below.
 |===
 
 [cols=",,,",options="header",]
@@ -165,7 +164,7 @@ Scatter-Gather's threading profile is specific to the Scatter-Gather router and 
 
 Ultimately, the optimum threading profile depends on each application. For most scenarios, MuleSoft recommends that the number of threads in Scatter-Gather should be the result of the number of routes times the value of `maxThreadsActive` for the flow where Scatter-Gather resides.
 
-* *`maxThreadsActive` for Scatter-Gather = number of routes in Scatter-Gather ** *`maxThreadsActive` for flow*
+* `maxThreadsActive` for Scatter-Gather = number of routes in Scatter-Gather `maxThreadsActive` for flow
 
 However, in some scenarios the above recommendation could result in a large number of threads which would consume a lot of memory and processing power. If this is the case, you will need to experiment in order to find the optimum tuning point, i.e. the exact point at which parallelism provides maximum gain before starting to become a bottleneck.
 
@@ -182,14 +181,14 @@ If you are currently using http://www.mulesoft.org/documentation/display/current
 Support for the http://www.mulesoft.org/documentation/display/current/Routing+Message+Processors#RoutingMessageProcessors-All[All] router will continue throughout the Mule 3.x series. However, MuleSoft recommends migrating to Scatter-Gather, mainly for two reasons:
 
 * Scatter-Gather is a better option for most cases
-* migrating to Scatter-Gather now will facilitate the transition to Mule 4
+* Migrating to Scatter-Gather now will facilitate the transition to Mule 4
 
 === Differences Between Scatter-Gather and the All Router
 
 The http://www.mulesoft.org/documentation/display/current/Routing+Message+Processors#RoutingMessageProcessors-All[All] router implements sequential multicasting to send a message through the specified routes. This works well in some situations, such as the following:
 
-* where route _n_ depends on side effects generated on target systems by route _n-1_
-* where an exception in route _n_ should prevent Mule from sending messages to route _n+1_
+* Where route _n_ depends on side effects generated on target systems by route _n-1_
+* Where an exception in route _n_ should prevent Mule from sending messages to route _n+1_
 
 However, where the above situations do not apply, the only effect of sequential multicasting is to decrease application efficiency. In these cases, it is best to send the message to all routes concurrently. The scatter-gather routing message processor does precisely that, executing all message routes concurrently. It allows you to:
 
@@ -250,7 +249,7 @@ public class CheapeastFlightAggregationStrategy implements AggregationStrategy {
 }
 ----
 
-[WARNING]
+[IMPORTANT]
 ====
 Notice the line:
 
