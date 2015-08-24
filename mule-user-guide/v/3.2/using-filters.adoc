@@ -4,7 +4,7 @@ Filters specify conditions that must be met for a message to be routed to a serv
 
 You can create a global filter and then reference it from your services and flows. Global filters require the "name" attribute, whereas filters configured on endpoints or routers do not.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <!-- Globally defined filter with name attribute -->
 <payload-type-filter name="payloadFilter" expectedType="java.lang.String" />
@@ -66,7 +66,7 @@ Mule includes the following standard filters that you can apply to your routers:
 
 Checks the class type of the payload object inside a message.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <payload-type-filter expectedType="java.lang.String"/>
 ----
@@ -81,7 +81,7 @@ Optionally, set the `nullReturnsTrue` attribute to `true` if you want to return 
 
 XPath expressions are supported using the standard http://en.wikipedia.org/wiki/XPath[XPath] query language. It is based on JAXP, the Java API for XML processing. You can learn more about writing XPath queries from the http://www.w3schools.com/xpath/[XPath tutorial].
 
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-filter evaluator="xpath" expression="(msg/header/resultcode)='success'"/>
 ----
@@ -92,7 +92,7 @@ You can also use the link:/documentation-3.2/display/32X/XML+Module+Reference#XM
 
 http://jakarta.apache.org/commons/jxpath/[JXPath] is an XPath interpreter that can apply XPath expressions to graphs of objects of all kinds: JavaBeans, Maps, Servlet contexts, DOM etc, including mixtures thereof. For more information about JXPath, see the http://jakarta.apache.org/commons/jxpath/users-guide.html[JXpath user guide]. For querying XML, it is recommended to use XPath expressions instead.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-filter evaluator="jxpath" expression="(msg/header/resultcode)='success'"/>
 ----
@@ -103,14 +103,14 @@ You can also use the JXPath filter from the link:/documentation-3.2/display/32X/
 
 http://commons.apache.org/ognl/[OGNL] is a simple yet very powerful expression language for plain Java objects. Similar to JXPath, it works on object graphs, and thus the corresponding filter enables simple and efficient content routing for payloads. For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-filter evaluator="ognl" expression="[MULE:0].equals(42)"/>
 ----
 
 or more simply:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <ognl-filter expression="[MULE:0].equals(42)"/>
 ----
@@ -121,7 +121,7 @@ This filter would block any messages whose payloads are not arrays or lists and 
 
 Applies a http://www.regular-expressions.info/[regular expression] pattern to the message payload. The filter applies `toString()` to the payload, so you might also want to apply a <<Payload Type Filter>> to the message using an <<And Filter>> to make sure the payload is a String.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <regex-filter pattern="the quick brown (.*)"/>
 ----
@@ -136,7 +136,7 @@ For the string "the quick brown fox jumped over the lazy dog", the following pat
 * the quick*
 * * fox *
 
-[source, xml]
+[source, xml, linenums]
 ----
 <wildcard-filter pattern="the quick brown *"/>
 ----
@@ -145,7 +145,7 @@ For the string "the quick brown fox jumped over the lazy dog", the following pat
 
 A filter that matches an exception type.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <exception-type-filter expectedType="java.lang.RuntimeException"/>
 ----
@@ -156,14 +156,14 @@ This filter allows you add logic to your routers based on the value of one or mo
 
 By default, the comparison is case sensitive. You can set the `caseSensitive` attribute to override this behavior.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <message-property-filter pattern="Content-Type=text/xml" caseSensitive="false"/>
 ----
 
 The expression is always a key value pair. If you want to use more complex expressions, you can use the MULE3USER:logic filters. The following example shows two filters :
 
-[source, xml]
+[source, xml, linenums]
 ----
 <and-filter>
   <message-property-filter pattern="JMSCorrelationID=1234567890"/>
@@ -179,7 +179,7 @@ There are three logic filters that can be used with other filters: And, Or, and 
 
 An And filter combines two filters and only accepts the message if it matches the criteria of *both* filters.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <and-filter>
   <payload-type-filter expectedType="java.lang.String"/>
@@ -191,7 +191,7 @@ An And filter combines two filters and only accepts the message if it matches th
 
 The Or filter considers two filters and accepts the message if it matches the criteria of *either one* of the filters.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <or-filter>
   <payload-type-filter expectedType="java.lang.String"/>
@@ -203,7 +203,7 @@ The Or filter considers two filters and accepts the message if it matches the cr
 
 A Not filter accepts the message if it does *not* match the criteria in the filter.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <not-filter>
   <payload-type-filter expectedType="java.lang.String"/>
@@ -218,7 +218,7 @@ Several Mule transports and modules provide their own filters. For example, the 
 
 The standard filters handle most filtering requirements, but you can also create your own filter. To create a filter, implement the http://www.mulesoft.org/docs/site/3.0.0/apidocs/org/mule/api/routing/filter/package-summary.html[Filter interface], which has a single method:
 
-[source]
+[source, code, linenums]
 ----
 public boolean accept(MuleMessage message);
 ----
@@ -227,7 +227,7 @@ This method returns true if the message matches the criteria that the filter imp
 
 You can then use this filter with the `<custom-filter...>` element, using the `class` attribute to specify the custom filter class you created and specifying any necessary properties using the `<spring:property>` child element. For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <outbound>
   <filtering-router>

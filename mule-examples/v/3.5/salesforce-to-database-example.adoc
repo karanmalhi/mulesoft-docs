@@ -58,7 +58,7 @@ If you do not have a MySQL database available for your use, you can install MySQ
 .. You can execute the following SQL statement to produce this schema and populate one row of data. See the green box below for tips on executing this SQL.
 +
 
-[source]
+[source, code, linenums]
 ----
 USE SFtoDB_Example;
 CREATE TABLE contact (
@@ -112,7 +112,7 @@ image:full.png[full]
 
 Every 30 minutes, the Poll scope triggers a new request to the Salesforce connector. The Salesforce connector is set to perform the query below, where the **`timestamp` flow variable** is periodically updated to the time of the last iteration of the poll:
 
-[source]
+[source, code, linenums]
 ----
 SELECT Email,FirstName,LastModifiedDate,LastName FROM Contact WHERE LastModifiedDate > #[flowVars['timestamp']]
 ----
@@ -127,7 +127,7 @@ image:input.png[input]
 ....
 [tab,title="XML Editor"]
 ....
-[source, xml]
+[source, xml, linenums]
 ----
 <batch:input>
     <poll doc:name="Poll">
@@ -150,7 +150,7 @@ image:process.png[process]
 
 In this step, the DataMapper first renames the fields so that they match those in the database. The Database connector issues the following query to the database:
 
-[source]
+[source, code, linenums]
 ----
 SELECT first_name,last_name,email FROM contact WHERE email=#[payload.email]
 ----
@@ -170,7 +170,7 @@ image:step1.png[step1]
 ....
 [tab,title="XML Editor"]
 ....
-[source, xml]
+[source, xml, linenums]
 ----
 <batch:step name="Batch_Step1">
     <data-mapper:transform config-ref="contact_to_map" doc:name="Contact To Map"/>
@@ -192,14 +192,14 @@ Mule executes the second batch step only if the first step is successful. Depend
 
 * `exists =` `false`: the contact must be added as a new contact. The following *insert* query is carried out in the database:
 
-[source]
+[source, code, linenums]
 ----
 INSERT INTO contact (first_name, last_name, email) VALUES (#[payload.first_name],#[payload.last_name],#[payload.email])
 ----
 
 * `exists = true`: Mule populates the recordVar `dbRecord`. The following *update* query is carried out in the database:
 
-[source]
+[source, code, linenums]
 ----
 UPDATE contact SET first_name=#[payload.first_name],last_name=#[payload.last_name] WHERE email = #[payload.email]
 ----
@@ -214,7 +214,7 @@ image:step2.png[step2]
 ....
 [tab,title="XML Editor"]
 ....
-[source, xml]
+[source, xml, linenums]
 ----
 <batch:step name="Batch_Stepx">
     <choice doc:name="Choice">
@@ -249,7 +249,7 @@ image:complete.png[complete]
 ....
 [tab,title="XML Editor"]
 ....
-[source, xml]
+[source, xml, linenums]
 ----
 <batch:on-complete>
     <logger doc:name="Log completion" level="INFO" message="Batch sf->db has finished"/>
@@ -268,7 +268,7 @@ image:full.png[full]
 ....
 [tab,title="XML Editor"]
 ....
-[source, xml]
+[source, xml, linenums]
 ----
 <mule version="EE-3.5.0" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:context="http://www.springframework.org/schema/context" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:sap="http://www.mulesoft.org/schema/mule/sap" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd

@@ -42,28 +42,28 @@ link:/docs/site/current3/schemadocs/namespaces/http_www_mulesoft_org_schema_mule
 
 XML namespace:
 
-[source, xml]
+[source, xml, linenums]
 ----
 xmlns:jms "http://www.mulesoft.org/schema/mule/jms"
 ----
 
 XML schema location:
 
-[source]
+[source, code, linenums]
 ----
 http://www.mulesoft.org/schema/mule/jms/3.5/mule-jms.xsd
 ----
 
 Connector syntax:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:connector name="myConnector" specification="1.1" connectionFactory-ref="myConnectionFactory" username="myuser" password="mypass"/>
 ----
 
 Endpoint syntax:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:outbound-endpoint queue="my.queue"/>
  
@@ -113,7 +113,7 @@ To use the JMS transport, you must first declare the JMS namespace in the header
 ^|JMS Namespace
 a|
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule ...cut...
    xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
@@ -131,7 +131,7 @@ There are several attributes available on the connector, most of which are optio
 ^|Connector Attributes
 a|
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:connector name="myConnector"
                acknowledgementMode="DUPS_OK_ACKNOWLEDGE"
@@ -158,7 +158,7 @@ One of the most important attributes is `connectionFactory-ref`. This is a refer
 ^|ConnectionFactory
 a|
 
-[source, xml]
+[source, xml, linenums]
 ----
 <spring:bean name="connectionFactory" class="com.foo.FooConnectionFactory"/>
  
@@ -173,7 +173,7 @@ There are also a few attributes which allow you to look up the ConnectionFactory
 ^|ConnectionFactory from JNDI
 a|
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:connector name="jmsConnector"
     jndiInitialFactory="com.sun.jndi.ldap.LdapCtxFactory"
@@ -194,7 +194,7 @@ For performance it is important to use the "Caching Connection Strategy" between
 
 ==== Queues
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:inbound-endpoint queue="my.queue"/>
 <jms:outbound-endpoint queue="my.queue"/>
@@ -202,7 +202,7 @@ For performance it is important to use the "Caching Connection Strategy" between
 
 ==== Topics
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:inbound-endpoint topic="my.topic"/>
 <jms:outbound-endpoint topic="my.topic"/>
@@ -217,7 +217,7 @@ When using a durable subscription, the JMS server requires a durable name to ide
 ^|Durable Topic
 a|
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:connector name="jmsTopicConnector" durable="true"/>
 <jms:inbound-endpoint topic="some.topic" durableName="sub1" />
@@ -245,7 +245,7 @@ outbound= link:/docs/site/current/apidocs/org/mule/transport/jms/transformers/Ob
 
 These automatically transform to/from the standard JMS message types:
 
-[source]
+[source, code, linenums]
 ----
 javax.jms.TextMessage - java.lang.String
 javax.jms.ObjectMessage - java.lang.Object
@@ -262,7 +262,7 @@ There are two different ways to configure the JNDI settings:
 
 . Using connector properties (deprecated):
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:connector name="jmsConnector"
     jndiInitialFactory="com.sun.jndi.ldap.LdapCtxFactory"
@@ -282,7 +282,7 @@ At the moment, there are two simple implementations of that interface:
 
 Default JNDI name resolver example: Define the name resolver using the *defualt-jndi-name-resolver* tag and then add the appropriate properties to it.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:activemq-connector name="jmsConnector"
                             jndiDestinations="true"
@@ -296,7 +296,7 @@ Default JNDI name resolver example: Define the name resolver using the *defualt-
 
 *Custom JNDI name resolver example*: Define the name resolver using the `custom-jndi-name-resolver` tag, then add the appropriate property value using the Spring's property format.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:activemq-connector name="jmsConnector"
                             jndiDestinations="true"
@@ -334,7 +334,7 @@ You can set a JMS selector as a filter on an inbound endpoint. The JMS selector 
 ^|JMS Selector
 a|
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:inbound-endpoint queue="important.queue">
     <jms:selector expression="JMSPriority=9"/>
@@ -351,7 +351,7 @@ Once a JMS message is received by Mule, the standard JMS headers such as `JMSCor
 ^|Retrieving JMS Headers
 a|
 
-[source]
+[source, code, linenums]
 ----
 String corrId = (String) muleMessage.getProperty("JMSCorrelationID");
 boolean redelivered =  muleMessage.getBooleanProperty("JMSRedelivered");
@@ -369,7 +369,7 @@ The Enterprise version of the JMS transport can be configured for transactional 
 ^|Transactional Polling
 a|
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:connector ...cut...>
      <service-overrides transactedMessageReceiver="com.mulesoft.mule.transport.jms.TransactedPollingJmsMessageReceiver" />
@@ -389,7 +389,7 @@ a|
 
 When an incoming message has the `replyTo` property set, you may wish to disable the automatic reply message on a flow starting with a one-way JMS inbound endpoint. To do so, set the following variable anywhere in your flow to prevent Mule from automatically sending a response.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <set-variable variableName="MULE_REPLYTO_STOP" value="true" doc:name="Variable"/>  
 ----
@@ -402,7 +402,7 @@ You can implement a message group by setting JMSGroupID property on the client p
 
 An example in a flow is:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:outbound-endpoint queue="orders.car" connector-ref="amqConnector">
     <message-properties-transformer scope="outbound">
@@ -417,7 +417,7 @@ For more information, see http://blogs.mulesoft.org/message-sequencing-with-mule
 
 To modify the priority of a JMS message, set the `priority` key as the name of the property instead of using the `JMSpriority` key:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <message-properties-transformer doc:name="Message Properties">
     <add-message-property key="priority" value="6"/>
@@ -426,7 +426,7 @@ To modify the priority of a JMS message, set the `priority` key as the name of t
 
 This won't work:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <message-properties-transformer doc:name="Message Properties">
     <add-message-property key="JMSPriority" value="6"/>
@@ -440,7 +440,7 @@ This won't work:
 ^|Example Configuration
 a|
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule ...cut...
   xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
@@ -467,7 +467,7 @@ a|
 ^|Example Configuration with Transactions
 a|
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule ...cut...
   xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
@@ -498,7 +498,7 @@ a|
 ^|Example Configuration with Exception Strategy
 a|
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule ...cut...
   xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
@@ -982,7 +982,7 @@ DEPRECATED: This element is deprecated from Mule 3.6. This can still but used in
 
 Import the XML schema for this module as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
 xsi:schemaLocation="http://www.mulesoft.org/schema/mule/jms  http://www.mulesoft.org/schema/mule/jms/3.6/mule-jms.xsd"
@@ -1000,7 +1000,7 @@ http://www.mulesoft.org/docs/site/35X/apidocs/org/mule/transport/jms/package-sum
 
 If you are using Maven to build your application, use the following groupId and artifactId to include this module as a dependency:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <dependency>
   <groupId>org.mule.transports</groupId>
@@ -1017,7 +1017,7 @@ The JMS 1.0.2b specification has the limitation of only supporting queues or top
 ^|Workaround for 1.0.2b Specification
 a|
 
-[source, xml]
+[source, xml, linenums]
 ----
 <spring:bean name="queueConnectionFactory" class="com.foo.QueueConnectionFactory"/>
 <spring:bean name="topicConnectionFactory" class="com.foo.TopicConnectionFactory"/>

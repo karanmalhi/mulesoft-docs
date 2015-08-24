@@ -85,13 +85,13 @@ Complete the following steps:
 . Locate the file web.xml.
 . Open it with your favorite text editor, then locate the following line:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <param-name>spring.profiles.active</param-name>
 ----
 . Modify the next line to add the LDAP Spring profile as a value: 
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <param-value>tracking-h2,env-derby,ldap</param-value>
 ----
@@ -108,7 +108,7 @@ For Tomcat, the classpath directory is <TOMCAT_INSTALL_PATH>`/lib`.
 
 . Include in this configuration file all the required parameters, substituting the values specific to your environment into the listing below:
 +
-[source]
+[source, code, linenums]
 ----
 providerURL=ldap://192.168.1.14:389/
 userDn=cn=mmc,dc=company,dc=com
@@ -229,7 +229,7 @@ The OpenLDAP server and the client programs are available in separate packages, 
 
 To install both packages, run the following command as root:
 
-[source]
+[source, code, linenums]
 ----
 apt-get install slapd ldap-utils
 ----
@@ -280,7 +280,7 @@ To verify that the `slapd` daemon is running, open a terminal and issue the foll
 
 If the daemon is running, the command will return something like the following:
 
-[source]
+[source, code, linenums]
 ----
 openldap  1172  0.0  0.1 256916  4840 ?        Ssl  11:39   0:00 /usr/sbin/slapd -h ldap:/// ldapi:/// -g openldap -u openldap -F /etc/ldap/slapd.
 ----
@@ -312,7 +312,7 @@ This instructs the daemon to listen on port `389` (the default port) on all netw
 . Backup the contents of the file `/etc/ldap/ldap.conf`.
 . Replace the contents of the file with the contents listed below. (You will need to replace the contents of the `rootpw` field with your own password or hash.)
 
-[source]
+[source, code, linenums]
 ----
 #
 # LDAP Defaults
@@ -373,13 +373,13 @@ This output can be copy-pasted into the LDAP configuration file for the `rootpw`
 
 To test the LDAP server, open a connection to the server and perform a search. To do this, issue the following command:
 
-[source]
+[source, code, linenums]
 ----
 ldapsearch -x -b '' -s base '(objectclass=*)' namingContexts
 ----
 For this example, the command should return the following output:
 
-[source]
+[source, code, linenums]
 ----
 # extended LDIF
 #
@@ -407,7 +407,7 @@ At this point, the LDAP server is running and an empty database has been created
 
 Create a text file with the following text:
 
-[source,]
+[source,, linenums]
 ----
 dn: dc=company,dc=com
 objectclass: dcObject
@@ -425,7 +425,7 @@ It is essential to check spacing when working with LDIF files. Be sure to leave 
 
 Now, create the initial database entries with the command:
 
-[source,]
+[source,, linenums]
 ----
 ldapadd -x -D "cn=Manager,dc=company,dc=com" -W -f <file>
 ----
@@ -434,7 +434,7 @@ The command will prompt you for the root user's password. Enter the password tha
 
 This command should return the following output:
 
-[source,]
+[source,, linenums]
 ----
 Enter LDAP Password:
 adding new entry "dc=company,dc=com"
@@ -459,13 +459,13 @@ There are two methods for populating the LDAP database: manually defining each d
 
 Navigate to the directory where you decompressed the Apache Studio gzipped tar file. Open a terminal window and type:
 
-[source,]
+[source,, linenums]
 ----
 cd <Apache Studio directory>
 ----
 For example:
 
-[source,]
+[source,, linenums]
 ----
 cd ApacheDirectoryStudio-linux-x86_64-1.5.3.v20100330/
 ----
@@ -475,7 +475,7 @@ When using the terminal, pressing the Tab key will usually auto-complete the fol
 
 Once in the directory, issue the following command:
 
-[source,]
+[source,, linenums]
 ----
 ./ApacheDirectoryStudio
 ----
@@ -500,14 +500,14 @@ If you experience connection problems while trying to establish a connection to 
 
 For example:
 
-[source,]
+[source,, linenums]
 ----
 telnet 192.168.1.14 389
 ----
 
 If the connection is successful, output should resemble the following:
 
-[source,]
+[source,, linenums]
 ----
 syrah:~$ telnet 127.0.0.1 389
 Trying 127.0.0.1...
@@ -641,7 +641,7 @@ As you can see, group membership is not stored with the user's definition, but w
 
 When a user logs in to the console, the console first asks the LDAP server to verify the user name and password, and then requests a list of the groups that the user belongs to. The parameters for this search are defined in the following line on the `mmc-ldap.properties` file:
 
-[source,]
+[source,, linenums]
 ----
 groupSearchFilter=(member={0})
 ----
@@ -654,7 +654,7 @@ Following the procedures outlined above, create a user called *testuser1* and a 
 
 Follow the procedure outlined <<Enabling LDAP on the console>> to Enable LDAP on the console. For this example, the contents of the `mmc-ldap.properties` file are as follows:
 
-[source]
+[source, code, linenums]
 ----
 providerURL=ldap://127.0.0.1:389/
 userDn=cn=mmc,ou=people,dc=company,dc=com
@@ -711,7 +711,7 @@ After modifying the LDAP database, restart the console to allow it to re-read th
 
 To automatically create database objects in LDAP, you first define the objects in an LDIF file, then import the file into LDAP with the `ldapadd` command.
 
-[source,]
+[source,, linenums]
 ----
 ldapadd -x -D "cn=Manager,dc=company,dc=com" -W -f <file>
 ----
@@ -722,7 +722,7 @@ You may wish to modify the `userPassword` values before importing.
 
 LDIF file contents:
 
-[source,]
+[source,, linenums]
 ----
 
 dn: ou=groups,dc=company,dc=com
@@ -790,7 +790,7 @@ By default, the LDAP server logs events to `/var/log/syslog`. In case of authent
 
 Below is an extract of the log, showing events logged by `slapd` when a user logs into the console. There are two `BIND` operations (user authentications) to the LDAP server; the first occurs when the console starts and authenticates itself (See: the second and third lines in the extract below). After establishing the context base for searching, LDAP searches for `user admin`, authenticates the user, then searches for the groups the user belongs to.
 
-[source,]
+[source,, linenums]
 ----
 
 Jun  6 17:02:21 syrah slapd[1099]: conn=1007 fd=15 ACCEPT from IP=127.0.0.1:34467 (IP=0.0.0.0:389)

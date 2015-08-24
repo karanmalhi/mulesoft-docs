@@ -146,7 +146,7 @@ image:oauthtab.jpeg[oauthtab]
 ....
 . Ensure you have included the following namespaces in your configuration file:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -163,7 +163,7 @@ image:oauthtab.jpeg[oauthtab]
 ----
 . Create a global Salesforce Analytics Cloud configuration outside and above your flows, using the following global configuration code:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <sfdc-analytics:config name="Salesforce_Analytics_Cloud__Basic_authentication" username="${salesforce.username}"
                            password="${salesforce.password}" securityToken="${salesforce.securityToken}"
@@ -335,7 +335,7 @@ image:3config.jpeg[3config]
 ....
 . Add a `data-mapper:config` element to your project, then configure its attributes as follows:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <data-mapper:config name="CSV_To_List_List_Record__" transformationGraphPath="csv_to_list_list_record__.grf"
                         doc:name="CSV_To_List_List_Record__"/>
@@ -343,21 +343,21 @@ image:3config.jpeg[3config]
 
 . Add `sfdc-analytics:config` element:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <sfdc-analytics:config name="Salesforce_Analytics_Cloud__Basic_authentication1" username="fh" password="fhfdhrdh" securityToken="fhfshsfdh" metadataFileName="fhsfdhfsdh" metadataFileType="sfhsfhfshfsdhsfdh" doc:name="Salesforce Analytics Cloud: Basic authentication"/>
 ----
 
 . Begin the flow with a `batch:job` element as follows:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <batch:job name="demoBatch">
 ----
 
 . Inside the `batch:input` element, first add a `file-inbound-endpoint`:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <batch:input>
 <file:inbound-endpoint path="D:\dev\projects\salesforce-analytics-connector\demo\src\main\resources\input" moveToDirectory="D:\dev\projects\salesforce-analytics-connector\demo\src\main\resources\processed" responseTimeout="10000"
@@ -368,7 +368,7 @@ image:3config.jpeg[3config]
 
 . Add a `sfdc-analytics:create-data-set` inside an `enricher`:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <enricher source="#[payload]" target="#[variable:dataSetId]" doc:name="Message Enricher">
                 <sfdc-analytics:create-data-set config-ref="Salesforce_Analytics_Cloud__Basic_authentication1" description="Test data set" label="Test data set" dataSetName="test_data_set" doc:name="Salesforce Analytics Cloud"/>
@@ -376,7 +376,7 @@ image:3config.jpeg[3config]
 ----
 .  Add a `data-mapper:transform` element and close the `batch:input` element
 +
-[source]
+[source, code, linenums]
 ----
 data-mapper:transform doc:name="CSV To List&lt;List&lt;Record&gt;&gt;"
                                    config-ref="CSV_To_List_List_Record__"/>
@@ -385,7 +385,7 @@ data-mapper:transform doc:name="CSV To List&lt;List&lt;Record&gt;&gt;"
 
 . Add a `batch:process-records` element and inside a `sfdc-analyitcs:upload-external-data` element.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <batch:process-records>
             <batch:step name="Batch_Step">
@@ -398,7 +398,7 @@ data-mapper:transform doc:name="CSV To List&lt;List&lt;Record&gt;&gt;"
 
 . Add a `batch:on-complete` element and a `sfdc-analytics:start-data-processing` element:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <batch:on-complete>
             <sfdc-analytics:start-data-processing config-ref="Salesforce_Analytics_Cloud__Basic_authentication1" dataSetId="#[variable:dataSetId]" doc:name="Salesforce Analytics Cloud"/>
@@ -418,7 +418,7 @@ data-mapper:transform doc:name="CSV To List&lt;List&lt;Record&gt;&gt;"
 For this code to work in Anypoint Studio, you must provide the credentials for the Salesforce Analytics Cloud account. You can either replace the variables with their values in the code, or you can add a file named `mule.properties` in the `src/main/properties` folder to provide the values for each variable.
 ====
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule xmlns:spring="http://www.springframework.org/schema/beans" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper"
       xmlns:context="http://www.springframework.org/schema/context"

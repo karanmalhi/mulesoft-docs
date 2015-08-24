@@ -99,7 +99,7 @@ Keep in mind that for this example to work, you must manually configure the foll
 * consumerSecret
 ====
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter" xmlns:http="http://www.mulesoft.org/schema/mule/http"
 xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
@@ -165,7 +165,7 @@ The first time the poll runs, no object store variable exists by this name. In t
 
 . Mule polls the resource. Connectors inside the poll should include filters that accept the flowVars as an attribute, as per the code below.
 +
-[source]
+[source, code, linenums]
 ----
 sinceId="#[flowVars['lastModifiedID']]"
 ----
@@ -249,7 +249,7 @@ image:watermark_enable.png[watermark_enable]
 [WARNING]
 All flows use an asynchronous processing strategy by default. If you do not set the processing strategy to *synchronous*, polling with watermarks will not work!
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="test1" doc:name="test1" processingStrategy="synchronous">
 ----
@@ -264,7 +264,7 @@ All flows use an asynchronous processing strategy by default. If you do not set 
 
 . Add attributes to the `watermark` child element according to the table below.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <watermark variable="lastID" default-expression="-1" selector="FIRST" selector-expression="#[payload.id]"/>
 ----
@@ -288,7 +288,7 @@ All flows use an asynchronous processing strategy by default. If you do not set 
 |*sinceId* |string or Mule expression |Instructs the connector to return only those tweets with an ID greater than the value of the `lastID` variable. `lastID` is a flow variable that Mule creates, then updates every time the poll runs. |`sinceId="#[flowVars['lastID']]"`
 |===
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="test1" doc:name="test1" processingStrategy="synchronous">
     <poll frequency="1000" doc:name="Poll">
@@ -313,7 +313,7 @@ Keep in mind that for this example to work, you must manually configure the foll
 * consumerSecret
 ====
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter" xmlns:http="http://www.mulesoft.org/schema/mule/http"
 xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
@@ -345,7 +345,7 @@ However, neither of these options support exception handling strategies; you may
 
 Add code, such as the example below, into a Java class, wrapping your extra custom logic around it.
 
-[source]
+[source, code, linenums]
 ----
 #[flowVars['lastModifiedID']] = #[payload.id]
 ----
@@ -417,7 +417,7 @@ image:fullex1.png[fullex1]
 ....
 . Add a poll element to your flow, then add a *watermark variable* as a child element. The watermark will be a variable named lastUpdated. When the flow has finished processing, Mule updates the value of the variable to the value of the *flow variable* by the same name, lastUpdated. Its default value is the result of evaluating the following expression: `#['YESTERDAY']`.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <poll frequency="100000" doc:name="Poll">
             <watermark variable="nextSync" default-expression="#['YESTERDAY']" update-expression="#[flowVars['lastUpdated']]"/>
@@ -434,7 +434,7 @@ image:fullex1.png[fullex1]
 
 . Add an auto-paging-enabled connector as a child element of the poll element. Note that the query orders the output in ascending order of *LastModifiedDate* so that the last item in the list is the newest. This detail is critical.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <poll frequency="100000" doc:name="Poll">
             <watermark variable="nextSync" default-expression="#['YESTERDAY']" update-expression="#[flowVars['lastUpdated']]"/>
@@ -449,7 +449,7 @@ Be sure to configure the order of the output so that the LAST element in the col
 
 . Inside the Foreach scope, place a Variable transformer. This message processor sets the value of a variable on each iteration of the Foreach scope, overwriting the variable's value each time. Since you ordered your collection so that the last element is the newest, the value that "sticks" at the end of the Foreach's iteration is what Mule needs for the watermark. Configure the variable to change the value of lastUpdated to the value resulting from evaluating the following expression: `#[payload['lastUpdated]]`
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <foreach doc:name="For Each">
     <set-variable variableName="lastUpdated" value="#[payload['lastUpdated']]" doc:name="Variable"/>
@@ -465,14 +465,14 @@ Be sure to configure the order of the output so that the LAST element in the col
 
 . Add a Logger at the end of your flow, outside the foreach scope, to log the value of lastUpdated. The logger also allows you to verify that the watermark works.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <logger message="#[flowVars['lastUpdated']]" level="INFO" doc:name="Logger"/>
 ----
 ....
 ------
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  
@@ -545,7 +545,7 @@ image:fullex2.png[fullex2]
 ....
 ------
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
  

@@ -12,33 +12,33 @@ This document assumes you are familiar with link:/documentation/display/35X/Mule
 
 * Mule assumes that any unquoted string contained in a Mule Expression is a flow variable. To set the value of flow variable to \'foo' to \'bar', the expression `#[foo == bar]` actually evaluates as:
 +
-[source]
+[source, code, linenums]
 ----
 #[flowVars.foo == flowVars.bar]
 ----
 
 * To access the flow variable, use one of the following expressions:
 +
-[source]
+[source, code, linenums]
 ----
 #[flowVars.foo]
 ----
 +
-[source]
+[source, code, linenums]
 ----
 #[foo]
 ----
 
 * To create an integer:
 +
-[source]
+[source, code, linenums]
 ----
 #[12]
 ----
 
 * To create a string:
 +
-[source]
+[source, code, linenums]
 ----
 #['mystring']
 ----
@@ -47,21 +47,21 @@ This document assumes you are familiar with link:/documentation/display/35X/Mule
 
 * Return `true` if the `lastname` query string parameter from an HTTP inbound endpoint is not null:
 +
-[source]
+[source, code, linenums]
 ----
 #[message.inboundProperties.'http.query.params'.lastname != null]
 ----
 
 * Return the number of elements in `http.method`:
 +
-[source]
+[source, code, linenums]
 ----
 #[message.inboundProperties.'http.query.params'.size()]
 ----
 
 * return `true` if the number of elements in the map `http.query.params` is greater than 50:
 +
-[source]
+[source, code, linenums]
 ----
 #[message.inboundProperties.'http.query.params'.size() > 50]
 ----
@@ -79,7 +79,7 @@ The expression `#[foo == empty]` evaluates to true if the value of `foo` satisfi
 
 * Testing for NullPayload: Return true if message payload is null:
 +
-[source]
+[source, code, linenums]
 ----
 #[payload == null]
 ----
@@ -90,14 +90,14 @@ Given chained methods or properties, the expression `#[[a.b.c] == 'foo']` evalua
 
 In this example, if address is null, the expression will throw a NullPointerException.
 
-[source]
+[source, code, linenums]
 ----
 #[payload.address.zipcode]
 ----
 
 To make this same expression null safe, use the .? operator.
 
-[source]
+[source, code, linenums]
 ----
 #[payload.address.zipcode]
 ----
@@ -106,7 +106,7 @@ Using this operator avoids a NullPointerException if address is an empty value, 
 
 If you'd like the expression to return a different value if no address is defined, you an use a chained or operator.
 
-[source]
+[source, code, linenums]
 ----
 #[payload.address.?zipcode or 'Zipcode not set']
 ----
@@ -117,7 +117,7 @@ Flow variables and session variables are available as top level variables.
 
 * To create a session variable named sessionId whose value is the concatenation of the current message ID,"@" and the Mule instance node ID, use either set-session-variable or MEL code, both show hereafter:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-session-variable variableName="sessionId" value="#[message.id+'@'+mule.nodeId]" />
 <expression-component>sessionVars.sessionId = message.id+'@'+mule.nodeId;</expression-component>
@@ -125,7 +125,7 @@ Flow variables and session variables are available as top level variables.
 
 * The following shows how a bean can be dynamically retrieved from the registry, based on a name created by taking a value from a bean with a `getTargetService()` accessor:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-variable variableName="beanName" value="#[message.payload.targetService+'Processor']" />
 <set-variable variableName="bean" value="#[app.registry.beanName]" />
@@ -135,7 +135,7 @@ Flow variables and session variables are available as top level variables.
 
 * To copy current payload in a flow variable named `originalPayload` then restore it:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-variable variableName="originalPayload" value="#[message.payload]" />
 <set-payload value="#[originalPayload]" />
@@ -143,21 +143,21 @@ Flow variables and session variables are available as top level variables.
 
 * To retrieve the message payload in a particular format, using Mule's auto-transformation capability, use `payloadAs`:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <logger message="#[message.payloadAs(java.lang.String)]" />
 ----
 
 * To extract all *.txt and *.xml attachments, use a filtered projection:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-transformer expression="#[($.value in message.inboundAttachments.entrySet() if $.key ~= '(.*\\.txt|.*\\.xml)')]" />
 ----
 
 * To ask for a null payload:
 +
-[source]
+[source, code, linenums]
 ----
 #[payload is NullPayload]
 ----
@@ -166,14 +166,14 @@ Flow variables and session variables are available as top level variables.
 
 Regular expression helper functions retrieve `null`, a single value or an array of values, depending on matches. The forms that take a melExpression argument apply the regex to the result of its evaluation instead of `message.payload`.
 
-[source]
+[source, code, linenums]
 ----
 #[regex(regularExpression [, melExpression [, matchFlags]])]
 ----
 
 For example to select all the lines of the payload that begin with `To:`, `From:`, or `Cc:` use:
 
-[source]
+[source, code, linenums]
 ----
 #[regex('^(To|From|Cc):')]
 ----
@@ -182,14 +182,14 @@ For example to select all the lines of the payload that begin with `To:`, `From:
 
 XPath helper functions return DOM4J nodes. By default the XPath expression is evaluated on `message.payload` unless an xmlElement is specified:
 
-[source]
+[source, code, linenums]
 ----
 #[xpath(xPathExpression [, xmlElement])]
 ----
 
 To get the text content of an element or an attribute:
 
-[source]
+[source, code, linenums]
 ----
 #[xpath('//title').text]
 #[xpath('//title/@id').value]
@@ -199,7 +199,7 @@ To get the text content of an element or an attribute:
 
 MEL has no direct support for JSON. The `json-to-object-transformer` can turn a JSON payload into a hierarchy of simple data structures that are easily parsed with MEL. For example, the following uses a filtered projection to build the equivalent of the `$..[? (@.title=='Moby Dick')].price` JSON path expression:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <json:json-to-object-transformer returnClass="java.lang.Object" />
 <expression-transformer
@@ -210,28 +210,28 @@ MEL has no direct support for JSON. The `json-to-object-transformer` can turn a 
 
 * Assign to variable `lastname` the value of the message inbound property `lastname`
 +
-[source]
+[source, code, linenums]
 ----
 #[lastname = message.inboundProperties.lastname]
 ----
 
 * Append a string to the message payload:
 +
-[source]
+[source, code, linenums]
 ----
 #[message.payload + 'mystring']
 ----
 
 * Call a static method:
 +
-[source]
+[source, code, linenums]
 ----
 #[java.net.URLEncoder.encode()]
 ----
 
 * Create a hash map:
 +
-[source]
+[source, code, linenums]
 ----
 #[new java.util.HashMap()]
 ----
@@ -240,7 +240,7 @@ MEL has no direct support for JSON. The `json-to-object-transformer` can turn a 
 
 * Create a directory named `target` in the system's temporary directory and set it as the current payload:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-component>
     targetDir = new java.io.File(server.tmpDir, 'target');
@@ -251,14 +251,14 @@ MEL has no direct support for JSON. The `json-to-object-transformer` can turn a 
 
 * Set the username and password for an HTTP endpoint at runtime based on inbound message properties:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <https:outbound-endpoint address="https://#[message.inboundProperties.username]:#[message.inboundProperties.password]@api.acme.com/v1/users" />
 ----
 
 * Java interoperability, for example to create a random UUID and use it as an XSL-T parameter:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <mulexml:context-property key="transactionId"
                            value="#[java.util.UUID.randomUUID().toString()]" />
@@ -266,14 +266,14 @@ MEL has no direct support for JSON. The `json-to-object-transformer` can turn a 
 
 * Retrieve `fullName` only if the `name` object is not null:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-variable variableName="fullName" value="#[payload.name ? payload.name.fullName : otherCondition]"/>
 ----
 
 * Local variable assignment, as in this splitter expression that splits a multi-line payload in rows and drops the first row:
 +
-[source]
+[source, code, linenums]
 ----
 splitter expression='#[rows=StringUtils.split(message.payload,'\n\r');
                        ArrayUtil.subarray(rows,1,rows.size())]" />
@@ -281,7 +281,7 @@ splitter expression='#[rows=StringUtils.split(message.payload,'\n\r');
 
 * "Elvis" operator, to return the first non-null value of a list of values:
 +
-[source]
+[source, code, linenums]
 ----
 #[message.payload.userName or message.payload.userId]
 ----
@@ -290,7 +290,7 @@ splitter expression='#[rows=StringUtils.split(message.payload,'\n\r');
 
 Define global imports, aliases, and global functions int eh global configuration element. Global functions can be loaded from the file system, a URL, or a classpath resource.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <configuration>
   <expression-language autoResolveVariables="false">
@@ -313,7 +313,7 @@ Yoou can access the links:/docs/display/35X/Cache+Scope[Mule cache] through the 
 
 The code below shows the XML representation of a cache scope that uses a custom object store class.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <ee:object-store-caching-strategy name="CachingStrategy">
   <custom-object-storeclass="org.mule.util.store.SimpleMemoryObjectStore" />
@@ -324,7 +324,7 @@ The object store above is an implementation of a `ListableObjectStore`, which al
 
 The expression below obtains the size of the cache by invoking `allKeys()`, which returns an iterable list
 
-[source]
+[source, code, linenums]
 ----
 #[app.registry.CachingStrategy.getStore().allKeys().size()]"
 ----

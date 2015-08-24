@@ -18,21 +18,21 @@ TLS/SSL connections are made on behalf of an entity, which can be anonymous or i
 
 XML namespace:
 
-[source, xml]
+[source, xml, linenums]
 ----
 xmlns:pop3 "http://www.mulesoft.org/schema/mule/pop3"xmlns:pop3s "http://www.mulesoft.org/schema/mule/pop3s"
 ----
 
 XML schema location:
 
-[source]
+[source, code, linenums]
 ----
 http://www.mulesoft.org/schema/mule/pop3 http://www.mulesoft.org/schema/mule/pop3/3.2/mule-pop3.xsdhttp://www.mulesoft.org/schema/mule/pop3s http://www.mulesoft.org/schema/mule/pop3s/3.2/mule-pop3s.xsd
 ----
 
 Connector syntax:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <pop3:connector name="pop3Connector" backupEnabled="true" backupFolder="backup" checkFrequency="90000"                 deleteReadMessages="false" mailboxFolder="INBOX" moveToFolder="PROCESSED"/><pop3s:connector name="pop3sConnector" backupEnabled="true" backupFolder="backup" checkFrequency="90000"                  deleteReadMessages="false" mailboxFolder="INBOX" moveToFolder="PROCESSED"/>  <pop3s:tls-client path="clientKeystore" storePassword="mulepassword" />   <pop3s:tls-trust-store path="greenmail-truststore" storePassword="password" /> </pop3s:connector>
 ----
@@ -42,14 +42,14 @@ You can define your endpoints 2 different ways:
 
 . Prefixed endpoint:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <pop3:inbound-endpoint user="bob" password="password" host="localhost" port="65433"/> <pop3s:inbound-endpoint user="bob" password="password" host="localhost" port="65433"/>
 ----
 
 . Non-prefixed URI:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <inbound-endpoint address="pop3://bob:password@localhost:65433"/><inbound-endpoint address="pop3s://bob:password@localhost:65433"/>
 ----
@@ -68,14 +68,14 @@ See the sections below for more information.
 
 If you want to include the POP3 email transport in your configuration, these are the namespaces you need to define:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:imap="http://www.mulesoft.org/schema/mule/imap"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/pop3 http://www.mulesoft.org/schema/mule/imap/3.2/mule-pop3.xsd">...
 ----
 
 For the secure version, you would use the following:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:pop3s="http://www.mulesoft.org/schema/mule/pop3s"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/pop3s http://www.mulesoft.org/schema/mule/pop3s/3.2/mule-pop3s.xsd">
 ----
@@ -86,7 +86,7 @@ Then you need to configure your connector and endpoints as described below.
 
 Say you had a business and wanted to take orders through email attachments. After you receive the email, you want to save the order attachments so they could be picked up by your order fulfillment process. The following Mule configuration checks an email box for emails, and saves the attachments to the local disk, where it can be picked up from a separate fulfillment process:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:pop3="http://www.mulesoft.org/schema/mule/pop3"       xmlns:vm="http://www.mulesoft.org/schema/mule/vm"       xmlns:file="http://www.mulesoft.org/schema/mule/file"       xmlns:email="http://www.mulesoft.org/schema/mule/email"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/3.2/mule-file.xsd       http://www.mulesoft.org/schema/mule/pop3 http://www.mulesoft.org/schema/mule/pop3/3.2/mule-pop3.xsd       http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/3.2/mule-email.xsd       http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.2/mule-vm.xsd">    <pop3:connector name="pop3Connector"  />    <expression-transformer name="returnAttachments">        <return-argument evaluator="attachments-list" expression="*" optional="false"/>  ❶    </expression-transformer>    <file:connector name="fileName">        <file:expression-filename-parser/>    </file:connector>        <model name="test">        <service name="incoming-orders">            <inbound>                <pop3:inbound-endpoint user="bob" password="password" host="mailServer"                       port="110" transformer-refs="returnAttachments"/> ❷            </inbound>            <outbound>                <list-message-splitter-router> ❸                    <file:outbound-endpoint path="./received" outputPattern="#[function:datestamp].dat"> ❹                        <expression-transformer>                            <return-argument expression="payload.inputStream" evaluator="groovy" /> ❺                        </expression-transformer>                    </file:outbound-endpoint>                                    </list-message-splitter-router>                            </outbound>        </service>    </model></mule>
 ----
@@ -95,14 +95,14 @@ The built-in transformer is declared on ❶ and gets the list of email attachmen
 
 Here is the flow-based version:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:pop3="http://www.mulesoft.org/schema/mule/pop3"       xmlns:vm="http://www.mulesoft.org/schema/mule/vm"       xmlns:file="http://www.mulesoft.org/schema/mule/file"       xmlns:email="http://www.mulesoft.org/schema/mule/email"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/3.2/mule-file.xsd       http://www.mulesoft.org/schema/mule/pop3 http://www.mulesoft.org/schema/mule/pop3/3.2/mule-pop3.xsd       http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/3.2/mule-email.xsd       http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.2/mule-vm.xsd">    <pop3:connector name="pop3Connector"  />    <expression-transformer name="returnAttachments">        <return-argument evaluator="attachments-list" expression="*" optional="false"/>  ❶    </expression-transformer>    <file:connector name="fileName">        <file:expression-filename-parser/>    </file:connector>        <flow name="incoming-orders">        <pop3:inbound-endpoint user="bob" password="password" host="mailServer"                                port="110" transformer-refs="returnAttachments"/> ❷        <collection-splitter/> ❸        <file:outbound-endpoint path="./received" outputPattern="#[function:datestamp].dat"> ❹            <expression-transformer>                <return-argument expression="payload.inputStream" evaluator="groovy" /> ❺            </expression-transformer>        </file:outbound-endpoint>                        </flow></mule>
 ----
 
 Here is the secure version of the same configuration:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:pop3s="http://www.mulesoft.org/schema/mule/pop3s"       xmlns:vm="http://www.mulesoft.org/schema/mule/vm"       xmlns:file="http://www.mulesoft.org/schema/mule/file"       xmlns:email="http://www.mulesoft.org/schema/mule/email"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/3.2/mule-file.xsd       http://www.mulesoft.org/schema/mule/pop3s http://www.mulesoft.org/schema/mule/pop3s/3.2/mule-pop3s.xsd       http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/3.2/mule-email.xsd       http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.1/mule-vm.xsd">    <pop3s:connector name="pop3sConnector"> ❶        <pop3s:tls-client path="clientKeystore" storePassword="mulepassword" />         <pop3s:tls-trust-store path="greenmail-truststore" storePassword="password" />    </pop3s:connector>    <expression-transformer name="returnAttachments">        <return-argument evaluator="attachments-list" expression="*" optional="false"/>  ❷    </expression-transformer>    <file:connector name="fileName">        <file:expression-filename-parser/>    </file:connector>        <model name="test">        <service name="incoming-orders">            <inbound>                <pop3s:inbound-endpoint user="bob" password="password" host="mailServer"                       port="110" transformer-refs="returnAttachments"/> ❸            </inbound>            <outbound>                <list-message-splitter-router> ❹                    <file:outbound-endpoint path="./received" outputPattern="#[function:datestamp].dat"> ❺                        <expression-transformer>                            <return-argument expression="payload.inputStream" evaluator="groovy" /> ❻                        </expression-transformer>                    </file:outbound-endpoint>                                    </list-message-splitter-router>                            </outbound>        </service>    </model></mule>
 ----
@@ -150,14 +150,14 @@ Configures the trust store. The attributes are:
 
 For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:pop3="http://www.mulesoft.org/schema/mule/pop3"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/pop3 http://www.mulesoft.org/schema/mule/pop3/3.2/mule-pop3.xsd">     <pop3:connector name="pop3Connector" backupEnabled="true" backupFolder="newBackup" checkFrequency="1234"                      mailboxFolder="newMailbox" deleteReadMessages="false"/>...
 ----
 
 Secure version:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core/2.2"       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"       xmlns:spring="http://www.springframework.org/schema/beans"       xmlns:pop3s="http://www.mulesoft.org/schema/mule/pop3s"       xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/pop3s http://www.mulesoft.org/schema/mule/pop3s/3.2/mule-pop3s.xsd"><pop3s:connector name="pop3sConnector">  <pop3s:tls-client path="clientKeystore" storePassword="mulepassword" />   <pop3s:tls-trust-store path="greenmail-truststore" storePassword="password" /> </pop3s:connector><model name="test">  <service name="relay">    <inbound>      <pop3s:inbound-endpoint user="bob" password="password" host="localhost" port="65436" />     </inbound>...
 ----
@@ -173,21 +173,21 @@ POP3 and POP3S endpoints include details about connecting to a POP3 mailbox. You
 
 For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <pop3:inbound-endpoint user="bob" password="foo" host="pop.gmail.com" checkFrequency="3000" />
 ----
 
 Or if using a POP3S connector:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <pop3s:inbound-endpoint user="bob" password="foo" host="pop.gmail.com" checkFrequency="3000" />
 ----
 
 You can also define the endpoints using a URI syntax:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <inbound-endpoint address="pop3://bob:foo@pop.gmail.com:995"/><inbound-endpoint address="pop3s://bob:foo@pop.gmail.com:995"/>
 ----
@@ -198,7 +198,7 @@ xslt: Read http://www.mulesoft.org/xslt/mule/schemadoc/3.1/individual-transport-
 
 Here is how you define transformers in your Mule configuration file:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <email:bytes-to-mime-transformer encoding="" ignoreBadInput="" mimeType="" name="" returnClass="" xsi:type=""/><email:email-to-string-transformer encoding="" ignoreBadInput="" mimeType="" name="" returnClass="" xsi:type=""/><email:mime-to-bytes-transformer encoding="" ignoreBadInput="" mimeType="" name="" returnClass="" xsi:type=""/><email:object-to-mime-transformer encoding="" ignoreBadInput="" mimeType="" name="" returnClass="" useInboundAttachments="true" useOutboundAttachments="true"/>{Note}Need to explain attributes somewhere; can we pull them in from xsd?{Note}<email:string-to-email-transformer encoding="" ignoreBadInput="" mimeType="" name="" returnClass="" xsi:type=""/>
 ----
@@ -231,7 +231,7 @@ Filters can be set on an endpoint to filter out any unwanted messages. The Email
 
 This is how you define the MailSubjectRegExFilter in your Mule configuration:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <message-property-filter pattern="to=barney@mule.org"/>
 ----
@@ -256,7 +256,7 @@ The email transports are implemented by the mule-transport-email module. You can
 
 If you are using maven to build your application, use the following dependency snippet to include the email transport in your project:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <dependency>  <groupId>org.mule.transports</groupId>  <artifactId>mule-transport-email</artifactId></dependency>
 ----
@@ -267,7 +267,7 @@ If you are building Mule ESB from source or including Mule artifacts in your Mav
 
 To add the 'mule-deps' repository to your Maven project, add the following to your pom.xml:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <repositories>    <repository>        <id>mule-deps</id>        <name>Mule Dependencies</name>        <url>http://dist.codehaus.org/mule/dependencies/maven2</url>        <snapshots>            <enabled>false</enabled>        </snapshots>    </repository></repositories>
 ----

@@ -7,7 +7,7 @@ There are many ways to use the AMQP connector and endpoints; the following examp
 
 It's possible to define a list of `<host>:<port>` or `<host>` to try to connect to in case the main one fails to connect. If only the host is specified, the default port is used.
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:connector name="amqpConnectorWithFallback"
                 host="rabbit1"
@@ -22,7 +22,7 @@ It's possible to define a list of `<host>:<port>` or `<host>` to try to connec
 
 This is a typical AMQP pattern where consumers redeclare the exchanges they intend to bind queues to.
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:connector name="amqpAutoAckLocalhostConnector"
                 virtualHost="my-vhost"
@@ -45,7 +45,7 @@ This is a typical AMQP pattern where consumers redeclare the exchanges they inte
 
 In this variation of the previous example, Mule creates an exclusive server-named, auto-delete, non-durable queue; and binds it to the re-declared exchange.
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:connector name="amqpAutoAckLocalhostConnector"
                 virtualHost="my-vhost"
@@ -66,7 +66,7 @@ In this mode, the inbound connection will fail if the exchange doesn't pre-exist
 
 This behavior is enforced by `activeDeclarationsOnly=false`, which means that Mule will strictly ensure the pre-existence of the exchange before trying to subscribe to it.
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:connector name="amqpAutoAckStrictLocalhostConnector"
                 virtualHost="my-vhost"
@@ -87,7 +87,7 @@ This behavior is enforced by `activeDeclarationsOnly=false`, which means that Mu
 
 Similarly to the previous example, the inbound connection will fail if the queue doesn't pre-exist.
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:connector name="amqpAutoAckStrictLocalhostConnector"
                 virtualHost="my-vhost"
@@ -105,7 +105,7 @@ In this case, the queue is declared but not bound to any custom exchange, except
 
 To trigger queue creation, it's necessary to configure any of the `queueDurable`, `queueAutoDelete` or `queueExclusive` attributes.
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:inbound-endpoint queueName="my-queue"
                        queueDurable="true" />
@@ -117,7 +117,7 @@ So far, all incoming messages were automatically acknowledged by the AMQP client
 
 The following example shows how to manually acknowledge or reject messages within a flow, based on criteria of your choice.
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:connector name="amqpManualAckLocalhostConnector"
                 virtualHost="my-vhost"
@@ -143,14 +143,14 @@ The following example shows how to manually acknowledge or reject messages withi
 
 To manually recover the channel that is associated with the current message, use:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:reject-message />
 ----
 
 If you want the messages to be re-queued, use:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:reject-message requeue="true" />
 ----
@@ -161,7 +161,7 @@ Expanding on the previous example, it is possible to throttle the delivery of me
 
 The following demonstrates a connector that fetches messages one by one and a flow that uses manual acknowledgment to throttle message delivery.
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:connector name="amqpThrottledConnector"
                 virtualHost="my-vhost"
@@ -184,7 +184,7 @@ The following demonstrates a connector that fetches messages one by one and a fl
 
 This is a typical AMQP pattern where producers redeclare the exchanges they intend to publish to.
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:connector name="amqpLocalhostConnector"
                 virtualHost="my-vhost"
@@ -204,7 +204,7 @@ This is a typical AMQP pattern where producers redeclare the exchanges they inte
 
 It is also possible to publish to a pre-existing exchange:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:outbound-endpoint exchangeName="my-exchange"
                         connector-ref="amqpLocalhostConnector" />
@@ -212,7 +212,7 @@ It is also possible to publish to a pre-existing exchange:
 
 It may be desirable to strictly enforce the existence of this exchange before publishing to it. This is done by configuring the connector to perform passive declarations:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:connector name="amqpStrictLocalhostConnector"
                 virtualHost="my-vhost"
@@ -229,7 +229,7 @@ It may be desirable to strictly enforce the existence of this exchange before pu
 
 It's also possible to declare the queue in outbound endpoints, as shown below:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:outbound-endpoint exchangeName="amqpOutBoundQueue-exchange"
                         exchangeType="fanout"
@@ -256,7 +256,7 @@ The AMQP transport offers the possibility of dispatching these returned messages
 
 You can define the endpoint in charge of handling returned messages at the connector level. Here is an example that targets a VM endpoint:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <vm:endpoint name="flowReturnedMessageChannel" path="flow.returnedMessages" />
  
@@ -277,7 +277,7 @@ You can define the endpoint in charge of handling returned messages at the conne
 
 It's also possible to define the returned message endpoint at flow level:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <vm:endpoint name="flowReturnedMessageChannel" path="flow.returnedMessages" />
  
@@ -302,7 +302,7 @@ If both are configured, the handler defined in the flow will supersede the one d
 
 It's possible to perform synchronous (request-response) outbound operations:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:outbound-endpoint routingKey="my-key"
                         exchange-pattern="request-response"
@@ -321,7 +321,7 @@ In this case, Mule will:
 
 AMQP local transactions are supported by using the standard Mule transaction configuration element. For example, the following code declares an AMQP inbound endpoint that starts a new transaction for each newly-received message:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:inbound-endpoint queueName="amqpTransactedBridge-queue"
                        connector-ref="amqpConnector">
@@ -331,7 +331,7 @@ AMQP local transactions are supported by using the standard Mule transaction con
 
 The following declares a transacted AMQP bridge:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <bridge name="amqpTransactedBridge" exchange-pattern="one-way" transacted="true">
     <amqp:inbound-endpoint queueName="amqpTransactedBridge-queue"
@@ -349,7 +349,7 @@ If an error occurs while processing the message after the inbound endpoint, the 
 
 By default, no channel recovery is performed upon rollback. To modify this behavior, configure a `recoverStrategy` attribute on the transaction element, as shown below.
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:transaction action="ALWAYS_BEGIN" recoverStrategy="REQUEUE" />
 ----
@@ -364,7 +364,7 @@ AMQP supports custom arguments during the declaration of exchanges and queues. T
 
 The below example declares a global endpoint that uses the `alternate-exchange` argument during the exchange declaration and the `x-dead-letter-exchange` argument during the queue declaration:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqp:endpoint name="amqpEndpointWithArguments" exchangeName="target-exchange"
     exchangeType="fanout" exchangeDurable="true" exchangeAutoDelete="false"
@@ -385,28 +385,28 @@ It is possible to programmatically get messages from an AMQP queue.
 
 To achieve this, you first need to build an URI that identifies the AMQP queue that you want to consume from. Here is the syntax to use, with optional parameters in square brackets:
 
-[source,xml]
+[source,xml, linenums]
 ----
 amqp://[${exchangeName}/]amqp-queue.${queueName}[?connector=${connectorName}[&...other parameters...]]
 ----
 
 For example, the following identifies a pre-existing queue named "my-queue", to be consumed with a unique AMQP connector available in the Mule configuration:
 
-[source,xml]
+[source,xml, linenums]
 ----
 amqp://amqp-queue.my-queue
 ----
 
 The below example creates and binds a non-durable, auto-delete, non-exclusive queue named "new-queue" to a pre-existing exchange named "my-exchange", with the provided routing key on the specified connector:
 
-[source,xml]
+[source,xml, linenums]
 ----
 amqp://my-exchange/amqp-queue.new-queue?connector=amqpAutoAckLocalhostConnector&queueDurable=false&queueExclusive=false&queueAutoDelete=true
 ----
 
 Once the URI is defined, it is possible to retrieve a message from the queue using the Mule Client, as shown in the following code sample.
 
-[source,xml]
+[source,xml, linenums]
 ----
 MuleMessage message = new MuleClient(muleContext).request("amqp://amqp-queue.my-queue", 2500L);
 ----
@@ -417,42 +417,42 @@ The above waits for 2.5 seconds for a message, after which it returns null if no
 
 The transport can connect to the broker using SSLv3 or TLS. To do so, use the AMQPS connector with the XML namespace declaration listed below.
 
-[source,xml]
+[source,xml, linenums]
 ----
 xmlns:amqps="http://www.mulesoft.org/schema/mule/amqps" http://www.mulesoft.org/schema/mule/amqps http://www.mulesoft.org/schema/mule/amqps/current/mule-amqps.xsd
 ----
 
 Connect using SSLv3 (default) and use a trust manager that accepts all certificates as valid:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqps:connector name="amqpsDefaultSslConnector" />
 ----
 
 Connect using TLS and use a trust manager that accepts all certificates as valid:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqps:connector name="amqpsTlsConnector" sslProtocol="TLS" />
 ----
 
 Connect using SSLv3 (default) and use a custom trust manager:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqps:connector name="amqpsTrustManagerConnector" sslTrustManager-ref="myTrustManager" />
 ----
 
 Connect using TLS and use a custom trust manager:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqps:connector name="amqpsTlsTrustManagerConnector" sslProtocol="TLS" sslTrustManager-ref="myTrustManager" />
 ----
 
 Connect with key and trust stores:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <amqps:connector name="amqpsTlsKeyStores"> <amqps:ssl-key-store path="keycert.p12" type="PKCS12" algorithm="SunX509" keyPassword="MySecretPassword" storePassword="MySecretPassword" /> <amqps:ssl-trust-store path="trustStore.jks" type="JKS" algorithm="SunX509" storePassword="rabbitstore" /> </amqps:connector>
 ----

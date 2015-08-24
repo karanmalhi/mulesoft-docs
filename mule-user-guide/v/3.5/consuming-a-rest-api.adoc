@@ -52,7 +52,7 @@ For example, if you want to consume the OpenWeatherMap API, http://openweatherma
 * The scope is limited to a few resources, including *weather*, *forecast*, etc., and the only method that is available on those resource is *GET*
 * The sample API requests available in the documentation reveal that, if you want to retrieve the information about the current weather in **London, UK**, your API request looks like this: 
 
-[source]
+[source, code, linenums]
 ----
 http://api.openweathermap.org/data/2.5/weather?q=London,uk
 ----
@@ -98,7 +98,7 @@ Note that if the API you are calling requires HTTPS or basic authentication, inv
 [tab,title="XML Editor or Standalone"]
 ....
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://api.openweathermap.org/data/2.5/weather?q=London,uk" doc:name="HTTP"/>
 ----
@@ -107,7 +107,7 @@ Note that if the API you are calling requires HTTPS or basic authentication, inv
 
 The response, in this example, is in JSON.
 
-[source]
+[source, code, linenums]
 ----
 {
   "coord": {
@@ -157,21 +157,21 @@ Depending on the needs of your application, you can use DataMapper or a JSON-to-
 
 In the example above, the request was hardcoded in the URL: 
 
-[source]
+[source, code, linenums]
 ----
 http://api.openweathermap.org/data/2.5/weather?q=London,uk
 ----   
 
 Most use cases require that the call to the API change dynamically based on some data in the message. For example, in the following GET request example, the call instructs Mule to extract the city name from the payload of the message. 
 
-[source]
+[source, code, linenums]
 ----
 http://api.openweathermap.org/data/2.5/weather?q=#[payload]
 ----
 
 In more complex cases, you might want to query a different resource depending on data in your message properties or in variables that you set earlier in your flow.  For example:
 
-[source]
+[source, code, linenums]
 ----
 http://api.someservice.com/#[flowVars['resource_path']]?#[flowVars['query_param']]=#[flowVars['query_param_value']]
 ----
@@ -195,7 +195,7 @@ This sample configuration assumes that you have configured a flow variable earli
 
 Insert a `set-property` element in your flow before your HTTP outbound endpoint and configure it to set the http.method property. If set, Mule uses this property to override the method attribute set on the HTTP outbound endpoint.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <set-property propertyName="http.method" value="#[flowVars['method-override']]" doc:name="Property"/>
 ----
@@ -257,21 +257,21 @@ image:rest-prop3.png[rest-prop3]
 [tab,title="XML Editor or Standalone"]
 ....
 
-[source, xml]
+[source, xml, linenums]
 ----
 <set-property propertyName="accessKey" value="897s44783kdg94545" doc:name="Property"/>
 ----
 
 Note that you can also configure the value of the custom header using a MEL expression if you want to define the value dynamically (see image below).
 
-[source, xml]
+[source, xml, linenums]
 ----
 <set-property propertyName="accessKey" value="#[sessionVars.accesskey]" doc:name="Property"/>
 ----
 
 You can also use a https://developer.mulesoft.com/docs/display/35X/Configuring+Properties[property placeholder], then define the value in your mule-app.properties file.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <set-property propertyName="accessKey" value="${access.key}" doc:name="Property"/>
 ----
@@ -292,7 +292,7 @@ If the REST API you are consuming requires incoming requests arrive via HTTPS, y
 
 First, you must create a keystore file to certify the communication. This can be done using the keytool provided by Java, found in the bin directory of your Java installation. Navigate to this directory on your machine using the command line, then execute the following command to create a keystore file:
 
-[source]
+[source, code, linenums]
 ----
 keytool -genkey -alias mule -keyalg RSA -keystore keystore.jks
 ----
@@ -332,7 +332,7 @@ image"/https://developer.mulesoft.com/docs/download/attachments/122750892/keysto
 [tab,title="XML Editor or Standalone"]
 ....
 
-[source, xml]
+[source, xml, linenums]
 ----
 <https:connector name="httpsConnector">
      <https:tls-key-store path="keystore.jks" keyPassword="YOURPASSWORD" storePassword="YOURPASSWORD"/>
@@ -374,21 +374,21 @@ image:src-main-app-propertiesfile.png[src-main-app-propertiesfile]
 
 Add the user and password attributes to your http:outbound-endpoint configuration, as shown below.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://www.targetAPI.com/path" doc:name="HTTP"  user="myusername" password="mypassword"/>
 ----
 
 Rather than hardcode the values of your credentials, you can define them as https://developer.mulesoft.com/docs/display/35X/Configuring+Properties[property placeholders.]
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:outbound-endpoint exchange-pattern="request-response" method="GET" address="http://www.targetAPI.com/path" doc:name="HTTP"  user="${service.username}" password="${service.password}"/>
 ----
 
 Open (or create, if you don't have one) the `mule-app.properties` file in your application's `src/main/app` folder, then define the properties in the file:
 
-[source]
+[source, code, linenums]
 ----
 service.username=myusername
 service.password=mypassword
@@ -434,7 +434,7 @@ The ETag, or entity tag, is HTTP's cache control mechanism. APIs that support it
 ....
 The following example illustrates how to configure a global http:polling-connector.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:polling-connector name="HTTP_Polling" cookieSpec="netscape" validateConnections="true" pollingFrequency="1000" sendBufferSize="0" receiveBufferSize="0" receiveBacklog="0" clientSoTimeout="10000" serverSoTimeout="10000" socketSoLinger="0" checkEtag="false" discardEmptyContent="false" doc:name="HTTP Polling"/>
 

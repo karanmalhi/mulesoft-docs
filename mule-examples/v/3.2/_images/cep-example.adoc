@@ -37,7 +37,7 @@ Run `mvn` from the example source folder. This will compile the example classes,
 
 *Initial Facts*
 
-[source,xml]
+[source,xml, linenums]
 ----
 <spring:bean name="companies" class="org.mule.example.cep.CompanyRegistry" factory-method="getCompanies" />
 ----
@@ -46,7 +46,7 @@ A Spring Factory Bean provides a Collection object which will be used as initial
 
 *Declare Drools as the Rules Engine*
 
-[source,xml]
+[source,xml, linenums]
 ----
 <bpm:drools />
 ----
@@ -55,7 +55,7 @@ We declare Drools as the Rules Engine implementation, for more info. on this, re
 
 *AJAX Connector*
 
-[source,xml]
+[source,xml, linenums]
 ----
 <ajax:connector name="ajaxServer" serverUrl="http://0.0.0.0:8087/services/cepExample"         resourceBase="${app.home}/docroot" disableReplyTo="true" />
 ----
@@ -64,7 +64,7 @@ Declare the link:/documentation-3.2/display/32X/AJAX+Transport+Reference[AJAX co
 
 *In-memory Queues*
 
-[source,xml]
+[source,xml, linenums]
 ----
 <vm:endpoint name="stockTick" path="stock.tick" /><vm:endpoint name="alerts" path="stock.alerts" />
 ----
@@ -73,7 +73,7 @@ To keep things simple for the example, we define link:/documentation-3.2/display
 
 *Generate stock tick*
 
-[source,xml]
+[source,xml, linenums]
 ----
 <flow name="generateStockTicks">    <quartz:inbound-endpoint jobName="eventTimer" repeatInterval="2000">        <quartz:event-generator-job>            <quartz:payload>tick-tock</quartz:payload>        </quartz:event-generator-job>    </quartz:inbound-endpoint>    <component>        <singleton-object class="org.mule.example.cep.TickFeed" />    </component>    <outbound-endpoint ref="stockTick" /></flow>
 ----
@@ -82,7 +82,7 @@ In this flow, we use link:/documentation-3.2/display/32X/Quartz+Transport+Refere
 
 *Process stock tick*
 
-[source,xml]
+[source,xml, linenums]
 ----
 <flow name="processStockTicks">    <inbound-endpoint ref="stockTick" />    <all>        <ajax:outbound-endpoint channel="/services/cepExample/stockTick" />        <bpm:rules rulesDefinition="broker.drl" cepMode="true" entryPoint="StockTick stream" initialFacts-ref="companies" />    </all></flow>
 ----
@@ -93,7 +93,7 @@ For more info. on the configuration of the Rules Engine, refer to the link:/docu
 *Process stock tick*
 
 
-[source,xml]
+[source,xml, linenums]
 ----
 - code,code-xml
 <flow name="sendAlerts">    <inbound-endpoint ref="alerts" />    <ajax:outbound-endpoint channel="/services/cepExample/alerts" /></flow>
@@ -107,7 +107,7 @@ The file `broker.drl` contains the rules definition for Drools. I will point out
 
 *Declare Mule callback inside Drools*
 
-[source,java]
+[source,java, linenums]
 ----
 global org.mule.module.bpm.MessageService mule;
 ----
@@ -116,7 +116,7 @@ Here we define a callback to Mule as a global variable within our rules definiti
 
 *Generate alert message*
 
-[source]
+[source, code, linenums]
 ----
 rule "sudden drop"when    ...cut...then    ...cut...    mule.generateMessage("alerts", msg, null, MessageExchangePattern.ONE_WAY);end
 ----

@@ -63,7 +63,7 @@ The type cannot be a collection or a complex type. See https://github.com/muleso
 
 == Adding @OAuth2 Annotation on the @Connector Class
 
-[source, java]
+[source, java, linenums]
 ----
 @Connector(name = "oauth2connector")
 @OAuth2(authorizationUrl = "http://someUrl", accessTokenUrl = "http://someOtherUrl")
@@ -84,7 +84,7 @@ Your @Connector class needs OAuth-related @Configurable instance properties to
 
 Ensure these instance variables have public getters and setters (not shown).
 
-[source, java]
+[source, java, linenums]
 ----
 @Configurable @OAuthConsumerKey private String consumerKey;
 @Configurable @OAuthConsumerSecret private String consumerSecret;
@@ -94,7 +94,7 @@ Ensure these instance variables have public getters and setters (not shown).
 
 In the methods that access the protected resources (annotated with `@Processor`), add one String parameter and annotate it with `@OAuthAccessToken`.
 
-[source, java]
+[source, java, linenums]
 ----
 @Processor
 public Object accessProtectedResource(@OAuthAccessToken String accessToken, ...)
@@ -124,7 +124,7 @@ For example, Foursquare supports OAuth 2.0 authentication, and expects the clien
 
 * In the https://github.com/mulesoft/connector-documentation-oauth2-example/blob/master/src/main/java/org/mule/examples/oauth2connectorexample/Oauth2ExampleConnector.java[@Connector class OAuth2ExampleConnector] , the connector passes the `accessToken` as a parameter to the client class operation `client.usersGetList()`:
 +
-[source, java]
+[source, java, linenums]
 ----
 @OAuthProtected
 @Processor
@@ -141,7 +141,7 @@ public UsersListResponse usersGetList(
 
 * In the https://github.com/mulesoft/connector-documentation-oauth2-example/blob/master/src/main/java/org/mule/examples/oauth2connectorexample/client/FourSquareClient.java[client class `FourSquareClient`], the method `usersGetList()` adds the `accessToken` query parameter to the Jersey WebResource `wr` before making the GET request :
 +
-[source]
+[source, code, linenums]
 ----
 
 public UsersListResponse usersGetList(String accessToken, String userId, String group, String location)
@@ -175,7 +175,7 @@ Other services require similar changes at the client level, but differ in detail
 
 Before a consumer can execute any operation that requires authorization, the resource owner must grant access to the connector to access the protected resource. When it receives an authorization request, Mule redirects the resource owner's browser to the service provider authorization page. Any subsequent attempts to access a protected resource fills the parameters annotated with `@OAuthAccessToken`. Mule includes the access token in the request to the service provider. See example below.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <linkedin:config apiKey="${api.key}" apiSecret="${api.secret}"/>
 ...
@@ -201,7 +201,7 @@ The callback passes an authorization code that Mule uses later to obtain the acc
 
 By default, Mule uses a host and port (determined by the `fullDomain` environment variable and the `http.port`) to construct a URL to send to the service provider. Where you need to use non-default values for host and port, add the configuration as per the code example below. 
 
-[source, xml]
+[source, xml, linenums]
 ----
 <oauth2module:config apiKey="${api.key}" apiSecret="${api.secret}">
 <oauth2module:oauth-callback-config domain="SOME_DOMAIN" remotePort="SOME_PORT" />
@@ -214,7 +214,7 @@ For details on how Mule handles callbacks, see HTTP Callbacks.
 
 When Mule automatically launches an HTTP inbound endpoint to handle the OAuth callback, it uses the HTTP connector by default. Where the service provider requires *HTTPS*, you can configure Mule to pass your own HTTPS connector (see example below).
 
-[source]
+[source, code, linenums]
 ----
 ...
  

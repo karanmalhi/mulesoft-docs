@@ -93,7 +93,7 @@ Follow these steps to configure the parameters of a ServiceNow connector in the 
 
 First, ensure that you have included the ServiceNow namespaces in your configuration file.
 
-[source]
+[source, code, linenums]
 ----
 http://www.mulesoft.org/schema/mule/servicenow 
 http://www.mulesoft.org/schema/mule/servicenow/current/mule-servicenow.xsd
@@ -103,7 +103,7 @@ Follow these steps to configure a ServiceNow connector in your application.
 
 . First, create a global ServiceNow configuration outside and above your flows, using the following global configuration code.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <servicenow:config name="ServiceNow" username="YOUR_USERNAME" password="YOUR_PASSWORD" serviceEndpoint="YOUR_SERVICENOW_URI"/>
 ----
@@ -296,7 +296,7 @@ Enter `#[flowVars['RequestID']]` in *request:String* field 
 . Add a *servicenow:config* global element to your project, then configure its attributes according to the table below (see code below for a complete sample).
 +
 
-[source, xml]
+[source, xml, linenums]
 ----
 <servicenow:config name="ServiceNow" username="<user>" password="<pw>" serviceEndpoint="<endpoint_URL>" doc:name="ServiceNow"/>
 ----
@@ -322,7 +322,7 @@ Value
 . Create a Mule flow with an *HTTP endpoint*, configuring the endpoint according to the table below (see code below for a complete sample).
 +
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:inbound-endpoint exchange-pattern="one-way" host="localhost" port="8081" doc:name="/onboard" path="onboard"/>
 ----
@@ -348,7 +348,7 @@ Value
 . After the *HTTP* endpoint, add a set-payload transformer to set the message payload in the flow.
 +
 
-[source, xml]
+[source, xml, linenums]
 ----
 <set-payload value="#[['fname':message.inboundProperties['fname'],'lname':message.inboundProperties['lname'],'email':message.inboundProperties['email'],'dept':message.inboundProperties['dept']]]" doc:name="Set Payload"/>
 ----
@@ -365,7 +365,7 @@ Value
 . Add a **set-variable** element in the flow to preserve the user name from the payload.
 +
 
-[source, xml]
+[source, xml, linenums]
 ----
 <set-variable variableName="UserName" value="#[message.inboundProperties['fname']+ ' ' +message.inboundProperties['lname']]" doc:name="Set User name"/>
 ----
@@ -382,7 +382,7 @@ Value
 . Add **servicenow:insert** element to the flow now. Configure the attributes according to the table below.
 +
 
-[source, xml]
+[source, xml, linenums]
 ----
 <servicenow:insert config-ref="ServiceNow" type="SYS_USER" doc:name="Insert System User">
       <servicenow:insert-request ref="#[payload]"/>
@@ -407,7 +407,7 @@ Value
 . Add a *DataMapper element* between the Set Payload transformer and the ServiceNow connector to pass the message payload to ServiceNow.
 +
 
-[source, xml]
+[source, xml, linenums]
 ----
 <data-mapper:transform config-ref="Map_To_Map" doc:name="Payload to Insert User"/>
 ----
@@ -440,7 +440,7 @@ Value
 . Add a *servicenow:insert element* to create a request for an item in ServiceNow. Configure the attributes according to the table below.
 +
 
-[source, xml]
+[source, xml, linenums]
 ----
 <servicenow:insert config-ref="ServiceNow" type="SC_REQUEST" doc:name="Create a Request">
       <servicenow:insert-request>
@@ -463,7 +463,7 @@ Value
 . Add a **set-variable element** to preserve the ServiceNow request ID.
 +
 
-[source, xml]
+[source, xml, linenums]
 ----
 <set-variable variableName="RequestID" value="#[payload.number]" doc:name="Set Request Id"/>
 ----
@@ -495,7 +495,7 @@ Value
 
 == Example Code
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:servicenow="http://www.mulesoft.org/schema/mule/servicenow" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd

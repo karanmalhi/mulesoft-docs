@@ -8,7 +8,7 @@ DevKit provides an easy way for handling enumerated types. Methods annotated wit
 
 Consider the following extension:
 
-[source, java]
+[source, java, linenums]
 ----
 @Module(name = "enums")
 public class EnumModule {
@@ -31,7 +31,7 @@ public class EnumModule {
 
 with this enum class:
 
-[source]
+[source, code, linenums]
 ----
 public enum Property {
  
@@ -41,12 +41,12 @@ public enum Property {
 
 Then the following enums types and flows are valid:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <enums:config myProperty="FIRST_NAME"/>
 ----
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="setProperties">
     <enums:set-properties>
@@ -58,7 +58,7 @@ Then the following enums types and flows are valid:
 </flow>
 ----
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="getPropertyValue">
     <enums:get-property-value property="LAST_NAME"/>
@@ -71,7 +71,7 @@ Under the hood, DevKit generates a Transformer for all the enumerated types that
 
 The generated schema file also adds restrictions so that only matching enumerated values can be used in the xml.  For example, since the possible values for the `Property` enum are `FIRST_NAME`, `LAST_NAME,` and `ADDRESS` then the following is not valid and the validation of the schema will fail:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="getPropertyValue">
     <enums:get-property-value property="COUNTRY"/>
@@ -94,7 +94,7 @@ _Note:_ all the examples and explanations on this page are valid both for `@Modu
 
 Consider the following custom Mule Module:
 
-[source, java]
+[source, java, linenums]
 ----
 import org.mule.api.annotations.Configurable;
 import org.mule.api.annotations.Module;
@@ -118,7 +118,7 @@ public class CollectionModule {
 
 And these Spring beans:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <spring:bean id="objectA" class="java.lang.String">
         <spring:constructor-arg value="ObjectA"/>
@@ -142,7 +142,7 @@ You can configure the Module any of the following ways.
 
 * Declare the list elements explicitly.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <collection:config>
         <collection:strings>
@@ -154,7 +154,7 @@ You can configure the Module any of the following ways.
 
 * Declare the map elements explicitly. 
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <collection:config>
         <collection:map-strings>
@@ -166,7 +166,7 @@ You can configure the Module any of the following ways.
 
 * Like the previous map, use the tag names (`a` and `b`) as keys.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <collection:count-map-of-strings config-ref="configC">
             <collection:map-strings>
@@ -178,7 +178,7 @@ You can configure the Module any of the following ways.
 
 * Declare one element explicitly and use a reference for the other element. 
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <collection:config>
         <collection:strings>
@@ -190,7 +190,7 @@ You can configure the Module any of the following ways.
 
 * Instead of declaring the elements of the list, pass a reference to a bean of the same type.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <collection:config name="configA">
         <collection:strings ref="list" />
@@ -201,7 +201,7 @@ You can configure the Module any of the following ways.
 
 Now consider the following `@Processor` method.
 
-[source, java]
+[source, java, linenums]
 ----
 @Processor
     public void mapOfLists(Map<String, List<String>> map) {
@@ -209,7 +209,7 @@ Now consider the following `@Processor` method.
 
 The generated message processor can be invoked as follows.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <collection:map-of-lists>
             <collection:map>
@@ -221,7 +221,7 @@ The generated message processor can be invoked as follows.
 
 Instead of passing the values of the map by reference, the map itself can also be a reference:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <collection:map-of-lists>
             <collection:map ref="#[map-payload:myMap]" />
@@ -262,7 +262,7 @@ a|
 
 You can pass other types by reference.
 
-[source, java]
+[source, java, linenums]
 ----
 @Processor
 public void receiveAComplexType(MyComplexType myComplexType) { ... }
@@ -274,7 +274,7 @@ DevKit enables you to use such processors, especially when link:/docs/display/3
 
 When an `@Processor` method receives a complex type, DevKit deconstructs the object then constructs a schema that can be used to reconstruct that object. This lets you represent complex type objects with concise, intuitive XML. For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <ns:receive-a-complex-type>
     <ns:my-complex-type color="red"/>
@@ -292,7 +292,7 @@ Further, a complex type can have inner lists or maps of other complex types. 
 
 The `@Ignore` annotation tells DevKit to ignore a field inside a complex object.
 
-[source, java]
+[source, java, linenums]
 ----
 public class MyComplexType
 {
@@ -308,7 +308,7 @@ public void receiveAComplexType(MyComplexType myComplexType) { ... }
 
 DevKit omits the description field from the generated schema. For example, the snippet below is invalid, because the `@Ignored` `description` attribute is not part of the generated schema. For DevKit's purposes, at the XML level this element does not have a `description` attribute.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <ns:receive-a-complex-type>
     <ns:my-complex-type color="red" description=""/>
@@ -319,13 +319,13 @@ DevKit omits the description field from the generated schema. For example, the s
 
 DevKit standardizes the way to pass objects by reference. List and Map objects can be passed by reference in a `ref` attribute in a child element, as in the following examples.
 
-[source, java]
+[source, java, linenums]
 ----
 @Processor
 public void receiveAList(List<String> strings) { ... }
 ----
 
-[source, xml]
+[source, xml, linenums]
 ----
 <ns:receive-a-list>
   <ns:strings ref="#[payload]"/>
@@ -334,7 +334,7 @@ public void receiveAList(List<String> strings) { ... }
 
 In DevKit, passing a complex object also uses a  `ref` attribute in a child element.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <ns:receive-a-complex-type>
     <ns:my-complex-type ref="#[payload]"/>

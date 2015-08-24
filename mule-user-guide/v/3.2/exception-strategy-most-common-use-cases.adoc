@@ -23,7 +23,7 @@ In this first case, we recover for examination the message in its final state be
 [TIP]
 The in-line numbers (i.e., `<!-- [1] -->` for XML and //1 for Java) that conclude certain lines of code correspond to the numbered notes that appear immediately beneath those code listings.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="LastMessageStateRouting">
     <jms:inbound-endpoint queue="in">
@@ -54,7 +54,7 @@ The in-line numbers (i.e., `<!-- [1] -->` for XML and //1 for Java) that conclud
 
 In this second case, we don’t want to examine the message in its transformed state, but rather, in its initial, untransformed state when it emerged from the flow’s message source, thus triggering the message processing flow. To ensure that we can send this original form of the message to the dead letter queue, we need to save it temporarily in the `session` attribute, where it will be available should an exception occur.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="OriginalMessageRouting">
     <jms:inbound-endpoint queue="in">
@@ -93,7 +93,7 @@ In this second case, we don’t want to examine the message in its transformed s
 
 Sometimes, we execute different actions depending on the type of exception that has been thrown. This is analogous to content-based routing, but in this particular case, routing is determined by the type of exception thrown, rather than the type of payload.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:activemq-connector name="jmsConnector" maxRedelivery="3" /> <!-- [1] -->
 
@@ -137,7 +137,7 @@ Sometimes, we execute different actions depending on the type of exception that 
 
 When an exception is thrown for some flows, we want to rollback the transaction and send out a notification containing information about the failure. This example uses an SMTP endpoint so that notification can take place by email.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="RollbackTransactionAndSendEmail">
     <jms:inbound-endpoint queue="in">
@@ -164,7 +164,7 @@ When an exception is thrown for some flows, we want to rollback the transaction 
 
 Sometimes when an external service becomes unavailable, and we know that every message processing attempt will fail until the unavailable resource is restored, we want to shut down the flow to prevent it from consuming any more messages.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="StopFlowBasedOnExceptionType">
     <vm:inbound-endpoint path="in" exchange-pattern="request-response"/>
@@ -193,7 +193,7 @@ Sometimes when an external service becomes unavailable, and we know that every m
 
 By default, when an exception is thrown for a flow (or service) based on a request-response exchange pattern, the caller receives `NullPayload` as the message payload and an `ExceptionPayload` (i.e., the payload as it existed immediately after the exception was thrown) as the `exceptionPayload`. The only way to change this behavior is by creating a Java class to implement a custom exception strategy.
 
-[source, java]
+[source, java, linenums]
 ----
 public class PreservePayloadExceptionStrategy extends AbstractMessagingExceptionStrategy
 {
@@ -232,7 +232,7 @@ public class PreservePayloadExceptionStrategy extends AbstractMessagingException
 
 After creating our custom exception strategy, we can use it in a flow (or service model), as illustrated below:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="PreservePayloadExceptionStrategy">
     <vm:inbound-endpoint path="in" exchange-pattern="request-response"/>

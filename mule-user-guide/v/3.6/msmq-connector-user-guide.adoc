@@ -16,7 +16,7 @@ For more information, see the link:/documentation/display/current/Windows+Gatewa
 
 Unreadable messages are moved to the `invalid-queue-name` subqueue. You can change this queue’s name using the Windows Gateway service configuration file. You can also change the timeout for invalid messages for when a payload of a message is parsed with an incorrect formatter.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <!-- The name of the invalid messages sub-queue -->
 <add key="invalid-queue-name" value="Invalid"/>
@@ -33,7 +33,7 @@ image:FlowConfiguration.png[FlowConfiguration]
 
 This setting appears in the XML as:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="myMSMQFlow" doc:name="myMSMQFlow" processingStrategy="synchronous">
 ----
@@ -53,7 +53,7 @@ The following messages show the structure of the HTTP POST request.
 
 ==== POST Request Message
 
-[source]
+[source, code, linenums]
 ----
 POST: https://localhost:9333/msmq
 Authorization: mule test-token
@@ -64,7 +64,7 @@ Body: THIS IS A SAMPLE MESSAGE
 
 POST Response Message
 
-[source]
+[source, code, linenums]
 ----
 Http /1.1 201 Created
 ----
@@ -77,7 +77,7 @@ The following messages illustrate the structure of the HTTP GET request.
 
 ==== GET Request Message
 
-[source]
+[source, code, linenums]
 ----
 GET: https://localhost:9333/msmq?count=50
 Authorization: mule test-token
@@ -87,7 +87,7 @@ Mule-Api-Version: 1
 
 ==== GET Response Message
 
-[source]
+[source, code, linenums]
 ----
 Transfer-Encoding: chunked
 Content-Type: multipart/mixed; boundary="47c7462b-f831-48f5-aed2-a561ef31dcc6"
@@ -145,7 +145,7 @@ If either property times out, the message moves to the dead-letter queue.
 
 Specifying values for the properties:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <msmq:send
     config-ref="MSMQ"
@@ -161,7 +161,7 @@ Both properties can be set in the connector configuration and are read by the Wi
 
 The authentication of the MSMQ connector is handled by a security token included in the HTTP Authorization header. This token is included on every HTTP request to the Gateway using the Mule scheme:
 
-[source]
+[source, code, linenums]
 ----
 GET: https://localhost:9333/msmq?count=50
 Authorization: mule test-token
@@ -171,7 +171,7 @@ Mule-Api-Version: 1
 
 Configure the token on the connector and also in the Gateway configuration file. The following shows how the token is configured on both sides:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <msmq:config name="MSMQ" doc:name="MSMQ" accessToken="test-token" rootQueueName=".\private$\qout" serviceAddress="localhost:9333">
  <msmq:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
@@ -186,7 +186,7 @@ When using user authentication, the queue in MSMQ must also be marked to require
 
 The following HTTP request example illustrates how to pass these two headers from the connector to the Gateway:
 
-[source]
+[source, code, linenums]
 ----
 GET: https://localhost:9333/msmq?count=50
 Authorization: mule test-token
@@ -223,7 +223,7 @@ The Windows Gateway service does not use an MSMQ formatter unless it is specifie
 
 The following example illustrates how to set the formatter in an MSMQ connector:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <msmq:receive config-ref="MSMQ" doc:name="MSMQ (Streaming)" pollingPeriod="3000" messageFormatter="ActiveXMessageFormatter" />
 ----
@@ -300,7 +300,7 @@ The connector also supports private queues hosted in a failover cluster or also 
 
 The connector allows passing or receiving properties to and from the MSMQ message. Those properties are set in the current Mule Message and passed to the Windows Gateway as custom HTTP headers. The following message illustrates how the connector creates a new MSMQ message with a value “CustomLabel” for the label property:
 
-[source]
+[source, code, linenums]
 ----
 POST: https://localhost:9333/msmq
 Authorization: mule test-token
@@ -353,7 +353,7 @@ For example: `66785f20-a2f3-42a3-bdcd-9ac5a937ac52\1`
 
 The following example shows how the “set-payload” component sets the label for an MSMQ message.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <set-property propertyName="msmq-label" value="message_from_mule" doc:name="Label"/>
 ----
@@ -398,7 +398,7 @@ The following table lists common errors that can occur while using the MSMQ conn
 . Type *.\1-setup.ps1* and press *Enter*.
 . The Console displays:
 +
-[source]
+[source, code, linenums]
 ----
 Creating .\private$\sampleq
 Queue Creating .\private$\secondq
@@ -416,7 +416,7 @@ Sending Message 4 to .\private$\sampleq
 . Right click *msmq-demo.xml* and select *Run As Mule Application*.
 . Check the console to see when the application starts:
 +
-[source]
+[source, code, linenums]
 ----
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 + Started app 'msmq-demo-ack' + ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -424,7 +424,7 @@ Sending Message 4 to .\private$\sampleq
 +
 . Check for these lines, which indicate that MSMQ connector is listening to both queues and received 1 message in sampleq queue and 6 messages in adminq queue.
 +
-[source]
+[source, code, linenums]
 ----
 INFO  XXXX-XX-XX XX:XX:XX,XXX [Receiving Thread] org.mule.modules.msmq.MsmqConnector: Connecting to https://localhost:9333/msmq
 INFO  XXXX-XX-XX XX:XX:XX,XXX [Receiving Thread] org.mule.modules.msmq.MsmqConnector: Connecting to https://localhost:9333/msmq
@@ -434,7 +434,7 @@ INFO  XXXX-XX-XX XX:XX:XX,XXX [Receiving Thread] org.mule.modules.msmq.MsmqConne
 +
 . The following lines appear (order may change), which indicate that one message was read, `* Message 1 *`. The message's body and label are shown along with several incorrect versions of ACK (logged as 'INFOs') or NACK (logged as WARNs) depending on the context and the message. For more information, see http://msdn.microsoft.com/en-us/library/system.messaging.acknowledgment[Acknowledgment Enumeration].
 +
-[source]
+[source, code, linenums]
 ----
 INFO  XXXX-XX-XX XX:XX:XX,XXX [[msmq-demo-ack].msmq-choice-flow.stage1.03] org.mule.api.processor.LoggerMessageProcessor: ACK Cause: ReachQueue | Correlation Id: xxxx  | Label: Message 2
 INFO  XXXX-XX-XX XX:XX:XX,XXX [[msmq-demo-ack].msmq-choice-flow.stage1.07] org.mule.api.processor.LoggerMessageProcessor: ACK Cause: Receive | Correlation Id: xxxx  | Label: Message 1
@@ -468,7 +468,7 @@ image:MSMQpurge.png[MSMQpurge]
 . Select *Yes* in the popup.
 . Return to Anypoint Studio and notice these additional lines in the Console, which indicate an additional kind of NACK, and that the originating message has not been read and has been purged:
 +
-[source]
+[source, code, linenums]
 ----
 INFO  XXXX-XX-XX XX:XX:XX,XXX [Receiving Thread] org.mule.modules.msmq.MsmqConnector: Receiving 1 from .\private$\adminq
 WARN  XXXX-XX-XX XX:XX:XX,XXX [[msmq-demo-ack].msmq-QueuePurged.stage1.02] org.mule.api.processor.LoggerMessageProcessor: 'QueuePurged NACK' Received | Correlation Id: xxxx | Label: Message 2
@@ -478,7 +478,7 @@ WARN  XXXX-XX-XX XX:XX:XX,XXX [[msmq-demo-ack].msmq-QueuePurged.stage1.02] org.m
 
 * Go back to the console and type **.\2-clean.ps1 **and this message appears:
 +
-[source]
+[source, code, linenums]
 ----
 Deleting .\private$\sampleq Queue
 Deleting .\private$\secondq Queue
@@ -492,7 +492,7 @@ This sample receives incoming requests via HTTP connector, and sends the request
 . Create a new Mule project from *File* > *New* > *Mule Project*. You can set name to cloudhub-test. Click *Finish*.
 . Go to Configuration XML tab and replace existing code with the following:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <mule xmlns:msmq="http://www.mulesoft.org/schema/mule/msmq" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
     xmlns:spring="http://www.springframework.org/schema/beans" version="CE-3.6.1"

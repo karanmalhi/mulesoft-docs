@@ -87,7 +87,7 @@ EXCEPTION is the default value of this parameter. If you want to keep error logs
 
 Configure a connector as shown in the following example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <sfdc:config-with-oauth name="salesforce" consumerKey="[insert key]” consumerSecret="[insert secret]" doc:name="Salesforce (OAuth)">
         <sfdc:oauth-callback-config domain="localhost" remotePort="8081" path="callback"/>
@@ -118,7 +118,7 @@ You can decide what happens when a connector is invoked by a user that has no OA
 
 `EXCEPTION` is the default value of this parameter. If you want to keep error logs light, `STOP_FLOW` is probably the ideal choice as it doesn't create exceptions before you have had a chance to authorize your connector to access the OAuth provider.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <sfdc:config-with-oauth name="salesforce" consumerKey="[insert key]” consumerSecret="[insert secret]" doc:name="Salesforce (OAuth)" onNoToken="[STOP_FLOW|EXCEPTION]">
         <sfdc:oauth-callback-config domain="localhost" remotePort="8081" path="callback"/>
@@ -183,7 +183,7 @@ Depending on the service you are using OAuth with, there may or may not be diffe
 
 Create an authorization flow, as shown in the following example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="OAuthTestFlow1" doc:name="OAuthTestFlow1">
         <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" doc:name="HTTP" />
@@ -258,14 +258,14 @@ image:oauthfff.png[oauthfff]
 
 Add a logger element into your flow:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <logger message="&quot;The connector has been properly authorized.&quot;" level="INFO" doc:name="Logger"/>
 ----
 
 The full flow code should look like this example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="authorizationAndAuthenticationFlow">
         <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081"/>
@@ -284,7 +284,7 @@ The full flow code should look like this example:
 
 To keep data persistent you need to store it somewhere, it is recommended you use ObjectStore for this. Install an ObjectStore connector. Configure it like this in your application:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <objectstore:config name="ObjectStore" doc:name="ObjectStore" />
 ----
@@ -293,7 +293,7 @@ To keep data persistent you need to store it somewhere, it is recommended you us
 
 After the authorization dance is done, the accessTokenId for the service you are invoking is available as a flow variable called `OAuthAccessTokenId`. You must persist this ID so you can use it in future invocations of your connector. This example shows how to store this variable into ObjectStore under the key `accessTokenId`.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="authorize-google" doc:name="authorize-google">
         <http:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" path="authorize" doc:name="HTTP"/>
@@ -306,7 +306,7 @@ After the authorization dance is done, the accessTokenId for the service you are
 
 Any invocation of your connector must load the access token from ObjectStore and reference it. This example shows loading it from ObjectStore and checking if it was set, before proceeding.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <enricher target="#[flowVars['accessTokenId']]" doc:name="Message Enricher">
             <objectstore:retrieve config-ref="ObjectStore" key="accessTokenId" defaultValue-ref="#['']" doc:name="Get AccessToken"/>
@@ -316,7 +316,7 @@ Any invocation of your connector must load the access token from ObjectStore and
 
 Once `accessTokenId` is available as a flow variable, you can reference it in your connector operations:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <google-contacts:get-contacts config-ref="Google_Contacts" accessTokenId="#[flowVars['accessTokenId']]" />
 ----

@@ -6,7 +6,7 @@ JSON, short for JavaScript Object Notation, is a lightweight data interchange fo
 
 Mule supports binding JSON data to objects and marshaling Java objects to JSON using the http://jackson.codehaus.org[Jackson] Framework. Jackson uses annotations to describe how data maps to a Java object model. For example, let's say we have an JSON file that describes a person. When we receive that JSON data, we convert it into a `Person` object. The JSON looks like this:
 
-[source]
+[source, code, linenums]
 ----
 {
     "name":"John Doe",
@@ -26,7 +26,7 @@ Mule supports binding JSON data to objects and marshaling Java objects to JSON u
 
 And we have an object `Person` we want to create from the JSON data. We use annotations to describe how to perform the mapping. We use the `@JsonAutoDetect` to say that field member names map directly to JSON field names:
 
-[source, java]
+[source, java, linenums]
 ----
 @JsonAutoDetect
 public class Person
@@ -49,7 +49,7 @@ The `EmailAddress` object that is used in the _emailAddresses_ is just another J
 
 At this point Mule can figure out whether to perform a JSON transforms based on the parameters of the method being called. For example:
 
-[source, java]
+[source, java, linenums]
 ----
 public class PersonComponent {
     public void processPerson(@Payload Person person)
@@ -65,7 +65,7 @@ This example receives the contents of the `people.json` file above on an endpoin
 
 Jackson performs mappings through the `ObjectMapper`. This is an object that can be configured with other configuration about how to serialise data and define mixins that add annotations to objects that you cannot change directly. It is possible to define a global `ObjectMapper`; a single mapper that will be used for all JSON transforms in your application. This is not required since Mule will automatically create a mapper for a transformer, but using a global mapper can be useful if you need to configure specific properties on the mapper or use mixins. To create a shared `ObjectMapper,` add the following to your Mule configuration file:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <json:mapper name="myMapper">
     <json:mixin mixinClass="org.mule.module.json.transformers.FruitCollectionMixin"
@@ -79,7 +79,7 @@ Jackson performs mappings through the `ObjectMapper`. This is an object that can
 
 So far we have discussed how Mule performs automatic JSON transforms. Sometimes you may want to intercept the transform, to do this just create a transformer with a method return or parameter type of your JSON class:
 
-[source, java]
+[source, java, linenums]
 ----
 @Transformer(sourceTypes = {InputStream.class})
 public Person toPerson(String json, ObjectMapper mapper) throws JAXBException
@@ -96,7 +96,7 @@ There is no standard language currently for querying JSON data graphs in the sam
 
 This query syntax provides a simple way to navigate a JSON data structure. The following JSON data demonstrates how JSON Path queries can be used:
 
-[source]
+[source, code, linenums]
 ----
 {
     "name":"John Doe",
@@ -116,35 +116,35 @@ This query syntax provides a simple way to navigate a JSON data structure. The f
 
 To select a child entry, use:
 
-[source]
+[source, code, linenums]
 ----
 name
 ----
 
 To access array data, use square braces with an index value:
 
-[source]
+[source, code, linenums]
 ----
 emailAddresses[0]/type
 ----
 
 Or where the route element is an array:
 
-[source]
+[source, code, linenums]
 ----
 [0]/arrayElement
 ----
 
 Also, multi-dimensional arrays can be accessed using:
 
-[source]
+[source, code, linenums]
 ----
 filters[1]/init[1][0]
 ----
 
 This is rare, but if a JSON property name contains a '/', the name needs to be single quoted:
 
-[source]
+[source, code, linenums]
 ----
 results/'http://foo.com'/value
 ----
@@ -155,7 +155,7 @@ JSON Path can be used in link:/docs/display/33X/Non-MEL+Expressions+Configuratio
 
 For example, to use JSON Path to perform content based routing:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <choice>
   <when expression="emailAddresses[0]/type = 'home'" evaluator="json">

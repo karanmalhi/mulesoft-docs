@@ -39,7 +39,7 @@ The All message processor can be used to send the same message to multiple targe
 
 Configuration for this router is as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <all>
   <jms:endpoint queue="test.queue" transformer-refs="StringToJmsMessage"/>
@@ -56,7 +56,7 @@ All messages (if any) returned by the targets are aggregated together and form t
 
 The Async message processor runs a chain of message processors in another thread, optionally specifying a threading profile for the thread to be used. The message processsor is configured as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <async>
   <append-string-transformer message="-async" />
@@ -74,7 +74,7 @@ The Choice message processor sends a message to the first message processor that
 
 Choice is configured as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <choice>
   <when expression="payload=='foo'" evaluator="groovy">
@@ -99,7 +99,7 @@ You can specify the `timeout` attribute to determine how long the router waits i
 
 Configuration for the Collection Aggregator is as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <collection-aggregator timeout="6000" failOnTimeout="false"/>
 ----
@@ -110,7 +110,7 @@ The Collection Splitter acts on messages whose payload is a Collection type. It 
 
 Configuration for the Collection Splitter is as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <collection-splitter enableCorrelation="IF_NOT_SET"/>
 ----
@@ -121,7 +121,7 @@ Converts a payload consisting of a collection of collections into a single list.
 
 This router (flow control) also converts *MuleMessageCollections*. In such a case, the collection payloads from more than one *MuleMessage* get merged into a single collection for a new *MuleMessage*.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <combine-collections-router/>
 ----
@@ -132,7 +132,7 @@ A Custom Aggregator is an instance of a user-written class that aggregates messa
 
 Configuration for a Custom Aggregator is as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <custom-aggregator failOnTimeout="true" class="com.mycompany.utils.PurchaseOrderAggregator"/>
 ----
@@ -143,14 +143,14 @@ A Custom Processor is an instance of a user-written class that acts as a message
 
 Configuration for a Custom Processor is as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <processor ref="HighSpeedRouter"/>
 ----
 
 or
 
-[source, xml]
+[source, xml, linenums]
 ----
 <custom-processor class="com.mycompany.utils.HighSpeedRouter"/>
 ----
@@ -169,7 +169,7 @@ Success is defined as:
 
 This message processor was added in Mule 3.0.1.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <first-successful>
   <http:outbound-endpoint address="http://localhost:6090/weather-forecast" />
@@ -181,7 +181,7 @@ This message processor was added in Mule 3.0.1.
 
 *From 3.1.0* you can further customize the behavior of this router by specifying a _'failureExpression'_ that allows you to use link:/documentation-3.2/display/32X/Expressions+Configuration+Reference[Mule Expressions] to define a failure. The _failureExpression_ attribute is configured as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <first-successful failureExpression="exception-type:java.net.SocketTimeoutException">  <http:outbound-endpoint address="http://localhost:6090/weather-forecast" />  <http:outbound-endpoint address="http://localhost:6091/weather-forecast" />  <vm:outbound-endpoint path="dead-letter-queue" /></first-successful>
 ----
@@ -196,7 +196,7 @@ There is a simple idempotent filter implementation provided at http://www.muleso
 
 Configuration for this router is as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <idempotent-message-filter idExpression="#[message:id]-#[header:foo]">
     <simple-text-file-store directory="./idempotent"/>
@@ -215,7 +215,7 @@ This filter calculates the hash of the message itself using a message digest alg
 
 Configuration for this filter is as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <idempotent-secure-hash-filter messageDigestAlgorithm="SHA26">
     <simple-text-file-store directory="./idempotent"/>
@@ -230,7 +230,7 @@ After a splitter such as the <<Message Chunk Splitter>> splits a message into pa
 
 Configuration for the Message Chunk Aggregator is as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <message-chunk-aggregator>
   <expression-message-info-mapping messageIdExpression="#[header:id]" correlationIdExpression="#[header:correlation]"/>
@@ -251,7 +251,7 @@ To put the chunked items back together again, you can use the <<Message Chunk Ag
 
 Configuration for the Message Chunk Splitter is as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <message-chunk-splitter message-size="512"/>
 ----
@@ -262,7 +262,7 @@ The Message Filter is used to control whether a message is processed by using a 
 
 Configuration for the Message Filter is as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <message-filter throwOnUnaccepted="false" onUnaccepted="rejectedMessageLogger">
   <message-property-filter pattern="Content-Type=text/xml" caseSensitive="false"/>
@@ -273,7 +273,7 @@ Configuration for the Message Filter is as follows:
 
 A Processor Chain is a linear chain of message processors which process a message in order. A Processor Chain can be configured wherever a message processor appears in a Mule Schema. For example, to allow a <<WireTap>> to transform the current message before sending it off, you can configure the following:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <wire-tap>
   <processor-chain>
@@ -287,7 +287,7 @@ A Processor Chain is a linear chain of message processors which process a messag
 
 The Recipient List message processor allows you to send a message to multiple endpoints by specifying an expression that, when evaluated, provides the list of endpoints. These messages can optionally be given a correlation ID, as in the <<Collection Splitter>>. An example is
 
-[source, xml]
+[source, xml, linenums]
 ----
 <recipient-list enableCorrelation="ALWAYS" evaluator="header" expression="myRecipients"/>
 ----
@@ -302,7 +302,7 @@ The Request Reply message processor receives a message on one channel, allows th
 
 Here is an example that uses the Request Reply message processor:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="main">
     <vm:inbound-endpoint path="input"/>
@@ -323,7 +323,7 @@ The request is received in the main flow and passed to the request-reply router,
 
 In more advanced cases, you might not want the automatic forwarding of the second flow's response to the request-reply inbound endpoint. For instance, the second flow might trigger the running of a third flow, which then generates and sends the reply. In these cases, you can remove the MULE_REPLYTO property with a Message Properties Transformer:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <request-reply storePrefix="mainFlow">
     <vm:outbound-endpoint path="request">
@@ -341,7 +341,7 @@ The Resequencer sorts a set of received messages by their correlation sequence p
 
 The Resequencer is configured as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <resequencer timeout="6000" failOnTimeout="false"/>
 ----
@@ -352,7 +352,7 @@ The Round Robin message processor iterates through a list of child message proce
 
 This message processor was added in Mule 3.0.1.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <round-robin>
   <http:outbound-endpoint address="http://localhost:6090/weather-forecast" />
@@ -367,7 +367,7 @@ A Splitter uses an expression to split a message into pieces, all of which are t
 
 The Splitter is configured as shown below:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <splitter evaluator="xpath" expression="//acme:Trade"/>
 ----
@@ -387,7 +387,7 @@ The Until Successful message processor is able to retry:
 * A sub-flow execution, to keep reexecuting several actions until they all succeed.
 * Any other message processor execution, to allow more complex scenarios.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <until-successful objectStore-ref="objectStore"
                   maxRetries="5"
@@ -408,7 +408,7 @@ See link:/documentation-3.2/display/32X/Mule+Object+Stores[Mule Object Stores] f
 
 Here is how you would create an in-memory store:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <spring:bean id="objectStore" class="org.mule.util.store.SimpleMemoryObjectStore" />
 ----
@@ -424,7 +424,7 @@ Success or failure are defined as:
 
 Here is an example showing how to configure the failure expression:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <until-successful objectStore-ref="objectStore"
                   failureExpression="#[header:INBOUND:http.status != 202]"
@@ -438,7 +438,7 @@ Here is an example showing how to configure the failure expression:
 
 The Until Successful message processor is also able to synchronously acknowledge that it has accepted a message and will try to process it repeatedly. The following is an example where the message correlation ID is used as an acknowledgement message:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <until-successful objectStore-ref="objectStore"
                   ackExpression="#[message:correlationId]"
@@ -450,7 +450,7 @@ The Until Successful message processor is also able to synchronously acknowledge
 
 It is also possible to define a DLQ (dead letter queue) endpoint to which messages will be sent if they have failed processing too many times:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <until-successful objectStore-ref="objectStore"
                   dlqEndpoint-ref="dlqChannel"
@@ -464,7 +464,7 @@ It is also possible to define a DLQ (dead letter queue) endpoint to which messag
 
 The WireTap message processor allows you to route certain messages to a different message processor as well as to the next one in the chain. For instance, To copy all messages to a specific endpoint, you configure it as an outbound endpoint on the WireTap routing processor:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <wire-tap>
     <vm:outbound-endpoint path="tapped.channel"/>
@@ -475,7 +475,7 @@ The WireTap message processor allows you to route certain messages to a differen
 
 The WireTap routing processor is useful both with and without filtering. If filtered, it can be used to record or take note of particular messages or to copy only messages that require additional processing. If filters aren't used, you can make a backup copy of all messages received. The behavior here is similar to that of an interceptor, but interceptors can alter the message flow by preventing the message from reaching the component. WireTap routers cannot alter message flow but just copy on demand. In this example, only messages that match the filter expression are copied to the vm endpoint.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <wire-tap>
     <vm:outbound-endpoint path="tapped.channel"/>

@@ -9,7 +9,7 @@ Message notifications provide a snapshot of all information sent into and out of
 
 For example, first you create beans for the notification listeners, specifying the class of the type of notification you want to receive:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <spring:bean name="componentNotificationLogger" class="org.myfirm.ComponentMessageNotificationLogger"/>
 <spring:bean name="endpointNotificationLogger"
@@ -18,7 +18,7 @@ class="org.myfirm.EndpointMessageNotificationLogger"/>
 
 Next, you specify the notifications you want to receive using the `<notification>` element, and then register the listeners using the `<notification-listener>` element:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <notifications>
   <notification event="COMPONENT-MESSAGE"/>
@@ -36,7 +36,7 @@ For a list of notification types, see link:/documentation/display/current/Notifi
 
 If you want to change the interface that is associated with a notification, you specify the new interface with the `interface-class` and `interface` attributes:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <notifications>
   <notification event="COMPONENT-MESSAGE" interface-class="org.myfirm.MyMessageNotifications" interface="myComponentListener"/>
@@ -46,7 +46,7 @@ If you want to change the interface that is associated with a notification, you 
 
 If you create a custom notification, you also specify the `event-class` attribute:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <notifications>
   <notification event="CUSTOM-MESSAGE" event-class="org.myfirm.MyMessageNotificationsCustomMessage"
@@ -58,7 +58,7 @@ interface-class="org.myfirm.MyMessageNotifications" interface="myCustomListener"
 
 If you want to block a specific interface from receiving a notification, you specify it with the `<disable-notification>` element. You can specify the notification type (event), event class, interface, and/or interface class to block.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <notifications>
   <disable-notification interface="ComponentMessageNotificationListener"/>
@@ -69,21 +69,21 @@ If you want to block a specific interface from receiving a notification, you spe
 
 When registering a listener, you can specify that it only receive notifications from a specific component using the `subscription` attribute. For example, to specify that the listener only receive notifications from a flow component called "MyService1", you would configure the listener as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <notification-listener ref="endpointNotificationLogger" subscription="MyService1"/>
 ----
 
 You can also register listeners and filter the subscriptions from your Java code:
 
-[source]
+[source, code, linenums]
 ----
 muleContext.registerListener(listener, "MyService1");
 ----
 
 To register interest in notifications from all flow components with "Service" in the name, you would use a wildcard string as follows:
 
-[source]
+[source, code, linenums]
 ----
 muleContext.registerListener(listener, "*Service*");
 ----
@@ -96,7 +96,7 @@ Custom notifications can be fired by objects in Mule to notify custom listeners.
 
 You fire a custom notification as follows:
 
-[source]
+[source, code, linenums]
 ----
 CustomNotification n = new CustomNotification("Hello");
 muleContext.fireNotification(n);
@@ -104,7 +104,7 @@ muleContext.fireNotification(n);
 
 Any objects implementing `CustomNotificationListener` will receive this notification. It's a good idea to extend `CustomNotification` and define actions for your custom notification type. For example:
 
-[source]
+[source, code, linenums]
 ----
 DiscoveryNotification n = new DiscoveryNotification(client, DiscoveryNotification.CLIENT_ADDED);
 muleContext.fireNotification(n);
@@ -145,7 +145,7 @@ class an object can implement to become a listener for that notification. All li
 
 The listener interfaces all have a single method:
 
-[source, java]
+[source, java, linenums]
 ----
 public void onNotification(T notification);
 ----
@@ -158,7 +158,7 @@ Depending on the listener implemented, only certain notifications will be receiv
 
 You can register listeners on the Mule Context as follows:
 
-[source]
+[source, code, linenums]
 ----
 muleContext.registerListener(listener);
 ----
@@ -167,7 +167,7 @@ muleContext.registerListener(listener);
 
 By default, you cannot register listeners in the Mule context after Mule has started. Therefore, you would register your listeners in your code before starting Mule. For example:
 
-[source]
+[source, code, linenums]
 ----
 MuleContext context = new DefaultMuleContextFactory().createMuleContext
 (new SpringXmlConfigurationBuilder("foo-config.xml"));
@@ -186,7 +186,7 @@ Each notification has an action code that determines the notification type. The 
 
 *MyObject.java*
 
-[source, java]
+[source, java, linenums]
 ----
 public class MyObject implements ConnectionNotificationListener<ConnectionNotification>, MuleContextAware
 {

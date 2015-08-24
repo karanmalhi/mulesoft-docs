@@ -113,7 +113,7 @@ Keep in mind that for this example to work, you must manually configure the foll
 * consumerSecret
 ====
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter" xmlns:http="http://www.mulesoft.org/schema/mule/http"
 xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
@@ -176,7 +176,7 @@ The first time the poll runs, no object store variable exists by this name. In t
 
 . Mule polls the resource. Connectors inside the poll should include filters that accept the `flowVars` as an attribute, as per the code below.
 +
-[source]
+[source, code, linenums]
 ----
 sinceId="#[flowVars['lastModifiedID']]"
 ----
@@ -244,25 +244,25 @@ image:watermark_enable.png[watermark_enable]
 |*Time Unit* |MILLISECONDS |Use milliseconds as unit for the frequency and delay settings | 
 |*Enable Watermark* |true |Enable using the  Watermark | 
 |*Variable Name* |`lastID` |Mule creates two variables: • a persistent object store variable with the provided name • a flow variable that the Twitter Connector references in its `sinceID` filter. a|
-[source]
+[source, code, linenums]
 ----
 variable="lastID"
 ----
 
 |*Default Expression* |-1 |The value that `lastID` uses the first time Mule executes the poll, or whenever the watermark can't be found. a|
-[source]
+[source, code, linenums]
 ----
 default-expression="-1"
 ----
 
 |*Selector* |FIRST |Pick the FIRST value returned by the Selector Expression to update the `lastID` variable each time the flow execution completes. In this case, it takes the id of the first tweet in the generated output (i.e. the most recent one). a|
-[source]
+[source, code, linenums]
 ----
 selector="FIRST"
 ----
 
 |*Selector expression* |`#[payload.id]` |Return the id of each object in the generated output, this value is passed on to the Selector. a|
-[source]
+[source, code, linenums]
 ----
 selector-expression="#[payload.id]"
 ----
@@ -280,7 +280,7 @@ selector-expression="#[payload.id]"
 [TIP]
 All flows use an asynchronous processing strategy by default. If you do not set the processing strategy to *synchronous*, polling with watermarks will not work!
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="test1" doc:name="test1" processingStrategy="synchronous">
 ----
@@ -295,7 +295,7 @@ All flows use an asynchronous processing strategy by default. If you do not set 
 
 .  Add attributes to the `watermark` child element according to the table below.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <watermark variable="lastID" default-expression="-1" selector="FIRST" selector-expression="#[payload.id]"/>
 ----
@@ -304,25 +304,25 @@ All flows use an asynchronous processing strategy by default. If you do not set 
 |====
 |Attribute name |Value |Description |Sample XML
 |*variable* |string |Mule creates two variables: • a persistent object store variable with the provided name • a flow variable that the Twitter Connector references in its  `sinceID` filter. a|
-[source]
+[source, code, linenums]
 ----
 variable= "lastID"
 ----
 
 |*default-expression* |integer |The value that `lastID` uses the first time Mule executes the poll, or whenever the watermark can't be found. a|
-[source]
+[source, code, linenums]
 ----
 default -expression= "-1"
 ----
 
 |*Selector* |FIRST |Pick the FIRST value returned by the Selector Expression to update the `lastID` variable each time the flow execution completes. In this case, it's the id of the first tweet in the generated output (i.e. the most recent one). a|
-[source]
+[source, code, linenums]
 ----
 selector="FIRST"
 ----
 
 |*Selector expression* |`#[payload.id]` |Return the id of each object in the generated output, this value is passed on to the Selector. a|
-[source]
+[source, code, linenums]
 ----
 selector-expression="#[payload.id]"
 ----
@@ -335,13 +335,13 @@ selector-expression="#[payload.id]"
 |============
 |Attribute |Value |Description |Sample XML
 |*sinceId* |string or Mule expression |Instructs the connector to return only those tweets with an ID greater than the value of the `lastID` variable.  `lastID` is a flow variable that Mule creates, then updates every time the poll runs. a|
-[source]
+[source, code, linenums]
 ----
 sinceId="#[flowVars['lastID']]"
 ----
 |============
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="test1" doc:name="test1" processingStrategy="synchronous">
     <poll frequency="1000" doc:name="Poll">
@@ -367,7 +367,7 @@ Keep in mind that for this example to work, you must manually configure the foll
 * consumerSecret
 ====
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter" xmlns:http="http://www.mulesoft.org/schema/mule/http"
 xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
@@ -399,7 +399,7 @@ However, neither of these options support exception handling strategies; you may
 
 Add code, such as the example below, into a Java class, wrapping your extra custom logic around it. 
 
-[source]
+[source, code, linenums]
 ----
 #[flowVars['lastModifiedID']] = #[payload.id]
 ----
@@ -460,7 +460,7 @@ image:ex12.png[ex12]
 
 . Add a *poll* element to your flow, then add a *watermark variable* as a child element. The watermark will be a variable named `lastUpdated` . When the flow has finished processing, Mule updates the value of the variable to the value of the *flow variable* by the same name, `lastUpdated` . Its default value is the result of evaluating the following expression: `#['YESTERDAY']` .
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <poll frequency="100000" doc:name="Poll">
             <watermark variable="nextSync" default-expression="#['YESTERDAY']" selector="MAX" selector-expression="#[payload['lastUpdated']]"/>
@@ -479,7 +479,7 @@ image:ex12.png[ex12]
 The watermark will be a variable named `lastUpdated`. When you iterate through the collection, later in your flow, Mule updates the value of the variable to the value you put in the Selector field, in this case `#[payload['lastUpdated']]`. Its default value is the result of evaluating the following expression: `#['YESTERDAY']`.
 . Add an auto-paging-enabled connector as a child element of the poll element. Note that the query orders the output in ascending order of *LastModifiedDate* so that the last item in the list is the newest. This detail is critical.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <poll frequency="100000" doc:name="Poll">
             <watermark variable="nextSync" default-expression="#['YESTERDAY']" update-expression="#[flowVars['lastUpdated']]"/>
@@ -495,7 +495,7 @@ Be sure to configure the order of the output so that the LAST element in the col
 Keep in mind that when dealing with collections with auto-paging, you need to process the collection at some point of your flow. If you don't, the selector in your poll won't be updated.
 . Inside the Foreach scope, place a Logger, set its message to `#[payload['lastUpdated]]`. It will log the time of the last update for every element in your collection.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <logger message="#[payload['lastUpdated]] " level="INFO" doc:name="Logger"/>
 ----
@@ -503,7 +503,7 @@ Keep in mind that when dealing with collections with auto-paging, you need to pr
 ....
 ------
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule xmlns:netsuite="http://www.mulesoft.org/schema/mule/netsuite" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" version="EE-3.5.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd

@@ -68,7 +68,7 @@ The Quartz connector is used to configure the default behavior for Quartz endpoi
 
 For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"      xmlns:spring="http://www.springframework.org/schema/beans"      xmlns:quartz="http://www.mulesoft.org/schema/mule/quartz"      xsi:schemaLocation="       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.2/mule.xsd       http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/quartz/3.2/mule-quartz.xsd">    <quartz:connector name="quartzConnector1" scheduler-ref="myScheduler">        <quartz:factory-property key="org.quartz.scheduler.instanceName" value="MuleScheduler1"/>        <quartz:factory-property key="org.quartz.threadPool.class" value="org.quartz.simpl.SimpleThreadPool"/>        <quartz:factory-property key="org.quartz.threadPool.threadCount" value="3"/>        <quartz:factory-property key="org.quartz.scheduler.rmi.proxy" value="false"/>        <quartz:factory-property key="org.quartz.scheduler.rmi.export" value="false"/>        <quartz:factory-property key="org.quartz.jobStore.class" value="org.quartz.simpl.RAMJobStore"/>    </quartz:connector>...
 ----
@@ -212,7 +212,7 @@ Example:
 
 image:arrow_closed_active_16.png[arrow_closed_active_16]
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="testService1">  <!--  This configuration creates an inbound event for testService1 at 12 noon every day. The event payload always has the value 'foo'.  -->    <quartz:inbound-endpoint name="qEP1" cronExpression="0 0 12 * * ?" jobName="job1" connector-ref="quartzConnector1">      <quartz:event-generator-job>        <quartz:payload>foo</quartz:payload>      </quartz:event-generator-job>    </quartz:inbound-endpoint>    <echo-component/></flow><flow name="testService2">  <!--  This configuration creates an inbound event for testService2 every 1 second indefinitely. The event payload always has the same value, which the are contents of the file 'payload-data.txt'. The file can be on the classpath or on the local file system.  -->    <quartz:inbound-endpoint name="qEP2" repeatCount="10" repeatInterval="1000" jobName="job2"          connector-ref="quartzConnector1">      <quartz:event-generator-job >        <quartz:payload file="payload-data.txt"/>      </quartz:event-generator-job>    </quartz:inbound-endpoint>    <echo-component/></flow>
 ----
@@ -242,7 +242,7 @@ Example:
 
 image:arrow_closed_active_16.png[arrow_closed_active_16]
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="testService5">  <!--  The endpoint polling Job tries to perform a 'request' on a Mule endpoint. If a result is received, it hands off to the 'testService5' service for processing. The trigger fires every 5 minutes starting at 2 pm and ending at 2:55 pm, every day. During this period, the job checks the file directory /N/drop-data/in every 5 minutes to see if event data is available. The request times out after 4 seconds if there are no files in the directory.   -->    <quartz:inbound-endpoint name="qEP5" cronExpression="0 0/5 14 * * ?" jobName="job5"           connector-ref="quartzConnector1">      <quartz:endpoint-polling-job>        <quartz:job-endpoint address="file:///N/drop-data/in" timeout="4000"/>      </quartz:endpoint-polling-job>    </quartz:inbound-endpoint>    <echo-component/></flow>
 ----
@@ -272,7 +272,7 @@ For example:
 
 image:arrow_closed_active_16.png[arrow_closed_active_16]
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="testService6">  <!--  This outbound Quartz endpoint receives an event after the component has processed it and stores it in the event store. When the trigger kicks in at 10:15 am everyday it dispatches the event on the endpoint referenced as 'scheduledDispatchEndpoint'. Since the 'repeatCount' is set to 0, the event is only sent out once.  -->  <inbound-endpoint address="test://inbound6"/>  <test:component/>      <quartz:outbound-endpoint name="qEP6" repeatCount="0" cronExpression="0 15 10 * * ? *"                                            jobName="job6" connector-ref="quartzConnector1">        <quartz:scheduled-dispatch-job>          <quartz:job-endpoint ref="scheduledDispatchEndpoint"/>        </quartz:scheduled-dispatch-job>      </quartz:outbound-endpoint>    </flow
 ----
@@ -303,7 +303,7 @@ Example:
 
 image:arrow_closed_active_16.png[arrow_closed_active_16]
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="testService5">  <!--  The endpoint polling Job tries to perform a 'request' on a Mule endpoint. If a result is received, it hands off to the 'testService5' service for processing. The trigger fires every 5 minutes starting at 2 pm and ending at 2:55 pm, every day. during this period the job checks the file directory /N/drop-data/in every 5 minutes to see if any event data is available. The request times out after 4 seconds if there are no files in the directory.  -->    <quartz:inbound-endpoint name="qEP5" cronExpression="0 0/5 14 * * ?" jobName="job5"                                         connector-ref="quartzConnector1">      <quartz:endpoint-polling-job>        <quartz:job-endpoint address="file:///N/drop-data/in" timeout="4000"/>      </quartz:endpoint-polling-job>    </quartz:inbound-endpoint>    <echo-component/></flow>
 ----
@@ -334,7 +334,7 @@ Example:
 
 image:arrow_closed_active_16.png[arrow_closed_active_16] 
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="testService3">  <!--  This configuration processes a message and finds a Job configured as a header called 'jobConfig' on the current message. We're using the test component here, but a real implementation needs to set a custom {{org.quartz.Job}} implementation as a header on the current message. Note: You can use other expressions to extract the job from an attachment or even a property within the payload itself.  -->  <inbound-endpoint address="test://inbound3"/>  <test:component/>      <quartz:outbound-endpoint name="qEP3" repeatInterval="1000" jobName="job3"                                          connector-ref="quartzConnector1">        <quartz:custom-job-from-message evaluator="header" expression="jobConfig"/>      </quartz:outbound-endpoint></flow>
 ----

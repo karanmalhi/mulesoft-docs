@@ -401,7 +401,7 @@ Mule 3.3 introduces three new behaviors associated with the way messages are tra
 
 If you do not wish to use these new transformer behaviors on your application — if the behaviors are not compatible with the way your application is configured, for example — you can disable the behaviors in Mule ESB 3.3 by adding the following code snippet to the Mule configuration of your application:
 
-[source,xml,linenums]
+[source,
 ----
 <configuration useExtendedTransformations="false"/>
 ----
@@ -428,7 +428,7 @@ As an example, you can use bean definition profiles to create and use unique con
 
 . Create bean profiles and configure them for separate profiles.
 +
-[source,xml,linenums]
+[source,
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core" ...>
          <spring:beans profile="one">
@@ -471,7 +471,7 @@ In previous 3.x versions of Mule ESB, the behavior of a filter differed dependin
 In Mule ESB 3.3, a filter’s behavior is consistent in all flows, subflows and child flows: it drops a failed message but does not discard the file. (See Example 3, below.) This makes it far easier to trace an error to its source and resolve any problem with the filter or a flow.
 
 *Example 1, file NOT discarded*
-[source,xml,linenums]
+[source,
 ----
 <flow name="flowWithFilter>
   <http:inbound-endpoint address="http://localhost"/>
@@ -481,7 +481,7 @@ In Mule ESB 3.3, a filter’s behavior is consistent in all flows, subflows and 
 ----
 
 *Example 2, file discarded*
-[source,xml,linenums]
+[source,
 ----
 <flow name="flowWithFilter>
   <http:inbound-endpoint address="http://localhost"/>
@@ -495,7 +495,7 @@ In Mule ESB 3.3, a filter’s behavior is consistent in all flows, subflows and 
 ----
 
 *Example 3, file NOT discarded*
-[source,xml,linenums]
+[source,
 ----
 <flow name="flowWithFilter>
   <http:inbound-endpoint address="http://localhost"/>
@@ -517,7 +517,7 @@ In previous 3.x versions of Mule ESB, the behavior of a one-way outbound endpoin
 In Mule ESB 3.3, a flow such as the one illustrated in Example 1, below, sends a `request message` response rather than `null` response to the caller. This “never null” behavior remains unchanged in flows, such as Example 2, which contain a one-way outbound endpoint in the middle of a flow. Regardless of where you place it in a flow that begins with a request-response inbound endpoint, a one-way outbound endpoint will never return a response of `null` in Mule ESB 3.3.
 
 *Example 1*
-[source,xml,linenums]
+[source,
 ----
 <flow name="flowWithFilter>
   <http:inbound-endpoint address="http://localhost" exchange-pattern="request-response/>
@@ -526,7 +526,7 @@ In Mule ESB 3.3, a flow such as the one illustrated in Example 1, below, sends a
 ----
 
 *Example 2*
-[source,xml,linenums]
+[source,
 ----
 <flow name="flowWithFilter>
   <http:inbound-endpoint address="http://localhost" exchange-pattern="request-response/>
@@ -537,7 +537,7 @@ In Mule ESB 3.3, a flow such as the one illustrated in Example 1, below, sends a
 ----
 
 If you do not wish to enforce this endpoint behavior in your application — if the behavior is not compatible with the way your application is configured, for example — you can disable the behavior in Mule ESB 3.3 by adding the following code snippet to the Mule configuration of your application:
-[source,xml,linenums]
+[source,
 ----
 <configuration flowEndingWithOneWayEndpointReturnsNull="true" />
 ----
@@ -555,13 +555,13 @@ Alternatively, you can modify your application to prevent Mule ESB 3.3 from appl
 Mule ESB 3.3 has corrected the behavior of the *Message Enricher* so that it does not propagate session variable changes to the main flow. Mule now isolates the Message Enricher’s processing flow from the main flow in which it resides. In other words, any changes that Mule makes to a message’s session variables while it is within the scope of a Message Enricher are not carried with the message when it re-enters the main flow.
 
 If you do not wish to enforce this new Message Enricher behavior on your application — if the behavior is not compatible with the way your application is configured, for example — you can disable the behavior in Mule ESB 3.3 by adding the following code snippet to your application:
-[source,xml,linenums]
+[source,
 ----
 <configuration enricherPropagatesSessionVariableChanges="true" />
 ----
 Alternatively, you can modify your application to prevent Mule ESB 3.3 from applying this new Message Enricher behavior. To ensure that all changes a Message Enricher makes to session variables are propagated to the main flow, add one child `<enrich>` element to each session variable that the Message Enricher touches (i.e. adds or modifies). Refer to the following example of such a modification.
 
-[source,xml,linenums]
+[source,
 ----
 <enricher>
     <flow-ref name="otherFlow"/>
@@ -580,7 +580,7 @@ In Mule ESB 3.3, the parent flow’s exception strategy — default, catch, roll
 
 If you do not wish to enforce this new error handling behavior for private flows on your application — if the behavior is not compatible with the way your private flow is configured, for example — you can disable the behavior in Mule ESB 3.3 by wrapping the private flow with another private flow in which you have configured a catch exception strategy.
 
-[source,xml,linenums]
+[source,
 ----
 <flow name="parentFlow">
    <flow-ref name="privateFlowProxy"/>
@@ -634,7 +634,7 @@ Working in Studio, you can add key-value pairs to a SOAP component in order to c
 
 Further, you can add custom Token Validators to authenticate the message credentials your Web service transmits or receives. You can customize a token validator by referencing an existing bean which applies, replaces, or extends the default behavior associated with a specific security token.
 
-[source,xml,linenums]
+[source,
 ----
 <cxf:ws-security>
     <cxf:ws-config>
@@ -654,7 +654,7 @@ Because the newest version of Apache’s WSS4J has changed the way it processes 
 To configure the Mule Security Manager in CXF in Mule ESB 3.2, you add the security manager callback as a password callback in the WSS4J map configuration, and CXF injects WSS4J configuration into the WSS4J interceptor. However, in the latest version of WSS4J, the callback handlers no longer perform validation activities; instead, they merely set the password on the callback. In other words, the authentication and validation tasks have been stripped from the WSS4J processors and transferred to http://coheigea.blogspot.com/2011/04/wss4j-16-introducing-validators.html[token validators]. This WSS4J change precipitated the modified way in which Mule ESB 3.3 configures the Mule Security Manager to work with CXF.
 
 *Mule ESB 3.2 Mule Security Manager Integration*
-[source,xml,linenums]
+[source,
 ----
 <spring:bean name="wss4jInConfiguration"
     class="org.springframework.beans.factory.config.MapFactoryBean">
@@ -673,7 +673,7 @@ Mule ESB 3.3’s new method of configuring the Mule Security Manager may, theref
 
 *Mule ESB 3.3 Mule Security Manager Integration*
 
-[source,xml,linenums]
+[source,
 ----
 <cxf:jaxws-service>
     <cxf:ws-security>

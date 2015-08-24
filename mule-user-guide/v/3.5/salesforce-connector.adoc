@@ -19,14 +19,14 @@ To use a Salesforce Connector in your Mule application, be sure to include the n
 
 === Namespace
 
-[source, xml]
+[source, xml, linenums]
 ----
 xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
 ----
 
 Schema Location
 
-[source]
+[source, code, linenums]
 ----
 xsi:schemaLocation="
 ...
@@ -36,7 +36,7 @@ http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd"
 
 For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -70,7 +70,7 @@ After you download and install the connector, use the following steps to make th
 
 . Add the repository information to your project's pom.xml file: +
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <repositories>
     <repository>
@@ -90,7 +90,7 @@ After you download and install the connector, use the following steps to make th
 
 . Add the module as a dependency to your project for Release:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <dependency>
     <groupId>org.mule.modules</groupId>
@@ -101,7 +101,7 @@ After you download and install the connector, use the following steps to make th
 +
 Or for Latest:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <dependency>
     <groupId>org.mule.modules</groupId>
@@ -112,7 +112,7 @@ Or for Latest:
 
 . If you plan to use this module inside a Mule application, you need to add it to the packaging process. That way the final Zip file which contains your flows and Java code also contains this module and its dependencies. Add a special inclusion to the configuration of the Mule Maven plugin for this module as follows:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <plugin>
     <groupId>org.mule.tools</groupId>
@@ -173,7 +173,7 @@ image:/docs/download/attachments/122752073/SalesForceMain.png?version=1&modifica
 . The *Invoke apex method* operation is new in version 6.1.0 of the Salesforce connector and works with the Apex Class Names settings. DataSense gets the names of the Apex classes and their methods, which can be found in the drop-down for the *Apex Class Method Name* parameter. Choose a method and DataSense to get the input and output for that method. +
 *Input Reference* is an XMLStreamReader - Create from XML representing the input of the method selected (similar to the input of a SOAP operation):
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <soap:testSOAPMethod>
     <soap:name>John</soap:name>
@@ -213,7 +213,7 @@ To push a topic:
 . On the *Logs* tab, click *Execute*.
 . In the *Enter Apex Code* window, paste the following Apex code, and click *Execute*.
 
-[source]
+[source, code, linenums]
 ----
 PushTopic pushTopic = new PushTopic();
 pushTopic.Name = 'AccountUpdates';
@@ -224,7 +224,7 @@ insert pushTopic;
 
 You can either use the *create* operation or the exclusive **publish-topic** operation as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <sfdc:publish-topic name="AccountUpdates" query="SELECT Id FROM Account"/>
 ----
@@ -233,7 +233,7 @@ You can either use the *create* operation or the exclusive **publish-topic**�
 
 After you create a topic, you can start receiving events by subscribing to the topic. The `subscribe-topic` acts like an inbound endpoint and it can be used as such.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="accountUpdatesSubscription">
     <!-- INBOUND ENDPOINT -->
@@ -251,7 +251,7 @@ Every time our subscription to `AccountUpdates` receives an event it executes th
 
 The event that gets pushed down the flows contains information about the Salesforce data that has changed, how it changes, and when. Usually the raw JSON that the subscription receives looks something like this:
 
-[source]
+[source, code, linenums]
 ----
 "channel": "/topic/AccountUpdates",
   "data": {
@@ -298,7 +298,7 @@ Our connector simplifies the model heavily making it very transparent and really
 
 Creating objects in bulk is as easy as creating objects without the bulk portion of it. Let's do a quick recap as to how the regular create works:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <sfdc:create type="Account">
     <sfdc:objects>
@@ -318,7 +318,7 @@ That Mule config extract creates an SObject of type Account with these propertie
 
 The Bulk version of the create operation is named _create-bulk_ and shares the exact same signature.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <sfdc:create-bulk type="Account">
     <sfdc:objects>
@@ -471,7 +471,7 @@ image:/docs/download/attachments/122752073/upsert.png?version=1&modificationDate
 
 The following example invokes an Apex method. Salesforce has a custom object called **CustomOrder_c**, which has two custom fields *ProductName_c* and **ProductValue_c**. An Apex class is deployed in Salesforce using the *Deploy metadata* operation.
 
-[source]
+[source, code, linenums]
 ----
 global class CustomOrderUtils {
   webService static void createOrder(String productOrdered, String orderValue) {
@@ -515,7 +515,7 @@ image:/docs/download/attachments/122752073/SFDCuseCaseEx.png?version=1&modificat
 
 . Add as input to the DataMapper this JSON:
 +
-[source]
+[source, code, linenums]
 ----
 {
     "orderValue" : "50000",
@@ -537,7 +537,7 @@ image:/docs/download/attachments/122752073/SFDCflows.png?version=1&modificationD
 
 === Code Example
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
     xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"
