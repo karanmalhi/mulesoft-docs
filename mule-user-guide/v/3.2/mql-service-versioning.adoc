@@ -9,14 +9,14 @@ Below is a table of two different data formats, version 1.0 and version 2.0. In 
 |Version 1.0 |Version 2.0
 a|
 
-[source]
+[source, code, linenums]
 ----
 {  "name":"Joe Schmoe",  "email":"joe@schmoe.com",  "address":"10 Foo",  "state":"NY",  "city":"New York"}
 ----
 
  a|
 
-[source]
+[source, code, linenums]
 ----
 {  "name":"Joe Schmoe",  "email":"joe@schmoe.com",  "address" :  {    "address1" : "10 Foo",    "state":"NY",    "city":"New York"  }}
 ----
@@ -25,21 +25,21 @@ a|
 
 The conversion can be done with two simple MQL expressions. From version 1.0 to 2.0:
 
-[source]
+[source, code, linenums]
 ----
 from payload as u     select new(com.mulesoft.mql.example.User) {       name = u.name,      email = u.email,      address = new(com.mulesoft.mql.example.Address) {         address = u.address,         city = u.city,         state = u.state      }    }
 ----
 
 And from version 2.0 to 1.0:
 
-[source]
+[source, code, linenums]
 ----
 from payload as u     select new {       name = u.name,      email = u.email,      address = u.address.address,      city = u.address.city,      state = u.address.state    }
 ----
 
 Let's create our JAX-RS resource for version 2.0 of our service:
 
-[source]
+[source, code, linenums]
 ----
 import java.util.Collection;import javax.ws.rs.*;@Path("/")@Produces("application/json")@Consumes("application/json")public class UserResource {    // a Map of Users keyed by their email    private UserManager userManager = new UserManager();       @GET    public Collection<User> getUsers() {        return userManager.getUsers();    }        @POST    public User addUser(User user) {        userManager.addUser(user);        return user;    }}
 ----
@@ -76,21 +76,21 @@ Next, we'll configure and start the examples application:
 * Copy the examples/mql-examples-0.9.zip file from the MQL distribution to MULE_HOME/apps
 * Start Mule:
 
-[source]
+[source, code, linenums]
 ----
  $ cd mule-standalone-3.1.2/bin$ ./mule
 ----
 
 * Execute a query against version 1.0 service:
 
-[source]
+[source, code, linenums]
 ----
 http://localhost:9002/api/v1/users/[{"address":"123 Main St","email":"dan@mulesoft.com","name":"Dan Diephouse","state":"CA","city":"San Francisco"}]
 ----
 
 * Execute a query against version 2.0 service:
 
-[source]
+[source, code, linenums]
 ----
 $ curl  http://localhost:9002/api/v2/users/[{"address":{"address":"123 Main St","state":"CA","country":"USA","city":"San Francisco"},"name":"Dan Diephouse","email":"dan@mulesoft.com"}]
 ----

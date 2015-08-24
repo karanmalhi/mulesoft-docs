@@ -57,7 +57,7 @@ Older Linux distribution versions tend to contain incompatible Java runtimes tha
 
 Before installing Tcat Server on a 64-bit installation, you must have the 32-bit compatibility libraries and all of their dependencies installed. You may install them via yum like this for most versions of RHEL, CentOS, and Fedora:
 
-[source]
+[source, code, linenums]
 ----
 $ sudo -s
 # yum install compat-libstdc++-33.i586 gtk+.i586 gtk2.i586
@@ -66,7 +66,7 @@ $ sudo -s
 
 Or, like this for some newer versions of these distributions:
 
-[source]
+[source, code, linenums]
 ----
 $ sudo -s
 # yum install compat-libstdc++-33.i686 gtk+.i686 gtk2.i686
@@ -79,7 +79,7 @@ Then, you may proceed with installing Tcat Server via the installer executable.
 
 Before installing Tcat Server on a 64-bit installation of Ubuntu, you must have the 32-bit compatibility libraries and all of their dependencies installed. You may install them via apt-get like this:
 
-[source]
+[source, code, linenums]
 ----
 $ sudo -s
 # sudo apt-get install ia32-libs
@@ -92,7 +92,7 @@ Then, you may proceed with installing Tcat Server via the installer executable.
 
 Before installing Tcat Server on a 64-bit installation of OpenSUSE 11, you must have the 32-bit versions of GTK2 and all of its dependencies installed. You may install them using yast, like this:
 
-[source]
+[source, code, linenums]
 ----
 $ sudo -s
 # yast -i gtk2-32bit
@@ -122,21 +122,21 @@ This section describes how to install Tcat Server in a "headless" (text-only) mo
 
 On Windows, run this command to install Tcat Server in headless mode:
 
-[source]
+[source, code, linenums]
 ----
 C:\> start /wait tcat-installer-6.4.3-windows-64bit.exe -c
 ----
 
 On Linux and Solaris, run this command to install Tcat Server in headless mode:
 
-[source]
+[source, code, linenums]
 ----
 # sh tcat-installer-6.4.3-*.sh -c
 ----
 
 The installer's interaction in the shell  looks like this:
 
-[source]
+[source, code, linenums]
 ----
 # sh tcat-installer-6*.sh -c
 Unpacking JRE ...
@@ -161,21 +161,21 @@ Where should Tcat Server 6 be installed?
 
 With the `-c` argument, the installer  asks you to select your choices in text mode prompts. If you instead want to accept all defaults including installing the Administration Console and using all of the default port numbers, use the `-q` argument instead:
 
-[source]
+[source, code, linenums]
 ----
 # sh tcat-installer-6.4.3-*.sh -q
 ----
 
 Or, to feed responses to the installer, so that it doesn't need to ask anything:
 
-[source]
+[source, code, linenums]
 ----
 # sh tcat-installer-6.4.3-*.sh -q -varfile response.varfile
 ----
 
 The response.varfile is generated inside the `.install4j` directory when we first run the installer. The contents of the varfile is the same format as a simple Java properties file:
 
-[source]
+[source, code, linenums]
 ----
 # less /opt/TcatServer6/.install4j/response.varfile
  
@@ -223,7 +223,7 @@ By default, the Administration Console enables a user to edit files on any Tcat 
 
 This property is set in the `spring-services.xml` file in the `webapps/agent/WEB-INF/` directory: Below is the relevant snippet:
 
-[source]
+[source, code, linenums]
 ----
 <property name="writeExcludes">
   <list>
@@ -241,14 +241,14 @@ To disable this ability:
 . Uncomment last element shown in the above snippet, replacing
   this
 +
-[source]
+[source, code, linenums]
 ----
 <!-- <value>webapps/**</value> -->
 ----
 +
 With this:
 +
-[source]
+[source, code, linenums]
 ----
 <value>webapps/**</value>
 ----
@@ -262,28 +262,28 @@ You may wish to rename your Tcat Server's init script, either because you're ins
 
 First, make sure you shut down your Tcat/Tomcat instance whose service you want to rename:
 
-[source]
+[source, code, linenums]
 ----
 $ sudo service tcat6 stop
 ----
 
 Or, if you're currently using a stock Tomcat package init script:
 
-[source]
+[source, code, linenums]
 ----
 $ sudo service tomcat6 stop
 ----
 
 Switch to a root shell:
 
-[source]
+[source, code, linenums]
 ----
 $ sudo -s
 ----
 
 Set the new service name as an environment variable, along with the absolute path to the directory to the Tcat Server installation you're changing the service name for:
 
-[source]
+[source, code, linenums]
 ----
 # export NEW_SERVICE_NAME=t1
 # export TCAT_HOME=/opt/TcatServer6
@@ -291,7 +291,7 @@ Set the new service name as an environment variable, along with the absolute pat
 
 Next, rename the init script symlinks to the new service name (copy and paste these commands – don't type them in):
 
-[source]
+[source, code, linenums]
 ----
 # mv /etc/init.d/tcat6 /etc/init.d/$NEW_SERVICE_NAME 2>/dev/null
 # mv $TCAT_HOME/bin/tcat6 $TCAT_HOME/bin/$NEW_SERVICE_NAME 2>/dev/null
@@ -302,7 +302,7 @@ If any of the above "tcat6" files do not exist, it is because you installed Tcat
 
 And, in your Tcat/Tomcat instance's environment file, which is used for the JVM's startup environment, change the service name setting (copy and paste this command – don't type it in):
 
-[source]
+[source, code, linenums]
 ----
 # sed -i.bak -e "s/\-Dtcat\.service\=[Installation^ ]* /-Dtcat.service=$NEW_SERVICE_NAME /g" \
     $TCAT_HOME/conf/Catalina/localhost/tcat-env.conf
@@ -310,14 +310,14 @@ And, in your Tcat/Tomcat instance's environment file, which is used for the JVM'
 
 Exit from the root shell.
 
-[source]
+[source, code, linenums]
 ----
 # exit
 ----
 
 If you're changing the service to install two or more Tcat Server installations in a single operating system, you should also ensure that the port numbers in Tomcat's `<tomcatHome>/conf/server.xml` do not conflict, and also that the Tcat Server agent secure port number of each Tcat Server instance is unique (copy and paste these commands – don't type them in):
 
-[source]
+[source, code, linenums]
 ----
 # export NEW_AGENT_SECURE_PORT=51444
 # sed -i.bak -e "s/^securePort=.*/securePort=$NEW_AGENT_SECURE_PORT/g" \
@@ -330,7 +330,7 @@ The default agent secure port is 51443.
 
 You're now finished renaming the service. You can now start, stop, or restart Tcat Server using the service name you chose:
 
-[source]
+[source, code, linenums]
 ----
 $ sudo service t1 start
 ----
@@ -347,7 +347,7 @@ If you want to use the standard Tomcat `catalina` or `startup` commands to start
 
 To start Tcat Server, navigate to the `bin` directory and enter the following at the prompt:
 
-[source]
+[source, code, linenums]
 ----
 tcat6 start
 ----
@@ -356,21 +356,21 @@ Or prefix `tcat6` with the path to the `bin` directory to run the command from a
 
 To stop Tcat Server, simply close the command window, or use:
 
-[source]
+[source, code, linenums]
 ----
 tcat6 stop
 ----
 
 You can also restart the server:
 
-[source]
+[source, code, linenums]
 ----
 tcat6 restart
 ----
 
 and get the server's status and process ID:
 
-[source]
+[source, code, linenums]
 ----
 tcat6 status
 ----
@@ -386,14 +386,14 @@ To start the administration console, see below.
 * If you installed as a non-root user via the installer, you can use the graphical desktop applications menu to start, stop, or restart the server.
 * If you installed as root via the installer, you can use the init script:
 
-[source]
+[source, code, linenums]
 ----
 service tcat6 start
 ----
 
 * If the service command isn't available, use the following command instead:
 
-[source]
+[source, code, linenums]
 ----
 /etc/init.d/tcat6 start
 ----
@@ -406,56 +406,56 @@ By default, Tcat Server  automatically starts after installation on Solaris 10 a
 
 Using SMF, you may query the service to inspect its current state like this:
 
-[source]
+[source, code, linenums]
 ----
 sudo svcs -l tcat6
 ----
 
 Or, if you're not using SMF, you may query Tcat's status like this:
 
-[source]
+[source, code, linenums]
 ----
 /opt/TcatServer6/bin/tcat6 status
 ----
 
 To stop Tcat Server, disable its SMF service:
 
-[source]
+[source, code, linenums]
 ----
 sudo svcadm disable tcat6
 ----
 
 Or, if you're not using SMF, you may stop Tcat Server like this:
 
-[source]
+[source, code, linenums]
 ----
 /opt/TcatServer6/bin/tcat6 stop
 ----
 
 To start Tcat Server from a disabled state, run:
 
-[source]
+[source, code, linenums]
 ----
 sudo svcadm enable tcat6
 ----
 
 Or, if you're not using SMF, you may start Tcat Server like this:
 
-[source]
+[source, code, linenums]
 ----
 /opt/TcatServer6/bin/tcat6 start
 ----
 
 You can also restart the server via SMF like this:
 
-[source]
+[source, code, linenums]
 ----
 sudo svcadm restart tcat6
 ----
 
 Or, if you're not using SMF, you may restart Tcat Server like this:
 
-[source]
+[source, code, linenums]
 ----
 /opt/TcatServer6/bin/tcat6 restart
 ----
@@ -466,7 +466,7 @@ Or, if you're not using SMF, you may restart Tcat Server like this:
 * Installing Tcat Server inside a Solaris zone is also supported. The installer is unaware it is being installed in a non-global zone and the installation works the same as if you are installing it in the global zone. If you have root privileges in a zone, but the zone does not allow you to use SMF, then the installer may be unable to install the SMF service, but the installation will not fail – it succeeds and completes the installation without the SMF service. You can operate Tcat Server without SMF on the command line via the `tcat6` init script as described in the <<Starting and Stopping on Solaris 10 and 11>> section above. By default, Solaris 10 and 11 allow SMF to be used as root inside non-global zones. If you do not have root privileges in your non-global zone, installing Tcat inside this zone is the same as installing Tcat in the global zone without root privileges.
 * If you installed as root via the installer, you can invoke the init script for start|stop|restart|status:
 
-[source]
+[source, code, linenums]
 ----
 /etc/init.d/tcat6 status
 ----
@@ -479,14 +479,14 @@ Here are the steps for installing Tcat Server on a Linux distribution from the z
 . cd /opt
 . unzip TcatServer-6.4.3.zip
 +
-[source]
+[source, code, linenums]
 ----
 # export TCAT_HOME=/opt/TcatServer6
 ----
 +
 . If you wish to install Tcat Server into a different file system location, the recommended way to do that is using the automated installer. Try installing it into /opt/TcatServer6 first.
 +
-[source]
+[source, code, linenums]
 ----
 # groupadd tomcat
 # useradd -c "Tcat JVM user" -g tomcat -s /bin/bash -r -M -d $TCAT_HOME/temp tomcat
@@ -494,7 +494,7 @@ Here are the steps for installing Tcat Server on a Linux distribution from the z
 +
 If the 'tomcat' user already exists, do this instead:
 +
-[source]
+[source, code, linenums]
 ----
 # finger tomcat > ~/tomcat-user-settings.txt
 # usermod -s /bin/bash -d $TCAT_HOME/temp tomcat
@@ -502,7 +502,7 @@ If the 'tomcat' user already exists, do this instead:
 +
 . Either way, continue:
 +
-[source]
+[source, code, linenums]
 ----
 # ln -s $TCAT_HOME/conf/Catalina/localhost/tcat6-linux.sh /etc/init.d/tcat6
 # ln -s $TCAT_HOME/conf/Catalina/localhost/tcat6-linux.sh $TCAT_HOME/bin/tcat6
@@ -515,21 +515,21 @@ If the 'tomcat' user already exists, do this instead:
 +
 . On Red Hat, CentOS, and Fedora Linux distributions, use the chkconfig command to make Tcat start upon a reboot:
 +
-[source]
+[source, code, linenums]
 ----
 # chkconfig tcat6 on
 ----
 +
 On other Linux distributions, such as Debian and Ubuntu, you can probably do the same thing this way:
 +
-[source]
+[source, code, linenums]
 ----
 # update-rc.d tcat6 defaults
 ----
 +
 . Edit your Tcat Server's environment file to set the value of JAVA_HOME to point to your Java JDK:
 +
-[source]
+[source, code, linenums]
 ----
 $TCAT_HOME/conf/Catalina/localhost/tcat-env.conf
 ----
@@ -538,14 +538,14 @@ If you do not have a JDK, but instead a JRE, set the value of JRE_HOME instead o
 +
 . Start Tcat Server, like this:
 +
-[source]
+[source, code, linenums]
 ----
 # service tcat6 start
 ----
 +
 Or:
 +
-[source]
+[source, code, linenums]
 ----
 # /etc/init.d/tcat6 start
 ----
@@ -557,14 +557,14 @@ To start the administration console, see
 
 Navigate to the Tomcat `bin` directory and enter the following command at the terminal prompt:
 
-[source]
+[source, code, linenums]
 ----
 startup.sh
 ----
 
 To stop a Tcat Server instance, enter the following command:
 
-[source]
+[source, code, linenums]
 ----
 shutdown.sh
 ----
@@ -587,7 +587,7 @@ After installing Tcat Server, you can modify JAVA_OPTS using the Tcat Server con
 
 You can now specify custom restart strategies. These control how multiple servers are restarted. For instance, here is a script which specifies that there should be 30 seconds between restarting each server:
 
-[source]
+[source, code, linenums]
 ----
 import com.mulesoft.common.server.restart.StaggeredRestartStrategy;
  
@@ -598,7 +598,7 @@ serverManager.setRestartStrategy(new StaggeredRestartStrategy(30000))
 
 Users can also specify custom restart strategies. For instance:
 
-[source]
+[source, code, linenums]
 ----
 import com.mulesoft.common.server.restart.RestartStrategy;
  

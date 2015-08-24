@@ -34,14 +34,14 @@ Your Salesforce securityToken can be obtained through the process described belo
 
 Next, let's create a query which joins together data from Salesforce with our local UserManager. For the sake of this example, assume that you've got the name and email locally and you're trying to join information from Salesforce about the user's phone number and company. This query would query just the local UserManager:
 
-[source]
+[source, code, linenums]
 ----
 from userManager.users as user  select new {    name = user.name,    email = user.email}
 ----
 
 The link:/documentation-3.2/display/32X/SalesForce[SalesForce] connector has a [MULE3USER:query method|] which we can use to pass in a Salesforce select query. Since we declared a config object with the name"salesforce" above, we can refer to it inside MQL as "salesforce". We can then simply call query() as part of our join statement like this:
 
-[source]
+[source, code, linenums]
 ----
 join salesforce.query('SELECT Id, Company, MobilePhone FROM Lead WHERE Email = \'' + user.email + '\'', 100) as sfuser
 ----
@@ -55,7 +55,7 @@ And finally, we can put this all together to create a RESTful service which list
 
 Now, if you run a query against this URL, you will receive a JSON response back with the joined data.
 
-[source]
+[source, code, linenums]
 ----
 $ curl http://localhost:9002/users[{"email":"joe@schmoe.com","company":"Schmoe Co","name":"Joe Schmoe","mobile":"(555)555-5555"}]
 ----
@@ -70,14 +70,14 @@ Next, we'll configure and start the examples application:
 * Retreive your Salesforce security token. If you don't have a Salesforce security token, log in to Salesforce, click on your name on the top right, and click Setup. Click the arrow next to Personal Information then click "Reset Security Token." Finally, click the "Rest Security Token" button and retrieve the token from your inbox.
 * Start Mule with your OAuth tokens:
 
-[source]
+[source, code, linenums]
 ----
  $ cd mule-standalone-3.1.2/bin$ ./mule -M-Dsalesforce.username=YOUR_SALESFORCE_USERNAME -M-Dsalesforce.password=YOUR_SALESFORCE_PASSWORD \-M-Dsalesforce.securityToken=YOUR_SALESFORCE_SECURITY_TOKEN
 ----
 
 * Run the query:
 
-[source]
+[source, code, linenums]
 ----
  $ curl http://localhost:9002/users[{"email":"joe@schmoe.com","company":"Schmoe Co","name":"Joe Schmoe","mobile":"(555)555-5555"}]
 ----
