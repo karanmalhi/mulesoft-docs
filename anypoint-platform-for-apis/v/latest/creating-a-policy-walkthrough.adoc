@@ -34,7 +34,7 @@ The Policy Template is a YAML file that defines the high level properties of the
 
 Configure the high-level properties:
 
-[source,
+[source,yaml,linenums]
 ----
 ---
 id: query-param-filter
@@ -83,7 +83,7 @@ image:policy+yaml+mapping.png[policy+yaml+mapping]
 
 In this example policy, we add two configurable fields: the name of the query parameter that must be evaluated, and the regular expression that you can use to filter the parameter with. In the Policy Template file, configurable fields are listed under a *configuration* element. Here's how your full YAML looks like with those configuration parameters included:
 
-[source,
+[source,yaml,linenums]
 ----
 ---
 id: query-param-filter
@@ -102,7 +102,7 @@ configuration:
 
 Each configurable field can have a number of properties to describe what each field looks like with its parameters:
 
-[source,
+[source,yaml,linenums]
 ----
 configuration:
   - propertyName: regexFilter
@@ -197,7 +197,7 @@ The following basic structure is a good starting point for building your policy,
 ------
 [tab,title="API Gateway 2.0 and never"]
 ....
-[source,
+[source,xml,linenums]
 ----
 <policy xmlns="http://www.mulesoft.org/schema/mule/policy"
         id="{{policyId}}"
@@ -229,7 +229,7 @@ In API Gateway version 2.0 and newer, the *<policy>* element's *id* and *policyN
 ....
 [tab,title="API Gateway 1.3 and older"]
 ....
-[source,
+[source,xml,linenums]
 ----
 <policy xmlns="http://www.mulesoft.org/schema/mule/policy"
         xmlns:mule="http://www.mulesoft.org/schema/mule/core"
@@ -266,7 +266,7 @@ In API Gateway version 2.0 and newer, the *<policy>* element's *id* and *policyN
 
 When you want to apply your policy to a single API at a time, which is the case for this example, set a  `pointcut` statement to the following expression:
 
-[source,
+[source,xml,linenums]
 ----
 <pointcut>
   <api-platform-gw:api-pointcut apiName="{{ apiName }}" 
@@ -285,7 +285,7 @@ This policy only needs to have a `before` section, the `after` section is not n
 
 All we need to do in this case is filter the incoming request, so add a link:/docs/display/current/Filters+Configuration+Reference[message filter], which is a standard Mule element.
 
-[source,
+[source,xml,linenums]
 ----
 <before>
     <mule:message-filter xmlns:mule="http://www.mulesoft.org/schema/mule/core" onUnaccepted="policyViolation">
@@ -314,7 +314,7 @@ The filter element in the `before` section references an element named `Express
 * `{{regexFilter`}} is used as the filtering condition
 * `{{queryParamm`}} is used to construct expression that references the desired query parameter
 
-[source,
+[source,xml,linenums]
 ----
 <mule:expression-filter xmlns:mule="http://www.mulesoft.org/schema/mule/core" 
 expression="#[regex('{{regexFilter}}',message.inboundProperties['http.query.params']['{{queryParam}}'] )]" name="Expression"/>
@@ -328,7 +328,7 @@ In a custom policy, besides the `<before></before>` and `<after></after>` sectio
 
 In this case, this processor-chain executes only if the filter rejects the request, that is, if the query parameter you select doesn't match the provided regular expression. The opening tag of the filter element in the `before` section references an element named `policyViolation` in its `onUnaccepted` property. Notice that this `processor-chain` has a `name` property that matches this value. This is the element that was referenecd by that property.
 
-[source,
+[source,xml,linenums]
 ----
 <mule:processor-chain xmlns:mule="http://www.mulesoft.org/schema/mule/core"
   name="policyViolation">
@@ -354,7 +354,7 @@ Here you can see the final versions of both the *Policy Template* and the *Polic
 
 Below is the Policy Template (YAML file):
 
-[source,
+[source,yaml,linenums]
 ----
 ---
 id: query-param-filter
@@ -396,7 +396,7 @@ Below is the Policy Configuration (XML file):
 ------
 [tab,title="API Gateway 2.0 and newer"]
 ....
-[source,
+[source,xml,linenums]
 ----
 <policy xmlns="http://www.mulesoft.org/schema/mule/policy"
         id="{{policyId}}"
@@ -438,7 +438,7 @@ In API Gateway version 2.0 and newer, the *<policy>* element's *id* and *policyN
 ....
 [tab,title="API Gateway 1.3 and older"]
 ....
-[source,
+[source,xml,linenums]
 ----
 <policy xmlns="http://www.mulesoft.org/schema/mule/policy" xmlns:mule="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:api-platform-gw="http://www.mulesoft.org/schema/mule/api-platform-gw" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/policy http://www.mulesoft.org/schema/mule/policy/current/mule-policy.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/api-platform-gw http://www.mulesoft.org/schema/mule/api-platform-gw/current/mule-api-platform-gw.xsd">
  
