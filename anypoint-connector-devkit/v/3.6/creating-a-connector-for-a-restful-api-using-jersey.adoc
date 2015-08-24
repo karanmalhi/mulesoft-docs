@@ -43,7 +43,7 @@ The connector exposes the API operation `GET https://api.dropbox.com/1/account
 
 A typical response to this method looks like this:
 
-[source, java]
+[source, java, linenums]
 ----
 {
     "referral_link": "https://www.dropbox.com/referrals/r1a2n3d4m5s6t7",
@@ -90,7 +90,7 @@ Once you have created a connector project as described in link:/documentation/d
 The following `<dependency>` elements add Jersey, Jackson, and Mule JSON support to your project:
 
 .POM Dependencies for Jersey, Jackson, and JSON
-[source,xml]
+[source,xml, linenums]
 ----
 <!-- Add this to use Jersey Client -->
   <dependency>
@@ -110,7 +110,7 @@ The following `<dependency>` elements add Jersey, Jackson, and Mule JSON support
 
 Add these to the `<dependencies>` element in your POM, along with any other dependencies required by your project. For example, the Dropbox sample connector adds the following additional dependency for OAuth support:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <!-- Add this to use OAuth support in DevKit-->
   <dependency>
@@ -123,7 +123,7 @@ Add these to the `<dependencies>` element in your POM, along with any other depe
 The complete POM for the Dropbox sample connector project as generated from the Devkit 3.6 connector Maven archetype is:
 
 .Dropbox RESTful Connector pom.xml
-[source,xml]
+[source,xml, linenums]
 ----
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -226,7 +226,7 @@ The client class builds on functionality provided by the Jersey Client. See the 
 
 To pick up Jackson and Jersey client functionality, the client class  requires at least the following imports:
 
-[source,java]
+[source,java, linenums]
 ----
 import javax.ws.rs.core.MediaType;
 import com.sun.jersey.api.client.*;
@@ -237,7 +237,7 @@ import com.sun.jersey.api.json.JSONConfiguration;
 
 Additional imports may be needed for Jersey and Jackson, depending on their use in your particular client. For example, the sample client uses the following imports for OAuth functionality in Jersey:
 
-[source,java]
+[source,java, linenums]
 ----
 import com.sun.jersey.oauth.client.OAuthClientFilter;
 import com.sun.jersey.oauth.signature.OAuthParameters;
@@ -252,7 +252,7 @@ Expect to add more imports as you add operations, for example if you need to pic
 
 The easiest way to understand how to build your client class constructor is to look at the constructor for the sample connector's client class.
 
-[source,java]
+[source,java, linenums]
 ----
 public class DropboxClient {
   private Client client; /* a Jersey client instance */
@@ -308,7 +308,7 @@ Note that while Jackson is the default provider of serialization/deserialization
 The complete code for our sample connector, before adding operations and references to entities used, is:
 
 .DropboxRESTClient.java Before Adding Operations
-[source,java]
+[source,java, linenums]
 ----
 package org.mule.examples.restjerseyconnector.client;
 import javax.ws.rs.core.MediaType;
@@ -380,7 +380,7 @@ There may also be properties that are not `@Configurable` but that are used int
 
 Create properties as needed for all of these:
 
-[source,java]
+[source,java, linenums]
 ----
 /**
  * Dropbox API Url
@@ -421,7 +421,7 @@ private String accessTokenSecret;
 
 The `@Connector` class in this instance does NOT have a constructor. Most of its instance properties are configuration properties. Instead, a `@Start` method leverages the Mule life cycle to create an instance of the client class when first needed. It is then saved in an instance variable on the `@Connector` class:
 
-[source,java]
+[source,java, linenums]
 ----
 private DropboxClient client;
 
@@ -532,7 +532,7 @@ Mapping the class and its members to a JSON document requires that you make thes
 
 * Annotate the entity class to configure JSON serialization:
 +
-[source,java]
+[source,java, linenums]
 ----
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 @Generated("com.googlecode.jsonschema2pojo")
@@ -543,7 +543,7 @@ public class AccountInfo {
 +
 * Add the `@JsonProperty` annotation to the entity class instance properties (and their getters and setters):
 +
-[source,java]
+[source,java, linenums]
 ----
 @JsonProperty("referral_link")
     private String referralLink;
@@ -573,7 +573,7 @@ In the sample connector, the DropBox API uses OAuth 1.0 to access protected reso
 
 Jersey provides a filter chaining mechanism for modifying requests, which can be used to add the header. Because this step is needed for any operation protected by OAuth, the sample uses the convenient method `addSignHeader`:
 
-[source,java]
+[source,java, linenums]
 ----
 /**
  * Adds the required OAuthClientFilter to insert the required header
@@ -609,7 +609,7 @@ Making any request requires:
 
 As with authentication, use a helper method to encapsulate all these repeated steps. In the sample client class, method `execute()` implements all this logic, as shown below.
 
-[source,java]
+[source,java, linenums]
 ----
 /**
  * Executes the Dropbox request
@@ -651,7 +651,7 @@ Use the `@InvalidateConnectionOn` annotation to handle the reconnection. If the 
 
 With those helper classes in place, the actual client method to make a request of a resource is quite short. For the example, the `getAccountInfo()` method makes a GET request of the `/account/info` resource:
 
-[source,java]
+[source,java, linenums]
 ----
 /**
  * Returns the Account Information of the user
@@ -680,7 +680,7 @@ To expose an operation from the client class on the `@Connector` class, add a `
 
 For our `getAccountInfo` operation, we add the following imports in the `@Connector` class:
 
-[source,java]
+[source,java, linenums]
 ----
 import org.mule.examples.restjerseyconnector.entities.AccountInfo;
 import org.mule.examples.restjerseyconnector.exceptions.RestJerseyConnectorException;
@@ -689,7 +689,7 @@ import org.mule.examples.restjerseyconnector.exceptions.RestJerseyConnectorToken
 
 The `@Processor` method that exposes the `getAccountInfo` operation is:
 
-[source,java]
+[source,java, linenums]
 ----
 /**
  * Returns the Account Information of the user
@@ -713,7 +713,7 @@ DevKit enforces Javadoc documentation of the connector's operations, including s
 
 In the `@Connector` class source code, the following comment links the method to its required XML sample:
 
-[source,java]
+[source,java, linenums]
 ----
  * {@sample.xml ../../../doc/rest-jersey-connector.xml.sample rest-jersey:get-account-info}
 ----
@@ -722,7 +722,7 @@ Notice the sample code snippets file in the `doc` folder inside the DevKit gene
 
 DevKit created this file, but we need to populate it with example Mule XML configurations for each operation. For this example, add the following to the file to document the operation:
 
-[source,java]
+[source,java, linenums]
 ----
 <!-- BEGIN_INCLUDE(rest-jersey:get-account-info) -->
     <rest-jersey:get-account-info />

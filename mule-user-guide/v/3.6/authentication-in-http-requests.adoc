@@ -31,7 +31,7 @@ image:basic+auth.png[basic+auth]
 
 Just add a child element to the global element, in it add the user and password attributes.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP Request Configuration">
         <http:basic-authentication username="myuser" password="mypass"/>
@@ -66,7 +66,7 @@ In this example, a GET request is sent to http://www.example.com/test[www.exampl
 ....
 Digest authentication is configured in the same way as Basic Authentication, just provide username and password in the attributes of the child element. The only difference is that the child element is differently named: "digest-authentication".
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP Request Configuration">
         <http:digest-authentication username="myuser" password="mypass"/>
@@ -169,7 +169,7 @@ Also, at the same level, add a ` oauth2:token-request ` child element with the 
 
 * The  *localauthorizationUrl* attribute is used to define a URL in your application that listens for incoming requests and redirects them to the Authorization URL of the OAS. There, the user can login, and then an access token will be sent to the application. After you start your mule application, you can hit this URL and it will allow you to login to the application.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="api.box.com" port="443" basePath="/2.0" doc:name="HTTP Request Configuration">
         <oauth2:authorization-code-grant-type clientId="your_client_id" clientSecret="your_client_secret" redirectionUrl="http://localhost:8082/redirectUrl" >
@@ -205,7 +205,7 @@ There are OAuth implementations that require or allow extra query parameters to 
 ....
 This example is very much like the previous, but it includes two `Oauth2:custom-parameter` child elements that define parameters that are specific to this API.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="api.box.com" port="443" basePath="/2.0" doc:name="HTTP Request Configuration" >
         <oauth2:authorization-code-grant-type clientId="your_client_id" clientSecret="your_client_secret" redirectionUrl="http://localhost:8082/redirectUrl">
@@ -262,7 +262,7 @@ When this is not the case, then you must first configure the connector so that i
 ....
 This example is very much like the previous, but it includes two `Oauth2:custom-parameter` child elements that define parameters that are specific to this API.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="api.box.com" port="443" basePath="/2.0" doc:name="HTTP Request Configuration">
         <oauth2:authorization-code-grant-type clientId="your_client_id" clientSecret="your_client_secret" redirectionUrl="http://localhost:8082/redirectUrl">
@@ -307,7 +307,7 @@ It’s possible to customize when Mule will perform one of these requests to obt
 ....
 To set when to perform a call to obtain a new access token, set a MEL expression for the attribute `refreshTokenwhen` in the `oauth2:token-request` element.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="api.box.com" port="443" basePath="/2.0" doc:name="HTTP Request Configuration">
         <oauth2:authorization-code-grant-type clientId="your_client_id" clientSecret="your_client_secret" redirectionUrl="http://localhost:8082/redirectUrl">
@@ -360,7 +360,7 @@ So if you hit http://localhost:8082/authorization?userId=john[http://localhost:8
 ....
 Set `resourceOwnerId` to `#[flowVars.'userId']` and `localAuthorizationUrlResourceOwnerId` to  `#[message.inboundProperties.'http.query.params'.userId]`
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="api.box.com" port="443" basePath="/2.0" doc:name="HTTP Request Configuration" tlsContext-ref="TLS_Context">
         <oauth2:authorization-code-grant-type clientId="your_client_id" clientSecret="your_client_secret" redirectionUrl="http://localhost:8082/redirectUrl" localAuthorizationUrlResourceOwnerId="#[message.inboundProperties.'http.query.params'.userId]"
@@ -373,7 +373,7 @@ resourceOwnerId="#[flowVars.'userId']">
 
 The attribute `resourceOwnerId` must be set with a MEL expression that allows each ` http:request ` execution to retrieve the RO identifier from the Mule Message. So on this example, whenever the ` http:request ` is executed, there must be a flow variable named ‘userId’ with the RO identifier to use.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="accessROFolders">
         <set-variable variableName="userId" value="#['Peter']" doc:name="Variable"/>
@@ -430,7 +430,7 @@ Keep in mind that the TLS settings in the Authentication tab are for encoding yo
 ....
 Set   `tlsContext-ref` to reference a TLS context element, provide your trust store and key store credentials in this element.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:request-config name="HTTP_Request_Configuration_HTTPS" host="api.box.com" port="443" basePath="/2.0" doc:name="HTTP Request Configuration" tlsContext-ref="TLS_Context" protocol="HTTPS">
         <oauth2:authorization-code-grant-type clientId="your_client_id" clientSecret="your_client_secret" redirectionUrl="http://localhost:8082/redirectUrl" tlsContext-ref="TLS_Context">
@@ -502,7 +502,7 @@ You must include the following information:
 
 * The *tokenUrl* that the OAS exposes
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:request-config name="HTTP_Request_Configuration" host="some.api.com" port="80" basePath="/api/1.0" doc:name="HTTP Request Configuration">
         <oauth2:client-credentials-grant-type clientId="your_client_id" clientSecret="your_client_secret">
@@ -543,7 +543,7 @@ It’s possible to access authorization information for client credentials and a
 ....
 [tab,title="XML Editor"]
 ....
-[source, xml]
+[source, xml, linenums]
 ----
 <oauth2:token-manager-config name="Token_Manager_Config"  doc:name="Token Manager Config"/>
  
@@ -625,7 +625,7 @@ When using a Token Manager, it’s easy to block a particular RO.
 ....
 [tab,title="XML Editor"]
 ....
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="invalidateOauthContext">
     <oauth2:invalidate-oauth-context config-ref="tokenManagerConfig"/>
@@ -655,7 +655,7 @@ When using multiple RO with a single Token Manager, if you want to only clear th
 ....
 [tab,title="XML Editor"]
 ....
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="invalidateOauthContextWithResourceOwnerId">
     <oauth2:invalidate-oauth-context config-ref="tokenManagerConfig" resourceOwnerId="#[flowVars.'resourceOwnerId']"/>

@@ -20,7 +20,7 @@ Sometimes you may wish to connect to an external entity that supports both conne
 
 Here is an example simplified from the Mule connector to salesforce.com that uses connection management:
 
-[source, java]
+[source, java, linenums]
 ----
 @Connector(name = "sfdc", schemaVersion = "4.0", friendlyName = "Salesforce")
 public class SalesforceModule {
@@ -41,7 +41,7 @@ public class SalesforceModule {
 
 Here is a similarly simplified example from the Mule connector to salesforce.com that uses OAuth:
 
-[source, java]
+[source, java, linenums]
 ----
 @Connector(name = "sfdc", schemaVersion = "4.0", friendlyName = "Salesforce")
 @OAuth2(authorizationUrl = "https://login.salesforce.com/services/oauth2/authorize",
@@ -107,7 +107,7 @@ public class SalesforceModule extends BaseSalesforceModule {
 
 Here is how you can use both in the same Mule flow:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <sfdc:config name="Salesforce" username="${sfdc.user}" password="${sfdc.pass}" securityToken="${sfdc.token}"/>
  
@@ -134,7 +134,7 @@ When specifying the authorization process for a Cloud Connector, you must provid
 
 Here is how to specify the URL in the original annotation:
 
-[source, java]
+[source, java, linenums]
 ----
 @OAuth2(authorizationUrl = "https://login.salesforce.com/services/oauth2/authorize",
         accessTokenUrl = "https://login.salesforce.com/services/oauth2/token")
@@ -143,7 +143,7 @@ public class SalesforceOAuthConnector extends BaseSalesforceModule {
 
 Here is how to specify a new URL when creating the config element:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <sfdc:config-with-oauth authorizationUrl="newUrl"/>
 ----
@@ -152,7 +152,7 @@ This takes precedence over the value specified in the annotation.
 
 Here is how to specify a new URL in the authorize message processor:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="authorizeFlow">
 <http:inbound-endpoint ... />
@@ -168,7 +168,7 @@ The OAuth specification enables the caller to include a parameter called *state*
 
 The DevKit automatically makes *state* an attribute of the authorize message processor. To pass this parameter, set its value as in the following example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="authorize">
     <http:inbound-endpoint ... >
@@ -180,7 +180,7 @@ The DevKit automatically makes *state* an attribute of the authorize message pro
 
 Sometimes authorization requires passing additional parameters with the authorization URL. Mule provides the `authorizationParameters` parameter for the @OAuth or @OAuth2 annotation. This parameter takes a list of authorization parameter names and types, specified as in the following example from the salesforce.com connector:
 
-[source, java]
+[source, java, linenums]
 ----
 @Connector(name = "sfdc",
         schemaVersion = "5.0",
@@ -201,7 +201,7 @@ You can use any data type supported by the DevKit, except collections and comple
 
 If the external entity passes parameters back as part of the authorization process, the DevKit provides a convenient way to access them. Use the `@OAuthParameter` annotation on each member of the Java class that you wish to use to hold those parameters, as in the following example:
 
-[source, java]
+[source, java, linenums]
 ----
 @OAuthParameter(regex = "Mule Expression to obtain parameter 1")
  private String parameter1;
@@ -220,7 +220,7 @@ The `OAuthInvalidateAccessTokenOn` annotation takes a parameter specifying the e
 
 The annotation of the access routine is as in the following example:
 
-[source, java]
+[source, java, linenums]
 ----
 @Processor
 @OAuthInvalidateAccessTokenOn(exception = RuntimeException.class)
@@ -230,7 +230,7 @@ public void processor() { ... }
 
 Specify the regular expression for extracting the updated token as in the following example:
 
-[source, java]
+[source, java, linenums]
 ----
 @Connector(name = "oauth")
 @OAuth2(refreshTokenRegex = "myRegex")
@@ -243,7 +243,7 @@ OAuth DevKit-generated cloud connectors have hooks for saving and restoring acce
 
 Use the `@OAuthAccessTokenIdentifier` annotation to mark a method inside a cloud connector as the one to be called by the DevKit to identify the user after authorization is complete.
 
-[source, java]
+[source, java, linenums]
 ----
 @OAuthAccessTokenIdentifier
 public String getUserId() {
@@ -253,7 +253,7 @@ return api.getUserId(myAccessToken);
 
 Mule stores the ID of the user access token as a flow variable called `OAuthAccessTokenId`. Processors in the flow can use it as an argument in calls to protected resources. The following example demonstrates how to access the ID.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="authorize">
 <http:inbound-endpoint ... />
@@ -266,7 +266,7 @@ The flow must save this information in, for example, a cookie or a session varia
 
 Mule DevKit creates an attribute called `accessTokenId` in each generated message processor that is protected by OAuth. This holds the idenfier of the access token, which is used to make the call. Note that the access token id is _not_ the access token itself and does not represent _only_ the access token. The following example illustrates how to set the attribute.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="xxx">
 <connector:my-operation accessTokenId="#[flowVars['OAuthAccessTokenId']]"/>
@@ -287,7 +287,7 @@ DevKit stores the information in the default user object store.
 
 In the configuration element of any OAuth-enabled cloud connector capable of automatically managing access tokens, DevKit creates an element called `oauth-store-config` with a single attribute called `objectStore-ref`. The value of the attribute is a reference to an object store, as in the following example.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <connector:config ... >
 <connector:oauth-store-config objectStore-ref="myObjectStore"/>
@@ -298,7 +298,7 @@ In the configuration element of any OAuth-enabled cloud connector capable of aut
 
 After successful authentication using OAuth, the connector may need to perform setup tasks. Use the `@OAuthPostAuthorization` annotation to mark the method that performs these tasks, as in the following example:
 
-[source, java]
+[source, java, linenums]
 ----
 @OAuthPostAuthorization
     public void postAuthorize() throws ConnectionException, MalformedURLException, AsyncApiException { ... }

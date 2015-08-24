@@ -20,7 +20,7 @@ The expression transformer executes one or more expressions on the current messa
 
 For example, imagine you have a service component with a message signature that accepts three arguments:
 
-[source, java]
+[source, java, linenums]
 ----
 public class ShippingService
 {
@@ -33,7 +33,7 @@ public class ShippingService
 
 And the message being passed to you component looks like this:
 
-[source, java]
+[source, java, linenums]
 ----
 public interface ShippingRequestMessage
 {
@@ -45,7 +45,7 @@ public interface ShippingRequestMessage
 
 The `<expression-transformer>` can be used to extract the fields from the `ShippingRequestMessage` to invoke the `ShippingService`. Note that we can only get two of the arguments from the `ShippingRequestMessage`: `Customer` and `Item[]`. The supporting documentation, which could be something like a Microsoft Word or Excel document, is an attachment to the `ShippingRequestMessage`. Attachments can be associated with any message within Mule.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-transformer>
     <return-argument evaluator="bean" expression="customer"/>
@@ -60,7 +60,7 @@ Here we execute three separate expressions to obtain the three arguments require
 
 The `<message-properties-transformer>` allows you to add, remove, or rename properties dynamically or statically on the current message. For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <message-properties-transformer>
     <add-message-property key="GUID" value="#[string:#[xpath:/msg/header/ID]-#[xpath:/msg/body/@ref]]"/>
@@ -73,7 +73,7 @@ The above expressions extract the `<ID>` element value and the `ref` attribute o
 
 The XSLT transformer processes the XML payload of the message through XSLT. Using expressions, you can inject information about the current message into the XSLT as a parameter. For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mulexml:xslt-transformer name="xslt" xslFile="./conf/xsl/cd-listing.xsl">
     <mulexml:context-property key="title" value="#[header:ListTitle]"/>
@@ -83,7 +83,7 @@ The XSLT transformer processes the XML payload of the message through XSLT. Usin
 
 When executed, the headers `ListTitle` and `ListRating` from the current message are added to the XSLT context as parameters called `title` and `rating`, respectively. You can reference these parameters inside the XSLT using the `<xsl:param>` element:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <xsl:param name="title"/>
 <xsl:param name="rating"/>
@@ -93,14 +93,14 @@ When executed, the headers `ListTitle` and `ListRating` from the current message
 
 Expression filters can be used in content-based routing to assert statements on the current message and route the message accordingly. Expression filters work in the same way as other types of Mule filters and have the same expression attributes as listed above. The expression on the filter must evaluate to true or false. For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-filter evaluator="header" expression="my-header!=null"/>
 ----
 
 As usual, you can use AND, OR, and NOT filters to combine expressions.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <and-filter>
     <expression-filter evaluator="header" expression="origin-country=USA"/>
@@ -120,7 +120,7 @@ Expression routers use expressions to determine where to route a message. Usuall
 
 The `<expression-recipient-list>` router will evaluate an expression on the current message to obtain a list of one or more recipients to send the current message. Following is an example of an XML message:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <message>
     <header>
@@ -137,7 +137,7 @@ The `<expression-recipient-list>` router will evaluate an expression on the curr
 
 The following router configuration extracts recipients from this message. This type of routing is commonly referred to as content-based routing.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <outbound>
     <expression-recipient-list-router evaluator="xpath" expression="/message/header/routing-slip/recipient" />
@@ -166,7 +166,7 @@ fruitBowl.addFruit(new Banana());
 
 Now we have a `FruitBowl` containing an apple, an orange, and two bananas. When Mule receives this object, we want to route the fruit to different locations: the AppleService, BananaService, and OrangeService.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <service name="Distributor">
     <inbound>

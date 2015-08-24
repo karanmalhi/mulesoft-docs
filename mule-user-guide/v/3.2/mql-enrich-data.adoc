@@ -4,28 +4,28 @@ It's very common that you have data stored in multiple locations and you need to
 
 In our example, we have a local database of User objects where we have the name and email. In salesforce we have the phone number and company name. We're going to be joining the data based on the user email. Our user object looks like this:
 
-[source, java]
+[source, java, linenums]
 ----
 public class User {    private String name;    private String email;        public String getName() {  return name; }    public void setName(String name) {  this.name = name; }    public String getEmail() { return email;  }    public void setEmail(String email) { this.email = email; }}
 ----
 
 And we have a UserManager object with a getUsers method:
 
-[source, java]
+[source, java, linenums]
 ----
 public class UserManager {    // a Map of Users keyed by their email    private Map<String,User> users = new HashMap<String,User>();            public Collection<User> getUsers() {        return users.values();    }….
 ----
 
 Which is declared as a spring object in our Mule configuration:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <spring:bean name="userManager" class="com.mulesoft.mql.example.UserManager"/>
 ----
 
 Next up, we need to configure Mule to talk to Salesforce by adding a configuration for the cloud connector:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <salesforce:config name="salesforce"                    username="${salesforce.username}"                    password="${salesforce.password}"                     securityToken="${salesforce.securityToken}"/>
 ----
@@ -48,7 +48,7 @@ join salesforce.query('SELECT Id, Company, MobilePhone FROM Lead WHERE Email = \
 
 And finally, we can put this all together to create a RESTful service which listens on a URL and returns the result of this query as JSON:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mql:query-service name="JoinCompanyAndPhone"  address="http://localhost:9002/users"   query="from userManager.users as user            join salesforce.query('SELECT Id, Company, MobilePhone FROM Lead WHERE Email = \'' + user.email + '\'', 100) as sfuser          select new {               name = user.name,               email = user.email,             company = sfuser[0].?Company,               mobile = sfuser[0].?MobilePhone          }"/>
 ----

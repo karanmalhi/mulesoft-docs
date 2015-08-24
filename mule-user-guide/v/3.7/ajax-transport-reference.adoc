@@ -35,21 +35,21 @@ The AJAX transport has server and client parts. The server part is similar to ev
 
 XML namespace:
 
-[source,xml]
+[source,xml, linenums]
 ----
 xmlns:ajax="http://www.mulesoft.org/schema/mule/ajax"
 ----
 
 XML Schema location:
 
-[source,xml]
+[source,xml, linenums]
 ----
 http://www.mulesoft.org/schema/mule/ajax http://www.mulesoft.org/schema/mule/ajax/3.6/mule-ajax.xsd
 ----
 
 Connector Syntax:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <ajax:connector name="ajaxServer" serverUrl="http://0.0.0.0:8090/mule/ajaxServer" resourceBase="${app.home}/docroot"/>
 ----
@@ -58,14 +58,14 @@ Endpoint Syntax
 
 . Inbound endpoint
 +
-[source,xml]
+[source,xml, linenums]
 ----
 <ajax:inbound-endpoint channel="/services/someAjaxService" />
 ----
 +
 . Outbound endpoint
 +
-[source,xml]
+[source,xml, linenums]
 ----
 <ajax:outbound-endpoint channel="/mule/notifications" cacheMessages="true"/>
 ----
@@ -88,7 +88,7 @@ You should use the Mule AJAX Transport for bi-directional communication with the
 
 To the AJAX transport in your configuration, you need to add the `ajax` namespaces:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:ajax="http://www.mulesoft.org/schema/mule/ajax"
@@ -102,14 +102,14 @@ To the AJAX transport in your configuration, you need to add the `ajax` namespac
 
 The usual way of setting up the AJAX server is to use the one embedded in Mule. This can be created by adding an _ajax:connector_ element to your config:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <ajax:connector serverUrl="http://0.0.0.0:8080/ajax"/>
 ----
 
 This starts an AJAX server and is ready to start publishing and subscribing. Next you can create a flow that listens to AJAX messages on a channel:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <flow name="AjaxEcho">
     <ajax:inbound-endpoint channel="/services/echo"/>
@@ -125,7 +125,7 @@ If you are running Mule inside a servlet container such as Apache Tomcat, bind 
 
 Configure your \{[web.xml}} using:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <servlet>
     <servlet-name>ajax</servlet-name>
@@ -141,7 +141,7 @@ Configure your \{[web.xml}} using:
 
 Then replace any `ajax:inbound-endpoint` and `ajax:outbound-endpoint` with `ajax:servlet-inbound-endpoint` and `ajax:servlet-outbound-endpoint` respectively. To use the football scores example again:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <flow name="AjaxBridge">
     <jms:inbound-endpoint topic="football.scores"/>   
@@ -159,7 +159,7 @@ Mule provides a powerful JavaScript client with full http://en.wikipedia.org/wi
 
 To use the JavaScript client, you just need to have a flow that has an AJAX inbound endpoint through which requests can be sent. This example shows a simple echo flow published on the `/services/echo` AJAX channel:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <flow name="AjaxEcho">
     <ajax:inbound-endpoint channel="/services/echo"/>
@@ -171,7 +171,7 @@ To use the JavaScript client, you just need to have a flow that has an AJAX inbo
 
 To enable the client in an HTML page, add a single script element to the page:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <head>
 ...
@@ -184,14 +184,14 @@ Adding this script element makes a 'mule' client object available for your page.
 
 This example defines a button in the body that, when clicked, sends a request to the Echo flow:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <input id="sendButton" class="button" type="submit" name="Go" value="Send" onclick="callEcho();"/>
 ----
 
 The button calls the `callEcho` function, which handles the logic of the request:
 
-[source,xml]
+[source,xml, linenums]
 ----
 function callEcho()
 {
@@ -203,7 +203,7 @@ function callEcho()
 
 This function uses the `rpc` method to request data from the flow. The `rpc` method sets up a private response channel that Mule uses to publish when response data is available. The first argument is the channel on which you're making the request (this matches the channel that our Echo Flow is listening on), the second argument is the payload object, and the third argument is the callback function that processes the response, in this case a function called call Echo Response:
 
-[source,xml]
+[source,xml, linenums]
 ----
 function callEchoResponse(message)
 {
@@ -213,7 +213,7 @@ function callEchoResponse(message)
 
 If you use `rpc` just for a one-way request where you don't pass a callback function as parameter because you don't expect a response, use the `disableReplyTo` flag in the AJAX connector:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <ajax:connector name="ajaxServer" ... disableReplyTo="true" />
 ----
@@ -222,7 +222,7 @@ If you use `rpc` just for a one-way request where you don't pass a callback fu
 
 To check if an error occurred, set the `error` parameter in the callback function to verify that the error is null before processing. If it is not null, an error occurred and the error should be logged or displayed to the user.
 
-[source,xml]
+[source,xml, linenums]
 ----
 function callEchoResponse(message, error)
 {
@@ -241,7 +241,7 @@ function handleError(error) {
 
 The Mule JavaScript client allows developers to subscribe to events from Mule flows. These events just need to be published on an AJAX endpoint. Here is a flow that receives events on JMS and publishes them to an AJAX channel.
 
-[source,xml]
+[source,xml, linenums]
 ----
 <flow name="AjaxBridge">
     <jms:inbound-endpoint topic="football.scores"/>
@@ -252,7 +252,7 @@ The Mule JavaScript client allows developers to subscribe to events from Mule fl
 
 Now you can register for interest in these football scores by adding a subscriber via the Mule JavaScript client.
 
-[source,xml]
+[source,xml, linenums]
 ----
 <script type="text/javascript">
     mule.subscribe("/football/scores", scoresCallback);
@@ -261,7 +261,7 @@ Now you can register for interest in these football scores by adding a subscribe
 
 The first argument of the `subscribe` method is the AJAX path that the flow publishes to. The second argument is the name of the callback function that processes the message. In this example, it's the `scoresCallback` function, which is defined next:
 
-[source,xml]
+[source,xml, linenums]
 ----
 function scoresCallback(message)
 {
@@ -289,7 +289,7 @@ Mule has JSON support including object/JSON bindings, which makes it really easy
 
 Let's say you want to send a message out without getting a response. In this case, you call the `publish` function on the Mule client:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <script type="text/javascript">
     mule.publish("/services/foo", data);
@@ -308,7 +308,7 @@ First, set up an AJAX inbound endpoint in the Mule configuration to receive requ
 |===
 ^|*Configuring an AJAX Inbound Endpoint*
 
-a|[source,xml]
+a|[source,xml, linenums]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:ajax="http://www.mulesoft.org/schema/mule/ajax" ❶
@@ -347,7 +347,7 @@ The browser will send some information to Mule (using the JavaScript Mule client
 |===
 ^|*Publishing data*
 
-a|[source,xml]
+a|[source,xml, linenums]
 ----
 <head>
     <script type="text/javascript" src="mule-resource/js/mule.js"></script> ❶
@@ -405,7 +405,7 @@ We also need to publish some content via an AJAX outbound endpoint in a channel.
 |===
 ^|*Configuring an AJAX Outbound Endpoint Channel*
 
-a|[source,xml]
+a|[source,xml, linenums]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:ajax="http://www.mulesoft.org/schema/mule/ajax" ❶
@@ -449,7 +449,7 @@ a|[source,xml]
 |===
 ^|*Listening to an AJAX Outbound Channel*
 
-a|[source,xml]
+a|[source,xml, linenums]
 ----
 <head>
     <script type="text/javascript" src="mule-resource/js/mule.js"></script> ❶
@@ -502,7 +502,7 @@ This configuration is very similar to the one in the previous example. As a matt
 |===
 ^|*Configuring an AJAX Inbound Endpoint that will send a response*
 
-a|[source,xml]
+a|[source,xml, linenums]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:ajax="http://www.mulesoft.org/schema/mule/ajax" ❶
@@ -548,7 +548,7 @@ The browser sends information to Mule (using the JavaScript Mule client) when a 
 |===
 ^|*Making an RPC Call - Expecting a response*
 
-a|[source,xml]
+a|[source,xml, linenums]
 ----
 <head>
     <script type="text/javascript" src="mule-resource/js/mule.js"></script> ❶
@@ -681,7 +681,7 @@ Allows a Mule service to send AJAX events over HTTP using Bayeux. JavaScript cli
 
 The AJAX Transport can be included with the following dependency:
 
-[source,xml]
+[source,xml, linenums]
 ----
 <dependency>
     <groupId>org.mule.transports</groupId>

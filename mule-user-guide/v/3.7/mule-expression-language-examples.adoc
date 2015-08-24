@@ -49,7 +49,7 @@ The response prints the words `Hello yourName` in your browser.
 
 . In a new flow, add an `http:listener` and configure it with the path `greet1`.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <http:listener config-ref="HTTP_Listener_Configuration" path="greet1" doc:name="HTTP"/>
 ----
@@ -75,7 +75,7 @@ HTTP
 In this way, the connector will be reached via the URI `http://localhost:8081/greet1`.
 . Create a Connector Configuration element for it with a name that matches the referenced element in `config-ref`. Set the Port to 8081 and the Path to `localhost`
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
 ----
@@ -125,7 +125,7 @@ HTTP_Listener_Configuration
 |===
 . After the connector, add a `set-payload` transformer, configured as shown:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-payload value="Hello #[message.inboundProperties.'http.query.params'.username]" doc:name="Set Payload"/>
 ----
@@ -147,7 +147,7 @@ Set Payload
 The MEL expression used in `value` will capture the inbound property `username`, which is passed as a query string parameter when calling the service.
 . The full code of your flow should look like this:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
     <flow name="greetingFlow1" doc:name="greetingFlow1">
@@ -221,7 +221,7 @@ In MEL, the keyword `empty` tests the emptiness of a value, and returns boolean
 
 . In a new flow, add an `<http:listener` element, with its path set to `greet2` and that references the global element you created in the previous example:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <http:listener config-ref="HTTP_Listener_Configuration" path="greet2" doc:name="HTTP"/>
 ----
@@ -252,7 +252,7 @@ HTTP
 In this way, the connector will be reached via the URI `http://localhost:8081/greet2`.
 . After the connector, add a choice element with two possible outputs. One of these outputs will be the default, the other will evaluate a MEL expression.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <choice doc:name="Choice">
             <when>
@@ -319,7 +319,7 @@ Set Payload for valid username
 +
 The MEL expression in the second `set-property`'s `value` attribute captures the inbound property `username`, which is passed as a query string parameter when calling the service.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <choice doc:name="Choice">
             <when expression="#[message.inboundProperties.'http.query.params'.username == empty]">
@@ -333,7 +333,7 @@ The MEL expression in the second `set-property`'s `value` attribute captures th
 
 . The full code of your flow should look like this:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="greetingFlow2" >
         <http:listener config-ref="HTTP_Listener_Configuration" path="greet2" doc:name="HTTP"/>
@@ -415,7 +415,7 @@ This will print the words `Hello yourName` in your browser and also save a csv f
 
 . In a new flow, add an `http:listener`. Configure it as shown:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <http:listener config-ref="HTTP_Listener_Configuration" path="greet3" doc:name="HTTP"/>
 ----
@@ -446,7 +446,7 @@ HTTP
 In this way, the connector will be reached via the URI `http://localhost:8081/greet3`.
 . After the connector, add an expression component that will use a MEL expression to record the inbound property `username` into a flowVar.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-component doc:name="Expression"><![CDATA[flowVars.username = message.inboundProperties.'http.query.params'.username]]>
         </expression-component>
@@ -458,7 +458,7 @@ This expression takes the value of the inbound property `username` and sets it a
 Since this MEL expression is used in an *expression component,* it doesn't need to be surrounded with brackets `#[]`
 . Add a Set Payload transformer and set the `value` field to a MEL expression:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-payload value="#[message.inboundProperties.'http.query.params'.username], #[message.inboundProperties.'http.query.params'.age], #[message.inboundProperties.'http.query.params'.age &gt;18]" doc:name="Set Payload"/>
 ----
@@ -480,7 +480,7 @@ Set Payload
 This will set the payload to a string that contains three comma separated values. The third of these values is evaluating a condition and returns `true` or `false` depending on the user's age.
 . Below, add a `file:outbound-endpoint` to send this data to a file:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <file:outbound-endpoint path="path_of_your_choice" responseTimeout="10000" doc:name="File"/>
 ----
@@ -520,7 +520,7 @@ File
 |===
 . Below, add another Set Payload transformer containing a MEL expression that references the flow variable that you set earlier in the flow:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-payload value="Hello #[flowVars.username]" doc:name="Set Payload"/>
 ----
@@ -551,7 +551,7 @@ Set Payload
 |===
 . The full code of your flow should look like this:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="greetingFlow3" >
         <http:listener config-ref="HTTP_Listener_Configuration" path="greet3" doc:name="HTTP"/>
@@ -662,7 +662,7 @@ This will print the words `Hello yourName` in your browser and also save a csv f
 
 . In a new flow, add an `http:listener` configured as shown.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <http:listener config-ref="HTTP_Listener_Configuration" path="greet4" doc:name="HTTP"/>
 ----
@@ -693,7 +693,7 @@ HTTP
 In this way, the connector is reached via the URI `http://localhost:8081/greet4`.
 . After the connector, add an expression component that will use a MEL expression to record the inbound property `username` into a flow variable of the same name.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-component doc:name="Expression"><![CDATA[flowVars.username = message.inboundProperties.'http.query.params'.username]]>
         </expression-component>
@@ -703,7 +703,7 @@ In this way, the connector is reached via the URI `http://localhost:8081/greet4`
 Since this MEL expression is used in an *expression component,* it doesn't need to be surrounded with `#[]`.
 . Add a set-payload transformer and set the value attribute to a MEL expression:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-payload value="#[['username' :  message.inboundProperties.'http.query.params'.username, 'age' :  message.inboundProperties.'http.query.params'.age]]" doc:name="Set Payload"/>
 ----
@@ -724,7 +724,7 @@ Set Payload
 This will set the payload to a map of key:value pairs that contains username and age.
 . Next, add a data-mapper:transform element. 
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <data-mapper:transform doc:name="Map To CSV"/>
 ----
@@ -765,7 +765,7 @@ image:mel+ex+datamapper2.png[mel+ex+datamapper2]
 
 . Set Studio's view back to the XML editor. Below the last component, add a `file:outbound-endpoint` to send this data to a file:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <file:outbound-endpoint path="path_of_your_choice" responseTimeout="10000" doc:name="File"/>
 ----
@@ -794,7 +794,7 @@ File
 
 . Below, add another Set Payload transformer, configured as shown:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-payload value="Hello #[flowVars.username]" doc:name="Set Payload"/>
 ----
@@ -818,7 +818,7 @@ Set Payload
 
 . The full code of your flow should look like this:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="greetingFlow4" >
         <http:listener config-ref="HTTP_Listener_Configuration" path="greet4" doc:name="HTTP"/>
@@ -896,7 +896,7 @@ Send a POST request to` http://localhost:8081/greet5` attaching an XML to the bo
 [TIP]
 The easiest way to do this is to send a POST via a browser extension such as https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm[Postman] (for Google Chrome) or the http://curl.haxx.se/[curl] command line utility.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <user>
   <username>test</username>
@@ -912,7 +912,7 @@ This will print the words `Hello yourName` in your browser and also save a csv f
 
 . In a new flow, add an `http:listener `configured as shown.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <http:listener config-ref="HTTP_Listener_Configuration" path="greet5" doc:name="HTTP"/>
 ----
@@ -940,7 +940,7 @@ HTTP
 In this way, the connector is be reached via the URI `http://localhost:8081/greet5`.
 . After the connector, add an Expression Component that will use a MEL expression to record the inbound property `username` into a flow variable. Because the payload is an XML file, it must be parsed with xpath3.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-component doc:name="Expression"><![CDATA[flowVars.username = xpath3('/user/username').text]]></expression-component>
 ----
@@ -951,7 +951,7 @@ This expression calculates the result of the xpath3 function and sets it as the 
 Since this MEL expression is used in an *expression component,* it isn't surrounded with brackets `#[]`
 . Add a set-payload transformer and set the `value` attribute to a comma-separated list of MEL expressions:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-payload value="#[xpath3('/user/username').text], #[xpath3('/user/age').text], #[xpath3('/user/age').text &gt; 18]" doc:name="Set Payload"/>
 ----
@@ -973,7 +973,7 @@ Set Payload
 This will set the payload to a string that contains three comma separated values. The third of these values is evaluating a condition and returns `true` or `false` depending on the user's age. Once again, as the payload is in XML, *xpath3* is needed to parse it.
 . Add a `file:outbound-endpoint` to output the payload into a csv file.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <file:outbound-endpoint path="path_of_your_choice" responseTimeout="10000" doc:name="File"/>
 ----
@@ -1002,7 +1002,7 @@ File
 
 . Below, add another set-payload transformer with a value containing a MEL expression that references the flow variable `username` that you set earlier in the flow.:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-payload value="Hello #[flowVars.username]" doc:name="Set Payload"/>
 ----
@@ -1024,7 +1024,7 @@ Set Payload
 
 . The full code of your flow should look like this:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="greetingFlow5" doc:name="greetingFlow5">
         <http:listener config-ref="HTTP_Listener_Configuration" path="greet5" doc:name="HTTP"/>
@@ -1039,7 +1039,7 @@ Set Payload
 [TIP]
 The easiest way to do this is by sending a POST via a browser extension such as https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm[Postman] (for Google Chrome) or the http://curl.haxx.se/[curl] command line utility.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <user>
   <username>test</username>
@@ -1123,7 +1123,7 @@ This will print the words `Hello yourName` in your browser and also save a csv f
 
 . In a new flow, add an `http:listener `configured as shown.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <http:listener config-ref="HTTP_Listener_Configuration" path="greet6" doc:name="HTTP"/>
 ----
@@ -1151,7 +1151,7 @@ HTTP
 In this way, the connector is reached via the URI `http://localhost:8081/greet6`.
 . After the connector, add a `json:json-to-object-transformer`. 
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <json:json-to-object-transformer doc:name="JSON to Object" returnClass="java.lang.Object"/>
 ----
@@ -1172,7 +1172,7 @@ JSON to Object
 With this configuration, the JSON input becomes a Java object with attributes that can be easily called by using `object.attribute` notation.
 . After the transformer, add an expression component that uses a MEL expression to access the Java object's `username` attribute and assign its value into a flow variable of the same name.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-component doc:name="Expression"><![CDATA[flowVars.username = payload.username]]></expression-component>
 ----
@@ -1182,7 +1182,7 @@ Since this MEL expression is used in an *expression component,* it doesn't need 
 
 . Add a set-payload transformer and set the `value` attribute to a comma-separated list of MEL expressions:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-payload value="#[payload.username], #[payload.age], #[payload.age &gt; 18]" doc:name="Set Payload"/>
 ----
@@ -1213,7 +1213,7 @@ This sets the payload to a string that contains three comma-separated values. Th
 
 . Add  a `file:outbound-endpoint` to output the payload into a csv file.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <file:outbound-endpoint path="path_of_your_choice" responseTimeout="10000" doc:name="File"/>
 ----
@@ -1239,7 +1239,7 @@ File
 |===
 . Below, add another set-payload transformer, containing a MEL expression that references a flow variable:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <set-payload value="Hello #[flowVars.username]" doc:name="Set Payload"/>
 ----
@@ -1262,7 +1262,7 @@ Set Payload
 |===
 . The full code of your flow should look like this:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="greetingFlow6" doc:name="greetingFlow6">
          <http:listener config-ref="HTTP_Listener_Configuration" path="greet6" doc:name="HTTP"/>
@@ -1294,7 +1294,7 @@ This will print the words `Hello yourName` in your browser and also save a csv f
 [TIP]
 For your convenience, you may download the link:/documentation/download/attachments/122752119/mel_example_project.zip?version=1&modificationDate=1397239701353[complete project]. Note that this project is configured specifically for the **Mule 3.6.0 runtime**. Please refer to the 3.5.X documentation for a 3.5.X compatible version.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 

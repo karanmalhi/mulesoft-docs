@@ -21,14 +21,14 @@ You can use the method `getConfigResources` to specify a configuration file or c
 
 You then create tests that interact with the Mule server. `FunctionalTestCase` extends `junit.framework.TestCase`, so JUnit is the framework for creating and running your test cases. For example, this simple test would send a message to a vm endpoint.
 
-[source, java]
+[source, java, linenums]
 ----
 public void testSend() throws Exception{    MuleClient client = new MuleClient(muleContext);    String payload = "foo";    Map<String, Object> properties = null;    MuleMessage result = client.send("vm://test", payload, properties);    assertEquals("foo Received", result.getPayloadAsString());}
 ----
 
 Notice the use of `MuleClient` to interact with the running Mule server. `MuleClient` is used to send messages to and receive messages from endpoints you specify in your Mule configuration file (mule-conf.xml in this case). The example `mule-conf.xml` file used in this example is shown below:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:spring="http://www.springframework.org/schema/beans"    xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:test="http://www.mulesoft.org/schema/mule/test" xsi:schemaLocation="    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd    http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.0/mule.xsd  http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.0/mule-vm.xsd   http://www.mulesoft.org/schema/mule/test http://www.mulesoft.org/schema/mule/test/3.0/mule-test.xsd">        <model name="TestComponentModel">       <service name="TestComponentService">       <inbound>           <inbound-endpoint address="vm://test"/>         </inbound>      <test:component appendString=" Received"/>      </service>  </model></mule>
 ----
@@ -60,7 +60,7 @@ The `FunctionalTestComponent` supports two event mechanisms for responding to a 
 
 User-defined event callbacks get called when the test component is invoked. Following is an example of a test case and Mule configuration that uses callbacks:
 
-[source, java]
+[source, java, linenums]
 ----
 public void testEventCallback() throws Exception {    EventCallback callback = new EventCallback()    {        public void eventReceived(MuleEventContext context, Object component)             throws Exception        {            System.out.println("Thanks for calling me back");        }    };     getFunctionalTestComponent("TestComponentService").setEventCallback(callback);           MuleClient client = new MuleClient();             client.send("vm://test", new DefaultMuleMessage("foo")); }
 ----
@@ -69,7 +69,7 @@ In this example, the `eventReceived` callback method is invoked as soon as the `
 
 The corresponding Mule configuration used in this example is as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:spring="http://www.springframework.org/schema/beans"    xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:test="http://www.mulesoft.org/schema/mule/test" xsi:schemaLocation="    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd    http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.0/mule.xsd  http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.0/mule-vm.xsd   http://www.mulesoft.org/schema/mule/test http://www.mulesoft.org/schema/mule/test/3.0/mule-test.xsd">        <model name="TestComponentModel">       <service name="TestComponentService">       <inbound>           <inbound-endpoint address="vm://test"/>                     </inbound>      <component>                 <singleton-object class="org.mule.tck.functional.FunctionalTestComponent"/>                </component>     </service>  </model></mule>
 ----
@@ -84,7 +84,7 @@ Notifications are an alternative to event callbacks. When an event is received, 
 
 To do this, we must first make our test case implement the `FunctionalTestNotificationListener` interface. Then, we must implement the method exposed by this listener, which is `onNotification`. In the example below, we check `notification.getAction` to see whether it is the `FunctionalTestNotification` fired by the `FunctionalTestComponent`. If it is, we print it out to the console.
 
-[source, java]
+[source, java, linenums]
 ----
 public void onNotification(ServerNotification notification){    if (notification.getAction() == FunctionalTestNotification.EVENT_RECEIVED)    {     System.out.println("Event Received");    }}
 ----
@@ -100,14 +100,14 @@ muleContext.registerListener(this,"myComponent");
 
 `FunctionalTestComponent` can return mock data specified either in a file or embedded in the Mule configuration. For example, to have the `FunctionalTestComponent` return the message "donkey", you would configure the component as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <test:component>    <test:return-data>donkey</test:return-data></test:component>
 ----
 
 To return contents from a file, you could use:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <test:component>    <test:return-data file="abc.txt"/></test:component>
 ----
@@ -120,7 +120,7 @@ The file referenced should exist on the Mule classpath.
 
 You can use `throwException` to always return the exception specified by `exceptionToThrow`, as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <test:component  throwException="true"  exceptionToThrow="your.service.exception"/>
 ----
@@ -131,7 +131,7 @@ By default, every message that is received by the `FunctionalTestComponent` is s
 
 To enable:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <test:component enableMessageHistory="true" />
 ----
@@ -142,7 +142,7 @@ Messages are stored in an ArrayList. To retrieve a stored message, you use the `
 
 You can use `appendString` to append text to the response message, as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <test:component appendString="Received" />
 ----
@@ -151,7 +151,7 @@ You can use `appendString` to append text to the response message, as follows:
 
 You can set `waitTime` to delay responses from this `FunctionalTestComponent`. In this example, responses are delayed five seconds:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <test:component waitTime="5000" />
 ----
@@ -160,7 +160,7 @@ You can set `waitTime` to delay responses from this `FunctionalTestComponent`. I
 
 You can set doInboundTransform to false to disable the inbound transformer. For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <test:component doInboundTransform="false" />
 ----
@@ -173,14 +173,14 @@ The `functional` package includes several additional classes, such as `CounterCa
 
 This example is similar to the "Event Callbacks" example above, except the component used here is a Spring component. In this case, we can look up the component using the Spring registry.
 
-[source, java]
+[source, java, linenums]
 ----
 public void testEventCallback() throws Exception {    EventCallback callback = new EventCallback()    {        public void eventReceived(MuleEventContext context, Object component)             throws Exception        {            System.out.println("Thanks for calling me back");        }    };     ApplicationContext ac = (ApplicationContext)muleContext.getRegistry().lookupObject(SpringRegistry.SPRING_APPLICATION_CONTEXT);    FunctionalTestComponent testComponent = (FunctionalTestComponent) ac.getBean("FTC");    testComponent.setEventCallback(callback);           MuleClient client = new MuleClient();             client.send("vm://test", new DefaultMuleMessage("foo")); }
 ----
 
 The corresponding Mule configuration would be as follows:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:spring="http://www.springframework.org/schema/beans"    xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:test="http://www.mulesoft.org/schema/mule/test" xsi:schemaLocation="    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd    http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.0/mule.xsd  http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.0/mule-vm.xsd   http://www.mulesoft.org/schema/mule/test http://www.mulesoft.org/schema/mule/test/3.0/mule-test.xsd">    <spring:bean id="FTC" class="org.mule.tck.functional.FunctionalTestComponent" />    <model name="TestComponentModel">        <service name="TestComponentService">            <inbound>                <inbound-endpoint address="vm://test" />            </inbound>            <component>              <spring-object bean="FTC" />            </component>        </service>    </model></mule>
 ----

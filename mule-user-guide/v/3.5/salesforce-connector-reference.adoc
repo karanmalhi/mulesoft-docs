@@ -107,7 +107,7 @@ OAuth requires a callback configuration. Salesforce automatically calls the call
 
 Example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <sfdc:oauth-callback-config domain="localhost" localPort="8081" remotePort="8081" path="oauthcallback"/>
 ----
@@ -134,7 +134,7 @@ To configure an existing user-defined object store, include an **sfdc:object-sto
 
 Every Salesforce connector configured to use OAuth has an extra attribute called *accessTokenId*, which is an identification of the user authorizing the connector. In order to obtain an access token identification, you need to first call the *authorize* operation in a separate authorization flow. This flow must consist of an HTTP inbound endpoint and the *sfdc:authorize* element, as shown.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="authorizationAndAuthenticationFlow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="oauth-authorize"/>
@@ -170,7 +170,7 @@ Determines whether the user should be prompted for login and approval.
 
 Calling this inbound endpoint via a browser initiates the OAuth dance, redirecting the user to the Salesforce authorization page and creating a callback endpoint so Salesforce can call back once the user has authenticated and properly authorized the connector.  Once the callback gets called, the connector automatically issues an access token identifier that Mule saves with the key *OAuthAccessTokenId*. The connector automatically sets the OAuthAccessTokenId as a flow variable that is available to all message processors after the authorize call has completed. All Salesforce connector operations after the authorize flow require an *accessTokenId* as a parameter of the operation. Specify the expression  `#[flowVars.OAuthAccessTokenId]`, as shown in the following example, to supply this parameter. 
 
-[source, xml]
+[source, xml, linenums]
 ----
 ...
 <sfdc:query config-ref="mySalesforceConfig" query="SELECT Id FROM Account" accessTokenId="#[flowVars.OAuthAccessTokenId]"/>

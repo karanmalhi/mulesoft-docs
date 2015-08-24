@@ -46,21 +46,21 @@ import java.util.Collection;import javax.ws.rs.*;@Path("/")@Produces("applicatio
 
 This simply returns a list of users and adds users when the client does a POST request. Version 2.0 of this service can then be registered as a Mule endpoint:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="v2">    <inbound-endpoint address="http://localhost:9002/api/v2/users" exchange-pattern="request-response"/>    <jersey:resources>        <component>            <singleton-object class="com.mulesoft.mql.example.UserResource"/>        </component>    </jersey:resources></flow>
 ----
 
 We can now create an endpoint for version 1.0 of our service as well based on the MQL transformations. Here is an example. First, we'll declare our MQL transformers in the configuration:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <!-- Converts the old User object to the new version --><mql:transform name="V1-to-V2" query="from payload as u ..." /><!-- Converts the new User object to the old version --><mql:transform name="V2-to-V1" query="from payload as u ..."/>
 ----
 
 And now, we'll create a flow which performs these transofrmations on a /api/v1 url:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="v1">    <inbound-endpoint address="http://localhost:9002/api/v1/users" exchange-pattern="request-response"/>        <!-- Transform from old version if there is a request payload -->    <processor-chain>        <expression-filter expression="message.getInboundProperty('http.method') == 'POST'                                        || message.getInboundProperty('http.method') == 'PUT'"                            evaluator="groovy"/>        <transformer ref="V1-to-V2"/>    </processor-chain>        <jersey:resources>        <component>            <singleton-object class="com.mulesoft.mql.example.UserResource"/>        </component>    </jersey:resources>        <!-- Transform to old version -->    <transformer ref="V2-to-V1"/></flow>
 ----

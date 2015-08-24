@@ -14,7 +14,7 @@ This page assumes you have the following property defined in your `pom.xml`: `<m
 
 When running from Maven, you need to add the following artifact to your `.pom`:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <dependency>
   <artifactId>ftpserver</artifactId>
@@ -28,7 +28,7 @@ When running from Maven, you need to add the following artifact to your `.pom`:
 
 For the purpose of this documentation we are going to assume we are testing the following Mule code:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="exampleFlow">
   <set-payload value="#['something_something_dark_side']"/>
@@ -42,7 +42,7 @@ For the purpose of this documentation we are going to assume we are testing the 
 
 We start by defining the FTP server parameters:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <munit:config mock-inbounds="false" mock-connectors="false"/>   (1)
 <ftpserver:config port="${ftp.port}" name="ftpServer"/>         (2)
@@ -63,7 +63,7 @@ We start by defining the FTP server parameters:
 
 In order to run, the FTP server must be started in the `before-suite`. You start the server using the `start-server` message processor.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <munit:before-suite name="before.suite" description="Starting FTP server">
   <ftpserver:start-server config-ref="ftpServer"/>
@@ -74,7 +74,7 @@ In order to run, the FTP server must be started in the `before-suite`. You start
 
 Once our FTP server is up and running we can run our test.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <munit:test name="testFTPServer" description="Data must be stored in the ftp server">
   <flow-ref name="exampleFlow" />
@@ -99,7 +99,7 @@ This message processor attempts to validate the existence of a file in the FTP s
 
 The `remove` message processor provides another operation that may be of use. This operation instructs the FTP server to remove a file from storage.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <ftpserver:remove config-ref="ftpServer" path="/tmp/ftp-jsonResult.txt"/> 
 ----
@@ -118,7 +118,7 @@ This feature is of use when we are creating the same file name several times. Fo
 
 To stop the FTP server gracefully, it needs to be stopped in the `after-suite`, using the `stop-server` message processor.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <munit:after-suite name="after.suite" description="Stoping FTP server">
   <ftpserver:stop-server config-ref="ftpServer"/>
@@ -129,14 +129,14 @@ To stop the FTP server gracefully, it needs to be stopped in the `after-suite`, 
 
 You may have noticed that our production code example makes extensive use of placeholders for certain parameters, such as `host`, `port` etc. in the example below:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <ftp:outbound-endpoint host="${host}" port="${ftp.port}" user="${ftp.user}" password="${ftp.password}" outputPattern="ftp-jsonResult.txt" path="/tmp"/>
 ----
 
 The reason for this is that properties allow us to create code that is more configurable. Compare the example above with:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <ftp:outbound-endpoint host="some.host" port="myPort" user="myUser" password="myPassword" outputPattern="ftp-jsonResult.txt" path="/tmp"/>
 ----
@@ -150,7 +150,7 @@ On the other hand, the first example code allows us to define two different prop
 
 This is use in combination with the Mule property placeholder, shown below with `${env}`:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <global-property value="mule.${env}.property"/>
 ----

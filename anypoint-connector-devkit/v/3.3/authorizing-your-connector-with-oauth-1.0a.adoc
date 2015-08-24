@@ -12,7 +12,7 @@ Accessing protected resources from within Mule ESB requires a great amount of de
 
 In order to use OAuth support, ensure that you have the following dependency in your `pom.xml` file.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <dependency>
        <groupId>oauth.signpost</groupId>
@@ -51,7 +51,7 @@ the OAuth 1.0a flow; this method is included in the `auth_signature_method` para
 . Add the `@OAuth` class level annotation as per the following: +
 +
 
-[source, java]
+[source, java, linenums]
 ----
 @Module(name = "linkedin")
 @OAuth(requestTokenUrl = "https://api.linkedin.com/uas/oauth/requestToken",
@@ -63,7 +63,7 @@ public class LinkedInConnector {
 . Create two String instance fields to hold your Consumer Key and Consumer Secret, then annotate them with `@OAuthConsumerKey` and `@OAuthConsumerecret` respectively. Also annotate them with `@Configurable` so that anyone using it can pass in their own credentials. Ensure these instance variables have public `getters` and `setters`. +
 +
 
-[source, java]
+[source, java, linenums]
 ----
 @Module(name = "linkedin")
 @OAuth(requestTokenUrl = "https://api.linkedin.com/uas/oauth/requestToken",
@@ -81,7 +81,7 @@ public class LinkedInConnector {
 . In the methods that access protected resources (annotated with `@Processor`), add two `java.lang.String` parameters, then annotate them with `@OAuthAccessToken` and `@OAuthAccessTokenSecret` respectively. +
 +
 
-[source, java]
+[source, java, linenums]
 ----
 @Processor
         public Person getProfileForCurrentUser(@OAuthAccessToken String accessToken,
@@ -99,7 +99,7 @@ When a method that contains parameters annotated with `@OAuthAccessToken` and `@
 
 Before a consumer can execute any operation that requires authorization, the resource owner must grant access to the cloud connector to access the protected resource. When it receives an authorization request, Mule redirects the resource owner's browser to the service provider authorization page. Any subsequent attempts to access a protected resource fills the parameters annotated with `@OAuthAccessToken` and `@OAuthAccessTokenSecret`. Mule includes the access token and token secret in the request to the service provider. See example below.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <linkedin:config apiKey="${api.key}" apiSecret="${api.secret}"/>
  
@@ -113,7 +113,7 @@ Before a consumer can execute any operation that requires authorization, the res
 
 First, configure the extension by passing the *consumer key* and *consumer secret* for your application as supplied by the service provider. The code sample below illustrates an example of such configuration.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <linkedin:config apiKey="${api.key}" apiSecret="${api.secret}"/>
  
@@ -130,7 +130,7 @@ When the user grants access to the protected resource, the service provider make
 
 Because Mule dynamically creates an HTTP inbound endpoint to handle the callback (and Mule passes endpoint's URL to the service provider), you do not need to complete any specific configuration to make an HTTP callback. By default, Mule uses a host and port (determined by the `fullDomain` environment variable and the `http.port`) to construct a URL to send to the service provider. Where you need to use non-default values for host and port, add the following configuration:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <linkedin:config apiKey="${api.key}" apiSecret="${api.secret}">
        <linkedin:oauth-callback-config domain="SOME_DOMAIN" remotePort="SOME_PORT" />
@@ -141,7 +141,7 @@ Because Mule dynamically creates an HTTP inbound endpoint to handle the callback
 
 When Mule automatically launches an HTTP inbound endpoint to handle the OAuth callback, it uses the HTTP connector by default. Where the service provider requires *HTTPS*, you can configure Mule to pass your own connector (see example below).
 
-[source, xml]
+[source, xml, linenums]
 ----
 <https:connector name="httpsConnector">
     <https:tls-key-store path="keystore.jks" keyPassword="mule2012" storePassword="mule2012"/>

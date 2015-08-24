@@ -73,7 +73,7 @@ image:TestScaffoldingGeneration.png[TestScaffoldingGeneration] +
 
 Test example:
 
-[source, java]
+[source, java, linenums]
 ----
 package org.mule.modules.automation.testcases;
 import org.junit.After;
@@ -155,7 +155,7 @@ Use cases are built as a sequence of connector operations calls. Prior to runnin
 
 mule-devkit-parent contains the framework version property (that can, if necessary, be overridden on the connector pom) and its dependency node.
 
-[source, xml]
+[source, xml, linenums]
 ----
 ...
 <properties>
@@ -268,7 +268,7 @@ For each operation a maximum of two flows is placed on the automation-test-flows
 
 Each operation on the connector has at least a corresponding flow on the automation-test-flows file. The flow and its associated operation should be thought of as resources that can be called from multiple tests. Flow names should be the same as the operation they contain or at least start with the name of the operation they contain, for example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="<operation-name>" doc:name="<operation-name>">
    <marketo:<operation-name> config-ref="<ConfigName>" 
@@ -290,7 +290,7 @@ Or this other case:
 
 In the case of being given the choice of passing non-primitive types (for example, POJOs, `List<POJOs>`, `Map<POJOs>`, etc.) either from the payload, by reference, or by manually creating it using Anypoint Studio, either taking the value from the payload or by reference should be selected.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <!-- mobjects value passed by as reference -->  
 <flow name="sync-mobjects" doc:name="sync-mobjects">
@@ -303,7 +303,7 @@ In the case of being given the choice of passing non-primitive types (for exampl
 
 Or:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <!-- mobject value taken from payload -->     
 <flow name="sync-mobjects" doc:name="sync-mobjects">
@@ -322,7 +322,7 @@ Connector credentials should be picked from the automation-credential.properties
 
 For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <marketo:config name="Marketo" userId="${marketo.userId}"
  key="${marketo.key}" endpointUrl="${marketo.endpointUrl}" doc:name="Marketo">
@@ -333,14 +333,14 @@ For example:
 
 Create a property placeholder that references automation-credentials.properties or add `xmlns:context="http://www.springframework.org/schema/context"` as an attribute of the Mule node as one of its child node:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <context:property-placeholder location="automation-credentials.properties" />
 ----
 
 Prior to committing, change the location value to the following to run the suites from the console or build plan by passing the URL where the automation-credentials.properties are stored:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <context:property-placeholder location="${<CONNECTOR_NAME>_CREDENTIALS}" />
 ----
@@ -355,7 +355,7 @@ The approach is that each test has its set of dedicated test values, hence the c
 
 By convention all bean IDs related to an operation should begin with the operation name followed by the bean class. This avoids name conflicts and make clear on which operation this bean is used.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <!--  get-lead -->
 <bean id="testGetLeadLeadKey" class="com.marketo.mktows.LeadKey">
@@ -385,7 +385,7 @@ By convention all bean IDs related to an operation should begin with the operati
 * In spring use _scope="prototype"_ (if applicable) to ensure values from previous tests (ids, etc) are not reused in the following tests.
 * "TestData" map can be used to store expected results for a test in case the expected value relates to the data been passed to them.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <util:map id="createBatchAttendeeListTestData" map-class="java.util.HashMap"
   key-type="java.lang.String" value-type="java.lang.Object" scope="prototype">
@@ -417,7 +417,7 @@ ConcreteInstance fromMap(Map<String,Object> mapRepresentation)
 
 Generate entity fields that contain unique values dynamically in order to make the automation runs more robust. For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <bean id="randomEmailAddress" 
   class="org.mule.modules.tests.ConnectorTestUtils"
@@ -427,7 +427,7 @@ Generate entity fields that contain unique values dynamically in order to make t
 
 ==== Date Generation Common Cases
 
-[source, xml]
+[source, xml, linenums]
 ----
 <bean id="xmlGregorianCalendarDateInThePast"
  class="org.mule.modules.tests.ConnectorTestUtils"
@@ -451,7 +451,7 @@ taleo.userId=42
 
 ===== AutomationSpringBeans
 
-[source, xml]
+[source, xml, linenums]
 ----
 <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
   <property name="location">
@@ -513,7 +513,7 @@ Most general case, generally applies fitler to responses test.
 
 Use #\{null} expression to handle the different cases in the AutomationSpringBeans file.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <util:map id="getListItemsTestData" map-class="java.util.HashMap"
     key-type="java.lang.String" value-type="java.lang.Object" scope="prototype">
@@ -574,7 +574,7 @@ runFlowAndGetPayload(String flowName, String beanId)
 
 * Runtime values can be added to the TestRunMessage to prepare the data for the operation under test.
 
-[source, java]
+[source, java, linenums]
 ----
 @Before
   public void setUp() throws Exception {        
@@ -592,7 +592,7 @@ runFlowAndGetPayload(String flowName, String beanId)
 
 Fixture and tearDown throw an exception so that unexpected errors on their logic or calls list as errors on the test and not as a failure.
 
-[source, java]
+[source, java, linenums]
 ----
 @Before
  public void setUp() throws Exception {
@@ -600,7 +600,7 @@ Fixture and tearDown throw an exception so that unexpected errors on their logic
  }
 ----
 
-[source, java]
+[source, java, linenums]
 ----
 @Test
 public void setUp() throws Exception {
@@ -610,7 +610,7 @@ public void setUp() throws Exception {
 
 If an exception is thrown on the @Test the test is listed as failed:
 
-[source, java]
+[source, java, linenums]
 ----
 @Category({SmokeTests.class, RegressionTests.class})
 @Test
@@ -627,7 +627,7 @@ public void test<operationName>() {
 
 Tests are categorized using @Category annotation on top of the test method signatures.
 
-[source, java]
+[source, java, linenums]
 ----
 @Category({SmokeTests.class, RegressionTests.class})
 @Test
@@ -639,7 +639,7 @@ Tests for operations that are used on the @Before or @After are to be marked as 
 
 One for each test case type (SmokeTest, RegressionTest). Place in the the org.mule.modules.<connector>.automation.
 
-[source, java]
+[source, java, linenums]
 ----
 @RunWith(Categories.class)
 @IncludeCategory(RegressionTests.class)
@@ -660,7 +660,7 @@ For now, inbound endpoint testing must be done by adding a http://www.mulesoft.o
 
 For example, if we wanted to test SQS’s Receive Messages operation, we would need two flows: a flow that actually sends the message, and another flow with the Receive Messages inbound endpoint, as such:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="send-message" doc:name="SendMessage">
      <sqs:send-message config-ref="Sqs"
@@ -677,7 +677,7 @@ For example, if we wanted to test SQS’s Receive Messages operation, we would n
 
 To actually get the messages to use in our test, add a VM endpoint to the flow:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="receive-message" doc:name="receive-message">
       <sqs:receive-messages config-ref="Sqs"
@@ -688,7 +688,7 @@ To actually get the messages to use in our test, add a VM endpoint to the flow:
 
 To use the VM endpoint, add it as a Maven dependency to your project:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <dependency>
   <groupId>org.mule.transports</groupId>
@@ -701,7 +701,7 @@ Also, update XML schemas and namespaces. See the link:/docs/display/35X/VM+Trans
 
 In your test case, use the runFlowAndWaitForResponseVM method. The important thing to note here is the path of the queue. A simple test for these flows is:
 
-[source, java]
+[source, java, linenums]
 ----
 public void testReceiveMessages() throws Exception {
     String message = “Hello world”;
@@ -745,7 +745,7 @@ facebook.accessToken=<generatedAccessToken> 
 
 3. Add FacebookConnectorOAuthState bean to AutomationSpringBeans.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
       <property name="location">
@@ -759,7 +759,7 @@ facebook.accessToken=<generatedAccessToken> 
 
 4. In **<connectorName>TestParent**, after initializing the muleContext, add a FacebookConnectorOAuthState instance to the Object Store:
 +
-[source, java]
+[source, java, linenums]
 ----
 @Before
     public void init() throws ObjectStoreException {          
@@ -772,7 +772,7 @@ facebook.accessToken=<generatedAccessToken> 
 
 5. Add `accessTokenId="accessTokenId"` to the operations in automation-test-flows. This value is resolved by the ObjectStore.
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <facebook:config-with-oauth name="Facebook"
   appId="${facebook.appId}"
@@ -849,7 +849,7 @@ log4j.logger.org.apache.cxf.interceptor.LoggingOutInterceptor=DEBUG, console 
 
 ===== cxf.xml
 
-[source, xml]
+[source, xml, linenums]
 ----
 <beans xmlns="http://www.springframework.org/schema/beans"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"

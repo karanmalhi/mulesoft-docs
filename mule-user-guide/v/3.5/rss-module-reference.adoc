@@ -9,7 +9,7 @@ One of the most common patterns is for integrating with RSS is polling for feed 
 
 *EntryReceiver.java*
 
-[source, java]
+[source, java, linenums]
 ----
 package org.mule.module.rss;
 
@@ -26,7 +26,7 @@ public class EntryReceiver
 
 By default the RSS feed is split into entries for you, so for each entry, the component method invokes with the next entry in the feed. Flow configuration:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="eventConsumer">
     <rss:inbound-endpoint address="http://localhost:9002/events"/>
@@ -44,7 +44,7 @@ The Atom HTTP endpoint respects ETags and the 304 Not Modified response code by 
 If you want access to the feed itself, it is available via a header on the current message called 'feed.object'. You could have this injected into your entry point method using annotations -
 
 *EntryReceiver.java*
-[source, java]
+[source, java, linenums]
 ----
 public void processEntry(@Payload Entry entry, @Expr("#[header:invocation:feed.object]") Feed feed) throws Exception
 ----
@@ -56,7 +56,7 @@ The @Expr annotation is only available in the Mule Community Edition.
 
 If you want to process the Feed in its entirety (not have it split into Entry objects) you can set the following flag on the endpoint:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <rss:inbound-endpoint address="http://localhost:9002/events" splitFeed="false/>
 ----
@@ -64,7 +64,7 @@ If you want to process the Feed in its entirety (not have it split into Entry ob
 Now your component invokes once for each feed change no matter how many entries are added or updated. The method for your component should expect a `com.sun.syndication.feed.synd.SyndFeed` object or just a `org.w3c.dom.Document` if you want to process the XML model or even an `java.io.InputStream` or `java.lang.String` to get a raw representation.
 
 *FeedReceiver.java*
-[source, java]
+[source, java, linenums]
 ----
 public void processFeed(@Payload SyndFeed feed) throws Exception
 {
@@ -76,7 +76,7 @@ public void processFeed(@Payload SyndFeed feed) throws Exception
 
 The `rss:endpoint` elements are a shortcut for creating a polling http endpoint and splitting a feed. If you are using another non-polling HTTP endpoint in your configuration, configure a HTTP polling endpoint as well, and reference it on your Atom endpoint.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:connector name="HttpConnector"/>
 
@@ -94,7 +94,7 @@ You can process feeds and process them using other Mule connectors such as JMS, 
 
 === Over JMS
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="feedSplitterConsumer">
     <jms:inbound-endpoint queue="feed.in">
@@ -107,7 +107,7 @@ You can process feeds and process them using other Mule connectors such as JMS, 
 
 === Over a File
 
-[source, xml]
+[source, xml, linenums]
 ----
 <flow name="feedSplitterConsumer">
     <file:inbound-endpoint  path="${mule.working.dir}" pollingFrequency="1000" >
@@ -123,7 +123,7 @@ You can process feeds and process them using other Mule connectors such as JMS, 
 
 For reference the follow example shows the explicit configuration for reading an Atom feed without using the `rss:endpoint`.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:polling-connector name="PollingHttpConnector" pollingFrequency="1000" discardEmptyContent="false"/>
 

@@ -92,7 +92,7 @@ Mule configuration files are now based on an XML schema instead of DTDs. Therefo
 
 *Mule 1.4*
 
-[source,xml,linenums]
+[source,
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 
@@ -106,7 +106,7 @@ Mule configuration files are now based on an XML schema instead of DTDs. Therefo
 
 *Mule 2.0*
 
-[source,xml,linenums]
+[source,
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesource.org/schema/mule/core/2.0"
@@ -132,7 +132,7 @@ You now set the queue profile on the model and set the pooling profile directly 
 
 In 2.0, some system properties are immutable after startup, such as the serverId. The serverId can no longer be set in the XML configuration. Instead, you have to specify it by using the `-M-Dmule.serverId=YOUR_MULE_SERVER_ID` system property or set it programatically in a parent application by calling `org.mule.config.DefaultMuleConfiguration.setId()` before starting the Mule context. For example:
 
-[source,java,linenums]
+[source,
 ----
 MuleContext muleContext = new
 DefaultMuleContextFactory().createMuleContext();
@@ -145,7 +145,7 @@ muleContext.start();
 In 1.x, you started the Admin Agent by specifying a value for the `serverUrl` attribute in the `<mule-environment-properties>` element. In 2.x, you use the `<remote-dispatcher-agent>` element instead (see http://www.mulesoft.org/docs/site/current/apidocs/org/mule/module/client/remoting/RemoteDispatcherAgent.html[org.mule.module.client.remoting.RemoteDispatcherAgent]).
 
 For example:
-[source,xml,linenums]
+[source,
 ----
 <client:remote-dispatcher-agent>
     <client:remote-endpoint address="tcp://localhost:60504" synchronous="true" />
@@ -157,7 +157,7 @@ For example:
 Just as with Mule 1.x, connectors are configured as top-level elements in the Mule configuration, but they now use transport-specific schemas. The connector elements have changed accordingly as shown below:
 
 *Mule 1.4*
-[source,xml,linenums]
+[source,
 ----
 <connector className="org.mule.providers.vm.VMConnector"/>
 <connector className="org.mule.providers.jms.JmsConnector"/>
@@ -165,7 +165,7 @@ Just as with Mule 1.x, connectors are configured as top-level elements in the Mu
 
 
 *Mule 2.0*
-[source,xml,linenums]
+[source,
 ----
 <vm:connector/>
 <jms:connector/>
@@ -176,7 +176,7 @@ The new approach provides a huge advantage in that each transport now defines it
 Following is another example illustrating a stdio connector taken from the echo example:
 
 *Mule 1.4*
-[source,xml,linenums]
+[source,
 ----
 <connector name="SystemStreamConnector" className="org.mule.providers.stream.SystemStreamConnector">
     <properties>
@@ -187,7 +187,7 @@ Following is another example illustrating a stdio connector taken from the echo 
 ----
 
 *Mule 2.0*
-[source,xml,linenums]
+[source,
 ----
 <stdio:connector name="SystemStreamConnector"
                  promptMessage="Please enter something: "
@@ -220,12 +220,12 @@ You now specify endpoint types explicitly (inbound, outbound, or response). This
 Endpoint configuration has been improved to avoid untyped properties. Some of these properties are cross-transport attributes or elements, whereas others are defined by transport-specific endpoint definitions.
 
 *Mule 1.4*
-[source,xml,linenums]
+[source,
 ----
 <endpoint address="pop3://bob:secret@localhost:62002" transformers="BytesToMime"/>
 ----
 *Mule 2.0*
-[source,xml,linenums]
+[source,
 ----
 <pop3:inbound-endpoint user="bob" password="secret" host="localhost" port="62002">
     <email:bytes-to-mime-transformer/>
@@ -236,7 +236,7 @@ Endpoint configuration has been improved to avoid untyped properties. Some of th
 Services and components are now configured differently. Following are the two versions of the Mule Hello example:
 
 *Mule 1.4*
-[source,xml,linenums]
+[source,
 ----
 <mule-descriptor name="ChitChatUMO" implementation="org.mule.samples.hello.ChitChatter">
     <inbound-router>
@@ -250,7 +250,7 @@ Services and components are now configured differently. Following are the two ve
 </mule-descriptor>
 ----
 *Mule 2.0*
-[source,xml,linenums]
+[source,
 ----
 <service name="ChitChatUMO">
     <inbound>
@@ -278,14 +278,14 @@ A component is abstract, allowing multiple implementation types. By default, Mul
 The <component> and <pooled-component> elements are configured in exactly the same way, except that the <pooled-component> has an additional optional <pooling-profile> child element that can be use to customize the pool behavior. These elements can either use the "class" attribute or define an object-factory as a child element. If you use the "class" attribute, the prototype object factory will be used by default. You can configure components with singleton, prototype, and Spring object factories.
 
 *Minimal Configuration:*
-[source,xml,linenums]
+[source,
 ----
 <component class="org.your.PrototypeComponent"/>
 ..
 <pooled-component class="org.your.PooledPrototypeComponent"/>
 ----
 *Complete Configuration Example:*
-[source,xml,linenums]
+[source,
 ----
 <spring:bean name="myPooledSpringBeanComponent" class="org.your.PooledSpringBeanComponent" />
 ..
@@ -306,7 +306,7 @@ The <component> and <pooled-component> elements are configured in exactly the sa
 Routers and filters also take advantage of the new schema-based configuration. Most are defined in Mule, but specific modules and transports can also contribute routers or filters by defining them in their own namespace.
 
 *Mule 1.4*
-[source,xml,linenums]
+[source,
 ----
 <router className="org.mule.routing.inbound.SelectiveConsumer"/>
 
@@ -315,7 +315,7 @@ Routers and filters also take advantage of the new schema-based configuration. M
 <router className="org.my.CustomRouter"/>
 ----
 *Mule 2.0*
-[source,xml,linenums]
+[source,
 ----
 <selective-consumer-router/>
 <filtering-router/>
@@ -323,7 +323,7 @@ Routers and filters also take advantage of the new schema-based configuration. M
 <custom-inbound-router class="org.my.CustomRouter"/>
 ----
 *Mule 1.4*
-[source,xml,linenums]
+[source,
 ----
 <global-endpoints>
   <endpoint name="CustomerResponses" address="vm://customer.responses"/>
@@ -335,7 +335,7 @@ Routers and filters also take advantage of the new schema-based configuration. M
 </router>
 ----
 *Mule 2.0*
-[source,xml,linenums]
+[source,
 ----
 <vm:endpoint name="CustomerResponses" path="customer.responses"/>
 ..
@@ -353,7 +353,7 @@ Transformers also take advantage of the new schema-based configuration. Modules 
 Transformers are now defined directly rather than by specifying class names.
 
 *Mule 1.4*
-[source,xml,linenums]
+[source,
 ----
 <transformer className="org.mule.transformers.simple.MessagePropertiesTransformer"/>
 <transformer className="org.mule.transformers.simple.ByteArrayToObject"/>
@@ -361,7 +361,7 @@ Transformers are now defined directly rather than by specifying class names.
 <transformer className="org.my.CustomTransformer"/>
 ----
 *Mule 2.0*
-[source,xml,linenums]
+[source,
 ----
 <message-properties-transformer/>
 <byte-array-to-object-transformer/>
@@ -373,12 +373,12 @@ Custom transformers can still be used with the "custom-transformer" element.
 Transformers can be referenced from endpoints using the "transformer-refs" attribute or can be declared inline.
 
 *Mule 1.4*
-[source,xml,linenums]
+[source,
 ----
 <global-endpoint name="CustomerRequestsREST" transformers="RestRequestToCustomerRequestTransformer"/>
 ----
 *Mule 2.0*
-[source,xml,linenums]
+[source,
 ----
 <inbound-endpoint ref="CustomerRequestsREST" transformer-refs="Transformer1 Transformer2"/>
 
@@ -395,7 +395,7 @@ Transformers can be referenced from endpoints using the "transformer-refs" attri
 Bridging configuration has been simplified in Mule 2.0. To implement a bridge service, you simply configure inbound and outbound routers. Bridging occurs implicitly.
 
 *Mule 1.4*
-[source,xml,linenums]
+[source,
 ----
 <mule-descriptor name="bridge" implementation="org.mule.components.simple.BridgeComponent">
     <inbound-router>
@@ -409,7 +409,7 @@ Bridging configuration has been simplified in Mule 2.0. To implement a bridge se
 </mule-descriptor>
 ----
 *Mule 2.0*
-[source,xml,linenums]
+[source,
 ----
 <service name="bridge">
    <inbound>
@@ -427,7 +427,7 @@ The "bridge-component" and "pass-through-component" can still be used for backwa
 === Exception Strategies
 
 Developers now have much finer control over transactions through configuration. Pattern matching filters can be used to match different types of exceptions. For example:
-[source,xml,linenums]
+[source,
 ----
 <model>
     <default-service-exception-strategy>
@@ -440,7 +440,7 @@ Developers now have much finer control over transactions through configuration. 
 This configuration tells Mule to keep any current transaction open until after we dispatch to the JMS DLQ (Dead Letter Queue), and then commit the current transaction.
 
 For certain transactions, you may want to roll back the transaction immediately. For example:
-[source,xml,linenums]
+[source,
 ----
 <model>
     <default-service-exception-strategy>

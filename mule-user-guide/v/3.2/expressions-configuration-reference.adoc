@@ -22,7 +22,7 @@ Mule expressions can appear at many places in a Mule configuration. In general, 
 
 Here’s an example of 1:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <choice>
   <when expression="totalValue < 1000" evaluator="ognl">
@@ -55,7 +55,7 @@ Note the syntax used when Mule expressions are specified as a single string:
 
 When multiple expressions appear in the string, each one uses this syntax separately, for instance:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <jms:outbound-endpoint
          path="#[variable:queueNamePrefix]Orders#[variable:queueNameSuffix]" />
@@ -88,7 +88,7 @@ They differ in
 * Where they can be used
 ** Because they are automatically evaluated when processing the Mule configuration, Spring property placeholders can be used almost anywhere in the configuration. For instance, it’s entirely legal to use a property placeholder to configure either an inbound or an outbound endpoint:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <http:inbound-endpoint name="receiveUserRequest"
               host="localhost"
@@ -111,7 +111,7 @@ If a message will be sent to different locations depending on its contents, use 
 
 ==== Routing based on message content
 
-[source, xml]
+[source, xml, linenums]
 ----
 <choice>
    <when expression=’payload.state.code = "DC" evaluator="bean">
@@ -134,7 +134,7 @@ There are a number of evaluators that can be used for message content. In genera
 
 ==== Logging message content
 
-[source, xml]
+[source, xml, linenums]
 ----
 <logger message="message #payload:java.lang.String] received from #[function:hostname] (#function:ip])"/>
 ----
@@ -149,7 +149,7 @@ The expression transformer executes one or more expressions on the current messa
 
 For example, imagine you have a service component with a message signature that accepts three arguments:
 
-[source, java]
+[source, java, linenums]
 ----
 public class ShippingService
 {
@@ -162,7 +162,7 @@ public class ShippingService
 
 And the message being passed to you component looks like this:
 
-[source, java]
+[source, java, linenums]
 ----
 public interface ShippingRequestMessage
 {
@@ -174,7 +174,7 @@ public interface ShippingRequestMessage
 
 The `<expression-transformer>` can be used to extract the fields from the `ShippingRequestMessage` to invoke the `ShippingService`. Note that we can only get two of the arguments from the `ShippingRequestMessage`: `Customer` and `Item[]`. The supporting documentation, which could be something like a Microsoft Word or Excel document, is an attachment to the `ShippingRequestMessage`. Attachments can be associated with any message within Mule.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-transformer>
     <return-argument evaluator="bean" expression="customer"/>
@@ -189,7 +189,7 @@ Here we execute three separate expressions to obtain the three arguments require
 
 The `<message-properties-transformer>` allows you to add, remove, or rename properties dynamically or statically on the current message. For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <message-properties-transformer>
     <add-message-property key="GUID" value="#[string:#[xpath:/msg/header/ID]-#[xpath:/msg/body/@ref]]"/>
@@ -202,14 +202,14 @@ The above expressions extract the `<ID>` element value and the `ref` attribute o
 
 Expression filters can be used in content-based routing to assert statements on the current message and route the message accordingly. Expression filters work in the same way as other types of Mule filters and have the same expression attributes as listed above. The expression on the filter must evaluate to true or false. For example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <expression-filter evaluator="header" expression="my-header!=null"/>
 ----
 
 As usual, you can use AND, OR, and NOT filters to combine expressions.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <and-filter>
     <expression-filter evaluator="header" expression="origin-country=USA"/>
@@ -270,14 +270,14 @@ As described above, there are two basic ways to specify a Mule expression:
 
 In this case, no special meta-syntax is used: rather, the evaluator name and expression value are given as simple text. There are two cases here. When using a built-in evaluator, this looks like
 
-[source, xml]
+[source, xml, linenums]
 ----
 <when expression="com.mycompany.NewOrder" evaluator="payload-type">
 ----
 
 When using a custom (i.e. user-written evaluator), this looks like
 
-[source, xml]
+[source, xml, linenums]
 ----
 <when expression="com.mycompany.NewOrder" evaluator="custom" custom-evaluator="myCustomEvaluator">
 ----
@@ -357,7 +357,7 @@ The exception-type evaluator can only be used with the <expression-filter> filte
 
 Example
 
-[source, xml]
+[source, xml, linenums]
 ----
 <exception-filter evaluator="exception-type" expression="org.mule.api.MessagingException">
 ----
@@ -605,21 +605,21 @@ This evaluator can only be used with the expression filter. It returns the boole
 
 Example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <exception-filter evaluator="registry" expression="allowRepeatRequests">
 ----
 
 Accepts the message if the registry object allowRepeatRequests has the boolean value true.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <exception-filter evaluator="registry" expression="allowRepeatRequests*" nullReturnsTrue="true">
 ----
 
 Accepts the message if the registry object allowRepeatRequests has the boolean value true or does not exist.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <exception-filter evaluator="registry" expression="allowRequests.repeat">
 ----
@@ -651,7 +651,7 @@ This returns true or false depending on whether the current message’s payload 
 
 Example:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <exception-filter evaluator="wildcard" expression="a*z">
 ----
@@ -695,7 +695,7 @@ The evaluator is referenced in one of two ways:
 
 Here is a simple example, an evaluator which returns the current message’s payload converted to a string with the specified encoding. First, the evaluator class:
 
-[source, java]
+[source, java, linenums]
 ----
 package com.mycompany;
 import org.mule.api.MuleMessage;
@@ -752,7 +752,7 @@ Both have syntax very similar to that of the corresponding evaluators, but have 
 
 Examples
 
-[source, xml]
+[source, xml, linenums]
 ----
 <enricher source="#[string:active]" target="#[variable:state]">
     <outbound-endpoint ref="stateLookup"/>
@@ -761,7 +761,7 @@ Examples
 
 This sets the value of the flow variable “state” to “active”.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <enricher source="#[bean:id]" target="#[header:OUTBOUND:customerId]">
     <outbound-endpoint ref="stateLookup"/>
