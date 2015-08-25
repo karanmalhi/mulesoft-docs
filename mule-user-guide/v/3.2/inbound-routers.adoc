@@ -2,7 +2,7 @@
 
 == Overview
 
-Inbound routers control and manipulate messages received by a service before passing them to the service component. Typically, an inbound router is used to filter incoming messages, aggregate a set of incoming messages, or re-sequence messages when they are received. Inbound routers are also used to register multiple inbound endpoints for a service. You can chain inbound routers together, so that each router must be matched before the message can be passed to the component. You can also configure a link:/documentation-3.2/display/32X/Catch-all+Strategies[catch-all strategy] that is invoked if none of the routers accept the current message.
+Inbound routers control and manipulate messages received by a service before passing them to the service component. Typically, an inbound router is used to filter incoming messages, aggregate a set of incoming messages, or re-sequence messages when they are received. Inbound routers are also used to register multiple inbound endpoints for a service. You can chain inbound routers together, so that each router must be matched before the message can be passed to the component. You can also configure a link:/mule-user-guide/v/3.2/catch-all-strategies[catch-all strategy] that is invoked if none of the routers accept the current message.
 
 Inbound routers are different from outbound routers in that the endpoint is already known (as the message has already been received), so the purpose of the router is to control how messages are given to the component.
 
@@ -24,7 +24,7 @@ This behavior is new as of Mule 2.0. Previously, the message was processed only 
 
 This example uses a selective consumer router that will accept a message if a 'resultcode' element has a value of 'success'. If the message matches this filter's criteria, the message is passed to the component. If the message does not match, the catch-all strategy is invoked, which sends the message via its configured endpoint, in this case a JMS queue called 'failure.queue'.
 
-The rest of this page describes the inbound routers you can use. For more detailed information on inbound router configuration elements and attributes, see the link:/documentation-3.2/display/32X/Inbound+Router+Configuration+Reference[Inbound Router Configuration Reference].
+The rest of this page describes the inbound routers you can use. For more detailed information on inbound router configuration elements and attributes, see the link:/mule-user-guide/v/3.2/inbound-router-configuration-reference[Inbound Router Configuration Reference].
 
 == No Router
 
@@ -46,7 +46,7 @@ Configuration for this router is as follows:
 <inbound>  <vm:inbound-endpoint path="foo.bar.local"/>  <selective-consumer-router>    <mulexml:jxpath-filter expression="msg/header/resultcode = 'success'"/>  </selective-consumer-router>  <forwarding-catch-all-strategy>    <jms:endpoint topic="error.topic"/>  </forwarding-catch-all-strategy></inbound>
 ----
 
-For information on using filters with this router, see link:/documentation-3.2/display/32X/Using+Filters[Using Filters]. Note that by default the filter is applied to the message after the inbound transformers are applied. If you need to execute filters on the message without applying any transformation, you can set the `transformFirst` property on this router to control whether transformations are applied.
+For information on using filters with this router, see link:/mule-user-guide/v/3.2/using-filters[Using Filters]. Note that by default the filter is applied to the message after the inbound transformers are applied. If you need to execute filters on the message without applying any transformation, you can set the `transformFirst` property on this router to control whether transformations are applied.
 
 [source, xml, linenums]
 ----
@@ -100,7 +100,7 @@ The aggregator is based on the <<Selective Consumer>>, so you can also apply fil
 
 == Message Chunking Aggregator
 
-After an outbound router such as the link:/documentation-3.2/display/32X/Outbound+Routers#OutboundRouters-ListMessageSplitter[List Message Splitter] splits a message into parts, the message chunking aggregator router reassembles those parts back into a single message. The aggregator uses the correlation ID, which is set by the outbound router, to identify which parts belong to the same message. This aggregator is based on the <<Selective Consumer>>, so filters can also be applied to messages.
+After an outbound router such as the link:/mule-user-guide/v/3.2/outbound-routers[List Message Splitter] splits a message into parts, the message chunking aggregator router reassembles those parts back into a single message. The aggregator uses the correlation ID, which is set by the outbound router, to identify which parts belong to the same message. This aggregator is based on the <<Selective Consumer>>, so filters can also be applied to messages.
 
 Configuration for this router is as follows:
 
@@ -187,7 +187,7 @@ The WireTap router is useful both with and without filtering. If filtered, it ca
 
 In the previous example, the StdComp service receives messages from the In endpoint, and the router passes the message to the component and copies it to the vm://ToTapper endpoint. The WireTapper component listens on this channel and forwards the message, after processing, to the FromTapper endpoint.
 
-The WireTap router is based on the MULE3USER:Selective Consumer router, so it can take any link:/documentation-3.2/display/32X/Using+Filters[filters] supported by `SelectiveConsumer`. In this example, only messages that match the filter expression are copied to the vm://ToTapper endpoint.
+The WireTap router is based on the MULE3USER:Selective Consumer router, so it can take any link:/mule-user-guide/v/3.2/using-filters[filters] supported by `SelectiveConsumer`. In this example, only messages that match the filter expression are copied to the vm://ToTapper endpoint.
 
 [source, xml, linenums]
 ----
@@ -222,7 +222,7 @@ When this message is wire-tapped to the receiving component, Mule might fail wit
 
 The WireTap router supports the following additional features:
 
-* Transactions are supported, so the forwarding of messages can either start or join a transaction provided that the endpoint link:/documentation-3.2/display/32X/Transaction+Management[supports transactions].
+* Transactions are supported, so the forwarding of messages can either start or join a transaction provided that the endpoint link:/mule-user-guide/v/3.2/transaction-management[supports transactions].
 * Reply-To can be used to route replies from this endpoint.
 
 == Custom Inbound Router

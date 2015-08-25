@@ -15,14 +15,14 @@ To create a custom policy, construct and upload these files:
 * *Policy Template* - http://en.wikipedia.org/wiki/YAML[YAML] file that describes the policy and its configurable parameters
 * *Policy Configuration* - XML file with the backend processes that implement the policy
 
-This tutorial helps you learn how to load the new policy into your organization's Anypoint Platform account and how to apply it to your APIs, both when you deploy the policy directly in the Anypoint Platform, and if you deploy the policy to the link:/docs/display/current/Walkthrough+Deploy+to+Gateway[API Gateway] on premises.
+This tutorial helps you learn how to load the new policy into your organization's Anypoint Platform account and how to apply it to your APIs, both when you deploy the policy directly in the Anypoint Platform, and if you deploy the policy to the link:/anypoint-platform-for-apis/walkthrough-deploy-to-gateway[API Gateway] on premises.
 
-link:/docs/display/current/Creating+a+Policy+Walkthrough[*Skip to Code*] link:/docs/display/current/Creating+a+Policy+Walkthrough[
+link:/anypoint-platform-for-apis/creating-a-policy-walkthrough[*Skip to Code*] link:/docs/display/current/Creating+a+Policy+Walkthrough[
 ]
 
 == Prerequisites
 
-This document assumes that you are creating a policy for an API that you previously deployed to the Anypoint Platform for APIs, or deployed on premises through the API Gateway. For examples and deployable files you can use, see link:/docs/display/current/Anypoint+Platform+for+APIs+Walkthrough[Anypoint Platform for APIs Walkthrough].
+This document assumes that you are creating a policy for an API that you previously deployed to the Anypoint Platform for APIs, or deployed on premises through the API Gateway. For examples and deployable files you can use, see link:/anypoint-platform-for-apis/anypoint-platform-for-apis-walkthrough[Anypoint Platform for APIs Walkthrough].
 
 This document also assumes you have some basic familiarity with the XML syntax of Mule elements that you can add to Mule flows to construct applications, as there's no visual editor for constructing these policies.
 
@@ -183,11 +183,11 @@ The following illustration shows how these properties map to the elements that a
 image:policy+yaml+mapping2.png[policy+yaml+mapping2]
 
 [TIP]
-For a more in-depth reference to what can be set up in a Policy Template YAML file, see link:/docs/display/current/Applying+Custom+Policies[Applying Custom Policies].
+For a more in-depth reference to what can be set up in a Policy Template YAML file, see link:/anypoint-platform-for-apis/applying-custom-policies[Applying Custom Policies].
 
 == Policy Configuration - XML File
 
-The Policy Configuration is an XML file that implements the actual execution of the policy. The configuration achieves this by leveraging the link:/docs/display/current/Elements+in+a+Mule+Flow[elements] available when creating a link:/docs/display/current/Mule+Fundamentals[Mule ESB] application. All of the elements usable in Mule ESB can be used in a custom policy.
+The Policy Configuration is an XML file that implements the actual execution of the policy. The configuration achieves this by leveraging the link:/mule-fundamentals/v/3.7/elements-in-a-mule-flow[elements] available when creating a link:/mule-fundamentals/v/3.7[Mule ESB] application. All of the elements usable in Mule ESB can be used in a custom policy.
 
 === Policy Scaffold Structure
 
@@ -277,13 +277,13 @@ When you want to apply your policy to a single API at a time, which is the case 
 Here we're referencing two parameters that all policies have by default: `apiName` and `apiVersionName`. When the API deploys, the actual name and API version replace these parameters. In custom policy configuration files, all parameters are wrapped in two \{\{curly brackets}}. As you'll see below, you can also use these to refer to the configurable parameters that you created in the YAML file.
 
 [TIP]
-If you want to apply your policy to apply to multiple APIs simultaneously when deploying them on premises, you can set the expression to something more general. See link:/docs/display/current/Applying+Custom+Policies[Applying Custom Policies] for a reference on advanced use of `pointcut`.
+If you want to apply your policy to apply to multiple APIs simultaneously when deploying them on premises, you can set the expression to something more general. See link:/anypoint-platform-for-apis/applying-custom-policies[Applying Custom Policies] for a reference on advanced use of `pointcut`.
 
 === Using a before Section
 
 This policy only needs to have a `before` section, the `after` section is not needed in this case as what the API returns doesn't need to be processed in any way.  Every policy must always have at least one of the two.
 
-All we need to do in this case is filter the incoming request, so add a link:/docs/display/current/Filters+Configuration+Reference[message filter], which is a standard Mule element.
+All we need to do in this case is filter the incoming request, so add a link:/mule-user-guide/v/3.6/filters-configuration-reference[message filter], which is a standard Mule element.
 
 [source,xml,linenums]
 ----
@@ -309,7 +309,7 @@ This policy doesn't need an `after` section, all of the processing is carried o
 
 === Filter Reference
 
-The filter element in the `before` section references an element named `Expression`. Notice that this filter element has a `name` property that matches that value, this is the referenced element. Its `expression` parameter contains a long expression written in link:/docs/display/current/Mule+Expression+Language+MEL[MEL] that specifies both the filtering conditions and the targeted element to filter. As we defined both these things as configurable parameters in our YAML file, they are both expressed as parameters, wrapped in \{\{curly brackets}}.
+The filter element in the `before` section references an element named `Expression`. Notice that this filter element has a `name` property that matches that value, this is the referenced element. Its `expression` parameter contains a long expression written in link:/mule-user-guide/v/3.7/mule-expression-language-mel[MEL] that specifies both the filtering conditions and the targeted element to filter. As we defined both these things as configurable parameters in our YAML file, they are both expressed as parameters, wrapped in \{\{curly brackets}}.
 
 * `{{regexFilter`}} is used as the filtering condition
 * `{{queryParamm`}} is used to construct expression that references the desired query parameter
@@ -507,11 +507,11 @@ Once again, notice that everything in this menu is based on what you defined in 
 
 With this configuration, your proxy expects all calls to your APIs to contain a query parameter named "search" that has a single lowercase letter as its value. +
 
-If you're link:/docs/display/current/Deploying+Your+API+or+Proxy[deploying your proxy] on premise on the API Gateway using a .zip file that you downloaded from the Anypoint Platform, then the new policy applies on-premise automatically as well. Even if your proxy was already deployed on-premise before creating the policy, there's no need to re-download or re-deploy anything. The new policy automatically downloads to the `/policies` folder, in the location where your API Gateway is installed, and it starts applying in a matter of seconds. Keep in mind that for this to work your link:/docs/display/current/Configuring+an+API+Gateway[API Gateway's settings] must be well configured, referencing your organization's Client ID and Token in the `wrapper.conf` file.
+If you're link:/anypoint-platform-for-apis/deploying-your-api-or-proxy[deploying your proxy] on premise on the API Gateway using a .zip file that you downloaded from the Anypoint Platform, then the new policy applies on-premise automatically as well. Even if your proxy was already deployed on-premise before creating the policy, there's no need to re-download or re-deploy anything. The new policy automatically downloads to the `/policies` folder, in the location where your API Gateway is installed, and it starts applying in a matter of seconds. Keep in mind that for this to work your link:/anypoint-platform-for-apis/configuring-an-api-gateway[API Gateway's settings] must be well configured, referencing your organization's Client ID and Token in the `wrapper.conf` file.
 
 == See Also
 
-* Read link:/docs/display/current/Elements+in+a+Mule+Flow[Elements in a Mule Flow] to learn about the elements you can use to construct a policy XML file.
-* Reference link:/docs/display/current/Mule+User+Guide[Mule User Guide] for a detailed reference and description of each element that can be used when building policy XML files.
-* Learn how to link:/docs/display/current/Walkthrough+Deploy+to+Gateway[deploy apps] both on premises or directly through the Anypoint Platform.
-* For instructions on how to build an application or a proxy over which to apply your policies, see link:/docs/display/current/Anypoint+Platform+for+APIs+Walkthrough[Anypoint Platform for APIs Walkthrough].
+* Read link:/mule-fundamentals/v/3.7/elements-in-a-mule-flow[Elements in a Mule Flow] to learn about the elements you can use to construct a policy XML file.
+* Reference link:/mule-user-guide/v/3.6[Mule User Guide] for a detailed reference and description of each element that can be used when building policy XML files.
+* Learn how to link:/anypoint-platform-for-apis/walkthrough-deploy-to-gateway[deploy apps] both on premises or directly through the Anypoint Platform.
+* For instructions on how to build an application or a proxy over which to apply your policies, see link:/anypoint-platform-for-apis/anypoint-platform-for-apis-walkthrough[Anypoint Platform for APIs Walkthrough].

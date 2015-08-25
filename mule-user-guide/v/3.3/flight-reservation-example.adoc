@@ -1,0 +1,401 @@
+= Flight Reservation Example
+
+*_Version 3.3.1 only_*
+
+*_Enterprise Edition_*
+
+This example application simulates an online reservation system that allows users to search for the best flights available between two cities. The system processes requests and provides the flight numbers, seating information and price for each leg of a three-leg flight, computing the total price at the end.
+
+This Flight Reservation example application consists of two parts, each fully implemented in *Mule ESB*:
+
+. *Client-side Frontend Application* +
+ A client-side application which accepts end user requests from an AJAX-based graphical user interface (GUI). This application enables users to to select between one departure city and two possible destinations.
+. *Server-side Backend Application* +
+ A server-side application that processes end-user requests. The application orchestrates data operations and transfer between four link:/mule-user-guide/v/3.3/mule-application-architecture[flows]. It uses several of the new features added in Mule 3.3, including: +
+* link:/mule-user-guide/v/3.3/session-variable-transformer-reference[Session Variable Transformer]
+* Set Payload Transformer
+* Expression Component
+* link:/mule-user-guide/v/3.3/variable-transformer-reference[Set Variable Transformer]
+* link:/mule-user-guide/v/3.3/foreach[Foreach]
+* link:/mule-user-guide/v/3.3/choice-exception-strategy[Choice Exception Strategy]
+* link:/mule-user-guide/v/3.3/catch-exception-strategy[Catch Exception Strategy]
+* link:/mule-user-guide/v/3.3/mule-expression-language-mel[Mule Expression Language MEL]
+
+[NOTE]
+====
+*Where is the Client-side Code?*
+
+To examine the code of the client-side interface, access the file in the `src/main/app/docroot` folder in Mule.
+
+. In the *Package Explorer*, click to expand the `src` folder.
+. Click to expand folders to navigate to `main > app > docroot`.
+. Double-click the following files to open them in news canvas panes in Studio:
+* `flight-reservations.css`
+* `flight-reservations.js`
+* `index.html`
+====
+
+== Assumptions
+
+This document assumes that you are familiar with Mule ESB and the link:/mule-user-guide/v/3.3/mule-studio-essentials[Mule Studio interface]. To increase your familiarity with Studio, consider completing one or more link:/mule-user-guide/v/3.3/mule-studio[Mule Studio Tutorials].
+
+This document describes the details of the example within the context of *Mule Studio*, Mule ESB’s graphical user interface (GUI). Where appropriate, the XML configuration follows the Studio interface screenshot in an expandable section.
+
+== Set Up
+
+As with this Flight Reservation example, you can create template applications straight out of the box in *Mule Studio* or *Mule Standalone* (Mule ESB without Studio). You can tweak the configurations of these use case-based templates to create your own customized applications in Mule.
+
+Follow the procedure below to create, then run the Flight Reservation application in Mule ESB.
+
+. Complete the procedure in link:/mule-user-guide/v/3.3/mule-examples[Examples and Exercises] to create, then run the Flight Reservation template in Mule Studio, or the Flight Reservation example in Mule Standalone (Mule ESB without Studio).
+. Open your Web browser.
+. Browse to the URL `http://localhost:9092/reservation/`. The application displays its Web user interface (see below).
++
+image:Flight+Reservation+UI.png[Flight+Reservation+UI]
+
+The application includes three cities preloaded in the `Origin` and `Destination` combo boxes, and can output the following three results:
+
+. Error (if no city was selected in one or both combo boxes)
++
+image:Flight+Reservation+Invalid+Error.png[Flight+Reservation+Invalid+Error]
+
+. No flight available (Buenos Aires to Hong Kong)
++
+image:Flight+Resrvation+no+flights.png[Flight+Resrvation+no+flights]
+
+. Flight information for a three-leg flight (Buenos Aires to Moscow)
++
+image:Flight+Reservation+success.png[Flight+Reservation+success]
+
+When successful, the search results display a table with information for each flight segment and the total price for the flight (see image above).
+
+== How it works
+
+The Flight Reservation application consists of four flowsMule Application Architecture. Together, these flows process end-user requests, then return responses which contain flight information. +
+ +
+ image:partA-1.png[partA-1] +
+
+
+image:partB-1.png[partB-1] +
+
+*View the XML*
+
+[source, code, linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:json="http://www.mulesoft.org/schema/mule/json"
+      xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:core="http://www.mulesoft.org/schema/mule/core"
+      xmlns:ajax="http://www.mulesoft.org/schema/mule/ajax"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      version="EE-3.3.0" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/ajax http://www.mulesoft.org/schema/mule/ajax/current/mule-ajax.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+ 
+    <ajax:connector name="ajaxServer" serverUrl="http://0.0.0.0:9092/reservation" resourceBase="${app.home}/docroot" doc:name="Ajax"/>
+    <flow name="makeReservation" doc:name="makeReservation">
+        <ajax:inbound-endpoint channel="/searchFlights" responseTimeout="10000" connector-ref="ajaxServer" doc:name="Search Flights"/>
+        <object-to-string-transformer doc:name="Object to String"/>
+        <flow-ref name="processReservation" doc:name="processReservation"/>
+    </flow>
+    <flow name="processReservation" doc:name="processReservation">
+        <json:json-to-object-transformer returnClass="org.mule.example.ReservationRequest" doc:name="JSON to ReservationRequest"/>
+        <set-session-variable variableName="reservationRequest" value="#[payload]" doc:name="Save original request in Session"/>
+        <set-payload value="#[new org.mule.example.ReservationResponse()]" doc:name="Set ReservationResponse payload"/>
+        <expression-component doc:name="Add request flight to response">payload.setFlights(reservationRequest.flights)</expression-component>
+        <set-variable variableName="totalPrice" value="#[0]" doc:name="Initialize totalPrice"/>
+        <foreach collection="#[payload.flights]" doc:name="Foreach on flights">
+            <logger message="Before throw exception" level="ERROR" doc:name="Logger"/>
+            <scripting:transformer doc:name="Search flight availability">
+                <scripting:script engine="Groovy">
+                    <scripting:text><![CDATA[if (payload.flightNumber.endsWith('3'))
+   throw new org.mule.example.FlightUnavailableException()
+else
+   payload]]></scripting:text>
+                </scripting:script>
+            </scripting:transformer>
+            <vm:outbound-endpoint exchange-pattern="request-response" path="acquireSeatsInfoQueue" doc:name="Acquire Seats Info"/>
+            <vm:outbound-endpoint exchange-pattern="request-response" path="acquireFlightPrice" doc:name="Acquire Flight Price"/>
+            <set-variable variableName="totalPrice" value="#[totalPrice + payload.ticketPrice]" doc:name="Add price to totalPrice"/>
+        </foreach>
+        <expression-component doc:name="Add total price to reservation">payload.totalPrice = flowVars['totalPrice']</expression-component>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <choice-exception-strategy doc:name="Choice Exception Strategy">
+            <catch-exception-strategy when="#[exception.causedBy(org.mule.example.FlightUnavailableException)]" doc:name="Catch Exception Strategy">
+                <logger message="In Catch Exception" level="ERROR" doc:name="Logger"/>
+                <scripting:transformer doc:name="Add no availability error">
+                    <scripting:script engine="Groovy">
+                        <scripting:text><![CDATA[def payload = new org.mule.example.ReservationResponse()
+payload.addError('There is no availability for the selected flight')
+payload]]></scripting:text>
+                    </scripting:script>
+                </scripting:transformer>
+                <json:object-to-json-transformer doc:name="Object to JSON"/>
+            </catch-exception-strategy>
+            <catch-exception-strategy doc:name="Catch Exception Strategy">
+                <scripting:transformer doc:name="Add exception message">
+                    <scripting:script engine="Groovy">
+                        <scripting:text><![CDATA[def payload = new org.mule.example.ReservationResponse()
+payload.addError("Error processing request")
+payload]]></scripting:text>
+                    </scripting:script>
+                </scripting:transformer>
+                <set-property propertyName="http.status" value="500" doc:name="Set http status 500"/>
+                <json:object-to-json-transformer doc:name="Object to JSON"/>
+            </catch-exception-strategy>
+        </choice-exception-strategy>
+    </flow>
+    <flow name="acquireSeatsInfo" doc:name="acquireSeatsInfo">
+        <vm:inbound-endpoint exchange-pattern="request-response" path="acquireSeatsInfoQueue" doc:name="acquireSeatsInfo"/>
+        <scripting:component doc:name="Aquire seats info service">
+            <scripting:script engine="Groovy">
+                <scripting:text><![CDATA[if (payload.flightNumber.endsWith('2'))
+   payload.seatInfo = '20A'
+else
+   throw new Exception()
+payload]]></scripting:text>
+            </scripting:script>
+        </scripting:component>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <expression-component doc:name="Add no seat info avaiable message">payload.seatInfo = 'No seat info available'</expression-component>
+        </catch-exception-strategy>
+    </flow>
+    <flow name="acquireFlightPrice" doc:name="acquireFlightPrice">
+        <vm:inbound-endpoint exchange-pattern="request-response" path="acquireFlightPrice" doc:name="acquireFlightPrice"/>
+        <expression-component doc:name="acquireFlightPrice">payload.ticketPrice = Integer.valueOf(payload.flightNumber) * 2</expression-component>
+    </flow>
+</mule>
+----
+
+The sections below offer flow-by-flow descriptions of the Flight Reservation system's actions as it processes end-user requests.
+
+[TIP]
+====
+*For Mule Studio Users*
+
+In Mule Studio, double-click a link:/mule-user-guide/v/3.3/studio-building-blocks[building block] to open its *Properties Panel*, then examine its configuration details. Alternatively, click the *Configuration XML* tab to examine the application's XML configuration file.
+
+image:config_tab.png[config_tab]
+====
+
+=== MakeReservation flow
+
+This first flow in the application receives incoming requests and forwards them to the next flow, the *processReservation* flow.
+
+image:MakeReservation+Flow.png[MakeReservation+Flow]
+
+*View the XML*
+
+[source, code, linenums]
+----
+<ajax:connector name="ajaxServer" serverUrl="http://0.0.0.0:9092/reservation" resourceBase="${app.home}/docroot" doc:name="Ajax"/>
+ 
+<flow name="makeReservation" doc:name="makeReservation">
+    <ajax:inbound-endpoint channel="/searchFlights" responseTimeout="10000" connector-ref="ajaxServer" doc:name="Search Flights"/>
+    <object-to-string-transformer doc:name="Object to String"/>
+    <flow-ref name="processReservation" doc:name="processReservation"/>
+</flow>
+----
+
+The first building block in the flow is an link:/mule-user-guide/v/3.3/ajax-endpoint-reference[AJAX Inbound Endpoint] configured to listen for incoming requests. The endpoint references the configuration values set in an AJAX link:/mule-user-guide/v/3.3/understand-global-mule-elements[Global Element], which defines the parameters for the listening endpoint.
+
+*What is an AJAX Global Element?*
+
+[TIP]
+====
+AJAX link:/mule-user-guide/v/3.3/studio-building-blocks[building block] must reference an AJAX link:/mule-user-guide/v/3.3/understand-global-mule-elements[Global Element]. The global element contains the basic configuration for the AJAX endpoint, such as server URL and document resource base. Complete the following procedure to see the AJAX global endpoint's configuration in Studio.
+
+. Click the *Global Elements* tab to the right of the *Message Flow* tab.
++
+image:global.elements.tab.png[global.elements.tab]
+
+. Click the `ajaxServer` row in the *Global Configuration Elements* view, then click *Edit*.
++
+image:global.element-edit.png[global.element-edit]
+
+. Studio displays the *Global Element Properties* window for the AJAX Global Element.
++
+image:global.element-props.png[global.element-props]
+====
+
+The AJAX Endpoint forwards the data to the next building block, an *Object to String* transformer which converts the data to a readable text string. Then, a link:/mule-user-guide/v/3.3/flow-ref-component-reference[Flow Reference Component] forwards the data to the the *ProcessReservation* flow. This second flow contains the application's main logic.
+
+=== ProcessReservation Flow
+
+image:processflow1.png[processflow1]
+
+image:processflow2.png[processflow2]
+
+*View the XML*
+
+[source, code, linenums]
+----
+<json:json-to-object-transformer returnClass="org.mule.example.ReservationRequest" doc:name="JSON to ReservationRequest"/>
+<set-session-variable variableName="reservationRequest" value="#[payload]" doc:name="Save original request in Session"/>
+<set-payload value="#[new org.mule.example.ReservationResponse()]" doc:name="Set ReservationResponse payload"/>
+<expression-component doc:name="Add request flight to response">payload.setFlights(reservationRequest.flights)</expression-component>
+<set-variable variableName="totalPrice" value="#[0]" doc:name="Initialize totalPrice"/>
+----
+
+This flow receives requests in JSON format from the frontend Web application. The *ProcessReservation* flow must, therefore, transform the JSON object into a Java object that the rest of the application can use. To do so, this flow uses a *JSON to Object Transformer*.
+
+The second building block in the flow, the link:/mule-user-guide/v/3.3/session-variable-transformer-reference[Session Variable Transformer], stores the original request as a variable. Unlike a flow variable which remains active in one specific flow, a session variable remains active and available for the whole application. In this example, the session variable is called `reservationRequest`.
+
+Then, the *Set Payload Transformer* creates a response, called `ReservationResponse`, which Mule populates with information from the `reservationRequest` session variable. To populate `reservationResponse`, Mule uses an *Expression Component*.
+
+Next, the link:/mule-user-guide/v/3.3/variable-transformer-reference[Variable Transformer] sets a an empty `totalPrice` variable on the message. Unlike variables set with the session variable transformer, this variable is only valid in the current flow.
+
+==== Foreach
+
+The link:/mule-user-guide/v/3.3/foreach[Foreach] scope splits the collection into elements, then iteratively processes them through the message processors defined within the scope. Mule extracts the collection from `#[payload.flights]`, which holds the flight segments' information (see image below).
+
+image:foreach.png[foreach]
+
+*View the XML*
+
+[source, code, linenums]
+----
+<foreach collection="#[payload.flights]" doc:name="Foreach on flights">
+            <logger message="Before throw exception" level="ERROR" doc:name="Logger"/>
+            <scripting:transformer doc:name="Search flight availability">
+                <scripting:script engine="Groovy">
+                    <scripting:text><![CDATA[if (payload.flightNumber.endsWith('3'))
+   throw new org.mule.example.FlightUnavailableException()
+else
+   payload]]></scripting:text>
+                </scripting:script>
+            </scripting:transformer>
+            <vm:outbound-endpoint exchange-pattern="request-response" path="acquireSeatsInfoQueue" doc:name="Acquire Seats Info"/>
+            <vm:outbound-endpoint exchange-pattern="request-response" path="acquireFlightPrice" doc:name="Acquire Flight Price"/>
+            <set-variable variableName="totalPrice" value="#[totalPrice + payload.ticketPrice]" doc:name="Add price to totalPrice"/>
+        </foreach>
+----
+
+The *Groovy Transformer* in the Foreach scope, `Search flight availability`, invokes a Groovy script that checks availability for the flight segment. For this example, the script simply throws a `FlightUnavailableException` if the flight number ends with `3`.
+
+If there is availability for the flight segment, the Groovy transformer sends the payload to the next building block, `Acquire Seats Info`. This is an link:/mule-user-guide/v/3.3/vm-transport-reference[In Memory (VM) Outbound Endpoint] that invokes the <<AcquireSeatsInfo Flow>> (visible near the bottom of the Studio canvas). The *AcquireSeatsInfo* flow returns a seat number or a message that reads, `No seat info available`.
+
+*How does this flow invoke another?*
+
+[TIP]
+====
+The link:/mule-user-guide/v/3.3/vm-transport-reference[In Memory (VM) transport] allows Mule applications to use intra-Java Virtual Machine communications between Mule flows.
+
+In this case, the `Acquire Seats Info` building block is an outbound endpoint, configured as a request-response transport, that calls a memory queue named `acquireSeatsInfoQueue`.
+
+This queue is defined in the first building block of the *acquireSeatsInfo* flow, which is also an In Memory transport (an inbound endpoint in this case).
+====
+
+Next, the `Acquire Flight Price` building block invokes the *acquireFlightPrice* flow, which returns the price of the flight.
+
+The final building block in the Foreach scope is a **link:/mule-user-guide/v/3.3/variable-transformer-reference[Variable Transformer]** that sets the value for the flight segment to the price for the entire flight in the `totalPrice` variable. (Mule set the an empty `totalPrice` variable on the message just prior to its entering the Foreach scope.)
+
+After the Foreach scope, an link:/mule-user-guide/v/3.3/expression-transformer-reference[*Expression Transformer*] adds the final price to the response. Finally, Mule converts the response back to JSON for receipt by the client-side Web browser interface.
+
+==== Error Handling With a Choice Exception Strategy
+
+To handle errors within the *ProcessReservation* flow, Mule uses a **link:/mule-user-guide/v/3.3/choice-exception-strategy[Choice Exception Strategy]**. This exception strategy routes messages according to the cause of each exception.
+
+image:choice_ES.png[choice_ES]
+
+*View the XML*
+
+[source, code, linenums]
+----
+<choice-exception-strategy doc:name="Choice Exception Strategy">
+    <catch-exception-strategy when="#[exception.causedBy(org.mule.example.FlightUnavailableException)]" doc:name="Catch Exception Strategy">
+        <scripting:transformer doc:name="Add no availability error">
+            <scripting:script engine="Groovy">
+                <scripting:text><![CDATA[def payload = new org.mule.example.ReservationResponse()
+payload.addError('There is no availability for the selected flight')
+payload]]>      </scripting:text>
+            </scripting:script>
+        </scripting:transformer>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </catch-exception-strategy>
+    <catch-exception-strategy doc:name="Catch Exception Strategy">
+        <scripting:transformer doc:name="Add exception message">
+             <scripting:script engine="Groovy">
+                 <scripting:text><![CDATA[def payload = new org.mule.example.ReservationResponse()
+payload.addError("Error processing request")
+payload]]>
+                 </scripting:text>
+             </scripting:script>
+         </scripting:transformer>
+         <set-property propertyName="http.status" value="500" doc:name="Set http status 500"/>
+         <json:object-to-json-transformer doc:name="Object to JSON"/>
+    </catch-exception-strategy>
+</choice-exception-strategy>
+----
+
+The first **link:/mule-user-guide/v/3.3/catch-exception-strategy[Catch Exception Strategy]** within the choice exception strategy uses an link:/mule-user-guide/v/3.3/mule-expression-language-mel[expression]  to handle all `FlightUnavailableException` exceptions (see image below). When this exception occurs, the catch exception strategy uses a Groovy transformer to generate an error message stating the lack of availability for the flight. +
+ +
+ image:catch_ES.png[catch_ES]
+
+The second catch exception strategy handles all other exceptions. Like the first catch exception strategy, it uses a Groovy transformer to generate an error message, in this case, `Error processing request.` Next, it uses a link:/mule-user-guide/v/3.3/property-transformer-reference[Property Transformer] to set the HTTP status code to `500: Internal Error`. Finally, it transforms the response to JSON data-format for the client-side Web browser.
+
+=== AcquireSeatsInfo Flow
+
+Invoked by the Foreach scope in the *ProcessReservation* flow, this flow provides a valid response for each request it receives. +
+ +
+ image:Acquire+seat+info+flow.png[Acquire+seat+info+flow]
+
+ [width="99",cols="99a",options="header"]
+ |===
+ ^|*View the XML*
+|
+[source, code, linenums]
+----
+<flow name="acquireSeatsInfo" doc:name="acquireSeatsInfo">
+    <vm:inbound-endpoint exchange-pattern="request-response" path="acquireSeatsInfoQueue" doc:name="acquireSeatsInfo"/>
+    <scripting:component doc:name="Aquire seats info service">
+        <scripting:script engine="Groovy">
+            <scripting:text><![CDATA[if (payload.flightNumber.endsWith('2'))
+   payload.seatInfo = '20A'
+else
+   throw new Exception()
+payload]]>
+            </scripting:text>
+        </scripting:script>
+    </scripting:component>
+    <catch-exception-strategy doc:name="Catch Exception Strategy">
+        <expression-component doc:name="Add no seat info available message">payload.seatInfo = 'No seat info available'</expression-component>
+    </catch-exception-strategy>
+</flow>
+----
+|===
+
+The first building block in the flow, `AcquireSeatsInfo`, is an **In Memory (VM) Inbound Endpoint**. The `Acquire Seats Info` building block in the Foreach scope in the *ProcessReservation* flow invokes this building block.
+
+The next building block, a **link:/mule-user-guide/v/3.3/groovy-component-reference[Groovy Component]**, generates a response that contains flight seat information. For the purposes of this example, it simply returns a seat number if the flight number ends with `2`; otherwise, it throws an exception.
+
+The catch exception strategy handles any exceptions that occur in this flow. It uses an *Expression Component* to add a message to the response that reads, `No seat info available`.
+
+=== AcquireFlightPrice flow
+
+Invoked by the `Acquire Flight Price` building block in the Foreach scope of the *ProcessReservation* flow, this flow provides a valid response for each request it receives.
+
+image:Acquire+price+info.png[Acquire+price+info]
+
+[width="99",cols="99a",options="header"]
+|===
+^|*View the XML*
+|
+[source, code, linenums]
+----
+<flow name="acquireFlightPrice" doc:name="acquireFlightPrice">
+    <vm:inbound-endpoint exchange-pattern="request-response" path="acquireFlightPrice" doc:name="acquireFlightPrice"/>
+    <expression-component doc:name="acquireFlightPrice">payload.ticketPrice = Integer.valueOf(payload.flightNumber) * 2</expression-component>
+</flow>
+----
+|===
+
+This flow sets the price for the flight. For the purposes of this example, it uses an Expression Component that simply multiplies the flight number by two, then returns this value to the *ProcessReservation* flow.

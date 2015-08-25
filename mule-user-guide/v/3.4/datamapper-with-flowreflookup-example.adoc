@@ -1,0 +1,449 @@
+= DataMapper with FlowRefLookup Example
+
+*_Enterprise, CloudHub_*
+
+This application uses pre-packaged tools to append data to a message payload and perceptively connect with Salesforce. The example takes a CSV file of new account information, figures out which region each account belongs to, appends region information to the payload, then uploads the new accounts to an active Salesforce user account. It uses *Mule DataSense* and *Anypoint* *DataMapper* to map and transform data, thereby facilitating quick integration with this Software as a Service (SaaS) provider.
+
+==== Connect with Salesforce
+
+image:csv_to_sfdc2.png[csv_to_sfdc2]At times, you may find that you need to connect one or more of your organization's on-premise systems with a SaaS such as Salesforce. Ideally, these independent systems would talk to each other and share data to enable automation of end-to-end business processes. Use Mule applications to facilitate communication between your on-prem system(s) and Salesforce. (Though this use case does not extend as far, you can also use Mule to facilitate communication between SaaS providers.) +
+
+
+
+==== DataMapper and FlowRefLookup
+
+image:flowrefLookup_icon.png[flowrefLookup_icon] +
+
+Beyond transforming and mapping data from one format to another, you can use an Anypoint DataMapper Transformer to access other flows in a Mule application to acquire additional information. Use a FlowRefLookup Table to acquire information outside the message, then append it to the payload. 
+
+== Assumptions
+
+This document assumes that you are familiar with Mule and the link:/docs/display/34X/Mule+Studio+Essentials[Mule Studio interface]. To increase your familiarity with Studio, consider completing one or more link:/mule-fundamentals/v/3.4/basic-studio-tutorial[Mule Studio Tutorials]. Further, this example assumes that you have a basic understanding of link:/mule-fundamentals/v/3.4/mule-concepts[Mule flows], link:/docs/display/34X/Understand+Global+Mule+Elements[Mule Global Elements], and Mule Studio's link:/mule-user-guide/v/3.4/datamapper-user-guide-and-reference[Anypoint DataMapper]. 
+
+This document describes the details of the example within the context of Mule Studio, Mule ESB’s graphical user interface, and includes configuration details for XML Editor where relevant. 
+
+== Example Use Case
+
+The use case upon which this example is based represents a reasonably common requirement to upload new account information into Salesforce. From a CSV file containing information about new accounts (company name, billing address, etc.), a user wishes to use the addresses of the companies to determine to which sales region they belong, then upload all the account details – including sales region – to Salesforce. This example application performs these actions using one Mule application.
+
+image:use_case_graphic3.png[use_case_graphic3]
+
+== Set Up and Run the Example
+
+Complete the following procedure to create, then run this example in your own instance of Mule Studio. Skip ahead to the <<How it Works>> if you prefer to simply examine this example via screenshots and code snippets.
+
+[WARNING]
+To witness end-to-end functionality, you must have an active Salesforce account into which you don't mind inserting a new custom field for "region" and two sample accounts. After this application automatically uploads these accounts, you can manually delete them, and the custom field, in your Salesforce account.
+
+=== Create a Custom Field in Salesforce
+
+. Log in to your Salesforce account, then navigate to the *Accounts* tab.
+. From the *_force_.com* tab (sliding tab at right), click *New* next to *View Fields*. +
+
++
+image:add_new_sfdc_field.png[add_new_sfdc_field] +
++
+
+. In Step 1 of the new field process, select *Text*, then click *Next* to continue.
+. In Step 2, enter values for your new field as per the table below, then click *Next* to continue.
++
+[cols=",",]
+|===
+|*Field Label* |Region
+|*Length* |50
+|*Field Name* |Region
+|===
+. In Step 3, check the *Account Layout* box, then click *Save*.
+. Your new field name appears followed by a double-underscore and a lowercase "c":  `Region_c`  This is the new field to which DataMapper will map the region data it acquires from another flow. +
+
++
+image:region_field2.png[region_field2]
+
+=== Create the Example Application
+
+. **link:/mule-user-guide/v/3.4/mule-examples[Create]** the example application in Mule Studio, using the *DataMapper with FlowRefLookup* template. _Do not run the application._
+. Log in to your Salesforce account. From your account menu (your account is labeled with your name), select *Setup*.
+. In the left navigation bar, under the *Personal Setup* heading, click to expand the *My Personal Information* folder. 
+. Click *Reset My Security Token*. Salesforce resets the token and emails you the new one.
+. Access the email that Salesforce sent and copy the new token onto your local clipboard.
+. In your SaaS Integration application in Mule Studio, click the *Global Elements* tab. 
+. Double-click the Salesforce global element to open its *Global Element Properties* panel. In the *Security Token* field, paste the new Salesforce token you copied from the email. Alternatively, configure the global element in the XML Editor.
++
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+image:global_initial1.png[global_initial1]
+[tab,title="Studio XML Editor"]
+....
+[tab,title="Studio XML"]
+....
+[source, code, linenums]
+----
+<sfdc:config name="Salesforce" username="testsfdc@mulesoft.com" password="password" securityToken="bgfsG5688kroeemlHMnYJ" doc:name="Salesforce">
+        <sfdc:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
+    </sfdc:config>
+----
+....
+------
+
+. Change the contents of the *Username* and *Password* fields to your account-specific values, then click *OK* to save your changes. 
+
+=== Run the Example Application
+
+. In the *Package Explorer*, right-click the SaaS Integration project name, then select *Run As* > *Mule Application*. Studio runs the application on the embedded server.  
+. This project includes a sample CSV file, called `companies.csv`, that you can use to witness end-to-end functionality of the application. In the *Package Explorer*, click the `src/test/resources` folder to expand it, then find the `companies.csv` file inside this folder.
+. Click and drag the `companies.csv` file into the `input` folder in the same directory.
+. The File Endpoint in the application polls the `input` folder every ten seconds. It picks up the CSV file, processes it, then deposits it into the `output` folder in the same directory. (Hit *F5* to refresh the contents of the `input` and `output` folders.)
+. In your browser, access your Salesforce account, then navigate to the *Accounts* tab.
+. Use the drop-down menu to display *All Accounts*, then scan your contacts for two new entries:   +
+* Universal Exports
+* Best Widgets
+. Stop the Mule application by clicking the square, red terminate button in the *Console*.
+. Delete the two sample accounts from your Salesforce account.
+. Delete the custom field, Region, from your Salesforce account.
+
+== How it Works
+
+
+Using two flows, this application accepts CSV files which contain account information, uses the "state" data to append a sales region to the message, then uploads the contacts to Salesforce. 
+
+=== CreateNewSalesforceAccountFlow
+
+The **link:/mule-user-guide/v/3.4/file-endpoint-reference[File Endpoint]** polls the input folder for new files every ten seconds. When it spots a new file, it reads it and passes the content to the **link:/mule-user-guide/v/3.4/datamapper-user-guide-and-reference[Anypoint DataMapper transformer]**. This transformer not only converts the format of the data from CSV to a collection, it automatically maps the input fields from the CSV file – company_name, company_address, etc. – to output fields that Salesforce uses in a collection. Each mapping earns an arrow which helps you to visualize the activity that occurs within the DataMapper transformer.
+
+The DataMapper also utilizes a **link:/mule-user-guide/v/3.4/using-datamapper-lookup-tables[FlowRef Lookup Table]**. This Lookup Table accesses another flow in the application to acquire the sales region for each new account. DataMapper invokes the LookupSalesRegionFlow which uses the company_state data to determine into which sales region the account falls. DataMapper then maps this newly acquired data to the custom field in Salesforce, `Region_c`.
+
+image:mapped_to_region.png[mapped_to_region]
+
+When it has converted all the account information in the file to a collection of Salesforce-friendly data, the application uses a **http://www.mulesoft.org/extensions/salesforce-cloud-connector[Salesforce Connector]** to push data into your Salesforce account. The connector's configurations specify the *operation* – `Create` – and the *sObject type* – `Account` – which dictate exactly how the data uploads to Salesforce; in this case, it creates new accounts. 
+
+image:with_new_regions3.png[with_new_regions3]
+
+=== LookupSalesRegionFlow
+
+This flow consists of a link:/mule-user-guide/v/3.4/groovy-component-reference[*Groovy component*] and a link:/mule-user-guide/v/3.4/logger-component-reference[*Logger*].  The script in the component uses state information in the message payload to calculate the sales region to which the account belongs. Invoked by the FlowRefLookup table in DataMapper, this flow exists only to determine a sales region for each account in the CSV file.
+
+=== Complete Code
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+image:datamapper-with-flowref.png[datamapper-with-flowref]
+....
+[tab,title="Studio XML Editor"]
+....
+[source, code, linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.4.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+ 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+ 
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+ 
+http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/5.0/mule-sfdc.xsd
+ 
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+ 
+http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
+ 
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+ 
+    <sfdc:config name="Salesforce" username="testsfdc@mulesoft.com" password="password" securityToken="bgfsG5688kroeemlHMnYJ" doc:name="Salesforce">
+ 
+        <sfdc:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
+ 
+    </sfdc:config>
+ 
+    <data-mapper:config name="datamapper_grf" transformationGraphPath="datamapper.grf" doc:name="DataMapper"/>
+    <flow name="CreateNewSalesforceAccountFlow" doc:name="CreateNewSalesforceAccountFlow" doc:description="From the content of a CSV file, creates new accounts in Salesforce.">
+        <file:inbound-endpoint responseTimeout="10000" doc:name="File" moveToDirectory="src/test/resources/output" path="src/test/resources/input" pollingFrequency="10000"/>
+        <logger level="INFO" doc:name="Logger" message="#[payload]"/>
+        <data-mapper:transform config-ref="datamapper_grf" doc:name="DataMapper"/>
+        <sfdc:create config-ref="Salesforce"  doc:name="Salesforce" type="Account">
+            <sfdc:objects ref="#[payload]"/>
+        </sfdc:create>
+    </flow>
+ 
+    <flow name="LookUpSalesRegionFlow" doc:name="LookUpSalesRegionFlow" doc:description="The script uses data in the state field to add a region to the payload according to location.">
+        <scripting:component doc:name="Groovy">
+            <scripting:script engine="Groovy">def region = "UNKNOWN"
+ 
+def state = payload['state']
+ 
+if (state != null) {
+ 
+ state = state.toUpperCase()
+ 
+}
+ 
+println "State to lookup is: " + state
+ 
+switch (state) {
+ 
+        case ["CT","ME","MA","NH","VT","RI","NY","NJ","DE","DC","MD","NH"]:
+ 
+            region = "North East"
+ 
+            break
+ 
+        case ["AL","AR","FL", "GA","LA" ,"SC","NC","TN","TX"]:
+ 
+            region = "South East"
+ 
+            break
+ 
+        case ["ID","IL", "IA","KS","MT", "WY","ND","SD","OH" ]:
+ 
+            region = "Mid West"
+ 
+            break
+ 
+        case ["AZ","CO","OK","NM", "NV"]:
+ 
+            region = "South West"
+ 
+            break
+ 
+        case ["CA","HI","WA","OR", "AK"]:
+ 
+            region = "West Coast"
+ 
+            break
+ 
+    }
+ 
+return ["region":region]</scripting:script>
+        </scripting:component>
+        <logger message="Region is : #[payload.region]" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule> 
+----
+....
+------
+
+== Building the Application
+
+While the application's functionality is relatively straightforward, the beauty of this project is illustrated through its use of link:/mule-user-guide/v/3.4/mule-datasense[*DataSense*]. Rather than building the application serially – adding, then configuring each of the elements manually according to the order in which they appear in the flow – you can use DataSense to complete the most difficult configurations automatically. The following steps outline the process to build this application. 
+
+. Place a *Groovy* component into your application, then configure the script it contains as per the following.
++
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+image:groovy.png[groovy]
+....
+[tab,title="Studio XML Editor"]
+....
+[source, code, linenums]
+----
+<scripting:component doc:name="Groovy">
+ 
+            <scripting:script engine="Groovy">def region = "UNKNOWN"
+ 
+def state = payload['state']
+ 
+if (state != null) {
+ 
+ state = state.toUpperCase()
+ 
+}
+ 
+println "State to lookup is: " + state
+ 
+switch (state) {
+ 
+        case ["CT","ME","MA","NH","VT","RI","NY","NJ","DE","DC","MD","NH"]:
+ 
+            region = "North East"
+ 
+            break
+ 
+        case ["AL","AR","FL", "GA","LA" ,"SC","NC","TN","TX"]:
+ 
+            region = "South East"
+ 
+            break
+ 
+        case ["ID","IL", "IA","KS","MT", "WY","ND","SD","OH" ]:
+ 
+            region = "Mid West"
+ 
+            break
+ 
+        case ["AZ","CO","OK","NM", "NV"]:
+ 
+            region = "South West"
+ 
+            break
+ 
+        case ["CA","HI","WA","OR", "AK"]:
+ 
+            region = "West Coast"
+ 
+            break
+ 
+    }
+ 
+return ["region":region]</scripting:script>
+ 
+        </scripting:component> 
+----
+....
+------
+
+. Add a *Logger* to the flow, after the Groovy component.
+. Create a new flow in your application, then rename it if you wish.
++
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+image:new_flow.png[new_flow]
+....
+[tab,title="Studio XML Editor"]
+....
+[source, code, linenums]
+----
+<flow name="datamapper-with-flowrefFlow1" doc:name="datamapper-with-flowrefFlow1"/> 
+----
+....
+------
+
+. Place a *File* endpoint into your new flow, completing the simple configuration to enable it poll a specific folder for input files. 
++
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+image:file_input.png[file_input]
+
+[width="100%",cols="50%,50%",]
+|===
+|*Field* |*Value*
+|*Display Name* |`File`
+|*Path* |`src/test/resources/input`
+|*Move to Directory* |`src/test/resources/output`
+|*Polling Frequency* |`10000`
+|===
+....
+[tab,title="Studio XML Editor"]
+....
+[source, code, linenums]
+----
+<file:inbound-endpoint path="src/test/resources/input" moveToDirectory="src/test/resources/output" pollingFrequency="10000" responseTimeout="10000" doc:name="File"/>
+----
+
+[width="100%",cols="50%,50%",]
+|===
+|*Attribute* |*Value*
+|path |`src/test/resources/input`
+|moveToDirectory |`src/test/resources/output`
+|pollingFrequency |`10000`
+|doc:name |`File`
+|===
+....
+------
++
+
+. Add a *Logger* component after the File endpoint.
+. Next, add a *Salesforce Connector* to the flow. At this point, you can configure the connector with your Salesforce account-specific details and test the connection to Salesforce. Not only does the embedded Mule DataSense functionality confirm that you have a clear channel for communication, it gathers metadata about Salesforce objects and the type of data it accepts, including the custom `Region_c` field you created in Salesforce. (The value of this metadata becomes apparent with the introduction of a DataMapper into the flow further in this procedure.)
++
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+.. Modify the display name for the connector, if you wish, then click the **image:/docs/s/en_GB/3391/c989735defd8798a9d5e69c058c254be2e5a762b.76/_/images/icons/emoticons/add.png[(plus)]** next to the *Config Reference* drop-down to create a new *Global Element*. 
+
+.. Select the *Salesforce* global element, then click *OK*.
+.. Enter values in the U*sername*, P*assword* and *Security token* fields, then click *OK*. (See the Set Up section above for details on how to acquire the security token.) Notice that Studio automatically enables DataSense in the global element.
++
+image:global_salesforce.png[global_salesforce]
+....
+[tab,title="Studio XML Editor"]
+....
+[source, code, linenums]
+----
+<sfdc:config name="Salesforce" username="testsfdc@mulesoft.com" password="password"  doc:name="Salesforce" securityToken="bgfsG5688kroeemIHMnYJ">
+ 
+        <sfdc:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
+ 
+    </sfdc:config>
+<flow>
+...
+</flow>
+----
+....
+------
++
+
+. When you click *OK*, Mule tests the connection to Salesforce (see image below). With a valid username, password and security token, the connection test succeeds and Mule saves your global element configurations. If any of the values are invalid, the connection fails, and Mule does not save the global element, prompting you to correct the invalid configurations. +
+
++
+image:getting_metadata.png[getting_metadata] +
++
+
+. Back in the Salesforce connector *Pattern Properties* panel, use the drop-down menus to select the *Operation* and *sObject* *Type*. Because the DataSense activity has gathered metadata about Salesforce's operations and data sObject types, Mule is able to present a list of Salesforce-specific values in the drop-down menus for each of these fields (see image below). +
+
++
+image:sfdc_options.png[sfdc_options] +
++
+
+. Having defined the Salesforce-friendly output, you can then drop a *DataMapper* transformer between the Logger and the connector in the flow to map CSV input fields to Salesforce output fields. Note that DataSense has already acquired the operation and sObject information from Salesforce and populated the output fields for you.  +
+
++
+image:new_mappings_1.png[new_mappings_1] +
++
+
+. To complete the configuration of this transformer, you need only enter the Input values. In this example application, we used an existing CSV example to define the input fields in DataMapper. +
+
++
+image:new_mappings_2.png[new_mappings_2] +
++
+
+. When you save the DataMapper configurations, Mule maps input fields to output. Where the input and output fields have identical names, DataMapper intelligently, and automatically, maps input to output. Otherwise – as with this example – you can quickly map input to output manually by clicking and dragging input fields to output fields in the Data Mapping Console (see below).  The table below the image indicates the fields as mapped from input to output.
+
++
+image:mapped_to_region.png[mapped_to_region]
++
+[cols=",",options="header",]
+|===
+|Input |Output
+|company_name |Name
+|company_address |BillingStreet
+|company_city |BillingCity
+|company_state |BillingState
+|company_zip |BillingPostalCode
+|_region_ |Region_c
+|===
+
+. The configuration now complete, you can save, then run the application. 
+. Feed CSV files with contact information into the input folder, and watch the new contents appear in your Salesforce account (see image below). +
+
++
+image:with_new_regions3.png[with_new_regions3]
+
+== Documentation
+
+Studio includes a feature that enables you to easily export all the documentation you have recorded for your project. Whenever you want to share your project with others outside the Studio environment, you can export the project's documentation to print, email, or share online. Studio's auto-generated documentation includes:
+
+* A visual diagram of the flows in your application
+* The XML configuration which corresponds to each flow in your application
+* The text you entered in the Documentation tab of any building block in your flow
+
+Follow http://www.mulesoft.org/documentation/display/current/Importing+and+Exporting+in+Studio#ImportingandExportinginStudio-ExportingStudioDocumentation[the procedure] to export auto-generated Studio documentation.
+
+== See Also
+
+* Learn more about link:/mule-user-guide/v/3.4/testing-connections[Connection Testing] and link:/mule-user-guide/v/3.4/mule-datasense[Mule DataSense].
+* Learn more about the link:/mule-user-guide/v/3.4/datamapper-user-guide-and-reference[Anypoint DataMapper Transformer].
+* Examine other link:/mule-user-guide/v/3.4/mule-examples[Mule application examples], particularly the http://www.mulesoft.org/documentation/display/current/Legacy+Modernization+Example[Legacy Modernization] and http://www.mulesoft.org/documentation/display/current/XML-only+SOAP+Web+Service+Example[XML-only SOAP Web Service] examples which also use DataMapper.

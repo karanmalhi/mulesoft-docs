@@ -1,15 +1,15 @@
 = Transaction Management
 
-Mule's transaction framework is agnostic to the underlying transaction manager. The transaction could be a JDBC transaction, XA transaction, or a JMS transaction or message acknowledgment. All transaction types can be handled the same way. Mule transactions are configured on synchronous link:/documentation-3.2/display/32X/Configuring+Endpoints[endpoints], where an endpoint can be configured to start a new transaction or join an existing one. Transactions are configured on an endpoint using `<transaction>`, which maps to the http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transaction/MuleTransactionConfig.html[org.mule.transaction.MuleTransactionConfig] class. This element defines what action an endpoint should take when it receives an event and the transaction factory to use to create transactions.
+Mule's transaction framework is agnostic to the underlying transaction manager. The transaction could be a JDBC transaction, XA transaction, or a JMS transaction or message acknowledgment. All transaction types can be handled the same way. Mule transactions are configured on synchronous link:/mule-user-guide/v/3.2/configuring-endpoints[endpoints], where an endpoint can be configured to start a new transaction or join an existing one. Transactions are configured on an endpoint using `<transaction>`, which maps to the http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transaction/MuleTransactionConfig.html[org.mule.transaction.MuleTransactionConfig] class. This element defines what action an endpoint should take when it receives an event and the transaction factory to use to create transactions.
 
 [WARNING]
 If you have multiple transactional inbound or outbound endpoints in a flow and you specify a transaction for one of them, you must specify transactions for _all_ of them. For example, if you have two outbound endpoints and you specify a transaction for the first one, you must also specify a transaction for the second one.
 
 For an excellent article on distributed transactions using both XA and non-XA approaches, see http://www.javaworld.com/javaworld/jw-01-2009/jw-01-spring-transactions.html. The multi-resource transaction support described below maps to the Best Efforts 1PC pattern described in the article.
 
-For more details on the elements you configure for transactions, see link:/documentation-3.2/display/32X/Transactions+Configuration+Reference[Transactions Configuration Reference].
+For more details on the elements you configure for transactions, see link:/mule-user-guide/v/3.2/transactions-configuration-reference[Transactions Configuration Reference].
 
-For information on using exception strategies to determine whether a transaction gets committed or rolled back in case of an error, see link:/documentation-3.2/display/32X/Error+Handling#ErrorHandling-transactions[Error Handling with Transactions].
+For information on using exception strategies to determine whether a transaction gets committed or rolled back in case of an error, see link:/mule-user-guide/v/3.2/error-handling[Error Handling with Transactions].
 
 == Single-resource (Local) Transactions
 
@@ -38,7 +38,7 @@ An example configuration for a single-resource transaction might look like this:
 
 This configuration defines a global JMS endpoint that receives on a "test.In" queue and another global JMS endpoint that sends on a "test.Out" queue. The action attribute tells Mule what to do for each message. In this case, a new transaction will be created for every message received. The outbound endpoint will use the resource enlisted in the current transaction, if one is running. In this case, it will use the same JMS session that has been used to receive the event. When the message has been routed from the inbound endpoint to the outbound endpoint, the transaction will be committed or rolled back.
 
-You can send multiple messages using the link:/documentation-3.2/display/32X/Outbound+Routers#OutboundRouters-RecipientList[recipient list] router, which will send all messages in the same transaction.
+You can send multiple messages using the link:/mule-user-guide/v/3.2/outbound-routers[recipient list] router, which will send all messages in the same transaction.
 
 You can set action values on the `<transaction>` element as follows:
 
@@ -110,14 +110,14 @@ Note that when the inbound endpoint has a multi-resource transaction configured 
 
 You can use XA transactions if you want to enlist multiple managed resources within the same transaction and require 100% reliability. The inbound endpoints are configured in the same manner as for single-resource transactions, but the connectors need to be configured to use XA-enabled resources.
 
-If you run Mule outside an application server, you can use link:/documentation-3.2/display/32X/JBoss+Transaction+Manager+Reference[JBoss Transaction Manager] to configure an embedded transaction manager.
+If you run Mule outside an application server, you can use link:/mule-user-guide/v/3.2/jboss-transaction-manager-reference[JBoss Transaction Manager] to configure an embedded transaction manager.
 
 Currently, only the following transports support XA transactions:
 
-* link:/documentation-3.2/display/32X/VM+Transport+Reference[VM Transport Reference]
-* link:/documentation-3.2/display/32X/JDBC+Transport+Reference[JDBC Transport Reference]
-* link:/documentation-3.2/display/32X/JMS+Transport+Reference[JMS Transport Reference]
-* link:/documentation-3.2/display/32X/Mule+WMQ+Transport+Reference[Mule WMQ Transport Reference] (as of Mule Enterprise Edition 2.2)
+* link:/mule-user-guide/v/3.2/vm-transport-reference[VM Transport Reference]
+* link:/mule-user-guide/v/3.2/jdbc-transport-reference[JDBC Transport Reference]
+* link:/mule-user-guide/v/3.2/jms-transport-reference[JMS Transport Reference]
+* link:/mule-user-guide/v/3.2/mule-wmq-transport-reference[Mule WMQ Transport Reference] (as of Mule Enterprise Edition 2.2)
 
 The following example of an XA transaction configuration uses a single transaction to read from a JMS queue and write to a database.
 
@@ -157,7 +157,7 @@ When you configure an inbound JMS endpoint with XA transactions, the receiver po
 </jms:inbound-endpoint>
 ----
 
-This property is only applicable if you are using the http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/jms/XaTransactedJmsMessageReceiver.html[XaTransactedJmsMessageReceiver], which is the default receiver on inbound JMS endpoints that use XA transactions. If you are using JBoss transactions, please read link:/documentation-3.2/display/32X/JBoss+Transaction+Manager+Reference[here] for information on how to configure the `timeout` value.
+This property is only applicable if you are using the http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/jms/XaTransactedJmsMessageReceiver.html[XaTransactedJmsMessageReceiver], which is the default receiver on inbound JMS endpoints that use XA transactions. If you are using JBoss transactions, please read link:/mule-user-guide/v/3.2/jboss-transaction-manager-reference[here] for information on how to configure the `timeout` value.
 
 == Transaction Manager Lookup
 
