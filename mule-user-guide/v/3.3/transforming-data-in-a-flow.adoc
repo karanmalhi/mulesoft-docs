@@ -1,0 +1,99 @@
+= Transforming Data in a Flow
+
+This example shows how to use a custom transformer. In this case, a simple transformer is used in a flow to alter information received in an HTTP request before passing the information to a custom component.
+
+== What you Will Learn
+
+* How to create a Custom Transformer in Mule Studio.
+* How to configure the Transformer in the flow.
+* How to implement a Custom Transformer.
+
+* http://www.youtube.com/watch?v=qzv4uG2zHF8
+image:http://www.mulesoft.org/documentation/download/attachments/51053656/working-with-transformers-flow-100.png[image]
++
+*Watch a video*
++
+See this example built and run in Mule Studio
+
+= Build it Now!
+
+10 minutes
+
+== Prerequisites
+
+This examples requires that you run through the example described in link:/mule-user-guide/v/3.3/adding-business-logic-to-a-flow[Adding Business Logic to a Flow].
+
+== Building the Example
+
+. Let's begin with the "Hello" flow you built in link:/mule-user-guide/v/3.3/adding-business-logic-to-a-flow[Adding Business Logic to a Flow]. Run it and confirm in a browser window that when you go to http://localhost:8082/Fred you see the following on screen:
++
+image:studioBrowserOutputInitial.png[studioBrowserOutputInitial]
++
+Now, wouldn't it be nice to remove that slash before the name? A Custom Transformer can take care of that.
+
+. Create a new class in the org.mulesoft.example.hello package
++
+image:studioAddNewClass.png[studioAddNewClass]
+
+. Name it NameTransformer, and make it extend AbstractTransformer
++
+image:studioConfigureTransformerClass.png[studioConfigureTransformerClass]
+
+. Implement the class by adding the following code to the doTransform() method. It will detect Strings beginning with a slash and remove it. Otherwise, it will return the original object.
++
+[source, code, linenums]
+----
+if (src instanceof String){
+        String name = (String)src;
+        if (name.charAt(0) == '/'){
+        return name.substring(1);
+    }
+     }
+         
+     return src;
+----
++
+image:studioTransformerCode.png[studioTransformerCode]
+
+. Open your flow. It should look like this:
++
+image:studioFlowShouldLookLike.png[studioFlowShouldLookLike]
+
+. Insert a Java Transformer. Do so by dragging it from the sidebar and dropping it between the HTTP Inbound Endpoint and the Hello Component.
++
+[NOTE]
+In previous Studio versions, the Java Transformer was named *Custom Transformer*.
++
+image:studioAddTransformerComponent.png[studioAddTransformerComponent]
+
+. Double-click on the Transformer you just inserted and insert the full name of the Transformer class we just implemented. You may also want to add some additional documentation information. Click OK when you are done and save the flow.
+
+image:studioConfigureTransformerComponent.png[studioConfigureTransformerComponent]
+
+image:studioConfigureTransformerComponentDoc.png[studioConfigureTransformerComponentDoc]
+
+== Running the Example
+
+. Run as Mule Application (as you did in the previous examples).
+
+. Open a browser window and go to http://localhost:8082/Fred. Notice that this time the greeting does not contain a slash:
+
+image:studioBrowserOutputFinal.png[studioBrowserOutputFinal]
+
+== What Just Happened?
+
+* You created a Custom transformer and plugged it into the flow.
+* Your HTTP request payload was processed by the Transformer before passing it to the Component.
+* The HTTP Endpoint, the Transformer and the Component don't know about each other. Mule connects them as necessary.
+
+== References
+
+* link:/mule-user-guide/v/3.3/using-transformers[Using Transformers]
+* link:/mule-user-guide/v/3.3/creating-custom-transformers[Creating Custom Transformers]
+* link:/mule-user-guide/v/3.3/creating-custom-transformer-classes[Creating Custom Transformer Classes]
+
+== Next Steps
+
+Next: link:/mule-user-guide/v/3.3/invoking-component-methods[Invoking Component Methods]
+
+Previous: link:/mule-user-guide/v/3.3/using-outbound-endpoints-to-publish-data[Using Outbound Endpoints to Publish Data]

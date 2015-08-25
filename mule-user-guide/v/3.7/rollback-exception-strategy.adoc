@@ -1,7 +1,7 @@
 = Rollback Exception Strategy
 :keywords: error handling, exceptions, exception catching, exceptions, rollback
 
-You can define a rollback exception strategy to ensure that a message that throws an exception in a flow is rolled back for reprocessing. Use a rollback exception strategy when you cannot _correct_ an error when it occurs in a flow. Usually, you use a rollback exception strategy to handle errors that occur in a flow that involve a link:/documentation/display/current/Transaction+Management[transaction]. If the transaction fails, that is, if a message throws an exception while being processed, then the rollback exception strategy rolls back the transaction in the flow. If the inbound connector is transactional, Mule delivers the message to the inbound connector of the parent flow again to reattempt processing (that is, message redelivery).
+You can define a rollback exception strategy to ensure that a message that throws an exception in a flow is rolled back for reprocessing. Use a rollback exception strategy when you cannot _correct_ an error when it occurs in a flow. Usually, you use a rollback exception strategy to handle errors that occur in a flow that involve a link:/mule-user-guide/v/3.7/transaction-management[transaction]. If the transaction fails, that is, if a message throws an exception while being processed, then the rollback exception strategy rolls back the transaction in the flow. If the inbound connector is transactional, Mule delivers the message to the inbound connector of the parent flow again to reattempt processing (that is, message redelivery).
 
 Beyond managing transactional errors, you can use a rollback exception strategy to:
 
@@ -19,7 +19,7 @@ To avoid this infinite loop and responsibly manage unresolvable errors, you can 
 
 == Use Rollback Exception Strategy for Transactions
 
-Unlike a link:/documentation/display/current/Catch+Exception+Strategy[catch exception strategy] which always commits a failed transaction and consumes the message, a rollback exception strategy provides multiple attempts for a message to successfully move through a flow before committing a failed transaction and consuming the message.
+Unlike a link:/mule-user-guide/v/3.7/catch-exception-strategy[catch exception strategy] which always commits a failed transaction and consumes the message, a rollback exception strategy provides multiple attempts for a message to successfully move through a flow before committing a failed transaction and consuming the message.
 
 For example, suppose you have a flow that involves a bank transaction to deposit funds in an account. You configure a rollback exception strategy to handle errors that occur in this flow; when an error occurs during processing — say, a flow-external bank account database is temporarily unavailable — the message throws an exception. The rollback exception strategy catches the exception, and rolls the message back to the beginning of the flow to reattempt processing. During the second attempt at processing, the database is back online again, and the message successfully reaches the end of the flow.
 
@@ -157,7 +157,7 @@ If your flow uses a *reliable* transport, you can stop at this point and _not_ c
 
 [WARNING]
 ====
-You can define _only one_ exception strategy for each flow. If you need to design a more complex error handling strategy that involves more than one way of handling exceptions, consider using a link:/documentation/display/current/Choice+Exception+Strategy[Choice Exception Strategy].
+You can define _only one_ exception strategy for each flow. If you need to design a more complex error handling strategy that involves more than one way of handling exceptions, consider using a link:/mule-user-guide/v/3.7/choice-exception-strategy[Choice Exception Strategy].
 ====
 ....
 [tab,title="XML Editor or Standalone"]
@@ -225,7 +225,7 @@ If your flow uses a *reliable* transport, you can stop at this point and _not_ c
 
 [WARNING]
 ====
-You can define _only one_ exception strategy for each flow. If you need to design a more complex error handling strategy that involves more than one way of handling exceptions, consider using a link:/documentation/display/current/Choice+Exception+Strategy[Choice Exception Strategy].
+You can define _only one_ exception strategy for each flow. If you need to design a more complex error handling strategy that involves more than one way of handling exceptions, consider using a link:/mule-user-guide/v/3.7/choice-exception-strategy[Choice Exception Strategy].
 ====
 ....
 ------
@@ -234,7 +234,7 @@ You can define _only one_ exception strategy for each flow. If you need to desig
 
 Mule creates a http://itlaw.wikia.com/wiki/Message_digest[digest] of a message’s payload in order to generate a redelivery attempt ID. Mule uses this unique ID as part of its *redelivery policy* which keeps track of the number of message redelivery attempts. (To generate a digest, Mule applies a hash function to the message to obtain a fixed-size bit string that is unique to the message.)
 
-You can use a link:/documentation/display/current/JMS+Transport+Reference[JMS global connector]'s redelivery policy to improve the performance of a flow that processes very large or streaming message payloads. Rather than generating a unique ID from a message's (potentially large or streaming) payload, a JMS global connector uses its JMSRedelivery property to keep track of message redelivery attempts.
+You can use a link:/mule-user-guide/v/3.7/jms-transport-reference[JMS global connector]'s redelivery policy to improve the performance of a flow that processes very large or streaming message payloads. Rather than generating a unique ID from a message's (potentially large or streaming) payload, a JMS global connector uses its JMSRedelivery property to keep track of message redelivery attempts.
 
 If your flow uses a JMS global connector, you can configure it to manage the redelivery policy by defining its *Max Redelivery*.
 
@@ -286,7 +286,7 @@ If your flow uses a JMS global connector and you _do not_ want the connector to 
 
 == Creating a Global Rollback Exception Strategy
 
-You can create one or more link:/documentation/display/current/Error+Handling#ErrorHandling-GlobalExceptionStrategies[global exception strategies] to reuse in flows throughout your entire Mule application. First, create a global rollback exception strategy, then add a link:/documentation/display/current/Reference+Exception+Strategy[*Reference Exception Strategy*] to a flow to apply the error handling behavior of your new global rollback exception strategy.
+You can create one or more link:/mule-user-guide/v/3.7/error-handling[global exception strategies] to reuse in flows throughout your entire Mule application. First, create a global rollback exception strategy, then add a link:/mule-user-guide/v/3.7/reference-exception-strategy[*Reference Exception Strategy*] to a flow to apply the error handling behavior of your new global rollback exception strategy.
 
 [tabs]
 ------
@@ -315,7 +315,7 @@ image:global+rollback.png[global+rollback]
 
 === Applying a Global Rollback Exception Strategy to a Flow
 
-Use a link:/documentation/display/current/Reference+Exception+Strategy[reference exception strategy] to instruct a flow to employ the error handling behavior defined by your global rollback exception strategy. In other words, you must ask your flow to refer to the global rollback exception strategy for instructions on how to handle errors.
+Use a link:/mule-user-guide/v/3.7/reference-exception-strategy[reference exception strategy] to instruct a flow to employ the error handling behavior defined by your global rollback exception strategy. In other words, you must ask your flow to refer to the global rollback exception strategy for instructions on how to handle errors.
 
 [tabs]
 ------
@@ -364,6 +364,6 @@ You can append a *Reference Exception Strategy* to any number of flows in your M
 
 == See Also
 
-* Learn how to configure link:/documentation/display/current/Catch+Exception+Strategy[catch exception strategies].
+* Learn how to configure link:/mule-user-guide/v/3.7/catch-exception-strategy[catch exception strategies].
 
-* Learn how to configure link:/documentation/display/current/Choice+Exception+Strategy[choice exception strategies].
+* Learn how to configure link:/mule-user-guide/v/3.7/choice-exception-strategy[choice exception strategies].

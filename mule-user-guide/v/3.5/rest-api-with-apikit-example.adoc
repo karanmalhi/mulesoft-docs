@@ -1,0 +1,284 @@
+= REST API with APIkit Example
+
+This application illustrates an API implementation using Anypoint Studio's tooling for building REST APIs with RAML interfaces: link:/docs/display/35X/Building+Your+API[*APIkit*]. The application takes a http://raml.org[RAML] file and maps it to an implementation of an API in Mule. This example implementation mocks a Spring backend, but you can replace these placeholders with a full implementation of your choice.
+
+==== APIkit
+
+image:APIkit.png[APIkit]APIkit is an open-source, declarative toolkit specially created to facilitate REST API implementation with RAML definitions. As a simple framework that caters to API-first development, it enforces good API implementation practices. 
+
+== Assumptions
+
+This document describes the details of the example within the context of Anypoint Studio, Mule ESB’s graphical user interface (GUI), and includes configuration details for both the visual and XML editors. It assumes that you are familiar with Mule ESB and the link:/mule-fundamentals/v/3.5/anypoint-studio-essentials[Anypoint Studio interface]. To increase your familiarity with Studio, consider completing one or more link:/mule-fundamentals/v/3.5/basic-studio-tutorial[Anypoint Studio Tutorials]. Further, this example assumes you are familiar with REST APIs. 
+
+[IMPORTANT]
+In addition, this example requires that you have Maven installed. If you don't already have it (for example, Mac OSX Mavericks does not include Maven), follow http://maven.apache.org/download.cgi[the instructions] to download and install it before attempting to create the example project.
+
+== Example Use Case
+
+This API allows you to add, remove, and retrieve information about sports teams participating in a league tournament. 
+
+== Set Up and Run the Example
+
+Follow the procedure below to run and test the functionality of this example application in Anypoint Studio.
+
+. *link:/mule-user-guide/v/3.5/mule-examples[Create, then run]* the example application in Anypoint Studio.
+. Anypoint Studio starts the application and automatically opens an API console below the canvas. +
+
++
+image:console1.png[console1] +
++
+
+. Click *GET* for the */teams* resource.
+. The console opens a details panel for the GET method for this resource that allows you to view details about the request format and expected responses, as well as a *Try It* option. +
+
++
+image:console3.png[console3] +
++
+
+. Click *Try It*. Enter `Madrid` in the *city* field, then click *GET*.
+. Scroll down to view the response. The API returned a list of teams associated with the city Madrid.  +
+
++
+image:madrid.png[madrid] +
++
+
+. Click through the other resources and methods to test out other API calls. 
+
+== How It Works
+
+*link:/mule-user-guide/v/3.5/rest-api-with-apikit-example[Skip to the code]*
+
+This application is based on a RAML specification file, which you can find in the *src/main/api* folder in the package explorer. Anypoint Studio allows you to import a RAML spec and automatically generate an APIkit project with a main flow, backend flows for each allowed method for each resource, and exception strategy mappings. The following sections walk through the RAML file and each of the auto-generated aspects of the APIkit project based on it.
+
+=== RAML File
+
+Open the RAML file in the src/main/api folder to review the details of this API implementation. Note that the RAML definition makes use of numerous `!includes` that reference other files within the same directory. You can see all the files referenced also reside in your src/main/api folder.
+
+image:ramllocation.png[ramllocation]
+
+Compare the resource and methods defined in the RAML file with what you see in the API console in Studio. The API console provides interactive documentation for your API. When you publish your finished API, you can share this console with users by sending them to your API's baseURI with `/console` appended to the end. For instance, the base URI in this RAML definition is currently http://localhost:8080/api, so you can access the console for this API at http://localhost:8080/api/console. To deploy this API, you would replace the baseURI in the RAML file with the deployed baseURI, so the console would then be accessed at http://myapibaseURI.com/console. 
+
+=== Main Flow
+
+The main flow is standard for an APIkit project. It contains an inbound endpoint and an APIkit Router. The exception strategies are explained separately, below.
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+image:apikitmain.png[apikitmain]
+....
+[tab,title="XML Editor"]
+....
+[source, xml, linenums]
+----
+<flow name="main" doc:name="main">
+    <http:inbound-endpoint address="http://localhost:${http.port}/api" connector-ref="httpConnector" doc:name="HTTP"/>
+    <apikit:router config-ref="leaguesApi" doc:name="APIkit Router"/>
+    <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+</flow>
+----
+....
+------
+
+=== Backend Flows
+
+The backend flows in this application are stubs, with placeholder backend implementation defined with Spring beans. 
+
+When you auto-generate backend flows based on a RAML file, APIkit creates similar stub flows that you can connect to whatever backend systems contain the actual data your API accesses. 
+
+=== Exception Strategy Mappings
+
+Studio automatically generates several global exception strategy mappings that the Main flow references to send error responses in HTTP-status-code-friendly format. Defined at a global level within the project's XML config, this standard set of exception strategy mappings ensure that anytime a backend flow throws an exception, the API responds to the caller with an HTTP-status code and corresponding plain-language message. 
+
+In this example, the project also has one additional exception strategy defined for the error code 409. This code is supplied as a possible response in the RAML file, thus there must be a corresponding exception strategy defined. 
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+image:es.png[es]
+....
+[tab,title="XML Editor"]
+....
+[source, xml, linenums]
+----
+<apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="409">
+            <apikit:exception value="org.mule.examples.leagues.exceptions.ConflictException" />
+            <set-payload value="conflict" />
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+----
+....
+------
+
+== Full Code
+
+[tabs]
+------
+[tab,title="STUDIO Visual Editor"]
+....
+image:APIkitexampleflows.png[APIkitexampleflows]
+....
+[tab,title="XML Editor"]
+....
+[source, xml, linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      xmlns:context="http://www.springframework.org/schema/context"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd" version="EE-3.5.0">
+    <http:connector name="httpConnector" doc:name="HTTP-HTTPS">
+        <service-overrides sessionHandler="org.mule.session.NullSessionHandler"/>
+    </http:connector>
+    <apikit:config name="leaguesApi" raml="leagues.raml" consoleEnabled="true" consolePath="console" doc:name="Router"/>
+    <spring:beans>
+        <spring:bean id="league-api" class="org.mule.examples.leagues.LeagueAPI" init-method="initialize"/>
+    </spring:beans>
+    <context:property-placeholder location="leagues.properties" />
+    <apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="409">
+            <apikit:exception value="org.mule.examples.leagues.exceptions.ConflictException" />
+            <set-payload value="conflict" />
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+ 
+    <flow name="main" doc:name="main">
+        <http:inbound-endpoint address="http://localhost:${http.port}/api" connector-ref="httpConnector" doc:name="HTTP"/>
+        <apikit:router config-ref="leaguesApi" doc:name="APIkit Router"/>
+        <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow>
+    <flow name="delete:/teams/{teamId}:leaguesApi" doc:name="delete:/teams/{teamId}:leaguesApi">
+        <expression-component doc:name="Expression">
+            app.registry['league-api'].deleteTeam(teamId);
+        </expression-component>
+    </flow>
+    <flow name="get:/teams:leaguesApi" doc:name="get:/teams:leaguesApi">
+        <expression-component doc:name="Expression">
+            payload = app.registry['league-api'].getTeams(message.inboundProperties['city']);
+        </expression-component>
+    </flow>
+    <flow name="get:/fixture/{homeTeamId}/{awayTeamId}:leaguesApi" doc:name="get:/fixture/{homeTeamId}/{awayTeamId}:leaguesApi">
+        <expression-component doc:name="Expression">
+            payload = app.registry['league-api'].getMatch(homeTeamId, awayTeamId);
+        </expression-component>
+    </flow>
+    <flow name="get:/teams/{teamId}:leaguesApi" doc:name="get:/teams/{teamId}:leaguesApi">
+        <expression-component doc:name="Expression">
+            payload = app.registry['league-api'].getTeam(teamId);
+        </expression-component>
+    </flow>
+    <flow name="get:/positions:leaguesApi" doc:name="get:/positions:leaguesApi">
+        <expression-component doc:name="Expression">
+            payload = app.registry['league-api'].getPositions();
+        </expression-component>
+    </flow>
+    <flow name="get:/fixture:leaguesApi" doc:name="get:/fixture:leaguesApi">
+        <expression-component doc:name="Expression">
+            payload = app.registry['league-api'].getFixture();
+        </expression-component>
+    </flow>
+    <flow name="post:/teams:leaguesApi" doc:name="post:/teams:leaguesApi">
+        <custom-transformer class="org.mule.module.apikit.transform.PayloadNormalizerTransformer"
+                            returnClass="org.mule.examples.leagues.request.Team" doc:name="Java"/>
+        <set-property propertyName="Location" value="http://localhost:${http.port}/api/teams/#[payload.id]" doc:name="Property"/>
+        <expression-component doc:name="Expression">
+            app.registry['league-api'].addTeam(payload);
+        </expression-component>
+        <set-payload value="#[org.mule.transport.NullPayload.getInstance()]" doc:name="Set Payload"/>
+    </flow>
+    <flow name="put:/fixture/{homeTeamId}/{awayTeamId}:leaguesApi" doc:name="put:/fixture/{homeTeamId}/{awayTeamId}:leaguesApi">
+        <custom-transformer class="org.mule.module.apikit.transform.PayloadNormalizerTransformer"
+                            returnClass="org.mule.examples.leagues.request.Score" doc:name="Java"/>
+        <expression-component doc:name="Expression">
+            app.registry['league-api'].updateScore(homeTeamId, awayTeamId, payload);
+        </expression-component>
+        <set-payload value="#[org.mule.transport.NullPayload.getInstance()]" doc:name="Set Payload"/>
+    </flow>
+    <flow name="put:/teams/{teamId}:leaguesApi" doc:name="put:/teams/{teamId}:leaguesApi">
+        <custom-transformer class="org.mule.module.apikit.transform.PayloadNormalizerTransformer"
+                            returnClass="org.mule.examples.leagues.request.UpdateTeam" doc:name="Java"/>
+        <expression-component doc:name="Expression">
+            app.registry['league-api'].updateTeam(teamId, payload);
+        </expression-component>
+        <set-payload value="#[org.mule.transport.NullPayload.getInstance()]" doc:name="Set Payload"/>
+    </flow>
+</mule>
+----
+....
+------
+
+== Documentation
+
+Anypoint Studio includes a feature that enables you to easily export all the documentation you have recorded for your project. Whenever you want to easily share your project with others outside the Studio environment, you can export the project's documentation to print, email, or share online. Studio's auto-generated documentation includes:
+
+* A visual diagram of the flows in your application
+* The XML configuration which corresponds to each flow in your application
+* The text you entered in the Notes tab of any building block in your flow
+
+Follow http://www.mulesoft.org/documentation/display/current/Importing+and+Exporting+in+Studio#ImportingandExportinginStudio-ExportingStudioDocumentation[the procedure] to export auto-generated Studio documentation.
+
+== See Also
+
+* Learn more about link:/docs/display/35X/Building+Your+API[APIkit] by following the link:/docs/display/35X/APIkit+Tutorial[APIkit Tutorial].
+* Start designing your own RAML-based APIs in link:/docs/display/35X/Designing+Your+API[API Designer].

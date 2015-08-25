@@ -2,7 +2,7 @@
 
 == Overview
 
-After a message has been processed by a component, you use outbound routers to determine where to send the message next. You configure the outbound endpoints on the outbound router, not on the `<outbound>` element. Outbound routers allow you to define multiple routing constraints for any given message. You can specify a link:/documentation-3.2/display/32X/Catch-all+Strategies[catch-all strategy] to invoke if none of the routers accept the current message.
+After a message has been processed by a component, you use outbound routers to determine where to send the message next. You configure the outbound endpoints on the outbound router, not on the `<outbound>` element. Outbound routers allow you to define multiple routing constraints for any given message. You can specify a link:/mule-user-guide/v/3.2/catch-all-strategies[catch-all strategy] to invoke if none of the routers accept the current message.
 
 === Matching All Routers
 
@@ -22,7 +22,7 @@ In this example, the message will always match the first router because there is
 <outbound>    <catch-all-strategy>        <jms:outbound-endpoint queue="default.queue"/>    </catch-all-strategy>    <filtering-router>       <smtp:outbound-endpoint to="exceptions@muleumo.org" subject="Exception!" from="mule@mycompany.com!">            <transformer ref="ExceptionToEmail"/>       </smtp:outbound-endpoint>       <payload-type-filter expectedType="java.lang.Exception"/>    </filtering-router>    <filtering-router>        <vm:endpoint path="my.component"/>        <and-filter>            <payload-type-filter expectedType="java.lang.String"/>            <regex-filter pattern="the quick brown (.*)"/>        </and-filter>    </filtering-router></outbound>
 ----
 
-The following sections describe each Mule outbound router and how to configure them. Outbound routers can be more complex to configure, as they allow different routing paths that can be selected depending on the logic defined in one or more filters. For more detailed information on outbound router configuration elements and attributes, see the link:/documentation-3.2/display/32X/Outbound+Router+Configuration+Reference[Outbound Router Configuration Reference].
+The following sections describe each Mule outbound router and how to configure them. Outbound routers can be more complex to configure, as they allow different routing paths that can be selected depending on the logic defined in one or more filters. For more detailed information on outbound router configuration elements and attributes, see the link:/mule-user-guide/v/3.2/outbound-router-configuration-reference[Outbound Router Configuration Reference].
 
 === ReplyTo
 
@@ -37,9 +37,9 @@ In the following example, the first service sets up the routing, including passi
 
 The `<reply-to>` endpoint is used only by the very next service in the flow. For example, assume there are three services in the flow, and the first service has an outbound router with a reply-to endpoint. The second service in the flow will send the results of its invocation to that reply-to endpoint as well as passing the message along to the third service. The third service, however, processes the message as normal without sending its results to the reply-to endpoint.
 
-The `<reply-to>` endpoint can be any valid link:/documentation-3.2/display/32X/Mule+Endpoint+URIs[Mule endpoint URI]. For information on which transports support reply-to, see link:/documentation-3.2/display/32X/Transports+Reference[Transports Reference].
+The `<reply-to>` endpoint can be any valid link:/mule-user-guide/v/3.2/mule-endpoint-uris[Mule endpoint URI]. For information on which transports support reply-to, see link:/mule-user-guide/v/3.2/transports-reference[Transports Reference].
 
-Note that adding a reply-to endpoint makes the outbound endpoint asynchronous, so a response is not sent back to the caller, just to the reply-to endpoint. If you want to send a response back to the caller, you can add an link:/documentation-3.2/display/32X/Asynchronous+Reply+Routers[asynchronous reply router] in addition to the reply-to.
+Note that adding a reply-to endpoint makes the outbound endpoint asynchronous, so a response is not sent back to the caller, just to the reply-to endpoint. If you want to send a response back to the caller, you can add an link:/mule-user-guide/v/3.2/asynchronous-reply-routers[asynchronous reply router] in addition to the reply-to.
 
 == Pass-through Router
 
@@ -126,7 +126,7 @@ If you set the endpoints to synchronous, each endpoint processes the original me
 <outbound>  <multicasting-router>    <jms:endpoint queue="test.queue" transformer-refs="StringToJmsMessage" synchronous="true"/>    <http:endpoint host="10.192.111.11" transformer-refs="StringToHttpClientRequest" synchronous="true"/>    <tcp:endpoint host="10.192.111.12" transformer-refs="StringToByteArray" synchronous="true"/>    <payload-type-filter expectedType="java.lang.String"/>    <reply-to address="jms:reply.queue"/>  </multicasting-router></outbound>
 ----
 
-If you want the endpoints to process the message simultaneously and send back individual replies, set the endpoints to asynchronous (synchronous="false"). An individual reply will be returned from each endpoint to the caller. If you want to collect the asynchronous responses before sending the reply, use asynchronous endpoints, set a replyTo for the multicasting router, and then use the link:/documentation-3.2/display/32X/Asynchronous+Reply+Routers#AsynchronousReplyRouters-collectionasync[Collection Asynchronous Reply Router]. For example:
+If you want the endpoints to process the message simultaneously and send back individual replies, set the endpoints to asynchronous (synchronous="false"). An individual reply will be returned from each endpoint to the caller. If you want to collect the asynchronous responses before sending the reply, use asynchronous endpoints, set a replyTo for the multicasting router, and then use the link:/mule-user-guide/v/3.2/asynchronous-reply-routers[Collection Asynchronous Reply Router]. For example:
 
 [source, xml, linenums]
 ----
@@ -190,7 +190,7 @@ Configuration for this router is as follows:
 
 == Expression Splitter Router
 
-This router is similar to the list message splitter router, but it splits the message based on an link:/documentation-3.2/display/32X/Expressions+Configuration+Reference[expression]. The expression must return one or more message parts to be effective.
+This router is similar to the list message splitter router, but it splits the message based on an link:/mule-user-guide/v/3.2/expressions-configuration-reference[expression]. The expression must return one or more message parts to be effective.
 
 [source, xml, linenums]
 ----

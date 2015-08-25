@@ -25,8 +25,8 @@ Beyond benefits such as high availability through automatic failover, improved p
 
 * Automatic coordination of access to resources such as files, databases, and FTP sources. Mule automatically manages which node will handle communication from a data source.
 * Automatic load balancing of processing within a cluster. If you divide your flows into a series of steps and connect these steps with a transport such as VM, each step is put in a queue, making it cluster enabled. Mule can then process each step in any node, and so better balance the load across nodes.
-* Cluster lifecycle management and control. See link:/documentation/display/current/Managing+Mule+High+Availability+%28HA%29+Clusters[Managing Mule High Availability (HA) Clusters].
-* Cluster and node performance monitoring. See link:/documentation/display/current/Monitoring+a+Cluster[Monitoring a Cluster].
+* Cluster lifecycle management and control. See link:/mule-management-console/v/3.7/managing-mule-high-availability-ha-clusters[Managing Mule High Availability (HA) Clusters].
+* Cluster and node performance monitoring. See link:/mule-management-console/v/3.6/monitoring-a-cluster[Monitoring a Cluster].
 * Raised alerts. You can set up an alert to appear when a node goes down and when a node comes back up.
 
 [NOTE]
@@ -64,7 +64,7 @@ The feature known as *transactionality* tracks application event sequences to en
 
 Transports such as JMS, VM, and JDBC provide built-in transactional support, thus ensuring that messages get processed reliably. For example, you can configure a transaction on an inbound JMS endpoint to remove messages from the JMS server only after the transaction has been committed. This ensures that the original message remains available for reprocessing if an error occurs during the processing flow.
 
-You must use *XA transactions* to move messages between dissimilar transports that support transactions. This ensures that the Mule commits associated transactions from both transports as a single unit. See link:/documentation/display/current/Transaction+Management[Transaction Management] for more information on XA and other types of transactions supported by Mule.
+You must use *XA transactions* to move messages between dissimilar transports that support transactions. This ensures that the Mule commits associated transactions from both transports as a single unit. See link:/mule-user-guide/v/3.6/transaction-management[Transaction Management] for more information on XA and other types of transactions supported by Mule.
 
 == Cluster Support for Transports
 
@@ -93,9 +93,9 @@ All three basic types of transports are supported in clusters in different ways,
 
 == Clustering and Reliable Applications
 
-High-reliability applications (ones that have zero tolerance for message loss) not only require the underlying ESB to be reliable, but that reliability needs to extend to individual connections. link:/documentation/display/current/Reliability+Patterns[Reliability Patterns] give you the tools to build fully reliable applications in your clusters.
+High-reliability applications (ones that have zero tolerance for message loss) not only require the underlying ESB to be reliable, but that reliability needs to extend to individual connections. link:/mule-management-console/v/3.6/reliability-patterns[Reliability Patterns] give you the tools to build fully reliable applications in your clusters.
 
-Current Mule documentation provides link:/documentation/display/current/Reliability+Patterns#ReliabilityPatterns-rpcode[code examples] that show how you can implement a reliability pattern for a number of different non-transactional transports, including HTTP, FTP, File, and IMAP. If your application uses a non-transactional transport, follow the reliability pattern. These patterns ensure that a message is accepted and successfully processed or that it generates an "unsuccessful" response allowing the client to retry.
+Current Mule documentation provides link:/mule-management-console/v/3.6/reliability-patterns[code examples] that show how you can implement a reliability pattern for a number of different non-transactional transports, including HTTP, FTP, File, and IMAP. If your application uses a non-transactional transport, follow the reliability pattern. These patterns ensure that a message is accepted and successfully processed or that it generates an "unsuccessful" response allowing the client to retry.
 
 If your application uses transactional transports, such as JMS, VM, and JDBC, use transactions. Mule's built-in support for transactional transports enables reliable messaging for applications that use these transports.
 
@@ -122,7 +122,7 @@ There are also many hardware load balancers that can route both TCP and HTTP(S) 
 == Clustering for High Performance
 
 [NOTE]
-Note that high performance is implemented differently on link:/documentation/display/current/CloudHub[CloudHub], so this section applies only for on-premises deployments.
+Note that high performance is implemented differently on link:/cloudhub[CloudHub], so this section applies only for on-premises deployments.
 
 If high performance is your primary goal (rather than reliability), you can configure a Mule cluster or an individual application for maximum performance using a *performance profile*. By implementing the performance profile for specific applications within a cluster, you can maximize the scalability of your deployments while deploying applications with different performance and reliability requirements in the same cluster. By implementing the performance profile at the container level, you apply it to all applications within that container. Application-level configuration overrides container-level configuration.
 
@@ -170,19 +170,19 @@ In cases of high load with endpoints that do not support load balancing, applyin
 
 == HA Demo
 
-To evaluate Mule's HA clustering capabilities first-hand, download the link:/documentation/display/current/Evaluating+Mule+High+Availability+Clusters+Demo[*Mule HA Demo Bundle*]. Designed to help new users evaluate the capabilities of Mule High Availability Clusters, the Mule HA Demo Bundle teaches you how to use the Mule Management Console to create a cluster of Mule instances, then deploy an application to run on the cluster. Further, this demo simulates two processing scenarios that illustrate the cluster’s ability to automatically balance normal processing load, and its ability to reliably remain active in a failover situation.
+To evaluate Mule's HA clustering capabilities first-hand, download the link:/mule-user-guide/v/3.6/evaluating-mule-high-availability-clusters-demo[*Mule HA Demo Bundle*]. Designed to help new users evaluate the capabilities of Mule High Availability Clusters, the Mule HA Demo Bundle teaches you how to use the Mule Management Console to create a cluster of Mule instances, then deploy an application to run on the cluster. Further, this demo simulates two processing scenarios that illustrate the cluster’s ability to automatically balance normal processing load, and its ability to reliably remain active in a failover situation.
 
 == Best Practices
 
 There are a number of recommended practices related to clustering. These include:
 
 * As much as possible, organize your application into a series of steps where each step moves the message from one transactional store to another.
-* If your application processes messages from a non-transactional transport, use a link:/documentation/display/current/Reliability+Patterns[reliability pattern] to move them to a transactional store such as a VM or JMS store.
+* If your application processes messages from a non-transactional transport, use a link:/mule-management-console/v/3.6/reliability-patterns[reliability pattern] to move them to a transactional store such as a VM or JMS store.
 * Use transactions to process messages from a transactional transport. This ensures that if an error is encountered, the message will be reprocessed.
 * Use distributed stores such as those used with the VM or JMS transport – these stores are available to an entire cluster. This is preferable to the non-distributed stores used with transports such as File, FTP, and JDBC – these stores are read by a single node at a time.
 * Use the VM transport to get optimal performance. Use the JMS transport for applications where data needs to be saved after the entire cluster exits.
 * Create the number of nodes within a cluster that best meets your needs.
-* Implement link:/documentation/display/current/Reliability+Patterns[reliability patterns] to create high reliability applications.
+* Implement link:/mule-management-console/v/3.6/reliability-patterns[reliability patterns] to create high reliability applications.
 
 == Prerequisites and Limitations
 
@@ -191,7 +191,7 @@ There are a number of recommended practices related to clustering. These include
 * You must keep the following ports open in order to set up a Mule cluster: port 5701 and port 54327.
 * Because new cluster member discovery is performed using multicast, you need to enable the multicast IP: 224.2.2.3
 * To serve TCP requests, some load balancing across a Mule cluster is needed. See <<Clustering and Load Balancing>> for more information about third-party load balancers that you can use. You can also load balance the processing within a cluster by separating your flows into a series of steps and connecting each step with a transport such as VM. This cluster enables each step, allowing Mule to better balance the load across nodes.
-* If your link:/documentation/display/current/Endpoint+Configuration+Reference[custom message source] does not use a message receiver to define node http://en.wikipedia.org/wiki/Polling_(computer_science)[polling], then you must configure your message source to implement a ClusterizableMessageSource interface. +
+* If your link:/mule-user-guide/v/3.6/endpoint-configuration-reference[custom message source] does not use a message receiver to define node http://en.wikipedia.org/wiki/Polling_(computer_science)[polling], then you must configure your message source to implement a ClusterizableMessageSource interface. +
  ClusterizableMessageSource dictates that only one application node inside a cluster contains the active (i.e. started) instance of the message source; this is the ACTIVE node. If the active node falters, the ClusterizableMessageSource selects a new active node, then starts the message source in that node.
 
 == See Also
