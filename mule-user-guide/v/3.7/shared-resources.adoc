@@ -5,14 +5,14 @@ Mule supports the ability to define selected connectors as common resources and 
 
 Shared resources allow multiple development teams to work in parallel using the same set of reusable connectors. Defining these connectors as shared resources at the domain level allows the team to:
 
-* expose multiple services within the domain through the same port
-* share the connection to persistent storage
-* share services between applications through a well-defined interface
-* ensure consistency between applications upon any changes, as the configuration is only set in one place
+* Expose multiple services within the domain through the same port
+* Share the connection to persistent storage
+* Share services between applications through a well-defined interface
+* Ensure consistency between applications upon any changes, as the configuration is only set in one place
 
-== Assumptions
+== Prerequisites
 
-This document assumes that you are using Anypoint Studio with Mule runtime 3.6 or newer, or that you are building your applications outside Studio and deploying them to Mule Standalone **3.5.0** runtime or newer. 
+This document assumes that you are using Anypoint Studio with Mule runtime 3.6 or newer, or that you are building your applications outside Studio and deploying them to Mule Standalone *3.5.0* runtime or newer. 
 
 == Limitations
 
@@ -21,12 +21,12 @@ This document assumes that you are using Anypoint Studio with Mule runtime 3.6 o
 * Adding properties in the configuration files of applications that use shared resources can result in issues, as these properties will be shared with other apps in the domain and there may be conflicts. You can instead link:/mule-user-guide/v/3.7/setting-environment-variables[set environment variables].
 * Only the following connectors and related specifications can be specified as shared resources at this time: +
 ** HTTP/HTTPS (both endpoints and connectors)
-* VM
-* JMS
-* JMS Caching Connection Factory
-* Database
-* WMQ
-* JBoss Transaction Manager
+** VM
+** JMS
+** JMS Caching Connection Factory
+** Database
+** WMQ
+** JBoss Transaction Manager
 ** Bitronix Transaction Manager
 
 == Basic Anatomy
@@ -37,7 +37,7 @@ The following files are key within the Mule Domain Project:
 |===
 |*mule-domain-config.xml* |This is the shared resources configuration file.
 |*/lib* |This directory can contain libraries associated with the domain. Place the JDBC drivers for the datasources that you define as shared resources here or JMS broker APIs needed for the JMS connector.
-|*mule-project.xml* |Through this file you can define the Mule runtime to use in this domain, it also defines a name and a description for the domain. The runtime defined in the domain will be inherited by all of the applications that are under it.
+|*mule-project.xml* |Through this file you can define the Mule runtime to use in this domain, it also defines a name and a description for the domain. The runtime defined in the domain is inherited by all of the applications that are under it.
 |===
 
 == Configuration
@@ -56,19 +56,14 @@ The sections below describe the procedure for each of these steps.
 
 To create a new domain in Aypoint Studio, follow the steps below:
 
-. In the top menu bar select `File > New > Mule Domain Project` +
-
+. In the top menu bar select `File > New > Mule Domain Project`
 +
 image:new+domain.png[new+domain] +
 +
-
- +
 . Fill in the same fields as you would with a regular Mule Project:
 +
 image:create+new+domain.png[create+new+domain] +
 +
-
- +
 Provide a name for the project and select a runtime. Optionally complete the Maven settings if you plan to use Maven with this project, and optionally create a .gitignore file if you plan to share this project via git or github.
 
 [NOTE]
@@ -82,27 +77,11 @@ Note that the `lib` folder is optional.
 
 === Defining Shared Resources
 
-You can configure the domain project that you just created in the previous step by defining shared resources in the the  **`mule-domain-config.xml`** file. You can define multiple resources in this configuration file. In Anypoint Studio, there are two different views for editing this file. The `source` view should be the most familiar for those used to the XML editor in regular Studio Mule projects:
+You can configure the domain project that you just created in the previous step by defining shared resources in the the  `mule-domain-config.xml` file. You can define multiple resources in this configuration file. In Anypoint Studio, there are two different views for editing this file. The `source` view should be the most familiar for those used to the XML editor in regular Studio Mule projects:
 
 image:design+source.png[design+source]
 
 Include, at minimum, the namespace and XML schema location for the domain, as shown below. Be sure to use the version, *Community* or *Enterprise*, that matches the resource that you are creating. VM, WMQ, and the Bitronix Transaction Manager require the Enterprise version.
-
-*Community*
-
-[width="100%",cols="50%,50%",]
-|===
-|Namespace a|
-|XML Schema Location a|
-|===
-
-*Enterprise*
-
-[width="100%",cols="50%,50%",]
-|===
-|Namespace a|
-|XML Schema Location a|
-|===
 
 Add additional namespaces and schema locations for each resource that you want to share. See the example definitions for each supported shared resource below for full namespace definitions required for each. Note that the examples are separated into separate XML configurations for clarity, but you can define multiple shared resources in a single `mule-domain` project.
 
@@ -140,9 +119,9 @@ image:pick+resource.png[pick+resource]
 
 === Deploying with Shared Resources
 
-In Anypoint Studio, when you deploy an application that is associated to a domain, by default Studio will deploy both the application and the domain together. Also, when deploying a domain project, by default Studio will deploy every application associated to it as well. You can change these default behaviors by changing the Run Configuration for the domain, you can in fact make any set of applications in your workspace be deployed together, even if they don't share the same domain.
+In Anypoint Studio, when you deploy an application that is associated to a domain, by default Studio deploys both the application and the domain together. Also, when deploying a domain project, by default Studio deploys every application associated to it as well. You can change these default behaviors by changing the Run Configuration for the domain, you can in fact make any set of applications in your workspace be deployed together, even if they don't share the same domain.
 
-To set this in Studio, open the dropdown menu next to the play button and select *Run Configurations*.
+To set this in Studio, open the drop-down menu next to the play button and select *Run Configurations*.
 
 image:run+configurations+1.png[run+configurations+1]
 
@@ -150,10 +129,9 @@ Then pick the *General* tab, and tick or untick the boxes next to the projects t
 
 image:run+configuration+3.png[run+configuration+3]
 
-The steps below describe how to deploy your domain project and the applications outside Studio, to Standalone Mule
+The steps below describe how to deploy your domain project and the applications outside Studio, to Standalone Mule.
 
-. In Studio, select `File > Export`. Then in the folder named *Mule*, pick **Anypoint Studio Project to Mule Deployable Archive (includes Studio metadata)**. This will create a .zip file that you can deploy to Standalone Mule.
-
+. In Studio, select `File > Export`. Then in the folder named *Mule*, pick *Anypoint Studio Project to Mule Deployable Archive (includes Studio metadata)*. This creates a .zip file that you can deploy to Standalone Mule.
 +
 image:export.png[export]
 +
@@ -163,10 +141,10 @@ If you've created your Domain outside Studio, Zip the components of your domain 
 
 Note that right clicking the a folder and selecting *Compress* results in additional folders being added to your folder structure when Mule unzips your file, which causes deployment problems. Use the command line to zip your files recursively, or package your app as a zip file from Studio.
 ====
-
++
 . Save, zip, and copy the zip file for each application that references this domain into the `MULE_HOME/apps` folder.
 . Start Mule via the command console.
-
++
 When Mule starts, it first deploys any domains found in the `MULE_HOME/domains` folder, then it deploys the applications in the `MULE_HOME/apps` folder, so that all domains are fully started before the applications start.
 
 === Deploying Domain Bundles
@@ -213,7 +191,7 @@ Sharing a `db` configuration creates a common connection to a database between
 
 Sharing a WMQ connector creates a common connection to the broker between multiple applications, minimizing the number of client connections to the broker.
 
-To share a WMQ connector as a shared resource, you need to *remove* the mule-transport-wmq-ee-<mule-version>.jar from $MULE_HOME/lib/mule/per-app/ folder and *remove* native wmq jars from your application's $MULE_HOME/apps/<my-app>/lib/ directory. Place all these jars in the **$MULE_HOME/domains/<my-domain>/lib/** folder instead.
+To share a WMQ connector as a shared resource, you need to *remove* the mule-transport-wmq-ee-<mule-version>.jar from $MULE_HOME/lib/mule/per-app/ folder and *remove* native wmq jars from your application's $MULE_HOME/apps/<my-app>/lib/ directory. Place all these jars in the `$MULE_HOME/domains/<my-domain>/lib/` folder instead.
 
 For example:
 
@@ -249,10 +227,10 @@ The Bitronix module integration also provides a JMS connection factory pool and 
 
 Access reference documentation for:
 
-*  link:/mule-user-guide/v/3.7/vm-transport-reference[VM]
+* link:/mule-user-guide/v/3.7/vm-transport-reference[VM]
 * link:/mule-user-guide/v/3.7/database-connector[DB]
 * link:/mule-user-guide/v/3.7/jms-transport-reference[JMS]
-*  link:/mule-user-guide/v/3.7/http-connector[HTTP Connector]
+* link:/mule-user-guide/v/3.7/http-connector[HTTP Connector]
 * link:/mule-user-guide/v/3.7/mule-wmq-transport-reference[WMQ]
 * link:/mule-user-guide/v/3.7/jboss-transaction-manager-reference[JBoss]
 * link:/mule-user-guide/v/3.7/setting-environment-variables[Set Environment Variables]
