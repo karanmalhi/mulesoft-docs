@@ -59,14 +59,12 @@ Mule gives you the ability to attach custom metadata in your flow using the cust
 ------
 [tab,title="Studio Visual Editor"]
 ....
-[width="99a",cols="99a"]
-|===
-|
+
 . Within the *Palette*, click *Miscellaneous*, then drag *Custom Business Events* to the desired location in your flow. Click the icon to open the *Properties Editor*.
 . Enter string values for *Display Name* and *Event Name*.
 . Optionally, create a list of *Key Performance Indicators* (KPIs) to capture information from the message payload. For each KPI, enter a name (which can be used in the search interface of Mule Management Console or CloudHub at runtime), and a value, which may be any Mule expression.
 
-image:/docs/download/attachments/122752234/custom_business_events.png?version=1&modificationDate=1398976938422[image]
+image:custom_business_events.png[custom_business_events]
 
 Note that key/value pairs can vary according to your business needs. Additional examples:
 
@@ -81,7 +79,6 @@ Note that key/value pairs can vary according to your business needs. Additional 
 Using the XML editor, you can set up your flow so that metadata can be shared among events. See the XML tab for details on how to set up the `tracking:custom-event-template` global element in your flow.
 
 You can also trigger conditional custom events to help track how messages are processed through your flow. For example, you could set up a choice router in your flow.
-|===
 
 ....
 [tab,title="Studio or Standalone XML"]
@@ -103,7 +100,7 @@ When you define a custom event, you can also add metadata. Use link:/mule-user-g
 [source, xml, linenums]
 ----
 <flow name="flow">
-...
+        ...
   <tracking:custom-event event-name="Retrieved Employee" doc:name="Retrieved Employee">
     <tracking:meta-data key="Employee Id" value="#[payload['ID']]"/>
     <tracking:meta-data key="Employee First Name" value="#[payload['FIRST_NAME']]"/>
@@ -111,7 +108,7 @@ When you define a custom event, you can also add metadata. Use link:/mule-user-g
     <tracking:meta-data key="Employee Email" value="#[payload['EMAIL']]"/>
     <tracking:meta-data key="Employee Git ID" value="#[payload['GITHUB_ID']]"/>
   </tracking:custom-event>
-...
+        ...
 </flow>
 ----
 
@@ -120,12 +117,12 @@ You can even add text to the expression language, as shown in the following exam
 [source, xml, linenums]
 ----
 <flow name="flow">
-...
+        ...
     <tracking:custom-event event-name="price_discount">
       <tracking:meta-data key="price-after-discount"
        value="The price for the item is:#[groovy:payload.price]" />
     </tracking:custom-event>
-...
+        ...
 </flow>
 ----
 
@@ -169,9 +166,6 @@ Event tracking requires some processing and network overhead to aggregate and st
 * At the flow level
 * At the message processor or connector level
 
-[width="99a",cols="99a"]
-|===
-|
 [NOTE]
 ====
 Message processor or connector level configuration takes precedence over flow level configuration.
@@ -182,7 +176,7 @@ Message processor or connector level configuration takes precedence over flow le
 
 * if you want to enable all default events for a specific flow, but not for a specific message processor (in this case, the All router):
 ====
-|===
+
 
 To enable default event tracking for all relevant elements within your flow, follow these instructions:
 
@@ -190,29 +184,26 @@ To enable default event tracking for all relevant elements within your flow, fol
 ------
 [tab,title="Studio Visual Editor"]
 ....
-[width="99a",cols="99a"]
-|===
-|
+
 . Click the title bar of the flow in the canvas to open the flow's *Properties*   *Editor*.
 . Enable default Business Events by selecting *Enable default events tracking*:
-
-image:/docs/download/attachments/122752234/flow_events.png?version=1&modificationDate=1398977057526[image]
-
++
+image:flow_events.png[flow_events]
++
 . Optionally, check *Use transaction ID* to set an identifier for all tracked events pertaining to this flow so that meaningful information, such as an order number, is displayed for a transaction.
 . Click anywhere in the canvas to save your settings.
 
 This enables default events tracking for all supported building blocks within the flow.
 
 If you wish, you can disable tracking for specific processors or connectors to override the flow-level enablement.
-|===
+
 ....
 [tab,title="Studio or Standalone XML"]
 ....
-[width="99a",cols="99a"]
-|===
+
 Include the attribute `tracking:enable-default-events="true"` at the level of your flow in your XML, as in the following example:
 
-[source, xml, linenums]
+[source, xml]
 ----
 <flow name="flow" tracking:enable-default-events="true">
   ...
@@ -221,7 +212,7 @@ Include the attribute `tracking:enable-default-events="true"` at the level of yo
 
 This enables event tracking for all supported elements in the flow. If you wish, you can disable tracking for specific processors or connectors to override the flow-level enablement. For example, the code below specifies that although the flow has tracking enabled for default events, tracking is disabled for the All router.
 
-[source, xml, linenums]
+[source, xml]
 ----
 <flow name="flow" tracking:enable-default-events="true">
   ...
@@ -232,7 +223,7 @@ This enables event tracking for all supported elements in the flow. If you wish,
 
 Optionally, you can define a transaction ID so that meaningful information, such as an order number, is displayed for a transaction. If you do not customize the transaction ID, Mule assigns a numeric transaction ID by default. To make the ID more user-friendly for your business needs, you can customize it with link:/mule-user-guide/v/3.7/mule-expression-language-mel[Mule expression language]:
 
-[source, xml, linenums]
+[source, xml]
 ----
 <flow name="flow">
   ...
@@ -241,7 +232,6 @@ Optionally, you can define a transaction ID so that meaningful information, such
 </flow>
 ----
 
-|===
 ....
 ------
 
@@ -251,19 +241,16 @@ To enable default event tracking for individual elements within your flow, follo
 ------
 [tab,title="Studio Visual Editor"]
 ....
-[width="99a",cols="99a"]
-|===
-|
+
 . Open the Properties Editor of the desired building block within the flow. 
 . In the *Advanced* tab, select *Enable default events tracking* to enable default business events tracking for only the selected building block.
 
 Not all building blocks support default event tracking. If the checkbox is not present in a message processor or connector, default tracking is not supported.
-|===
+
 ....
 [tab,title="Studio Standalone XML"]
 ....
-[width="99a",cols="99a"]
-|===
+
 To enable default events tracking for a specific element in a flow, add the attribute `tracking:enable-default-events="true"` to the element, as shown here for the All router:
 
 [source, xml, linenums]
@@ -276,7 +263,7 @@ To enable default events tracking for a specific element in a flow, add the attr
 ----
 
 Not all elements support default event tracking. If Mule throws an exception specifying that the prefix "tracking" is invalid for that element, default tracking is not supported.
-|===
+
 ....
 ------
 
@@ -290,17 +277,13 @@ It's good practice to customize the ID such that the ID is unique for each trans
 ------
 [tab,title="Studio Visual Editor"]
 ....
-[width="99a",cols="99a"]
-|===
-|
-image:/docs/download/attachments/122752234/transactionID.png?version=1&modificationDate=1398977464652[image]
-|===
+
+image:transactionID.png[transactionID]
+
 ....
 [tab,title="Studio Standalone XML"]
 ....
-[width="99a",cols="99a"]
-|===
-|
+
 [source, xml, linenums]
 ----
 <flow name="flow">
@@ -309,7 +292,7 @@ image:/docs/download/attachments/122752234/transactionID.png?version=1&modificat
 ...
 </flow>
 ----
-|===
+
 ....
 ------
 
@@ -388,7 +371,7 @@ There are a number of recommended practices for setting up your business event t
 
 
 [source, xml, linenums]
------
+----
 <flow name="flow">
 ...
   <tracking:transaction id="#[groovy:payload.orderId]" />
