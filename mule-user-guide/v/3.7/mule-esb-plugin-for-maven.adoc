@@ -5,16 +5,18 @@ The muleesb-maven-plugin allows you to control Mule ESB instances from within a 
 
 * Deploy a Mule application to a local standalone server
 * Run integration tests in a local standalone deployment
-* Start, stop and restart a local standalone server
+* Start, stop, and restart a local standalone server
 * Run integration tests in a local cluster deployment
 
 The plugin supports both the Community and Enterprise editions.
 
-== Assumptions
+== Prerequisites
 
-This document assumes that you are familiar with Maven, managing pom.xml files, and working with Maven plugins. (If you are just getting started with Maven, we suggest you follow http://maven.apache.org/guides/getting-started/[Maven's Getting Started tutorial].) Additionally, this document assumes familiarity with developing Mule applications within Maven. For more information about Mule and Maven, see link:/mule-user-guide/v/3.7/using-maven-with-mule[Using Maven with Mule].
+This document assumes that you are familiar with Maven, managing pom.xml files, and working with Maven plugins. (If you are just getting started with Maven, we suggest you follow link:http://maven.apache.org/guides/getting-started/[Maven's Getting Started tutorial].) Additionally, this document assumes familiarity with developing Mule applications within Maven. For more information about Mule and Maven, see link:/mule-user-guide/v/3.7/using-maven-with-mule[Using Maven with Mule].
 
 == Adding the Plugin
+
+The followign sections explain how to add the Mule plugin for Maven.
 
 === Adding the Maven Dependency for the Plugin
 
@@ -121,16 +123,16 @@ Instead of specifying the full Maven coordinates as shown above, you can leave o
     <groupId>org.mule.tools</groupId>
     <artifactId>muleesb-maven-plugin</artifactId>
     <configuration>
-        <muleVersion>3.5.0</muleVersion>
+        <muleVersion>3.7.0</muleVersion>
         <applications>
 ...
 ----
 
 == Running Integration Tests
 
-One of the most important uses for the plugin is to run integration tests on your integration application. The plugin includes a complete working example in `src/it/example-integration-tests`. (To see the example's POM, click below.)
+One of the most important uses for the plugin is to run integration tests on your integration application. The plugin includes a complete working example in `src/it/example-integration-tests`.
 
- the working example POM
+The working example POM:
 
 [source, xml, linenums]
 ----
@@ -216,17 +218,17 @@ One of the most important uses for the plugin is to run integration tests on you
 </project>
 ----
 
-To package, test, and deploy your project to Mule ESB, you would complete the following tasks:
+To package, test, and deploy your project to Mule ESB:
 
 * Pack your project in the Mule application format using maven-mule-plugin
 * Run integration tests and report using maven-failsafe-plugin
 * Deploy the packaged application to a new Mule ESB downloaded from a Maven repository, using mulees-maven-plugin
 
-In this scenario, you can only specify the Mule version and the parameters for Mule Standalone. The plugin will download the default version of Mule ESB Enterprise Edition from a configured Maven repository, unpack it, and deploy the packaged application from your project. By default, the goals to be executed will be `pre-integration-test` and `post-integration-test`.
+In this scenario, you can only specify the Mule version and the parameters for Mule Standalone. The plugin downloads the default version of Mule ESB Enterprise Edition from a configured Maven repository, unpacks it, and deploys the packaged application from your project. By default, the goals to be executed are `pre-integration-test` and `post-integration-test`.
 
-Below is example code showing how to configure the maven-failsafe-plugin so that, when you run `mvn verify`, it will always stop Mule Standalone during the post-integration-test phase.
+Below is example code showing how to configure the maven-failsafe-plugin so that, when you run `mvn verify`, it stops Mule Standalone during the post-integration-test phase.
 
- the example code
+The example code:
 
 [source, xml, linenums]
 ----
@@ -260,9 +262,7 @@ Below is example code showing how to configure the maven-failsafe-plugin so that
 
 This example, the plugin works with an external Mule standalone deployment, and performs the following actions:
 
-* Configures two applications to be deployed
-+
-the code
+* Configure two applications to be deployed:
 +
 [source, xml, linenums]
 ----
@@ -272,9 +272,7 @@ the code
 </applications>
 ----
 +
-* Adds two external libraries to the server
-+
-the code
+* Adds two external libraries to the server:
 +
 [source, xml, linenums]
 ----
@@ -284,26 +282,22 @@ the code
 </libs>
 ----
 +
-* Adds a domain to be deployed
+* Adds a domain to be deployed:
 +
-the code
-+
-[source, xml, linenums]
+[source, xml]
 ----
 <domain>/home/mule/mvn/thisproject/domain</domain>
 ----
 +
 * Specifies a script to run before starting the Mule server
 +
-the code
-+
-[source, xml, linenums]
+[source, xml]
 ----
 <script>/home/mule/mvn/thisproject/script.groovy</script>
 ----
 
 
-The full code is shown below.
+The full code:
 
 [source, xml, linenums]
 ----
@@ -312,7 +306,7 @@ The full code is shown below.
     <groupId>org.mule.tools</groupId>
     <artifactId>muleesb-maven-plugin</artifactId>
     <configuration>
-        <muleHome>/home/mule/mule-standalone-3.5.0</muleHome>                 <!-- (1) -->
+        <muleHome>/home/mule/mule-standalone-3.7.0</muleHome>                 <!-- (1) -->
         <applications>
             <application>/home/mule/apps/sampleApp1</application>
             <application>/home/mule/apps/sampleApp2</application>  <!-- (2) -->
@@ -353,7 +347,7 @@ Comments reference:
 [cols=",,",options="header",]
 |===
 |No. |Description |Notes
-|1 |Sets your Mule root folder, in this case `/home/mule/mule-standalone-3.5.0`. | 
+|1 |Sets your Mule root folder, in this case `/home/mule/mule-standalone-3.7.0`. | 
 |2 |These two child elements define the Mule applications that will be deployed to the Mule instance. Applications defined with this parameter can be either a deployable Mule application zip file or an exploded Mule application folder |Optional
 |3 |External libraries to add to Mule standalone |Optional
 |4 |Arguments for the Mule server |Optional
@@ -448,6 +442,6 @@ When set to true, the `skip` parameter causes plugin execution to be skipped. T
 
 == See Also
 
-* For more information about developing Mule applications with Maven, see the overview in link:/mule-user-guide/v/3.7/using-maven-with-mule[Using Maven with Mule], and the guides at http://www.mulesoft.org/documentation/display/current/Building+a+Mule+Application+with+Maven+outside+Studio[Building a Mule Application with Maven outside Studio] and http://www.mulesoft.org/documentation/display/current/Building+a+Mule+Application+with+Maven+in+Studio[Building a Mule Application with Maven in Studio].
-* Learn how to http://www.mulesoft.org/documentation/display/current/Importing+a+Maven+Project+into+Studio[import an existing Maven project into Anypoint Studio].
-* Access additional Maven http://www.mulesoft.org/documentation/display/current/Maven+Reference[reference] and http://www.mulesoft.org/documentation/display/current/Configuring+Maven+POM+Files+and+Settings[configuration] information.
+* For more information about developing Mule applications with Maven, see the overview in link:/mule-user-guide/v/3.7/using-maven-with-mule[Using Maven with Mule], and the guides at  link:/mule-user-guide/v/3.7/building-a-mule-application-with-maven-in-studio[Building a Mule Application with Maven in Studio].
+* Learn how to link:/mule-user-guide/v/3.7/importing-a-maven-project-into-studio[import an existing Maven project into Anypoint Studio].
+* Access additional Maven link:/mule-user-guide/v/3.7/maven-reference[reference] and link:/mule-user-guide/v/3.7/configuring-maven-pom-files-and-settings[configuration] information.
