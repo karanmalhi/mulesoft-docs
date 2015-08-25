@@ -316,7 +316,7 @@ Lifecycle has been fixed. Please have the following considerations:
 * Spring Bean Definition parsers no longer automatically call the initialise() and dispose() methods. If you want to maintain that behavior in your custom parsers, you must explicitly do it yourself.
 * An example of doing that would be:
 
-[source,
+[source,json,linenums]
 ----
 private void setInitAndDisposeMethods(BeanDefintionBuilder builder, Class<?> parsedObjectType) {
 
@@ -342,7 +342,7 @@ set-payload element is now implemented using a plain MessageProcessor instead of
 
 To use SetPayloadTransformer in the Mule configuration file as a transformer, define it as a <custom-transformer> like this:
 
-[source,
+[source, xml,linenums]
 ----
 <custom-transformer class="org.mule.transformer.simple.SetPayloadTransformer">
     <spring:property name="value" value="someValue"/>
@@ -354,14 +354,14 @@ Applying a message transformer does not changes message's data type if the paylo
 
 In particular, this changes affects usages of message properties transformer configured like this:
 
-[source,
+[source, xml,linenums]
 ----
 <message-properties-transformer name="setResponseType" mimeType="text/baz" encoding="UTF-16BE"/>
 ----
 
 That now must be configure in this way:
 
-[source,
+[source, xml,linenums]
 ----
 <message-properties-transformer name="setResponseType">
 <add-message-property key="Content-Type" value="text/baz;charset=UTF-16BE"/>
@@ -370,7 +370,7 @@ That now must be configure in this way:
 
 Or like this:
 
-[source,
+[source, xml,linenums]
 ----
 <set-property propertyName="Content-Type" value="text/baz;charset=UTF-16BE"/>
 ----
@@ -389,14 +389,14 @@ A new API for object serialization has been added through the ObjectSerializer i
 * You can now specify which is the default implementation of ObjectSerializer that you want your application to use. Such instances are used by Mule (although you're free to use others in your custom code). By default, the ObjectSerializer implementation uses default Java serialization an behaves exactly the same as in prior versions.
 * To configure your custom serializer as the default you can use the <configuration> tag:
 
-[source,
+[source, xml,linenums]
 ----
 <configuration defaultObjectSerializer-ref="myCustomSerializer" />
 ----
 
 * There are many ways to obtain an ObjectSerializer. Recommended approach is through dependency injection. The following shows how to get the ObjectSerializer that has been configured as the default:
 
-[source,
+[source,java,linenums]
 ----
 public class MyClass {
 
@@ -409,7 +409,7 @@ private ObjectSerializer objectSerializer;
 
 * Instead, if you want a specific named serializer (whether it's the default or not) you can also do it like this:
 
-[source,
+[source,java,linenums]
 ----
 public class MyClass {
 
@@ -422,7 +422,7 @@ private ObjectSerializer objectSerializer;
 
 * Finally, you can always pull it from the muleContext but dependency injection is preferred:
 
-[source,
+[source,java,linenums]
 ----
 // returns the default object serializer
  muleContext.getObjectSerializer();
