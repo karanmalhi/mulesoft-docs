@@ -27,7 +27,7 @@ This document is for a technical audience possessing basic knowledge of AS2, X12
 
 This example shows how to leverage the Anypoint B2B Platform to manage and track B2B exchanges. The goal is to develop a Mule application, representing a customer, that transforms an XML purchase order read from the filesystem to an X12 850 and sends it to a supplier over AS2. The supplier returns an X12 997 to an AS2 endpoint the application is listening on in order to inform the customer whether the 850 was accepted or rejected. All B2B transactions are managed and recorded by Anypoint B2B Platform while the actual files exchanged are stored in an Amazon S3 bucket.
 
-image:B2B_AS2EDI_01.png[image]
+image:B2B_AS2EDI_01.png[B2B_AS2EDI_01]
 
 == Partnership Set Up
 
@@ -37,16 +37,16 @@ The first stage of the solution is to create a partnership between your organisa
 
 . Login into https://anypoint.mulesoft.com/b2b[Anypoint B2B Portal]:
 +
-image:B2B_AS2EDI_02.png[image]
+image:B2B_AS2EDI_02.png[B2B_AS2EDI_02]
 +
 . Click *Trading Partners* found on the left hand side menu:
 +
-image:B2B_AS2EDI_03.png[image]
+image:B2B_AS2EDI_03.png[B2B_AS2EDI_03]
 +
 . Press *Create* on the lower right hand side corner.
 . Enter _My Supplier_ as *Company Name* and press *Save*.
 +
-image:B2B_AS2EDI_04.png[image]
+image:B2B_AS2EDI_04.png[B2B_AS2EDI_04]
 
 With a partnership in place, we can set the runtime parameters in which the AS2 Connector and X12 Module operates when sending to the supplier or receiving from said supplier.
 
@@ -57,18 +57,18 @@ With a partnership in place, we can set the runtime parameters in which the AS2 
 . Enter _http://localhost:8081_ in the *Outbound URL* field.
 . Check the *MDN Required* checkbox both in the *Outbound* and *Inbound* sections.
 +
-image:B2B_AS2EDI_05.png[image]
+image:B2B_AS2EDI_05.png[B2B_AS2EDI_05]
 +
-image:B2B_AS2EDI_06.png[image]
+image:B2B_AS2EDI_06.png[B2B_AS2EDI_06]
 +
 . Press *Save*.
 . Navigate to the *Trading Partners* page and click the home organisation settings link on the upper right corner, next to the home icon:
 +
-image:B2B_AS2EDI_07.png[image]
+image:B2B_AS2EDI_07.png[B2B_AS2EDI_07]
 +
 . Click the AS2 transport settings found on the left hand side menu. Set *AS2 Identity* to _MOUNTAINOUT_. This field’s value is the AS2-From header you want to send to your partner in an AS2 request.
 +
-image:B2B_AS2EDI_08.png[image]
+image:B2B_AS2EDI_08.png[B2B_AS2EDI_08]
 
 == Set Up X12
 
@@ -111,7 +111,7 @@ image:B2B_AS2EDI_08.png[image]
 |Require unique transaction set control numbers (ST 02) |FALSE
 |===
 +
-image:B2B_AS2EDI_09.png[image]
+image:B2B_AS2EDI_09.png[B2B_AS2EDI_09]
 +
 . Press *Save*.
 
@@ -129,7 +129,7 @@ Each part has its own Mule configuration file.
 * Rename the initial Mule config file created by Studio to _customer.xml_ 
 * Create a new Mule config and name it _mock-supplier_
 +
-image:B2B_AS2EDI_10.png[image]
+image:B2B_AS2EDI_10.png[B2B_AS2EDI_10]
 
 == Customer Connector Configs
 
@@ -142,13 +142,13 @@ The B2B Connector acts like a bridge between Mule and Anypoint‘s B2B services.
 . Click the *Global Elements* view. Go to *Create* -> *Connector Configuration* -> *B2B*.
 . Enter your secret API key which is retrieved from your home organisation’s *Contacts* settings page in the B2B portal. Remember, the home organisation settings is accessed by clicking on the home organisation settings link on the upper right corner, next to the home icon:
 +
-image:B2B_AS2EDI_11.png[image]
+image:B2B_AS2EDI_11.png[B2B_AS2EDI_11]
 +
-image:B2B_AS2EDI_12.png[image]
+image:B2B_AS2EDI_12.png[B2B_AS2EDI_12]
 +
 . If you have an Amazon S3 bucket available, you should select *s3* as the *File Storage Type*. Setting this option tells the B2B Connector to persist X12 documents and AS2 message content to S3.
 +
-image:B2B_AS2EDI_13.png[image]
+image:B2B_AS2EDI_13.png[B2B_AS2EDI_13]
 +
 . Press *OK*.
 
@@ -178,7 +178,7 @@ In this step we’ll add the HTTP global endpoints required by the AS2 Connector
 . Enable *Use B2B Provider* to allow Anypoint B2B platform to manage the X12 processors.
 . Check the *Create Object Manually* radio button and open the *Object Builder* to enter the schema path _/x12/005010/850.esl_ in the first entry list.
 +
-image:B2B_AS2EDI_14.png[image]
+image:B2B_AS2EDI_14.png[B2B_AS2EDI_14]
 +
 . Set the interchange identifier attributes so that they correspond with the interchange identifiers you configured in the B2B Portal:
 +
@@ -203,7 +203,7 @@ image:https://lh4.googleusercontent.com/fyBqvQ5mVxJhsOE8StSF9Qu0LNOoRYdC4fiIg613
 +
 The following screenshot should match what you have in the *Global Elements* view:
 +
-image:B2B_AS2EDI_15.png[image]
+image:B2B_AS2EDI_15.png[B2B_AS2EDI_15]
 
 == Transform and Send 850 over AS2
 
@@ -215,7 +215,7 @@ With the connector configs out of the way, we’ll build a flow to read an XML p
 . Put an *X12* processor after the DataMapper. Set the *Connector Configuration* to the X12 config that you created in the previous section and select *Write* for the *Operation*.
 . Go back to the DataMapper. Select for input type *XML* and use the schema _po.xsd_ to derive the structure to be mapped. Click on the *Create mapping* button.
 +
-image:B2B_AS2EDI_16.png[image]
+image:B2B_AS2EDI_16.png[B2B_AS2EDI_16]
 +
 . Perform the mapping from XML to X12 850 as follows:
 +
@@ -245,7 +245,7 @@ image:B2B_AS2EDI_16.png[image]
 +
 Note that these identifiers were configured in the B2B Portal. The AS2 identifiers are the key for looking up the partnership to use for sending AS2 messages.
 +
-image:B2B_AS2EDI_17.png[image]
+image:B2B_AS2EDI_17.png[B2B_AS2EDI_17]
 
 == Receive 997 over AS2
 
@@ -261,7 +261,7 @@ The AS2 identifiers are the key for looking up the partnership to use for receiv
 +
 . Add an *X12* processor next to the message source and select the *Read* operation. Point the *Connector Configuration* to the X12 Module config that you created in the previous section
 +
-image:B2B_AS2EDI_18.png[image]
+image:B2B_AS2EDI_18.png[B2B_AS2EDI_18]
 
 == Develop Mock Supplier
 
@@ -277,20 +277,20 @@ The mock supplier receives the 850 and generates a 997 to send back to the custo
 +
 The following screenshot should match what you have in the mock supplier’s *Global Elements* view:
 +
-image:B2B_AS2EDI_19.png[image]
+image:B2B_AS2EDI_19.png[B2B_AS2EDI_19]
 +
 . Switch to the *Message Flow* view. Drag the AS2 processor to the canvas and select the *Receive* operation. Make sure that *Connector Configuration* points to the mock supplier’s AS2 config.
 +
 . Add an *X12* processor to the flow. Select the mock supplier’s X12 config for *Connector Configuration* and set  its *Operation* to *Read*.
 . After the 850 is parsed by the X12 processor, the generated 997 needs to be extracted from the payload. Add the *Set Payload* processor to the processor chain and set *Value* to: _#[ ['Transactions' : ['997' : *payload*.FunctionalAcksGenerated] ] ]_
 +
-image:B2B_AS2EDI_20.png[image]
+image:B2B_AS2EDI_20.png[B2B_AS2EDI_20]
 +
 . Add Another *X12* processor to serialize the 997. Select the mock supplier’s X12 config for *Connector Configuration*. Expand the *Operation* drop-down menu and select *Write*.
 +
 . The last step in the flow to send the 997 over AS2. Append an AS2 processor to the flow and enter _MY-SUPPLIER_ in *AS2-From* and _MOUNTAINOUT_ in *AS2-To*.
 +
-image:B2B_AS2EDI_21.png[image]
+image:B2B_AS2EDI_21.png[B2B_AS2EDI_21]
 
 == Run Application When S3 Storage is Disabled
 
@@ -299,7 +299,7 @@ image:B2B_AS2EDI_21.png[image]
 . Drop the purchase order file po.xml, included with this document, in the outbox directory. The file should disappear from the directory since the *File* inbound endpoint deletes the file after it reads it.
 . Access the B2B Transmissions view in the B2B Portal to confirm that the AS2 and X12 transmissions have taken place.
 +
-image:B2B_AS2EDI_22.png[image]
+image:B2B_AS2EDI_22.png[B2B_AS2EDI_22]
 
 == Run Application When S3 Storage is Enabled
 
@@ -315,4 +315,4 @@ If you have enabled S3 storage configured in the B2B Connector config, then you 
 
 The value of each property needs to be substituted with the required setting retrieved from your AWS Management Console.
 
-image:B2B_AS2EDI_23.png[image]
+image:B2B_AS2EDI_23.png[B2B_AS2EDI_23]
