@@ -27,96 +27,50 @@ This section walks through the configuration of the REST version of the Stock Qu
 
 First, because the proxy settings are in an external properties file, we specify the file in the Mule context:
 
-code,code-xml----
- code,code-xml
+[source,xml]
+----
 <context:property-placeholder location="proxy.properties"/>
 ----
 
 Next, we configure the HTTP connector with the properties whose values are defined in the proxy.properties file:
 
-code,code-xml----
+[source,xml]
 ----
-----
-------------------------------------------------------- code,code-xml
   <http:connector name="HttpConnector"                  proxyHostname="${proxyHostname}"                  proxyPassword="${proxyPassword}"                  proxyPort="${proxyPort}"                  proxyUsername="${proxyUsername}"/>
 ----
-----
-----
--------------------------------------------------------
+
 
 The next section is the configuration for the transformers. There are four transformers, which will be chained together. Note that the XSLT transformer references the XSLT file in the `xsl` subdirectory under the `stockquote` directory. The XSLT file can be anywhere on your classpath.
 
-code,code-xml----
+[source,xml]
 ----
-----
-------------------------------------------- code,code-xml
   <xm:xml-to-object-transformer name="XmlToObject"/>  <xml-entity-decoder-transformer name="XmlDecoder"/>  <xm:xslt-transformer name="Xslt" xsl-file="xsl/rest-stock.xsl"/>  <object-to-string-transformer name="ToString"/>
 ----
-----
-----
--------------------------------------------
+
 
 Next, we set up a flow as the main entry point into this example. This flow receives requests sent to the HTTP URL and transforms the request's body to a Map using the HttpRequestToMap transformer. It then extracts the method from the Map to determine which sub-flow to call for processing.
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
-----
-----
-----
-----
-----
-----
--------------------------------------------- code,code-xml
 <flow name="HTTP input">    <http:inbound-endpoint host="localhost" port="48309" path="stockquote">        <http:body-to-parameter-map-transformer />        <response>            <object-to-string-transformer />        </response>    </http:inbound-endpoint>    <choice>        <when expression="payload.method == 'REST'" evaluator="groovy">            <flow-ref name="REST" />        </when>        <when expression="payload.method == 'SOAP'" evaluator="groovy">            <flow-ref name="SOAP" />        </when>        <when expression="payload.method == 'WSDL'" evaluator="groovy">            <flow-ref name="WSDL" />        </when>    </choice>    <transformer ref="XmlToObject" /></flow>
 ----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
---------------------------------------------
+
 
 The component is the REST service component, which uses the REST service wrapper to proxy a REST service to act like a local Mule component. The REST service wrapper has a number of properties configured. The `serviceUrl` is the URL of the REST service to invoke. The `payloadParameterName` is the name of the parameter to associate with the message payload. In this case, we have only one parameter name, "symbol". The `httpMethod` can either be GET or POST.
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
------------------------------------------------- code,code-xml
 <flow name="REST">    <transformer ref="ExtractSymbol" />    <http:rest-service-component serviceUrl="http://www.webservicex.net/stockquote.asmx/GetQuote"        httpMethod="POST">        <http:payloadParameterName value="symbol" />    </http:rest-service-component>    <transformer ref="XmlDecoder" />    <transformer ref="XsltRest" /></flow>
 ----
-----
-----
-----
-----
-------------------------------------------------
+
 
 == The Web Service Version
 
 The Web Service version works very similarly to the REST version but has different service configuration. The Web Service version explicitly configures an outbound pass-through router that that takes the input from one endpoint and passes it directly to the outbound CXF endpoint. The outbound endpoint is configured with parameters that map to the Stock Quote service.
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
-----
--------------------------------------------- code,code-xml
 <flow name="SOAP">    <transformer ref="ExtractSymbol" />    <outbound-endpoint address="http://www.webservicex.net/stockquote.asmx">        <cxf:jaxws-client clientClass="net.webservicex.StockQuote" operation="GetQuote"            port="StockQuoteSoap" wsdlLocation="classpath:stockquote.wsdl" />    </outbound-endpoint>    <transformer ref="XmlDecoder" />    <transformer ref="XsltSoap" /></flow>
 ----
-----
-----
-----
-----
-----
---------------------------------------------
+
 

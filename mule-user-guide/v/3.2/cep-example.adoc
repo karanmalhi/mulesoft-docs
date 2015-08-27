@@ -36,8 +36,8 @@ Run `mvn` from the example source folder. This will compile the example classes,
 
 *Initial Facts*
 
-code,code-xml----
- code,code-xml
+[source,xml]
+----
 <spring:bean name="companies" class="org.mule.example.cep.CompanyRegistry" factory-method="getCompanies" />
 ----
 
@@ -45,8 +45,8 @@ A Spring Factory Bean provides a Collection object which will be used as initial
 
 *Declare Drools as the Rules Engine*
 
-code,code-xml----
- code,code-xml
+[source,xml]
+----
 <bpm:drools />
 ----
 
@@ -54,102 +54,52 @@ We declare Drools as the Rules Engine implementation, for more info. on this, re
 
 *AJAX Connector*
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
----- code,code-xml
 <ajax:connector name="ajaxServer" serverUrl="http://0.0.0.0:8087/services/cepExample"         resourceBase="${app.home}/docroot" disableReplyTo="true" />
 ----
-----
-----
-----
-----
+
 
 Declare the link:/mule-user-guide/v/3.2/ajax-transport-reference[AJAX connector] which will be used to update the Web UI.
 
 *In-memory Queues*
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
-----
-----
-- code,code-xml
 <vm:endpoint name="stockTick" path="stock.tick" /><vm:endpoint name="alerts" path="stock.alerts" />
 ----
-----
-----
-----
-----
-----
-----
--
+
 
 To keep things simple for the example, we define link:/mule-user-guide/v/3.2/vm-transport-reference[in-memory ("VM") queues] to transport messages. If this were a real application, the incoming stock ticks would probably be received via a web service and the outgoing alerts would probably be delivered to a link:/mule-user-guide/v/3.2/jms-transport-reference[JMS queue] or via link:/mule-user-guide/v/3.2/xmpp-transport-reference[IM]/SMS/link:/mule-user-guide/v/3.2/email-transport-reference[E-mail].
 
 *Generate stock tick*
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
-----
-----
-----
-----
-- code,code-xml
 <flow name="generateStockTicks">    <quartz:inbound-endpoint jobName="eventTimer" repeatInterval="2000">        <quartz:event-generator-job>            <quartz:payload>tick-tock</quartz:payload>        </quartz:event-generator-job>    </quartz:inbound-endpoint>    <component>        <singleton-object class="org.mule.example.cep.TickFeed" />    </component>    <outbound-endpoint ref="stockTick" /></flow>
 ----
-----
-----
-----
-----
-----
-----
-----
-----
--
+
 
 In this flow, we use link:/mule-user-guide/v/3.2/quartz-transport-reference[Quartz] to generate a periodic signal which triggers our `TickFeed` component. The `TickFeed` component simulates a new stock tick by reading in a line from a text file and putting it on the `stockTick` queue.
 
 *Process stock tick*
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
-----
-----
------------- code,code-xml
 <flow name="processStockTicks">    <inbound-endpoint ref="stockTick" />    <all>        <ajax:outbound-endpoint channel="/services/cepExample/stockTick" />        <bpm:rules rulesDefinition="broker.drl" cepMode="true" entryPoint="StockTick stream" initialFacts-ref="companies" />    </all></flow>
 ----
-----
-----
-----
-----
-----
-----
-------------
+
 
 Here we receive the incoming stock ticks and simultaneously send them to two different places: 1. The Web UI (via AJAX) 2. The Rules Engine +
 For more info. on the configuration of the Rules Engine, refer to the link:/mule-user-guide/v/3.2/drools-module-reference[Drools Module Reference].
 
 *Process stock tick*
 
-code,code-xml----
+[source,xml]
 ----
-----
-- code,code-xml
 <flow name="sendAlerts">    <inbound-endpoint ref="alerts" />    <ajax:outbound-endpoint channel="/services/cepExample/alerts" /></flow>
 ----
-----
-----
--
+
 
 The rules we have defined in Drools (see following section) will generate alerts on the Alerts queue. This flow simply receives those alerts and routes them to the Web UI via AJAX.
 
@@ -159,27 +109,20 @@ The file `broker.drl` contains the rules definition for Drools. I will point out
 
 *Declare Mule callback inside Drools*
 
-code,code-java----
+[source,java]
 ----
-----
------ code,code-java
 global org.mule.module.bpm.MessageService mule;
 ----
-----
-----
------
+
 
 Here we define a callback to Mule as a global variable within our rules definition file. We can then use this global callback to generate Mule messages from our rules.
 
 *Generate alert message*
 
-code,code-java----
+[source,java]
 ----
------------- code,code-java
 rule "sudden drop"when    ...cut...then    ...cut...    mule.generateMessage("alerts", msg, null, MessageExchangePattern.ONE_WAY);end
 ----
-----
-------------
 
 Here we use the global variable defined above to generate a Mule message and send it to the `alerts` endpoint (defined in our Mule configuration, above).
 

@@ -22,8 +22,8 @@ The example takes input from a HTTP request and transforms the request's body to
 
 *Input*
 
-code,code-xml----
- code,code-xml
+[source,xml]
+----
 <flow name="http-inbound">    <http:inbound-endpoint host="0.0.0.0" port="47493" path="change-machine"            exchange-pattern="request-response" transformer-refs="HttpRequestToMap">        <not-filter>            <wildcard-filter pattern="/favicon.ico"/>        </not-filter>    </http:inbound-endpoint>    <choice>        <when expression="payload.currency == 'USD'" evaluator="groovy">            <processor-chain>                <transformer ref="ExtractAmount StringToNumber DollarsToCents"/>                <script:component>                    <script:script file="greedy.groovy">                        <property key="currency" value="USD"/>                    </script:script>                </script:component>            </processor-chain>        </when>        <when expression="payload.currency == 'GBP'" evaluator="groovy">            <processor-chain>                <transformer ref="ExtractAmount StringToNumber DollarsToCents"/>                <script:component>                    <script:script file="greedy.py">                        <property key="currency" value="GBP"/>                    </script:script>                </script:component>            </processor-chain>        </when>    </choice></flow>
 ----
 
@@ -31,15 +31,15 @@ The actual script is loaded from an external file and is passed a variable calle
 
 *Entry Point for Groovy Script*
 
-code,code-java----
- code,code-java
+[source,java]
+----
 switch (currency) {    case "USD": return change(USD, payload)    case "GBP": return change(GBP, payload)    default: throw new AssertionError("Unsupported currency: $currency")}
 ----
 
 *Entry point for Python script*
 
-code,code-java----
- code,code-java
+[source,java]
+----
 c = Change(currency, payload)c.recursive_change(c.amount)result = "[" + c.result + "]"
 ----
 

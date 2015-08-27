@@ -39,8 +39,8 @@ Depending on the build tool you are using (Ant or Maven), you can build the exam
 
 Mule's strong support for Spring makes it easy to configure Spring beans from the Mule configuration and inject them into your service flow. For example, here is the bean to handle a BusinessException:
 
-code,code-xml----
- code,code-xml
+[source,xml]
+----
 <spring:bean id="businessHandler" class="org.mule.example.errorhandler.handlers.BusinessHandler">    <spring:property name="endpointName" value="ExceptionQueue"/>    <spring:property name="errorManager">        <spring:ref local="errorManager"/>    </spring:property></spring:bean>
 ----
 
@@ -50,19 +50,11 @@ For more information on configuring Spring in Mule, see link:/mule-user-guide/v/
 
 In addition, a link:/mule-user-guide/v/3.2/configuring-java-components[pooled Java component] will maintain a pool of object instances that will be reused, with a single instance being used by one thread at any one time.
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
-------- code,code-xml
 <pooled-component>    <prototype-object class="org.mule.example.errorhandler.ErrorManager">        <properties>            <spring:entry key="handlers">                <spring:list>                    <spring:ref local="fatalHandler"/>                    <spring:ref local="defaultHandler"/>                    <spring:ref local="businessHandler"/>                </spring:list>            </spring:entry>        </properties>    </prototype-object></pooled-component>
 ----
-----
-----
-----
-----
--------
+
 
 == Transports
 
@@ -72,25 +64,25 @@ This example uses three popular Mule Transports:
 
 Mule supports monitoring a directory for any file or a wildcard pattern. In this example, only files ending in an .XML extension are picked up and processed by Mule.
 
-code,code-xml----
- code,code-xml
+[source,xml]
+----
 <file:inbound-endpoint path="${app.home}/test-data/in">    <file:filename-wildcard-filter pattern="*.xml"/>    <transformer ref="XMLToExceptionBean ExceptionBeanToErrorMessage" /></file:inbound-endpoint>
 ----
 
 Mule can also write files using an outbound endpoint as shown below. This endpoint uses Mule's expression filename parser to construct the output file name. The expression-filename-parser element configures the ExpressionFilenameParser, which can use any expression language supported by Mule to construct a file name for the current message. Read more about expressions below.
 
-code,code-xml----
---------------------------------- code,code-xml
+[source,xml]
+----
 <file:outbound-endpoint path="${app.home}/test-data/exceptions"     outputPattern="Exception-[function:uuid].xml">    <transformer ref="ErrorMessageToExceptionBean" />    <transformer ref="ExceptionBeanToXML" /></file:outbound-endpoint>
 ----
----------------------------------
+
 
 === link:/mule-user-guide/v/3.2/jms-transport-reference[JMS Transport Reference]
 
 The use of Mule's sensible defaults for ActiveMQ allow this JMS transport to be set up in the example using a single line of configuration.
 
-code,code-xml----
- code,code-xml
+[source,xml]
+----
 <jms:activemq-connector name="JMSConnector"/>
 ----
 
@@ -100,11 +92,11 @@ Mule supports most common email protocols and configuration options.
 
 In addition, link:/mule-user-guide/v/3.2/configuring-properties[property placeholders] are used to configure the email transport.
 
-code,code-xml----
--------------- code,code-xml
+[source,xml]
+----
 <context:property-placeholder location="email.properties"/>
 ----
---------------
+
 
 This allows the use of Ant-style properties that are loaded from a property file using Spring and referenced in the Mule configuration.
 
@@ -114,31 +106,26 @@ Mule's rich expression language support allows you to manipulate almost any aspe
 
 In addition to the use mentioned above to define the output file name, the Errorhandler example also uses a groovy expression to filter the exceptions on the outbound endpoint.
 
-code,code-xml----
+[source,xml]
 ----
-------------------------- code,code-xml
 <expression-filter evaluator="groovy" expression="payload.throwable instanceof org.mule.api.DefaultMuleException"/>
 ----
-----
--------------------------
+
 
 == Chaining Transformers
 
 You can chain transformers together so that the output from one transformer becomes the input for the next. To chain transformers, you create a space-separated list of transformers in the transformer-refs or responseTransformer-refs attributes or by creating multiple <transformer> elements as shown below.
 
-code,code-xml----
------------------------ code,code-xml
+[source,xml]
+----
 <transformer ref="XMLToExceptionBean ExceptionBeanToErrorMessage" />
 ----
------------------------
 
-code,code-xml----
+
+[source,xml]
 ----
----------------------------------------- code,code-xml
 <transformer ref="ErrorMessageToExceptionBean" /><transformer ref="ExceptionBeanToXML" /><transformer ref="StringToEmailMessage"/>
 ----
-----
-----------------------------------------
 
 For more on transformers, including best practices, read link:/mule-user-guide/v/3.2/using-transformers[Using Transformers].
 

@@ -28,8 +28,8 @@ At the server, a single component called CityStroller is responsible for generat
 
 *CityStroller*
 
-code,code-java----
- code,code-java
+[source,java]
+----
     private GpsCoord currentCoord = SAN_FRANCISCO;    private AtomicBoolean firstTime = new AtomicBoolean(true);     @Schedule(interval = 3000)    public GpsCoord generateNextCoord()    {        if (firstTime.get()) {            firstTime.set(false);        }        else {            double dist = Math.random() * 0.002;            double angle = Math.random() * Math.PI;             float lat = currentCoord.getLatitude() + (float) (dist * Math.sin(angle));            float lng = currentCoord.getLongitude() + (float) (dist * Math.cos(angle));             currentCoord = new GpsCoord(lat, lng);        }        return currentCoord;    }
 ----
 
@@ -39,8 +39,8 @@ The CityStroller component produces GPSCoord objects. GPSCoord is a JavaBean tha
 
 *GpsCoord*
 
-code,code-java----
- code,code-java
+[source,java]
+----
 public class GpsCoord{    @JsonProperty    private float latitude;    @JsonProperty    private float longitude;     public GpsCoord(float lat, float lng)  {        latitude = lat;        longitude = lng;    }     public float getLatitude() {        return latitude;    }     public float getLongitude()  {        return longitude;    }     public void setLatitude(float latitude) {        this.latitude = latitude;    }     public void setLongitude(float longitude) {        this.longitude = longitude;    }}
 ----
 
@@ -50,13 +50,11 @@ The final piece of the server side is the Mule configuration itself.
 
 *mule-config.xml*
 
-code,code-xml----
+[source,xml]
 ----
------------------------------------- code,code-xml
 <?xml version="1.0" encoding="UTF-8"?><mule xmlns="http://www.mulesoft.org/schema/mule/core"      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"      xmlns:ajax="http://www.mulesoft.org/schema/mule/ajax"      xsi:schemaLocation="        http://www.mulesoft.org/schema/mule/ajax http://www.mulesoft.org/schema/mule/ajax/3.0/mule-ajax.xsd        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.0/mule.xsd">     <ajax:connector name="ajaxServer" serverUrl="http://0.0.0.0:8081/services/gps"               resourceBase="${app.home}/docroot"/>     <flow name="StrollerService">        <component>            <singleton-object class="org.mule.example.gpswalker.CityStroller"/>        </component>        <ajax:outbound-endpoint channel="/gpswalker"/>    </flow></mule>
 ----
-----
-------------------------------------
+
 
 == Notes on this Configuration
 
@@ -74,15 +72,15 @@ code,code-xml----
 
 In the browser we use the new Mule JavaScript client to receive coordinates from the server. To use the Mule JavaScript client you need a single script import:
 
-code,code-javascript----
- code,code-javascript
+[source,xml]
+----
 <head>    <title>Mule GPS Walker Example</title>    <script type="text/javascript" src="mule-resource/js/mule.js"></script></head>
 ----
 
 When this script gets loaded, the Mule client is automatically loaded and available via the 'mule' variable.
 
-code,code-javascript----
- code,code-javascript
+[source,xml]
+----
 <script type="text/javascript">    function init() {        setupMap();        mule.subscribe("/gpswalker", callback);    }
 ----
 
@@ -90,13 +88,11 @@ Now we can create subscriptions to Mule services that publish to AJAX channels. 
 
 The subscribe method requires a callback method to be passed in. This will get invoked every time a message is received on the /gpswalker channel.
 
-code,code-javascript----
+[source,javascript]
 ----
----------------------------- code,code-javascript
 function callback(message) {        if (message) {            var latLng = new GLatLng(message.data.latitude, message.data.longitude);            map.addOverlay(new GPolyline([marker.getPoint(),latLng]));            marker.setPoint(latLng);            map.setCenter(latLng);        }    }
 ----
-----
-----------------------------
+
 
 The message is received in JSON format, which means the data is easily accessible on in JavaScript. We create a new GLatLng object from the latitude and longitude sent from the server and add an overlay to the google Map. I will not cover the Google Map code here, but you get the picture. You can see the full source for the index.html here.
 

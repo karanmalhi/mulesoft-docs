@@ -27,26 +27,18 @@ At the heart of the configuration is a Business Process Engine which receives an
 
 *Process Engine Receives and Generates Events*
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
------ code,code-xml
 <flow name="ToBPMS">    <composite-source>        <inbound-endpoint ref="CustomerRequests" />        <inbound-endpoint ref="CreditProfiles" />    </composite-source>    <bpm:process processName="LoanBroker" processDefinition="loan-broker-process.jpdl.xml" /></flow>
 ----
-----
-----
-----
-----
------
+
 
 The Process Engine is an instance of http://www.jboss.org/jbpm[JBoss jBPM] and is configured using defaults as follows. For more information refer to the link:/mule-user-guide/v/3.2/bpm-module-reference[BPM Module Reference] documentation.
 
 *jBPM Process Engine*
 
-code,code-xml----
- code,code-xml
+[source,xml]
+----
 <bpm:jbpm name="jbpm" />
 ----
 
@@ -56,115 +48,61 @@ The first message to arrive at the BPM process will be a customer request for a 
 
 *Start State*
 
-code,code-xml----
+[source,xml]
 ----
-------------------- code,code-xml
 <mule-receive name="incomingCustomerRequest" endpoint="CustomerRequests" var="customerRequest">
 ----
-----
--------------------
+
 
 The next step is to send the customer's information to the credit agency and get their credit report. The payload that we send to the credit agency comes from the `customerRequest` we just stored as a process variable.
 
 *Generate a Message to Credit Agency*
 
-code,code-xml----
+[source,xml]
 ----
------------- code,code-xml
 <mule-send name="sendToCreditAgency" expr="#{customerRequest.customer}" endpoint="CreditAgency" synchronous="false">
 ----
-----
-------------
+
 
 The request to the credit agency is asynchronous, so we now transition to a wait state until a response from the credit agency is received. Note that if a response is not received within four hours, the process times out and requires manual intervention.
 
 *Wait state*
 
-code,code-xml----
+[source,xml]
 ----
--------------- code,code-xml
 <mule-receive name="waitForCreditAgency" endpoint="CreditProfiles" var="creditProfile">    <timer duedate="4 hours" />
 ----
-----
---------------
+
 
 Once a message is received from the credit agency, the next step prepares a loan request based on the two pieces of information we have received thus far (`customerRequest` and `creditProfile`). This invokes a POJO method using jPDL's standard `<java>` activity.
 
 *Prepare Loan Quote Request*
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
-----
--------- code,code-xml
 <java name="prepareLoanQuoteRequest" class="org.mule.example.loanbroker.bpm.activity.PrepareLoanQuoteRequest" method="prepareRequest" var="loanRequest">    <arg><object expr="#{customerRequest}"/></arg>    <arg><object expr="#{creditProfile}"/></arg>    <transition to="sendToBanks" /></java>
 ----
-----
-----
-----
-----
-----
---------
+
 
 Now for the interesting part: the process itself decides which of the three banks, if any, to request a loan from on behalf of this customer. The loan amount, customer's credit history, and credit score are all taken into account. If the customer would not qualify for a loan from any of the three banks based on these criteria, the loan is denied.
 
 *Decision Node*
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
----------- code,code-xml
 <decision name="sendToBanks">    <transition to="sendToBigBank">        <condition expr="#{customerRequest.loanAmount >= 20000}" />        <condition expr="#{creditProfile.creditHistory >= 24}" />        <condition expr="#{creditProfile.creditScore >= 5}" />    </transition>    <transition to="sendToMediumBank">        <condition expr="#{customerRequest.loanAmount >= 10000}" />        <condition expr="#{creditProfile.creditHistory >= 12}" />        <condition expr="#{creditProfile.creditScore >= 3}" />    </transition>    <transition to="sendToSmallBank">        <condition expr="#{creditProfile.creditHistory >= 6}" />        <condition expr="#{creditProfile.creditScore >= 1}" />    </transition>    <!-- If the credit info. doesn't meet minimum requirements based on the loan amount, the loan is just denied. -->    <transition to="loanDenied" /></decision>
 ----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----
-----------
+
 
 The final loan quote from the bank is validated and sent back to the customer, and the process ends up in one of two end states: `loanApproved` or `loanDenied`, depending on the outcome.
 
 *Send Final Response and End Process*
 
-code,code-xml----
+[source,xml]
 ----
-----
-----
----------- code,code-xml
 <mule-send name="sendCustomerResponse" expr="#{loanQuote}" endpoint="CustomerResponses">    <transition to="loanApproved" /></mule-send>  <end name="loanApproved" /><end name="loanDenied" />
 ----
-----
-----
-----
-----------
+
 
 == References
 
