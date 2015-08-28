@@ -15,6 +15,180 @@ The connector provides these options to connect to Siebel applications:
 
 <<See Also>>
 
+== Version 3.0.0 - July 29, 2015
+
+=== Compatibility
+
+The Siebel connector is compatible with:
+
+[width="80%",columns=",",options="headers"]
+|===
+|*Application/Service* |*Version*
+|Mule Runtime
+|3.6.1 and higher
+|Siebel
+|v7.7 to v8.1 (only 8.1 has
+been tested for
+compatibility)
+|===
+
+=== Migrating from Older Versions of the Connector:
+
+If you’re currently using an older version of the connector, a small popup should appear in the bottom right corner of the Studio when opened saying Updates Available. Click that popup and check for available updates.
+Now there should be three Siebel Connectors (Oracle Siebel Business Objects Connector, Siebel Business Service Connector and Siebel Integration Objects Connector) available. When you choose to install one of the connectors, a screen should appear that will ask you to uninstall your old version of the connector and install the new one.
+As shown in the images below, when choosing to install the Oracle Siebel Integration Objects Connector, the old version of the Siebel Connector (version 2.1.0) is uninstalled in the process.
+
+image:install1.png[install1]
+
+image:install2.png[install2]
+
+After the installation is completed, we can use the Siebel Integration Objects Connector. For working with business services or business objects, the other two connectors will have to be installed.
+Please keep up to date and have the latest version of the Studio installed.
+
+=== Features
+
+
+* Added support for inserting/querying/deleting/updating attachments using integration objects. In order to work with attachments, the user must have an integration object that contains an attachment business component. +
+** *Insert*
+
+*** The attachment business component must have as a parent the business object the user wants to attach the document to. If the parent doesn’t exist, use the INSERT or UPSERT operation when inserting attachments. If the parent exists, use UPSERT.
+*** The attachment business component has a field called ‘AttachmentContent’ that stores the attachment content. It accepts inputStream or byte[] as dataType.
+*** The integration object used must have the ‘fileName’ field of its attachment component visible and enabled.
+*** [NOTE]
+When inserting attachments, make sure the flag fields for the attachment business component are correctly filled depending on your needs. When inserting documents from the UI, Siebel automatically fills these flag fields in the background when creating the attachment. Below is an example of a Siebel JSON message structure given as input for inserting an action attachment.
++
+[source]
+----
+{
+	"SiebelMessage": {
+		"ListOfAction_IO": [
+		{
+			"Action": {
+				"Activity UID" : "Test-UID",
+				"Description" : "Mule Automation Tests New Siebel Action IO222",
+				"ListOfAction Attachment":[
+				{
+					"Action Attachment": {
+					"ActivityFileSrcType": "FILE",
+					"ActivityFileExt": "png",
+					"ActivityFileDeferFlg": "R",
+					"ActivityFileName": "imageFile21w23",
+					"ActivityFileSize": "1172"
+					}
+        }
+
+				]
+			}
+		}
+		]
+	}
+}
+----
++
+** *Query*
+*** When querying for attachments, use  the Siebel Integration Objects connector QUERY operation. Fill some information in the message structure for the parent object and the attachment to filter the response you receive.
+*** If you query for attachments that do not have content, you will receive a SQL exception.
+*** The resulting attachment components will contain a field called ‘AttachmentContent’ that will contain the content for each attachment that was returned. See this query input example:
++
+[source]
+----
+{
+	SiebelMessage : {
+		ListOfAction_IO :[{
+			Action :{
+				ListOfAction Attachment:{
+
+					Action Attachment :{
+						ActivityFileName : test-file-name,
+
+				}
+
+			}],
+			Activity UID : test-activity-UID
+			}
+		}]
+	}
+}
+----
++
+** *Update*
+*** To update an attachment, use the Siebel Integration Objects connector UPSERT operation. Complete the key fields of the parent business object (the object that contains the attachment business component) and add new content to the attachment you desire to update.
+*** Another way an attachment update can be performed is to use the “operation” field with the Siebel Integration Objects connector's EXECUTE operation. The parent business object will have the “operation” field marked as upsert and the attachment that needs to be updated will have the value of update. Here is an example of a message used as an input to update an action attachment:
++
+[source]
+----
+{
+	"SiebelMessage": {
+		"ListOfAction_IO": [
+		{
+			"Action": {
+				"Activity UID" : "Test-UID",
+				"Description" : "Mule Automation Tests New Siebel Action IO222",
+				"operation":"upsert"
+				"ListOfAction Attachment":[
+				{
+					"Action Attachment":{
+					"ActivityFileName":"test33",
+					"Activity Id":"1-186C9"
+					"AttachmentContent":UPDATED CONTENT,
+					"operation":"update"
+				}
+					}
+
+				]
+			}
+		}
+		]
+	}
+}
+----
++
+** *Delete*
+*** To delete an attachment, use the Siebel Integration Objects connector EXECUTE operation. For the parent business object, set the operation field to UPSERT, and for the attachment you want to delete, set the operation field to DELETE.
+*** Here is an example of a message structure used as input to delete an attachment: +
++
+[source]
+----
+{
+"SiebelMessage" : {
+  "ListOfAction_IO" :[{
+		"Action" :{
+			"ListOfAction Attachment":{
+
+				"Action Attachment" :{
+					"ActivityFileName" : "test-file-name",
+					"operation" : "delete"
+				}
+
+			}],
+			"Activity UID" : "test-activity-UID",
+			"operation" : "upsert"
+		}
+		}]
+	}
+}
+----
+
+* Added the “operation” field to the business objects and business components that make the integration object. Now, using the Siebel Integration Objects connector EXECUTE operation will allow the executions of operations at a child component level. Some good examples are the ones given for the attachment update and delete.
+* Added support for RSA encryption. Now, in the connector configuration there is a new checkbox that enables or disables the RSA encryption. By default it is set to false. +
++
+NOTE: Make sure your Siebel server allows RSA encryption before using it.
+
+* It is now possible to control the number of records a Siebel Business Objects connector query returns.
+** After choosing the “Query Business Components” operation of the Siebel Business Objects connector, a new field is available called “Number of records returned”. This field determines the number of records the query returns.
+** By default, the field “Number of records returned” is empty and the query returns all the available records it finds. +
++
+image:NrRecordsReturned.png[NrRecordsReturned]
+
+
+=== Fixed in this Release
+
+Before, List was recognized as Map at DataSense in the Integration Objects. Now the problem is fixed.
+
+=== Known Issues
+
+Connector does not work with Siebel v7.5 and lower
+
 == Version 2.1.0 - April 13, 2014
 
 === Version 2.1.0 Compatibility
