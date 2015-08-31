@@ -13,6 +13,15 @@ To define a new SLA tier for your API version, click the *SLA Tiers* tab on your
 
 Your SLA tier is displayed with all of the information that you just defined. In addition, you have a column to indicate how many applications are registered on that tier. You can also edit, deprecate, or delete the tier using the links in the row.
 
+=== Layered SLAs
+
+[NOTE]
+Multiple SLA limits are only supported when an API is proxied or hosted within an API gateway 2.1 runtime or earlier. When an SLA tier with more than one limit is used for an API hosted on an API gateway runtime of a version that is lower than 2.1, then only the first defined limit is enforced.
+
+image:layered_sla.png[layered SLA]
+
+Multiple throughput limits can be specified for a single SLA tier. As illustrated in the example of the screenshot above, a single SLA tier named “gold” could offer a limit of 100 requests per as well as a limit of 10,000 requests per day. This would ensure that applications registered on a “gold” tier don’t exceed a bursting limit of 100 request per second. In this way they won’t overwhelm the API, while also ensuring that registered applications do get the advertised SLA of 10,000 request per day. Note that the first limit is not exposed to application developers at registration time, this is made possible by marking the “visible” flag at SLA definition time. Also note that when only one limit is present, that limit must be made visible. 
+
 == Enforcing a Tier
 
 To enforce SLA tiers, you need to apply a rate-limiting or throttling policy that is SLA-based. These policies require all applications that consume your API to register for access to a specific tier, then pass their client credentials in calls to your API, so that the Anypoint Platform can identify them, associate them with their contracted tier, and enforce the throughput limitation. See link:/anypoint-platform-for-apis/applying-runtime-policies[Applying Runtime Policies] for more details.
