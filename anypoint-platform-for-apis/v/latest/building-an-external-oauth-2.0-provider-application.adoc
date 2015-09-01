@@ -39,6 +39,35 @@ Depending on the OAuth grant type you want to use, the OAuth Provider applicatio
 - Authenticates resource owners (eg: when the user credentials are validated after the login page). The only situation where this provider is not required, is when the Grant Type is Client Credentials.
 |===
 
+=== Implementing CORS
+
+[NOTE]
+This feature is only available when using API Gateway Runtime version 2.1.0 or later. Earlier versions of the runtime don't support configuring the OAuth Provider with a preFlow.
+
+You may find that you need to implement CORS on your OAuth Provider. The the attribute *preFlow* on the OAuth configuration element offers the possibility to reference a flow that is processed before anything else. Thanks to this attribute, your OAuth Provider configuration can reference an additional flow that has implements a CORS configuration, enabling CORS in both the authorize and the access token listeners.
+
+[source, xml, linenums]
+----
+  <flow name="myCorsFlow">
+      <cors:validate publicResource="true"/>
+  </flow>
+
+  <oauth2-provider:config
+      name="external-oauth2-provider"
+      preFlow-ref="myCorsFlow"
+      providerName="Ping API"
+      resourceOwnerSecurityProvider-ref="single-user-security-provider"
+      clientSecurityProvider-ref="single-user-client-security-provider"
+      clientStore-ref="single-user-client-store"
+      tokenTtlSeconds="86400"
+      enableRefreshToken="true"
+      listenerConfig-ref="https.listener">
+  </oauth2-provider:config>
+----
+
+In the above example, the "myCorsFlow" flow configures CORS to allow requests from any origin. This flow is referenced in the OAuth 2.0 Provider via the *preFlow-ref* attribute.
+
+
 == End-to-End Example Implementation
 
 *Note*: This section shows an end-to-end example tutorial and is not a general configuration.
