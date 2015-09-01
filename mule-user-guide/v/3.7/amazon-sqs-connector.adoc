@@ -21,7 +21,7 @@ This document describes implementation examples within the context of Anypoint S
 
 As the connector comes pre-bundled with Anypoint Studio, you must:
 
-* Install https://www.mulesoft.com/studio[Anypoint Studio].
+* Install link:https://www.mulesoft.com/studio[Anypoint Studio].
 * Sign Up for Amazon Web Services. To access AWS with the connector, you need the credentials in the form of IAM.
 
 == Compatibility
@@ -52,9 +52,11 @@ Please ensure that `sqs:GetQueueAttributes` action is enabled for the queue unde
 
 == Installing and Configuring
 
+The following sections describe how to install and configure the Amazon SQS connector.
+
 === Installing
 
-You can install a connector in Anypoint Studio using the instructions in link:/mule-fundamentals/v/3.7/anypoint-exchange[Installing a Connector from Anypoint Exchange].
+You can install a connector in Anypoint Studio using the instructions in link:/mule-fundamentals/v/3.7/anypoint-exchange#installing-a-connector-from-anypoint-exchange[Installing a Connector from Anypoint Exchange].
 
 === Updating from an Older Version
 
@@ -96,7 +98,6 @@ image:GlobalType.jpg[GlobalType]
 . Enter the global element properties:
 +
 image:sqsConfigPic.jpg[sqsConfigPic]
-
 +
 [width="99a",cols="30,70a",options="header"]
 |===
@@ -107,7 +108,6 @@ image:sqsConfigPic.jpg[sqsConfigPic]
 |*Queue URL* |The URL of the Amazon SQS queue to act upon.
 |*Region Endpoint* |The regional endpoint to process your requests.
 |===
-
 +
 [NOTE]
 ====
@@ -115,7 +115,7 @@ When a Queue Name is provided in the global element, the connector automatically
 
 If you have to reference a different Queue URL for a particular message processor in the flow, you can perform the operation using the Queue URL attribute provided by the message processor.
 ====
-
++
 . Keep the *Pooling Profile* and the *Reconnection tabs* with their default entries.
 . Click *Test Connection* to confirm that the parameters of your global configuration are accurate, and that Mule is able to successfully connect to your instance of Amazon SQS. Read more about link:/mule-user-guide/v/3.7/testing-connections[Testing Connections].
 . Click *OK* to save the global connector configurations.
@@ -177,53 +177,60 @@ Send a message along with meta data to an Amazon SQS queue and then receive it f
 ....
 image:demoflows.jpg[demoflows]
 
+=== Create a Flow to Send a Message
+
 Begin the flow by sending a message to the queue:
 
 . Create a new Mule project in Anypoint Studio.
 . Drag an *HTTP Connector* into the canvas, then select it to open the properties editor console.
 . Add a new *HTTP Listener Configuration* global element:
 . In General Settings, click the plus *+* button:
-
-image:HTTPConfig.png[HTTPConfig]
-
++
+image:amazon_sqs_http_config.png[amazon_sqs_http_config]
++
 . Configure the following HTTP parameters, while retaining the default values for the other fields:
-
++
 image:HTTPParams.png[HTTPParams]
-
-[width="10a",cols="30a,70a",options="header"]
++
+[width="100a",cols="30a,70a",options="header"]
 |===
 |Field |Value
 |*Name* |HTTP Listener Configuration
 |*Port* |8081
 |===
-
++
 . Add a Groovy component to attach the metadata:
-
++
 image:Groovy.png[Groovy]
-
++
 [width="100a",cols="50a,50a",options="header"]
 |===
 |Field |Value
 |*Display Name* |Groovy
-|*Script Text* |
-
+|*Script Text* |See code below
+|===
++
 [source, code, linenums]
 ----
-import org.mule.modules.sqs.model.MessageAttributeValue; Map<String, MessageAttributeValue> messageAttributes = new HashMap<String, MessageAttributeValue>(); messageAttributes.put("AccountId", new MessageAttributeValue().withDataType("String.AccountId").withStringValue("000123456")); messageAttributes.put("NumberId", new MessageAttributeValue().withDataType("Number").withStringValue("230.000000000000000001")); return messageAttributes; |Note: The amazon sdk has been shaded to avoid dependency conflicts, Hence we have to import the MessageAttribute class belonging to the shaded package.
+import org.mule.modules.sqs.model.MessageAttributeValue; 
+Map<String, MessageAttributeValue> messageAttributes = new HashMap<String, MessageAttributeValue>(); 
+messageAttributes.put("AccountId", new MessageAttributeValue().withDataType("String.AccountId").withStringValue("000123456")); 
+messageAttributes.put("NumberId", new MessageAttributeValue().withDataType("Number").withStringValue("230.000000000000000001")); 
+return messageAttributes; 
 ----
-
-|===
-
++
+*Note*: The Amazon SDK has been shaded to avoid dependency conflicts, Hence we have to import the MessageAttribute class belonging to the shaded package.
++
 . Drag an Amazon SQS connector into the flow, and double-click the connector to open its Properties Editor.
 . If you do not have an existing Amazon SQS connector global element to choose, click the plus sign next to Connector Configuration.
-
++
 image:Demo_ConnectorConfiguration.jpg[Demo_ConnectorConfiguration]
-
++
 . Configure the global element properties, then click *OK*.
 . Configure the remaining parameters of the connector:
-
++
 image:Demo_ConnectorConfiguration1.jpg[Demo_ConnectorConfiguration1]
-
++
 [width="99a",cols="30a,70a",options="header"]
 |===
 |Field |Value
@@ -233,43 +240,45 @@ image:Demo_ConnectorConfiguration1.jpg[Demo_ConnectorConfiguration1]
 |*Message* |`#[message.inboundProperties.'http.query.params'.msg]`
 |*Message Attributes* | From Message `#[payload]`
 |===
-
++
 . Add an *Object To JSON* transformer to convert the response from connector into JSON.
-.Add a *Logger* to print the response in the Mule Console.
-
+. Add a *Logger* to print the response in the Mule Console.
++
 image:demo_logger.jpg[demo_logger]
-
-[width="10a"cols="30a,70a",options="header"]
++
+[width="99a",cols="30a,70a",options="header"]
 |===
 |Field |Value
 |*Display Name* |Enter a name for the logger.
 |*Message* |Sent Message: `#[payload]`
 |*Level* |INFO (Default)
 |===
-
-.Add another Amazon SQS connector to get the count of the messages in the queue.
-
++
+. Add another Amazon SQS connector to get the count of the messages in the queue.
++
 image:demo_getmessagecount.jpg[demo_getmessagecount]
-
-[width="80a"cols="30a,70a",options="header"]
++
+[width="99a",cols="30a,70a",options="header"]
 |===
 |Field |Value
 |*Display Name* |Enter a name for the connector instance.
 |*Connector Configuration* |Select the global configuration you create.
 |*Operation* |Get approximate number of messages.
 |===
-
-.Add a *Logger* to print the number in the Mule Console.
-
++
+. Add a *Logger* to print the number in the Mule Console.
++
 image:demo_logger2.jpg[demo_logger2]
+
+=== Create a Flow to Receive a Message
 
 This completes the first part of the use case. Now create another flow to receive message and long them before deleting them from the queue.
 
 . Drag an Amazon SQS connector and configure it as an inbound endpoint:
-
++
 image:demo_receivemessages.jpg[demo_receivemessages]
-
-[width="10a"cols="30a,70a",options="header"]
++
+[width="99a",cols="30a,70a",options="header"]
 |===
 |Field |Value
 |*Display Name* |Enter a name for the connector instance.
@@ -278,47 +287,46 @@ image:demo_receivemessages.jpg[demo_receivemessages]
 |*Number of Messages* |1
 |*Visibility Timeout* |30
 |===
-
-
-[WARNING]
++
+[IMPORTANT]
 ====
 The Message processor's Queue URL attribute takes precedence over the Global Element Properties Queue URL. If none of the attributes belonging to Global Element Properties, including Queue Name, Queue URL, and the Message Processor's Queue URL is provided, the connector throws an exception.
 ====
-
++
 . Add a Logger to print the message in the Mule Console:
-
-[width="10a"cols="30a,70a",options="header"]
++
+[width="99a",cols="30a,70a",options="header"]
 |===
 |Field |Value
 |*Display Name* |Enter a name of your choice.
 |*Message* |Received Message: #[payload]
 |*Level* |INFO (Default)
 |===
-
++
 . Add another *Logger* to print the message handle in the console.
-
++
 image:demo_displaymessagehandle.jpg[demo_displaymessagehandle]
-
-[width="10a"cols="30a,70a",options="header"]
++
+[width="99a",cols="30a,70a",options="header"]
 |===
 |Field |Value
 |*Display Name* |Enter a name of your choice.
 |*Message* |Deleting message with handle: `#[header:inbound:sqs.message.receipt.handle]`
 |*Level* |INFO (Default)
 |===
-
++
 . Now configure an Amazon SQS connector to delete the message from the queue.
-
++
 image:demo_deletemessage.jpg[demo_deletemessage]
-
-[width="10a"cols="30a,70a",options="header"]
++
+[width="99a",cols="30a,70a",options="header"]
 |===
 |Field |Value
 |*Display Name* |Enter a name for the connector instance.
 |*Connector Configuration* |Select the global configuration you create.
 |*Operation* |Delete Message
 |===
-
++
 . Add a *Logger* to print the status in the mule console after the message is deleted.
 ....
 [tab,title="XML Editor"]
@@ -326,9 +334,8 @@ image:demo_deletemessage.jpg[demo_deletemessage]
 
 [WARNING]
 ====
-For this code to work in Anypoint Studio, you must provide Amazon Web Services credentials.You can either replace the variables with their values in the code, or you can provide the values for each variable in the `src/main/app/mule-app.properties file`.
+For this code to work in Anypoint Studio, you must provide Amazon Web Services credentials.  You can either replace the variables with their values in the code, or you can provide the values for each variable in the `src/main/app/mule-app.properties file`.
 ====
-
 
 [source, xml, linenums]
 ----
