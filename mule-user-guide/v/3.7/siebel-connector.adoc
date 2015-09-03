@@ -31,8 +31,8 @@ The objects can be business components, business objects, integration objects, o
 
 
 Because of how closely the connector is coupled with Siebel CRM, this document assumes you have a working knowledge of Siebel Business Components, Business Objects, Business Services, and Integration Objects.
-This document assumes you are familiar with Mule, link:/mule-user-guide/v/3.7/anypoint-connectors[Anypoint Connectors], and link:a/mule-fundamentals/v/3.7/anypoint-studio-essentials[Anypoint Studio Essentials]. To increase your familiarity with Studio,
-consider completing one or more link:/mule-studio/v/3.3/basic-studio-tutorial[Anypoint Studio Tutorials] . Further,
+This document assumes you are familiar with Mule, link:/mule-user-guide/v/3.7/anypoint-connectors[Anypoint Connectors], and link:/mule-fundamentals/v/3.7/anypoint-studio-essentials[Anypoint Studio Essentials]. To increase your familiarity with Studio,
+consider completing one or more link:/mule-fundamentals/v/3.7/basic-studio-tutorial[Basic Studio Tutorials] . Further,
 this page assumes that you have a basic understanding of link:/mule-fundamentals/v/3.7/elements-in-a-mule-flow[Elements in a Mule Flow] and link:/mule-fundamentals/v/3.7/global-elements[Mule Global Elements].
 
 This document describes implementation examples within the context of Anypoint Studio, Mule ESB’s graphical user interface, and, in parallel,
@@ -77,11 +77,11 @@ or a CloudHub Starter, Professional, or Enterprise account.
 Contact the MuleSoft Sales Team to arrange for either license. See also link:/mule-user-guide/v/3.7/installing-an-enterprise-license[Installing an Enterprise License].
 Studio displays the Siebel Connector you installed in the palette. The connectors displayed are:
 
-*Oracle Siebel Business Objects*: Connects to Siebel business objects and components.
+*Oracle Siebel Business Objects*: Connects to Siebel business objects and components, which define business logic and encapsulate table data.
 
-*Oracle Siebel Business Services*: Connects to Siebel business services.
+*Oracle Siebel Business Services*: Connects to Siebel business services to perform specific business functions or tasks.
 
-*Oracle Siebel Integration Objects*: Connects to Siebel integration objects.
+*Oracle Siebel Integration Objects*: Connects to Siebel integration objects, providing a dynamic and hierarchical structure of business components
 
 === Updating From an Older Version
 
@@ -155,7 +155,7 @@ image:siebel-bo-config.png[siebel-bo-config]
 |*Language* |Enter the language corresponding to the locale of the Siebel instance.
 |*Encoding* |Enter an encoding type supported by the Siebel server.
 |*Enable DataSense* |This option is selected by default. If you want to disable the option, click the checkbox to clear it.
-|*DataSense Filters Business Components:* | (composed of the two fields below, *Default View Mode* and *DataSense Filter Query*)
+|*DataSense Filters Business Components:* | (Composed of the two fields below, *Default View Mode* and *DataSense Filter Query*)
 |*Default View Mode* a|
 Enter the default view for DataSense. The default value for this field is 3.
 
@@ -173,7 +173,7 @@ Displays all records that includes a valid owner. For example, it includes the r
 |*DataSense Filter Query* |Use this field to write a query to filter the Business Components metadata being downloaded into the application.
 [NOTE]
 Limit the number of objects to retrieve through DataSense to a few objects using search specifications, otherwise retrieving metadata slows down Studio.
-|*DataSense Filters Business Objects:* | (composed of the two fields below, *Default View Mode* and *DataSense Filter Query*)
+|*DataSense Filters Business Objects:* | (Composed of the two fields below, *Default View Mode* and *DataSense Filter Query*)
 |*Default View Mode* a|
 Use to set the visibility type for a business component. The supported values are:
 
@@ -532,7 +532,7 @@ siebel:fields-to-retrieve
 . To set up the structure of the output message, switch views to the Studio XML Editor. Look for the Siebel connector in your XML code in a tag that looks like the tag below:
 +
 
-[source,xml]
+[source,xml,linenums]
 -----
 <siebel:query-business-components config-ref="Oracle_Siebel_Business_Object" businessObjectComponentType="Contact.Contact" searchExpression="[Last Update - SDQ] &gt; '#[flowVars.lastUpdate]'" doc:name="oracle siebel business objects">
 </siebel:query-business-components>
@@ -541,7 +541,7 @@ siebel:fields-to-retrieve
 In between the start and end tags of the  `siebel:query-business-components`, add the following child element structure:
 +
 
-[source,xml]
+[source,xml,linenums]
 ----
 <siebel:fields-to-retrieve>
     <siebel:fields-to-retrieve>Last Name</siebel:fields-to-retrieve>
@@ -653,7 +653,7 @@ image:flow2.png[flow2]
 . At the start of your project, add a Salesforce Global Element to set up global configuration attributes for this connector:
 +
 
-[source,xml]
+[source,xml,linenums]
 ----
 <sfdc:config name="Salesforce" username="${salesforce.user}" password="${salesforce.password}" securityToken="${salesforce.securitytoken}" url="${salesforce.url}" doc:name="Salesforce">
 <sfdc:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
@@ -693,7 +693,7 @@ image:flow2.png[flow2]
 . After the Salesforce Global Element, add a *Siebel Global Element* to set up global configuration attributes for this connector:
 +
 
-[source,xml]
+[source,xml,linenums]
 ----
 <siebel:config name="Oracle_Siebel_Business_Object" user="${siebel.user}" password="${siebel.password}" server="${siebel.server}" serverName="${siebel.servername}" objectManager="${siebel.mgr}" dataSenseFilterQueryBusComp="[Name] = 'Action_IO' OR [Name] = 'Contact_IO'" dataSenseFilterQueryBusObjects="[Name] = 'Action_IO' OR [Name] = 'Contact_IO'" doc:name="oracle siebel business objects">
        <siebel:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
@@ -792,7 +792,7 @@ a|
 . Build a new **Flow:**
 +
 
-[source,xml]
+[source,xml,linenums]
 ----
 <flow name="Poll_Siebel_2_Salesforce" doc:name="Poll_Siebel_2_Salesforce" processingStrategy="synchronous">
     </flow>
@@ -801,7 +801,7 @@ a|
 . Add a *Poll Scope* inside your new Flow.
 +
 
-[source,xml]
+[source,xml,linenums]
 ----
 <poll doc:name="Poll">
     <fixed-frequency-scheduler frequency="60000"/>
@@ -851,7 +851,7 @@ a|`variable`
 . Inside this Poll Scope, add a **Siebel:query-business-components** element
 +
 
-[source,xml]
+[source,xml,linenums]
 ----
 <siebel:query-business-components config-ref="Oracle_Siebel_Business_Object" businessObjectComponentType="Contact.Contact" searchExpression="[Last Update - SDQ] &gt; '#[flowVars.lastUpdate]'" doc:name="oracle siebel business objects">
     <siebel:fields-to-retrieve>
@@ -898,7 +898,7 @@ a|`siebel:fields-to-retrieve`|Lists the output fields of the query
 . After the Poll Scope, add a Logger to verify the output of this poll:
 +
 
-[source,xml]
+[source,xml,linenums]
 ----
 <logger message="Polling from Siebel #[payload]" level="INFO" doc:name="Logger"/>
 ----
@@ -960,7 +960,7 @@ a|`ref` a|`#[payload]`
 . Add another logger after the Salesforce connector to verify the success of the operation.
 +
 
-[source,xml]
+[source,xml,linenums]
 ----
 <logger message="#[payload.toString()]" level="INFO" doc:name="Logger"/>
 ----
@@ -1065,7 +1065,7 @@ output.LastName = input.Last_Name;
 
 NOTE: For the example use case code to work in Anypoint Studio, you must provide the credentials for both Siebel and Salesforce accounts. You can either replace the variables with their values in the code, or you can add a file named mule.properties in the src/main/properties folder to provide values for each variable.
 
-[source,xml]
+[source,xml,linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 
