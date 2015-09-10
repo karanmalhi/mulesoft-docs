@@ -12,18 +12,26 @@ This document is for a technical audience possessing basic knowledge of AS2, X12
 * Anypoint Platform account
 * Amazon S3 bucket for AS2 and EDI file storage (optional)
 
-== To run this example follow the steps below:
+=== Attachments
 
-. Download the application by clicking here, and unzip.
-. Import the application in Studio by going to the File menu, clicking Import, selecting Anypoint Studio Project from External Location. Then click next, select the downloaded application, and click Finish.
-. From your web browser, log on to the link:https://anypoint.mulesoft.com/b2b[Anypoint B2B Portal], then click  your HomeOrg view and copy your API key (reference step 3.2.).
+* link:_attachments/as2-x12-doc.zip[as2-x12-doc.zip]
+* link:_attachments/as2-x12-po.xml[as2-x12-po.xml]
+* link:_attachments/as2-x12-po.xsd[as2-x12-po.xsd]
+
+== Run the Example
+
+To run this example follow the steps below:
+
+. Download the link:_attachments/as2-x12-doc.zip[as2-x12-doc.zip application], and unzip.
+. Import the application in Anypoint Studio: click *File* > *Import* > *Anypoint Studio Project from External Location*. Click *Next*, select the downloaded application, and click *Finish*.
+. From your web browser, log on to the link:https://anypoint.mulesoft.com/b2b[Anypoint B2B Portal], then click your HomeOrg view, and copy your API key (reference step 3.2.).
 . In Anypoint, click the file `customer.xml` in the app folder, and select the Global view tab. Then open the configurations of B2B, and insert the API Key you got from the B2B Portal.
 . Right-click  the imported project folder, `as2-x12-doc`, select *Run As*, and click *Mule Application*.
-. Inside the project is a file in src/test/resources called po.xml. Create a copy and place it in the "outbox" folder.
+. Inside the project is a file in src/test/resources called po.xml. Create a copy and place it in the "outbox" folder. You can get a copy of the po.xml file from the link:_attachments/as2-x12-po.xml[as2-x12-po.xml] attachment. Rename as po.xml.
 . The file should disappear from the directory since the File inbound endpoint  deletes the file once it reads it.
 . Access the B2B Transmissions view in the B2B Portal to confirm that the AS2 and X12 transmissions have taken place.
 
-= Anypoint B2B Platform AS2 and EDI X12 Purchase Order Example
+== Anypoint B2B Platform AS2 and EDI X12 Purchase Order Example
 
 This example shows how to leverage the Anypoint B2B Platform to manage and track B2B exchanges. The goal is to develop a Mule application, representing a customer, that transforms an XML purchase order read from the filesystem to an X12 850 and sends it to a supplier over AS2. The supplier returns an X12 997 to an AS2 endpoint the application is listening on in order to inform the customer whether the 850 was accepted or rejected. All B2B transactions are managed and recorded by Anypoint B2B Platform while the actual files exchanged are stored in an Amazon S3 bucket.
 
@@ -117,7 +125,7 @@ image:B2B_AS2EDI_09.png[B2B_AS2EDI_09]
 
 == Mule Project Set Up
 
-The next stage of the solution is to develop a Mule application that transforms an XML purchase order read from the filesystem to an X12 850 and sends it to the supplier over AS2. The supplier returns an X12 997 to an AS2 endpoint the application is listening on in order to inform the customer whether the 850 was accepted or rejected. The exchange of data operates in the context of the partnership we created in _[Partnership Set Up](link)_. The application is split into two parts:
+The next stage of the solution is to develop a Mule application that transforms an XML purchase order read from the filesystem to an X12 850 and sends it to the supplier over AS2. The supplier returns an X12 997 to an AS2 endpoint the application is listening on in order to inform the customer whether the 850 was accepted or rejected. The application is split into two parts:
 
 * A customer part that sends an 850 and receives a 997.
 
@@ -139,7 +147,7 @@ Create the customer’s connector configs in the customer Mule config file befor
 
 The B2B Connector acts like a bridge between Mule and Anypoint‘s B2B services. It allows the AS2 Connector and EDI Module to fetch partnerships and record transmissions.
 
-. Click the *Global Elements* view. Go to *Create* -> *Connector Configuration* -> *B2B*.
+. Click the *Global Elements* view. Go to *Create* > *Connector Configuration* > *B2B*.
 . Enter your secret API key which is retrieved from your home organisation’s *Contacts* settings page in the B2B portal. Remember, the home organisation settings is accessed by clicking on the home organisation settings link on the upper right corner, next to the home icon:
 +
 image:B2B_AS2EDI_11.png[B2B_AS2EDI_11]
@@ -154,27 +162,22 @@ image:B2B_AS2EDI_13.png[B2B_AS2EDI_13]
 
 === Create HTTP Global Endpoints
 
-In this step we’ll add the HTTP global endpoints required by the AS2 Connector to shuttle messages across the wire.
+In this step, you can add the HTTP global endpoints required by the AS2 Connector to shuttle messages across the wire.
 
-. Inside *Global Elements*, go to *Create* -> *Connector Endpoints* -> *HTTP*. Name the endpoint _receive-http-endpoint_ and ensure that it has configured an HTTP connector.
-
+. Inside *Global Elements*, go to *Create* > *Connector Endpoints* > *HTTP*. Name the endpoint _receive-http-endpoint_ and ensure that it has configured an HTTP connector.
 . Repeat the previous step, however, set the endpoint name for this step to _send-http-endpoint_.
-
 . Set the *Port* attribute for _receive-http-endpoint_  to _8081_ while for _send-http-endpoint_ enter the placeholder _${as2.http.port}_. We use a placeholder for the destination port since it’s injected at runtime by Anypoint’s B2B service.
-
 . Set the *Host* attribute for _send-http-endpoint_ to the placeholder _${as2.http.host}_. The destination hostname is as well injected at runtime.
 
 === Create AS2 Connector Configs
 
-. Remain in the *Global Elements* view to create two AS2 Connector configs by going to *Create* -> *Connector Configuration* -> *AS2*. Name them _send-as2-config_ and _receive-as2-config_.
-
+. Remain in the *Global Elements* view to create two AS2 Connector configs by going to *Create* > *Connector Configuration* > *AS2*. Name them _send-as2-config_ and _receive-as2-config_.
 . Enable the *Use B2B Provider* option on both configs to allow Anypoint B2B platform to manage the AS2 processors.
-
-. Bind _send-as2-config_ and _receive-as2-config_ to _send-http-endpoint_ and _receive-http-endpoint_, respectively. Consult the link:https://developer.mulesoft.com/docs/display/current/AS2+Connector+2.0.0+RC[AS2 Connector documentation] for further information about configuring the AS2 Connector.
+. Bind _send-as2-config_ and _receive-as2-config_ to _send-http-endpoint_ and _receive-http-endpoint_, respectively. Consult the link:/anypoint-b2b/as2-connector-2.0.0-rc[AS2 Connector 2.0.0 RC] documentation for further information about configuring the AS2 Connector.
 
 === Create X12 Module Config
 
-. In the *Global Elements* view, goto *Create* -> *Connector Configuration* -> *X12 EDI* to create an X12 Module config.
+. In the *Global Elements* view, goto *Create* > *Connector Configuration* > *X12 EDI* to create an X12 Module config.
 . Enable *Use B2B Provider* to allow Anypoint B2B platform to manage the X12 processors.
 . Check the *Create Object Manually* radio button and open the *Object Builder* to enter the schema path _/x12/005010/850.esl_ in the first entry list.
 +
@@ -182,17 +185,23 @@ image:B2B_AS2EDI_14.png[B2B_AS2EDI_14]
 +
 . Set the interchange identifier attributes so that they correspond with the interchange identifiers you configured in the B2B Portal:
 +
-*Self identification:*
+Self identification:
 +
-* Interchange sender/receiver ID qualifier = _ZZ_
-* Interchange sender/receiver ID = _MOUNTAINOUT_
-* Application sender/receiver code = _MOUNTAINOUT_
+[source,code,linenums]
+----
+Interchange sender/receiver ID qualifier = _ZZ_
+Interchange sender/receiver ID = _MOUNTAINOUT_
+Application sender/receiver code = _MOUNTAINOUT_
+----
 +
-*Partner identification:*
+Partner identification:
 +
-* Interchange sender/receiver ID qualifier = _ZZ_
-* Interchange sender/receiver ID = _MY-SUPPLIER_
-* Application sender/receiver code = _MY-SUPPLIER_
+[source,code,linenums]
+----
+Interchange sender/receiver ID qualifier = _ZZ_
+Interchange sender/receiver ID = _MY-SUPPLIER_
+Application sender/receiver code = _MY-SUPPLIER_
+----
 +
 The interchange identifiers are the key for looking up the partnership to use for X12 processing.
 +
@@ -207,13 +216,13 @@ image:B2B_AS2EDI_15.png[B2B_AS2EDI_15]
 
 == Transform and Send 850 over AS2
 
-With the connector configs out of the way, we’ll build a flow to read an XML purchase order from the filesystem, transform it to a canonical EDI message structure, and finally, write it out as an X12 850 document to send it out to your supplier over AS2.
+With the connector configs out of the way, you can build a flow to read an XML purchase order from the filesystem, transform it to a canonical EDI message structure, and finally, and write it out as an X12 850 document to send it out to your supplier over AS2.
 
 . Remain in the customer Mule config but change to the *Message Flow* view.
 . Drag a *File* inbound endpoint to the canvas to create a flow. Set the *Path* attribute to _outbox_.
 . Add a *DataMapper* next to the *File* message source.
 . Put an *X12* processor after the DataMapper. Set the *Connector Configuration* to the X12 config that you created in the previous section and select *Write* for the *Operation*.
-. Go back to the DataMapper. Select for input type *XML* and use the schema _po.xsd_ to derive the structure to be mapped. Click on the *Create mapping* button.
+. Go back to the DataMapper. Select for input type *XML* and use the schema _po.xsd_ to derive the structure to be mapped. Click the *Create mapping* button. You can link:_attachments/as2-x12-po.xsd[download a copy of as2-x12-po.xsd] and rename it to be po.xsd.
 +
 image:B2B_AS2EDI_16.png[B2B_AS2EDI_16]
 +
@@ -229,19 +238,21 @@ image:B2B_AS2EDI_16.png[B2B_AS2EDI_16]
 |Quantity |PO102 - Quantity
 |USPrice |PO104 - Unit Price
 |PartNumber |PO107 - Produce/Service ID
-|City |Heading -> 3100 N1 -> 3400 N4 -> N401 - City Name
-|State |Heading -> 3100 N1 -> 3400 N4 -> N402 - State or Province Code
-|Zip |Heading -> 3100 N1 -> 3400 N4 -> N403 - Postal Code
-|Country |Heading -> 3100 N1 -> 3400 N4 -> N404 - Country Code
-|TotalPrice |Summary -> 100 CTT -> 0200 AMT -> AMT02 - Monetary Amount
-|'TT' |Summary -> 100 CTT -> 0200 AMT -> AMT01 - Amount Qualifier Code
+|City |Heading > 3100 N1 > 3400 N4 > N401 - City Name
+|State |Heading > 3100 N1 > 3400 N4 > N402 - State or Province Code
+|Zip |Heading > 3100 N1 > 3400 N4 > N403 - Postal Code
+|Country |Heading > 3100 N1 > 3400 N4 > N404 - Country Code
+|TotalPrice |Summary > 100 CTT > 0200 AMT > AMT02 - Monetary Amount
+|'TT' |Summary > 100 CTT > 0200 AMT > AMT01 - Amount Qualifier Code
 |===========
 +
-. The last message processor in the flow is an AS2 processor that sends the 850. Set the  the *operation* to *Send*. Additionally, set *AS2-From* and *AS2-To* to your Home organisation’s AS2 identifier and the partner’s AS2 identifier, respectively:
+. The last message processor in the flow is an AS2 processor that sends the 850. Set the  the *operation* to *Send*. Additionally, set *AS2-From* and *AS2-To* to your Home organization’s AS2 identifier and the partner’s AS2 identifier, respectively:
 +
-*AS2-From* = _MOUNTAINOUT_
-+
-*AS2-To* = _MY-SUPPLIER_
+[source,code,linenums]
+----
+AS2-From = _MOUNTAINOUT_
+AS2-To = _MY-SUPPLIER_
+----
 +
 Note that these identifiers were configured in the B2B Portal. The AS2 identifiers are the key for looking up the partnership to use for sending AS2 messages.
 +
@@ -251,11 +262,13 @@ image:B2B_AS2EDI_17.png[B2B_AS2EDI_17]
 
 The subsequent flow to develop receives a 997 over AS2 from the supplier in response to the 850 sent by you. In the _customer.xml_ Mule config:
 
-. Drag the AS2 processor to the canvas so as to create it as a message source of a new flow. Set *AS2-From* and *AS2-To* to the partner’s AS2 identifier and Home organisation AS2 identifier, respectively:
+. Drag the AS2 processor to the canvas so as to create it as a message source of a new flow. Set *AS2-From* and *AS2-To* to the partner’s AS2 identifier and Home organization AS2 identifier, respectively:
 +
-*AS2-From* = _MY-SUPPLIER_
-+
-*AS2-To* = _MOUNTAINOUT_
+[source,code,linenums]
+----
+AS2-From = _MY-SUPPLIER_
+AS2-To = _MOUNTAINOUT_
+----
 +
 The AS2 identifiers are the key for looking up the partnership to use for receiving AS2 messages.
 +
@@ -292,7 +305,7 @@ image:B2B_AS2EDI_20.png[B2B_AS2EDI_20]
 +
 image:B2B_AS2EDI_21.png[B2B_AS2EDI_21]
 
-== Run Application When S3 Storage is Disabled
+== Run Application After Disabling S3 Storage
 
 . Run the application as a *Mule Application*. On startup, the application creates the _outbox_ directory in the project’s root directory. If the _outbox_ directory isn’t visible, try refreshing the project in the *Package Explorer* view.
 
@@ -301,7 +314,7 @@ image:B2B_AS2EDI_21.png[B2B_AS2EDI_21]
 +
 image:B2B_AS2EDI_22.png[B2B_AS2EDI_22]
 
-== Run Application When S3 Storage is Enabled
+== Run Application After Enabling S3 Storage
 
 If you have enabled S3 storage configured in the B2B Connector config, then you need to add the AWS and S3 parameters to the Mule application VM arguments.
 
