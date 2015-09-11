@@ -23,8 +23,8 @@ Consider the following when running a test with the old test framework. Let’s 
 [source,java, linenums]
 ----
 package org.mule.modules.salesforce.automation.testcases;
-       import org.mule.modules.tests.ConnectorTestCase;
-       public abstract class AbstractTestCase extends ConnectorTestCase {
+       import org.mule.modules.tests.ConnectorTestCase;
+       public abstract class AbstractTestCase extends ConnectorTestCase {
 }
 ----
 
@@ -37,9 +37,9 @@ package org.mule.modules.salesforce.automation.testcases;
 public class AbortJobTestCases extends AbstractTestCase {
 @Before
 public void setUp() throws Exception {
-      initializeTestRunMessage("abortJobTestData");
-      JobInfo jobInfo = runFlowAndGetPayload("create-job");
-      upsertOnTestRunMessage("jobId", jobInfo.getId());
+      initializeTestRunMessage("abortJobTestData");
+      JobInfo jobInfo = runFlowAndGetPayload("create-job");
+      upsertOnTestRunMessage("jobId", jobInfo.getId());
 }
  ...
 ----
@@ -50,21 +50,21 @@ public void setUp() throws Exception {
 ----
 @Category({RegressionTests.class})
 @Test
-  public void testAbortJob() {
-  try {
-    JobInfo jobInfo = runFlowAndGetPayload("abort-job");
+  public void testAbortJob() {
+  try {
+     JobInfo jobInfo = runFlowAndGetPayload("abort-job");
  
-    assertEquals(com.sforce.async.JobStateEnum.Aborted,  jobInfo.getState());
-    assertEquals(getTestRunMessageValue("jobId").toString(), jobInfo.getId());                       
-    assertEquals(getTestRunMessageValue("concurrencyMode").toString(),jobInfo.getConcurrencyMode().toString());
-    assertEquals(getTestRunMessageValue("operation").toString(),jobInfo.getOperation().toString());
-    assertEquals(getTestRunMessageValue("contentType").toString(),
-    jobInfo.getContentType().toString());
+    assertEquals(com.sforce.async.JobStateEnum.Aborted,  jobInfo.getState());
+    assertEquals(getTestRunMessageValue("jobId").toString(), jobInfo.getId());                       
+    assertEquals(getTestRunMessageValue("concurrencyMode").toString(),jobInfo.getConcurrencyMode().toString());
+    assertEquals(getTestRunMessageValue("operation").toString(),jobInfo.getOperation().toString());
+    assertEquals(getTestRunMessageValue("contentType").toString(),
+    jobInfo.getContentType().toString());
  
-    } catch (Exception e) {
-       fail(ConnectorTestUtils.getStackTrace(e));
-    }
-  }
+    } catch (Exception e) {
+        fail(ConnectorTestUtils.getStackTrace(e));
+    }
+  }
 }
 ----
 
@@ -77,18 +77,17 @@ The following is how a normal test looks like with the pre-3.7 test framework, w
 [source, xml, linenums]
 ----
 <beans xmlns="http://www.springframework.org/schema/beans"
-       ...>
+...>
  
-    <context:property-placeholder location="${CREDENTIALS}"/>
+    <context:property-placeholder location="${CREDENTIALS}"/>
  
-       <util:map id="abortJobTestData" map-class="java.util.HashMap"
-              key-type="java.lang.String" value-type="java.lang.Object">
-              <entry key="type" value="Account" />
-              <entry key="concurrencyMode" value="Parallel" />
-              <entry key="contentType" value="XML" />
-              <entry key="externalIdFieldName" value="Id" />
-              <entry key="operation" value="insert" />
-       </util:map>
+        <util:map id="abortJobTestData" map-class="java.util.HashMap" key-type="java.lang.String" value-type="java.lang.Object">
+              <entry key="type" value="Account" />
+              <entry key="concurrencyMode" value="Parallel" />
+              <entry key="contentType" value="XML" />
+              <entry key="externalIdFieldName" value="Id" />
+              <entry key="operation" value="insert" />
+        </util:map>
 </beans>
 ----
 +
@@ -103,13 +102,11 @@ This Spring file gathers all test data used through out the entire test executio
 <sfdc:config name="Salesforce" doc:name="configDocName" password="${config.password}" username="${config.username}" ...>
  
 <flow name="create-job" doc:name="create-job">
-       <sfdc:create-job config-ref="Salesforce" doc:name="Create job"
-                      type="#[payload.type]" concurrencyMode="#[payload.concurrencyMode]" contentType="#[payload.contentType]"
-                      externalIdFieldName="#[payload.externalIdFieldName]" operation="#[payload.operation]"></sfdc:create-job>
+     <sfdc:create-job config-ref="Salesforce" doc:name="Create job" type="#[payload.type]" concurrencyMode="#[payload.concurrencyMode]" contentType="#[payload.contentType]" externalIdFieldName="#[payload.externalIdFieldName]" operation="#[payload.operation]"></sfdc:create-job>
 </flow>
 <flow name="abort-job" doc:name="abort-job">
-       <sfdc:abort-job config-ref="Salesforce" doc:name="Abort job" jobId="#[payload.jobId]">
-       </sfdc:abort-job>
+       <sfdc:abort-job config-ref="Salesforce" doc:name="Abort job" jobId="#[payload.jobId]">
+       </sfdc:abort-job>
 </flow>
 ----
 
@@ -138,10 +135,10 @@ Take in mind that we currently do not pack the old framework Maven dependency re
 [source, xml, linenums]
 ----
 <dependency>
-       <groupId>org.mule.modules</groupId>
-       <artifactId>mule-connector-test</artifactId>
-       <version>2.0.7</version>
-       <scope>test</scope>
+       <groupId>org.mule.modules</groupId>
+       <artifactId>mule-connector-test</artifactId>
+       <version>2.0.7</version>
+       <scope>test</scope>
 </dependency>
 ----
 
@@ -186,7 +183,7 @@ JobInfo jobInfo = connector.createJob(OperationEnum.insert, "Account", "Id", Con
 [source,java, linenums]
 ----
 List<Map<String, Object>> batchPayload = DataBuilder.createdBatchPayload();
-    batchInfo = connector.createBatch(jobInfo, batchPayload);
+    batchInfo = connector.createBatch(jobInfo, batchPayload);
 ----
 +
 Implementing a DataBuilder is mandatory  to keep tests consistent. However, the DataBuilder can read the existent Spring beans to load already defined objects or create new ones from scratch following the build pattern . If loading existent Spring beans to build objects, a possible way is using an ApplicationContext as follows inside the data builder class:
@@ -196,18 +193,18 @@ Implementing a DataBuilder is mandatory  to keep tests consistent. However, the
 import ...
 public class TestDataBuilder {
  
-       public TestDataBuilder(){
-              ApplicationContext context = new ClassPathXmlApplicationContext(automationSpringBeans.xml);
-       }
+      public TestDataBuilder(){
+          ApplicationContext context = new ClassPathXmlApplicationContext(automationSpringBeans.xml);
+      }
  
-       public static CustomObjectType createCustomTestData(){
-              CustomObjectType ret = (CustomObjectType) context.getBean("customObject");
-              return ret;
-       }
+      public static CustomObjectType createCustomTestData(){
+          CustomObjectType ret = (CustomObjectType) context.getBean("customObject");
+          return ret;
+      }
  
-       public void shutDownDataBuilder(){
-       ((ConfigurableApplicationContext)context).close();
-       }
+      public void shutDownDataBuilder(){
+      ((ConfigurableApplicationContext)context).close();
+      }
 }
 ----
 
@@ -223,17 +220,17 @@ The following shows how the @Connector class was coded in version 3.6.n:
 ----
 @Connector(name="my-connector", friendlyName="MyConnector")
 public class MyConnector
-{            
-   @Configurable
-   String token;
- 
-   @Config
-   ConnectorConfiguration config;
- 
-   @Processor
-   public String myProcessor(String param) {
-       ...
-   }
+{
+    @Configurable
+    String token;
+
+    @Config
+    ConnectorConfiguration config;
+
+    @Processor
+    public String myProcessor(String param) {
+    ...
+    }
 }
 ----
 
@@ -245,28 +242,28 @@ The following shows how the  @C onnector class is now coded in version 3.7.n:
 ----
 @Connector(name="my-connector", friendlyName="MyConnector")
 public class MyConnector
-{    
-   @Config
-   ConnectorConfiguration config;
- 
-   @Processor
-   public String myProcessor(String param) {
-       ...
-   }
+{
+    @Config
+    ConnectorConfiguration config;
+
+    @Processor
+    public String myProcessor(String param) {
+    ...
+    }
 }
  
  
 @Configuration(configElementName="config",friendlyName="Configuration")
 public class ConnectorConfiguration
-{    
-   @Configurable
-   String token;
- 
- 
-   // More Configurable Fields
-   …
- 
- 
+{
+    @Configurable
+    String token;
+ 
+
+    // More Configurable Fields
+    …
+
+
 }
 ----
 
@@ -287,11 +284,11 @@ The following shows how @Inject was used in version 3.6.n:
 @Inject
 @Processor
 public boolean parameterInjectionModule(MuleEvent event, MuleMessage message)
-   throws Exception {
-   if(event == null || message == null) {
-       throw new RuntimeException("MuleEvent or MuleMessage cannot be null");
-   }
-   return true;
+    throws Exception {
+    if(event == null || message == null) {
+        throw new RuntimeException("MuleEvent or MuleMessage cannot be null");
+    }
+    return true;
 }
 ----
 
@@ -303,11 +300,11 @@ The following shows how to inject a parameter in version 3.7.n:
 ----
 @Processor
 public boolean parameterInjectionModule(MuleEvent event, MuleMessage message)
-   throws Exception {
-   if(event == null || message == null) {
-       throw new RuntimeException("MuleEvent or MuleMessage cannot be null");
-   }
-   return true;
+    throws Exception {
+    if(event == null || message == null) {
+        throw new RuntimeException("MuleEvent or MuleMessage cannot be null");
+    }
+    return true;
 }
 ----
 
