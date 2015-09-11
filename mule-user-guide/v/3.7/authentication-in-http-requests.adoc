@@ -1,15 +1,13 @@
 = Authentication in HTTP Requests
 :keywords: http, authentication, security, users, connectors, anypoint, studio, esb, oauth, basic auth, digest
 
-The HTTP Request Connector supports four types of authentication:
+The HTTP Request Connector supports five types of authentication:
 
 * <<Basic Authentication>>
 * NTLM authentication
 * <<Digest Authentication>>
-* *OAuth* authorization with 
-* <<How the Authorization Code Grant Type Works - simplified>> grant type
-* *OAuth* authorization with 
-* <<How the Client Credentials Grant Type Works - simplified>> grant type
+* *OAuth* authorization with  <<How the Authorization Code Grant Type Works - simplified, Authorization Code>> grant type
+* *OAuth* authorization with <<How the Client Credentials Grant Type Works - simplified, Client Credentials>> grant type
 
 
 [WARNING]
@@ -31,9 +29,9 @@ With OAuth authentication, you can also provide TLS settings to encrypt your OAu
 . Drag an HTTP Connector to your canvas, create a new Connector Configuration element for it
 . Select the *Authentication* tab
 . In the Protocol dropdown menu, pick *Basic*
-. Provide your Username and Password (or references to properties that contain them.
+. Provide your *Username* and *Password* (or references to properties that contain them.
 
-image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="preemptive basic auth.png"]
+image:basic+auth.png[basic+auth]
 ....
 [tab,title="XML Editor"]
 ....
@@ -83,7 +81,7 @@ Add the attribute `preemptive="true"` on your `basic-authentication`element in
 
 == NTLM
 
-In this example, a GET request is sent to www.example.com/test, adding an "Authorization" header with the provided username and password.
+In this example, a GET request is sent to link:http://www.example.com/test[www.example.com/test], adding an "Authorization" header with the provided username and password.
 
 [tabs]
 ------
@@ -158,7 +156,7 @@ The Resource Owner (*RO*) is the owner of the resource to be accessed. ex: the B
 
 The Client Application (*CA*) is the server that tries to access a protected resource that belongs to a resource owner and that is held in an OAuth authentication server. ex: a Mule Server trying to access the resources that belong to a Box user and that are held in a Box server.
 
-image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="oauth danceposta.png"]
+image:oauth+danceposta.png[oauth+danceposta]
 
 . The CA must register an app to the OAS server. When this happens, the OAS assigns credentials to the CA that it can later use to identify itself: *client id* and *client secret*. The OAS must also provide an *Authentication URL*, which points to a web page where the RO can later introduce its credentials to grant the CA access to the resources it owns. The OAS must also provide a *Token URL*, to which the CA can later send HTTP requests to retrieve an *access token* that is required when accessing the Protected Resources on behalf of the RO.  
 . When the RO makes a request to the CA, the CA redirects it to the Authentication URL of the OAS. There, the RO can grant the CA access to the resources. This URL that the RO is redirected to is actually not just the Authentication URL of the OAS, it also contains some query parameters that the CA includes: a *client id* and a *Redirect URL*. 
@@ -347,7 +345,7 @@ It’s possible to customize when Mule will perform one of these requests to obt
 . In the Protocol dropdown menu, pick *OAuth2 - Authorization Code*
 . Fill in the same fields as in the previous examples
 . Fill in the *Request Token When* field with the following MEL expression:
-#[xpath3('/response/status/text()', payload, 'STRING') == ‘unauthorized’]
+#`[xpath3('/response/status/text()', payload, 'STRING') == ‘unauthorized’]`
 ....
 [tab,title="XML Editor"]
 ....
@@ -496,7 +494,7 @@ The Client Application (*CA*) is the server that tries to access a protected res
 
 In this case, the resource owner (RO) is also the CA. This means that the CA is implicitly authorized by the RO, which makes the whole procedure a lot simpler.
 
-image:/docs/plugins/servlet/confluence/placeholder/unknown-attachment?locale=en_GB&version=2[image,title="oauth dance post a simple.png"]
+image:oauth+danceposta+simple.png[oauth dance post a simple]
 
 . The CA must register an app to the OAS server. When this happens, the OAS assigns credentials to the CA that it can later use to identify itself: *client id* and *client secret*. The OAS must also provide a *Token URL*, to which the CA can later send HTTP requests to retrieve an *access token* that is required when accessing the Protected Resources.  
 . The CA makes a request to the *Token URL* of the OAS, containing its client id to prove its identity. As a response, the OAS grants it an *access token*. 
@@ -587,7 +585,7 @@ Once you have a token manager associated with the authorization grant type (in t
 
 If you're using *client credentials* or authorization code with a *single RO*, use the following function:
 
-[source, code, linenums]
+[source, code]
 ----
 oauthContext(tokenManagerConfigName)
 ----
@@ -598,7 +596,7 @@ This function provides access to the OAuth authorization information from a toke
 
 If you're using authorization code with **multiple RO **, use the following function:
 
-[source, code, linenums]
+[source, code]
 ----
 oauthContext(tokenManagerConfigName, resourceOwnerId)
 ----
@@ -617,20 +615,14 @@ In the table below is a set of examples showing you how to retreive information 
 |Function |Result
 | `oauthContext(‘Token_Manager_Config’).accessToken` |accessToken value
 | `oauthContext(‘Token_Manager_Config’, ‘Peter’).accessToken` |accessToken value for the RO identified with the id ‘Peter’
-|  `oauthContext(‘Token_Manager_Config’).refreshToken` |refreshToken value
+|`oauthContext(‘Token_Manager_Config’).refreshToken` |refreshToken value
 | `oauthContext(‘Token_Manager_Config’).expiresIn` |expires in value
 | `oauthContext(‘Token_Manager_Config’).state` |state used for the authrorization URL
-|
- `oauthContext(‘Token_Manager_Config’).`
-
- `tokenResponseParameters.‘a_custom_param_name’`
-
+| `oauthContext(‘Token_Manager_Config’).`
+`tokenResponseParameters.‘a_custom_param_name’`
 |custom parameter extracted from the token URL response
-|
- `oauthContext(‘Token_Manager_Config’, ‘Peter’).`
-
- `tokenResponseParameters.‘a_custom_param_name’`
-
+| `oauthContext(‘Token_Manager_Config’, ‘Peter’).`
+`tokenResponseParameters.‘a_custom_param_name’`
 |custom parameter extracted from the token URL response for RO ‘Peter’.
 |===
 
@@ -668,8 +660,8 @@ When using multiple RO with a single Token Manager, if you want to only clear th
 ....
 . Drag an *Invalidate OAuth Context* element to your canvas.
 . In its properties editor, set up the *Token Manager Configuration* so that it points to the same *Token Manager* that your HTTP Request Connector references when handling OAuth authentication.
-. Set the *Resource Owner Id*to an expression that points to the RO you want to clear. For example
-#[flowVars.'resourceOwnerId']
+. Set the *Resource Owner Id* to an expression that points to the RO you want to clear. For example
+#`[flowVars.'resourceOwnerId']`
 ....
 [tab,title="XML Editor"]
 ....
@@ -692,5 +684,5 @@ By default, the token manager uses an in-memory object store to store the creden
 
 * HTTP Request Connector
 * HTTP Listener Connector
-* See a link:/mule-user-guide/v/3.7/http-connector-reference[full Reference] of the available XML configurable options in this connector
+* See a link:/mule-user-guide/v/3.7/http-connector-reference[full reference] of the available XML configurable options in this connector
 * link:/mule-user-guide/v/3.7/migrating-to-the-new-http-connector[Migrating to the New HTTP Connector]
