@@ -11,7 +11,7 @@ This discussion sketches the architecture of a `@RestCall`-based connector, int
 
 This document assumes you are familiar with RESTful APIs, and with the DevKit connector architecture described in link:/anypoint-connector-devkit/v/3.7[Anypoint Connector DevKit].
 
-== `@RestCall`-Based Connector Architecture
+== @RestCall-Based Connector Architecture
 
 DevKit has built-in client functionality that can handle many "well-behaved" RESTful Web services, which require clean URLs, correct HTTP verb usage, etc.
 
@@ -19,7 +19,7 @@ The client is exposed through a set of annotations (the `@RestCall` annotations)
 
 The architecture of a connector built using the `@RestCall` annotations looks like the image below.
 
-image:image2013-10-15+1%3A49%3A12.png[image2013-10-15+1%3A49%3A12]
+image:restcall-connector-arch.png[restcall-connector-arch]
 
 Compared to most connectors, creating these connectors requires writing very little code. You still define a `@Connector` class, with properties and methods; but in this case, the `@Connector` class and its methods are all abstract. (Any entity classes passed to the operations are still concrete classes, as with other connector types.) For each operation, apply the `@RestCall` annotations to provide:
 
@@ -31,7 +31,7 @@ DevKit generates the entire REST client in a subclass that implements the abstra
 
 This level of simplicity is possible because the patterns for accessing a well-defined RESTful API are extremely consistent. 
 
-== About the `@RestCall` Client and Annotations
+== About the @RestCall Client and Annotations
 
 DevKit provides a set of annotations to simplify working with RESTful APIs. These annotations handle all necessary operations, generating each REST call, and incorporating each REST call parameter.
 
@@ -51,11 +51,11 @@ As explained below, you can use the `@RestUriParam` annotation, as well as other
 
 When generating the request call, DevKit includes a non-annotated argument and an argument annotated with `@Payload` as the body of the call.
 
-== `@RestCall` Annotations Reference
+== @RestCall Annotations Reference
 
 The sections below detail the full set of annotations for implementing a connector against a RESTful API.
 
-=== `@RestCall`
+=== @RestCall
 
 Used with the `@Processor` annotation. Indicates that upon invocation, the processor makes a RESTful request.
 
@@ -75,7 +75,7 @@ Used with the `@Processor` annotation. Indicates that upon invocation, the proc
 
 The example above uses a static URI. For details on using dynamically-generated URIs, see `@RestURIParam`.
 
-=== `@RestQueryParam`
+=== @RestQueryParam
 
 Specifies URI query parameters, which are appended to the path of the URI after a `?` or `&` symbol. You can apply this annotation to `@Processor` method arguments or to connector fields marked `@Configurable`. This enables you to use dynamically-generated arguments as query parameters.
 
@@ -115,7 +115,7 @@ Reference the argument in the `@RestURIParam` annotation:
 Public abstract String setPath(@RestURIParam String path ...
 ----
 
-=== `@RestHeaderParam`
+=== @RestHeaderParam
 
 Allows you to insert custom headers in the call. You can apply this annotation to `@Processor` method arguments or to a `@Configurable` field of the HTTP header marked in the annotation. This enables you to use dynamically-generated arguments as query parameters.
 
@@ -134,17 +134,17 @@ Name of the header to include in the call.
    String bucketName);
 ----
 
-=== `@RestPostParam`
+=== @RestPostParam
 
 Allows you to set parameters in the body of POST method calls. You can apply this annotation to `@Processor` method arguments or to connector fields marked `@Configurable`. DevKit ensures that you apply this annotation only to POST methods.
 
 Processor methods annotated with `@RestPostParam` cannot use a non-annotated argument or a `@Payload` annotated argument.
 
-== Implementing a `@RestCall` Connector
+== Implementing a @RestCall Connector
 
 The remainder of this document walks you through implementing a `@RestCall` connector. You can follow the walkthrough literally to build this specific example, or you can apply the same process to build a connector for your own API.
 
-=== Example `@RestCall` Connector: Facebook Graph API
+=== Example @RestCall Connector: Facebook Graph API
 
 The Facebook Graph API is the primary way for apps to get data into and out of Facebook's social graph and interact with the Facebook platform. For background information, see Facebook's link:https://developers.facebook.com/docs/getting-started/graphapi/[Getting Started: The Graph API].
 
@@ -163,7 +163,7 @@ The Graph API supports unauthenticated access for reading public information, bu
 
 For details on setting up authenticated API access, see the link:http://developers.facebook.com/docs/samples/meals-with-friends/register-facebook-application/[Facebook documentation]. Facebook generates a *Consumer Key* and *Consumer Secret*, which you need to complete the exercise.
 
-== Implementing the `@Connector` Class
+== Implementing the @Connector Class
 
 The RestCall client can be used with the `@OAuth` authentication annotations or the connection management framework. In this case, the Facebook connector uses OAuth 2.0 authentication. The abstract `@Connector` class, `FacebookConnector`, gets the `@RestCall` annotations and OAuth-related annotations on the class.
 
@@ -463,7 +463,7 @@ Notes:
 * The `@Generated("com.googlecode.jsonschema2pojo")` annotation indicates that this class was generated using the link:https://github.com/joelittlejohn/jsonschema2pojo/wiki/Getting-Started#the-maven-plugin[JSONSchema2POJO] tool, hosted at http://www.jsonschema2pojo.org/. 
 * The multiple imports from package `org.codehaus.jackson.annotate` and the specific annotations used (such as `@JsonProperty, @JsonAnySetter, @JsonAnyGetter`) reflect the fact that the RestCall client uses Jackson internally to serialize and deserialize JSON data exchanged with the service. Be sure to use JSONSchema2POJO in Jackson mode. 
 
-== Adding Operations to the `@Connector` Class
+== Adding Operations to the @Connector Class
 
 When implementing operations on the `@Connector` class, note that for `RestCall` connectors the operation methods, like the class itself, are abstract. Annotations on the methods specify:
 
@@ -502,7 +502,7 @@ However, this does not diminish the value of the test-driven approach. Many conn
 For details on developing connector tests, see link:/anypoint-connector-devkit/v/3.7/developing-devkit-connector-tests[Developing DevKit Connector Tests].
 ====
 
-=== Example: `FacebookConnector` Operation Methods
+=== Example FacebookConnector Operation Methods
 
 The following connector exposes the `getUser()` and `publishWall()` operations:
 
@@ -527,8 +527,7 @@ The following connector exposes the `getUser()` and `publishWall()` operations:
 public abstract User getUser(
     @RestUriParam("user") String user,
     @RestQueryParam("metadata") String metadata)
-    throws IOException
-;
+    throws IOException;
 /**
  * Post a message on a user's wall
  * {@sample.xml ../../../examples/Facebook.default.xml.sample facebook-connector:default}
@@ -541,18 +540,17 @@ public abstract User getUser(
  * @throws IOException
  * when the call fails
  */
+
 @OAuthProtected
 @Processor
 @RestCall(uri = "https://graph.facebook.com/{user}/feed", method = HttpMethod.POST, contentType = "application/json")
 public abstract String publishWall(
     @RestUriParam("user") String user,
     @RestPostParam("message") String message)
-    throws IOException
-;
----- 
+    throws IOException;
+----
 
-Notes:
-
+[NOTE]
 * `getUser()` does not have the `@OAuthProtected` annotation. Facebook permits getting some user information even without authentication (though a more complete response may be returned with authentication, depending on the authenticated user's relationship to the requested user, the privacy settings of the requested user, and so on)
 * Posting to a wall requires authentication, so it is annotated `@OAuthProtected`
 
