@@ -20,7 +20,7 @@ Consider the following when running a test with the old test framework. Let’s 
 
 . Extend from *ConnectorTestCase*. This class brings up methods such *initializeTestRunMessage*, *runFlowAndGetPayload,* or *upsertOnTestRunMessage*. These methods let you load test data through Spring beans, run a flow, get the resulting payload, and add data to a common test data container, respectively.
 +
-[source,java]
+[source,java, linenums]
 ----
 package org.mule.modules.salesforce.automation.testcases;
        import org.mule.modules.tests.ConnectorTestCase;
@@ -30,7 +30,7 @@ package org.mule.modules.salesforce.automation.testcases;
 
 . Load test data and set up the test context by loading test data through **initializeTestRunMessage(springName)**, running a particular flow by means of **runFlowAndGetPayload(flowName)**, and keeping the resulting value with **upsertOnTestRunMessage(key,value)**. These methods require a Spring bean definition file, normally called *automationSpringBeans.xml* and a Mule application flows file, normally called **automation-test-flows.xml**.
 +
-[source,java]
+[source,java, linenums]
 ----
 package org.mule.modules.salesforce.automation.testcases;
  ...
@@ -46,7 +46,7 @@ public void setUp() throws Exception {
 
 . Execute the test, where different flows can be called by means of **runFlowAndGetPayload(flowName)**, *runFlowAndExpectProperty(flowName, propertyName, expectedObject),* or **runFlowWithPayloadAndExpect(flowName, expectedObject, payload)**, among other available methods.
 +
-[source,java]
+[source,java, linenums]
 ----
 @Category({RegressionTests.class})
 @Test
@@ -74,7 +74,7 @@ The following is how a normal test looks like with the pre-3.7 test framework, w
 
 * On the one hand, we have the test data in a Spring bean file, which normally looks like this:
 +
-[source, xml]
+[source, xml, linenums]
 ----
 <beans xmlns="http://www.springframework.org/schema/beans"
        ...>
@@ -96,7 +96,7 @@ This Spring file gathers all test data used through out the entire test executio
 
 * On the other hand, we have a* Mule application flows* file, which looks like this:
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"...>
 <context:property-placeholder location="CREDENTIALS"/>
@@ -135,7 +135,7 @@ Some tests might not be migrated, either due to framework limitations or to deve
 
 Take in mind that we currently do not pack the old framework Maven dependency required to run the legacy test suite. Said that, if you maintain the legacy suite is required to manually add the dependency in the pom.xml file.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <dependency>
        <groupId>org.mule.modules</groupId>
@@ -149,7 +149,7 @@ Take in mind that we currently do not pack the old framework Maven dependency re
 
 The major change from Mule Connector Test to this new test framework is how operations are called and executed. Let’s consider the following example.
 
-[source,java]
+[source,java, linenums]
 ----
 ...
 initializeTestRunMessage("sampleTestCaseData");
@@ -162,7 +162,7 @@ We first need to *load* the test data by means of a Spring bean, called sampleTe
 
 We have radically changed this approach. We have simplified the way a test developer writes a test by enabling direct access to the operations of a connector. Only special operations, such as paginated ones, require alternative methods. Considering the same example as before, we now have a simplified interface, considering that we already have a connector mockup instance, as follows:
 
-[source,java]
+[source,java, linenums]
 ----
 ...
 JobInfo jobInfo = connector.createJob(OperationEnum.insert, "Account", "Id", ContentType.XML, ConcurrencyMode.Parallel);
@@ -176,14 +176,14 @@ Test data is currently maintained within Spring beans. We encourage to drop supp
 
 * If test objects are simple (String, Integers, etc.), just add to the test itself as in:
 +
-[source,java]
+[source,java, linenums]
 ----
 JobInfo jobInfo = connector.createJob(OperationEnum.insert, "Account", "Id", ContentType.XML, ConcurrencyMode.Parallel);
 ----
 
 * If test objects are complex such as Domain objects, implement a *DataBuilder* and use it as follows:
 +
-[source,java]
+[source,java, linenums]
 ----
 List<Map<String, Object>> batchPayload = DataBuilder.createdBatchPayload();
     batchInfo = connector.createBatch(jobInfo, batchPayload);
@@ -191,7 +191,7 @@ List<Map<String, Object>> batchPayload = DataBuilder.createdBatchPayload();
 +
 Implementing a DataBuilder is mandatory  to keep tests consistent. However, the DataBuilder can read the existent Spring beans to load already defined objects or create new ones from scratch following the build pattern . If loading existent Spring beans to build objects, a possible way is using an ApplicationContext as follows inside the data builder class:
 +
-[source,java]
+[source,java, linenums]
 ----
 import ...
 public class TestDataBuilder {
@@ -219,7 +219,7 @@ In DevKit 3.7.n, @Configurable fields in @Connector and/or @Module classes are n
 
 The following shows how the @Connector class was coded in version 3.6.n:
 
-[source,java]
+[source,java, linenums]
 ----
 @Connector(name="my-connector", friendlyName="MyConnector")
 public class MyConnector
@@ -241,7 +241,7 @@ public class MyConnector
 
 The following shows how the  @C onnector class is now coded in version 3.7.n:
 
-[source,java]
+[source,java, linenums]
 ----
 @Connector(name="my-connector", friendlyName="MyConnector")
 public class MyConnector
@@ -282,7 +282,7 @@ Mule 3.7 is compliant with the JSR-330 specification. Because of that, the @Inj
 
 The following shows how @Inject was used in version 3.6.n:
 
-[source,java]
+[source,java, linenums]
 ----
 @Inject
 @Processor
@@ -299,7 +299,7 @@ public boolean parameterInjectionModule(MuleEvent event, MuleMessage message)
 
 The following shows how to inject a parameter in version 3.7.n:
 
-[source,java]
+[source,java, linenums]
 ----
 @Processor
 public boolean parameterInjectionModule(MuleEvent event, MuleMessage message)
