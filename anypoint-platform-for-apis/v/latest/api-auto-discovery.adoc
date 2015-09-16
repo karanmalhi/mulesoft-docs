@@ -8,7 +8,6 @@ The automatic discovery and registration of your API on the Anypoint Platform oc
 [NOTE]
 Note that if you are applying auto-discovery code to an API that is not yet registered in the Anypoint Platform, you must be an Organization Administrator in order to see the registered API. If you are not one yourself, ask the Organization Administrator to give you API Version Owner permissions or add you to a custom role that includes those permissions for the API version that you created using auto-discovery.
 
-
 == Configuration
 
 To enable auto-discovery of an application's endpoints you must:
@@ -18,35 +17,44 @@ To enable auto-discovery of an application's endpoints you must:
 
 [tabs]
 ------
-[tab,title="Gateway Runtime 2.0 or Newer"]
+[tab,title="Current Version"]
 ....
-The `api-platform-gw` Global Element contains the needed information for registering your API to the Anypoint Platform, it also references the flow to register.
 
-[source, xml,linenums]
+=== API Gateway Version 2.0 and Newer
+
+The `api-platform-gw` Global Element contains the information you need to register your API in the Anypoint Platform, and it references the flow to register.
+
+[source, xml, linenums]
 ----
 <api-platform-gw:api id="myAPI" apiName="myAPI" version=“1.0.0” flowRef=“flow_api">
-       <api-platform-gw:description>This is a test API</api-platform-gw:description>
-       <api-platform-gw:tag>tag1</api-platform-gw:tag>
-       <api-platform-gw:tag>tag2</api-platform-gw:tag>
+   <api-platform-gw:description>This is a test API</api-platform-gw:description>
+   <api-platform-gw:tag>tag1</api-platform-gw:tag>
+   <api-platform-gw:tag>tag2</api-platform-gw:tag>
 </api-platform-gw:api>
 ----
 
-[cols=",",options="header",]
+*Global element:*
+
+[width="100%",cols="30a,70a",options="header"]
 |===
 |Global Element |Description
-|*http://api-platform-gwapi[api-platform-gw:api]* |A global element which declares essential information about the service version necessary for the automatic registration of the service version and/or its endpoints in the Anypoint Platform for APIs.
+|*api-platform-gw:api* |A global element which declares essential information about the service version necessary for the automatic registration of the service version and/or its endpoints in the Anypoint Platform for APIs.
 |===
 
-[cols=",,",options="header",]
+*Attributes:*
+
+[width="100%",cols="33a,33a,33a",options="header"]
 |===
 |Attribute |Required |Description
-|*id* |Yes |The ID of the global element, which you reference in the api-ref attribute in your endpoint.
+|*id* |Yes |The ID of the global element, which you reference in the `api-ref` attribute in your endpoint.
 |*apiName* |Yes |The friendly API name.
 |*version* |Yes |The version number.
 |*flowRef* |Yes |A reference to the main flow of your project. It triggers the agent to "discover" this flow and use it when performing the auto-registration.
 |===
 
-[cols=",,",options="header",]
+*Nested elements:*
+
+[width="100%",cols="34a,33a,33a",options="header"]
 |===
 |Nested Element |Required |Description
 |*api-platform-gw:description* |No |A description of the API.
@@ -54,45 +62,47 @@ The `api-platform-gw` Global Element contains the needed information for regist
 |===
 
 ....
-[tab,title="Gateway Runtime 1.3.2 or older"]
+[tab,title="Older Versions"]
 ....
 
-=== Creating the Global Element
+=== API Gateway Version 1.3.2 or Older
+
+==== Creating the Global Element
 
 A Global Element contains the needed information for registering your API to the Anypoint Platform, Global Elements must then be referenced by one or more endpoints.
 
 As of version 1.3 of the API Gateway, if you need your endpoint to be tracked, then you must explicitly indicate the required information directly in the GE's attributes.
 
 [NOTE]
-====
 If you're using an API Gateway version older than 1.3 and you're using the APIkit Studio extension, you can also reference the API's RAML definition file and let the auto-discovery feature retrieve details about your API from there. This can also be done in versions newer than 1.3, but when doing so, does not track that endpoint, so it's not recommended if you want to manage the endpoint.
 
-With Gateway versions older than 1.3
+=== Gateway Versions Older Than 1.3
 
-If your application is an *APIkit project*, you can use the link:http://apikitconfig[apikit:config] global element to implement auto-discovery.
+If your application is an *APIkit project*, you can use the `apikit:config` global element to implement auto-discovery.
 
 [source, xml]
 ----
 <apikit:config name="myAPI" raml="myAPI.raml"/>
 ----
 
-[cols=",",options="header",]
+*Global element:*
+
+[width="100%",cols="30a,70a",options="header"]
 |===
 |Global Element |Description
-|*http://apikitconfig[apikit:config]* |A global element which retrieves essential information from the API's RAML about the service version necessary for the automatic registration of the service version and/or its endpoints in the Anypoint Platform for APIs.
+|*apikit:config* |A global element which retrieves essential information from the API's RAML about the service version necessary for the automatic registration of the service version and/or its endpoints in the Anypoint Platform for APIs.
 |===
 
-[cols=",,",options="header",]
+*Attributes:*
+
+[width="100%",cols="34a,33a,33a",options="header"]
 |===
 |Attribute |Required |Description
 |*name* |Yes |The friendly API name.
 |*raml* |Yes |Location of the API's RAML definition file.
 |===
 
-....
-------
-
-==== Full Example
+=== Example for Gateway Versions Older than 1.3
 
 [source, xml, linenums]
 ----
@@ -119,11 +129,11 @@ If your application is an *APIkit project*, you can use the link:http://apikitco
 </mule>
 ----
 
-In either case you can aso explicitly reference the API attributes as explained below.
+In either case you can also explicitly reference the API attributes as explained below.
 
 Use the following structure for your auto-discovery code.
 
-[source, xml,linenums]
+[source, xml, linenums]
 ----
 <api-platform-gw:api id="myAPI" apiName="My New API" version="1.0.0" environment="Development">
         <api-platform-gw:description>
@@ -134,13 +144,17 @@ Use the following structure for your auto-discovery code.
 </api-platform-gw:api>
 ----
 
-[cols=",",options="header",]
+*Global element:*
+
+[width="100%",cols="30a,70a",options="header"]
 |===
 |Global Element |Description
 |*api-platform-gw:api* |A global element which declares essential information about the service version necessary for the automatic registration of the service version and/or its endpoints in the Anypoint Platform for APIs.
 |===
 
-[cols=",,",options="header",]
+*Attributes:*
+
+[width="100%",cols="34a,33a,33a",options="header"]
 |===
 |Attribute |Required |Description
 |*id* |Yes |The ID of the global element, which you reference in the api-ref attribute in your endpoint.
@@ -148,7 +162,9 @@ Use the following structure for your auto-discovery code.
 |*version* |Yes |The version number.
 |===
 
-[cols=",,",options="header",]
+*Nested elements:*
+
+[width="100%",cols="34a,33a,33a",options="header"]
 |===
 |Nested Element |Required |Description
 |*api-platform-gw:description* |No |A description of the API.
@@ -157,27 +173,31 @@ Use the following structure for your auto-discovery code.
 
 === Referencing Your Global Element in Your Endpoint
 
-You must now reference that global element in the inbound endpoint that you wish to register in the Anypoint Platform for APIs. Do this by adding a nested element in the inbound endpoint that includes an `api-ref` or `apikit-ref` that references the global element by name or id.
+You must now reference that global element in the inbound endpoint that you wish to register in the Anypoint Platform for APIs. Do this by adding a nested element in the inbound endpoint that includes an `api-ref` or `apikit-ref` that references the global element by name or ID.
 
-[source, xml,linenums]
+[source, xml, linenums]
 ----
 <http:inbound-endpoint host="some_host" port="some_port" path="some_path">
      <api-platform-gw:register-as api-ref="myAPI"/>
 </http:inbound-endpoint> 
 ----
 
-[cols="2",options="header",]
+*Nested elements:*
+
+[width="100%",cols="30a,70a",options="header"]
 |===
 |Nested Element |Description
 |*api-platform-gw:register-as* |Triggers the agent to "discover" this application and perform the auto-registration.
 |===
 
-[cols=",",options="header",]
-|=======
+*Attributes:*
+
+[width="100%",cols="30a,70a",options="header"]
+|===
 |Attribute |Description
 |*api-ref* |References the `api-platform-gw:api` global element that includes the information that the agent needs to register the API and/or endpoint.
 |*apikit-ref* |References the `apikit:config` global element that includes the information that the agent needs to register the API and/or endpoint.
-|=======
+|===
 
 ....
 ------
@@ -186,9 +206,12 @@ You must now reference that global element in the inbound endpoint that you wish
 
 [tabs]
 ------
-[tab,title="API Gateway 2.0 or newer"]
+[tab,title="Current Version"]
 ....
-[source, xml]
+
+=== API Gateway Version 2.0 and Newer
+
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -214,10 +237,14 @@ You must now reference that global element in the inbound endpoint that you wish
    </flow>
 </mule>
 ----
+
 ....
-[tab,title="API Gateway 1.3.2 or older"]
+[tab,title="Older Versions"]
 ....
-[source, xml]
+
+=== API Gateway Version 1.3.2 or Older
+
+[source, xml, linenums]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns="http://www.mulesoft.org/schema/mule/core"
@@ -243,6 +270,7 @@ You must now reference that global element in the inbound endpoint that you wish
     </flow>
 </mule>
 ----
+
 ....
 ------
 
@@ -250,7 +278,7 @@ You must now reference that global element in the inbound endpoint that you wish
 
 When you deploy applications to an API Gateway paired with the Anypoint Platform for APIs, the agent will perform the following steps to auto-discover and register your service version and/or endpoints in the Anypoint Platform for APIs.
 
-First, the agent will only initiate auto-discovery if prompted to do so by the existence of an `api-platform-gw:register-as` nested element in the inbound endpoint of the application:
+First, the agent only initiates auto-discovery if prompted to do so by the existence of an `api-platform-gw:register-as` nested element in the inbound endpoint of the application:
 
 image:autodiscoveryyesorno.png[autodiscoveryyesorno]
 
