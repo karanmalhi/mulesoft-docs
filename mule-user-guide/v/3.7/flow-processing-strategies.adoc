@@ -262,7 +262,7 @@ The synchronous approach is used to process messages in the same thread that ini
 
 The queued-asynchronous approach uses a queue to decouple the flow's receiver from the rest of the steps in the flow.
 
-image:queued+asynchronous.png[image]
+image:non-blocking-queued-async.png[non-blocking-queued-async]
 
 This means that once the receiver places a message into a queue, it can immediately return and accept a new incoming message. Furthermore, each message waiting in the queue can be assigned a different thread from a pool of threads. A component called a Work Manager assigns pending messages to available threads, so they can be processed in parallel. Such parallel processing is ideal for situations where the receiver can, at peak times, accept messages significantly faster than the rest of the flow can process those messages.
 
@@ -284,13 +284,13 @@ A flow with a synchronous processing strategy executes on the same node of the c
 
 Mule has traditionally always used a threaded processing model for handling incoming requests from a Message Sources using the request-response Message Exchange Pattern. This means that the whole Mule Flow, both request and response phases, are executed using the same thread. This same thread is also used to send the response back to the client. This threaded request-response processing is used whenever the <<Fine-Tuning a Queued-Asynchronous Processing Strategy>> is used, either explicitly or by Mule  implicitly selecting this strategy when one isn’t specified.  This processing model can more easily be shown with this diagram:
 
-image:SyncProcStrat.png[image]
+image:non-blocking-sync-proc-strategy.png[non-blocking-sync-proc-strategy]
 
 The non-blocking processing strategy in contrast uses an evented non-blocking processing model to process requests. In this model a single thread still handles each incoming request, but non-blocking components return this thread to the listener thread pool. Only upon obtaining and using a new thread, can processing continue.This is much easier to explain with the example below that uses HTTP, which can also be directly compared to the threaded example above.
 
-image:NonBlockProcStrat.png[image]
+image:non-blocking-processing-strategy.png[non-blocking-processing-strategy]
 
-In this example, the HTTP components support Non-Blocking IO (NIO). 
+In this example, the HTTP components support Non-Blocking I/O (NIO). 
 
 This means that:
 
@@ -312,7 +312,7 @@ It is important to understand that both processing strategies functionally achie
 
 === Non-Blocking Advantages
 
-The main advantage of this processing-strategy is that in a flow that uses this processing strategy, as long as the flow doesn’t block for IO or use `Thread.sleep()` anywhere, no tuning is required to achieve optimum performance. With the synchronous processing strategy, by comparison, it is necessary to tune the listener thread pool size based on the expected usage of the flow.
+The main advantage of this processing-strategy is that in a flow that uses this processing strategy, as long as the flow doesn’t block for I/O or use `Thread.sleep()` anywhere, no tuning is required to achieve optimum performance. With the synchronous processing strategy, by comparison, it is necessary to tune the listener thread pool size based on the expected usage of the flow.
 
 Let’s consider an example using the example flow above:
 
@@ -342,19 +342,19 @@ While this processing model clearly applies to multiple scenarios in Mule's curr
 
 Therefore, you should consider using this processing strategy when your flow implementations primarily use HTTP and you want the advantage of not needing to tune listener threads or to minimize resource utilization, as described above,
 
-Before using the non-blocking strategy, ensure you are also familiar with what is currently supported and its limitations as follows:
+Before using the non-blocking strategy, ensure you are also familiar with what is currently supported and their limitations as follows:
 
-* The only Message Source that supports non-blocking is the link:/mule-user-guide/v/3.7/http-listener-connector[HTTP Connector Listener]
-* The only Message Processor that supports non-blocking is the link:/mule-user-guide/v/3.7/http-request-connector[HTTP Connector Request]
-* The only Message Exchange Pattern currently supported is link:/docs/display/current/HTTP+Request-Response+with+Logger+Example[Request-Response]
-* Only a limited set of components are fully supported for use for use in non-blocking flows
+* The only Message Source that supports non-blocking is the link:/mule-user-guide/v/3.7/http-listener-connector[HTTP Connector Listener].
+* The only Message Processor that supports non-blocking is the link:/mule-user-guide/v/3.7/http-request-connector[HTTP Connector Request].
+* The only Message Exchange Pattern currently supported is link:/docs/display/current/HTTP+Request-Response+with+Logger+Example[Request-Response].
+* Only a limited set of components are fully supported for use in non-blocking flows.
 
 While you can use unsupported components in a non-blocking flow, they cause the processing model to revert to execute synchronously so as to ensure consistent behavior.  Aside from advanced scenarios, in these cases, it is best to not to use the non-blocking processing strategy.
 
 === Supported Non-Blocking Components
 
-* *Connectors:* All connectors are supported in a non-blocking flow, but only the HTTP connector (introduced in Mule 3.6 and newer) performs non-blocking request-response operations and lets you take advantage of the non-blocking processing model..
-* **Scopes: **  +
+* *Connectors:* All connectors are supported in a non-blocking flow, but only the HTTP connector (introduced in Mule 3.6 and newer) performs non-blocking request-response operations and lets you take advantage of the non-blocking processing model.
+* *Scopes:*  +
 ** *Processor-Chain, Subflow and Enricher:*  Are fully supported and HTTP Connector Request components inside these scopes take advantage of the non-blocking processing model.
 ** *Async/Wire-Tap*: Supported, but child processors cannot take advantage of non-blocking processing. This is because the One-Way Exchange-Pattern is not yet supported.
 ** *Request-Reply*: Supported, but does not currently take advantage of the non-blocking processing model.
@@ -375,7 +375,7 @@ While you can use unsupported components in a non-blocking flow, they cause the 
 
 If an unsupported component is configured in a flow that is using the non-blocking processing strategy, then the flow reverts to the synchronous processing from the point in the flow. There may be advanced cases where this is desirable to take advantage of non-blocking for part of the flow, but typically it is best to stick with the synchronous processing strategy.
 
-image:NonBlockWithSyncFB.png[image]
+image:non-blocking-with-sync-fallback.png[non-blocking-with-sync-fallback]
 
 In this example the first HTTP request processor uses non-blocking, but the aggregator after it forces the flow to revert to synchronous behavior and as such the second HTTP request processor does not use non-blocking and the flow thread waits for a response before sending the response back to the client.
 
