@@ -223,10 +223,10 @@ config-ref="https-lc-0.0.0.0-8082"
 === HTTPS with the API
 
 . In the Configure Endpoint menu, provide an implementation URI to an HTTPS address. Having an HTTPS address specified here modifies the proxy so that it supports HTTPS. By default, it takes your JMV's default HTTPS credentials and sign requests with those, if this is enough for your security needs then your proxy is ready to be deployed.
-. If the default certificate of your JMV is not enough and you need to include other HTTPS credentials, then you must now download the proxy and <<Modifying a Proxy Application>> it to include your own credentials.
+. If the default certificate of your JMV is not enough and you need to include other HTTPS credentials, then you must now download the proxy and modify it to include your own credentials. See <<Modifying a Proxy Application>>.
 +
 [NOTE]
-If you want to be able to deploy it in the Anypoint Studio engine – mostly for debugging purposes –, you need to create a  <<Configuring a Proxy Domain>>  project in Studio and reference it, or download and import link:/docs/download/attachments/131039906/api-gateway.zip?version=1&modificationDate=1438021121689[this domain file].
+When importing your proxy application into Studio, notice that your project is linked to a *domain* project named `api-gateway` (which is automatically created in studio if not already present). This domain project is identical to the domain that exists in Cloudhub and in your API Gateway On Premise by default. It's necessary for being able to deploy your app to the Anypoing Studio server under the same conditions as when deployed to production. If you modify your domain on your API Gateway on-prem installation to include HTTPS credentials, then you should also replicate those changes on this domain that exists in Studio so that you can deploy it under the same conditions in both places.
 
 . Modify the `http:request-config` element in your proxy's `proxy.xml` file to include TLS configuration elements that point to the required truststore/keystore. See how to configure that link:/anypoint-platform-for-apis/http-request-connector[here].
 
@@ -299,10 +299,9 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 
 [WARNING]
 ====
-Notes:
+When importing your proxy application into Studio, notice that your project is linked to a *domain* project named `api-gateway` (which is automatically created in studio if not already present). This domain project is identical to the domain that exists in Cloudhub and in your API Gateway On Premise by default. It's necessary for being able to deploy your app to the Anypoing Studio server under the same conditions as when deployed to production. If you modify your domain on your API Gateway on-prem installation, then you should also replicate those changes on this domain that exists in Studio so that you can deploy it under the same conditions in both places. This Domain project contains the `<http:listener-config` statement that the Mule flow requires.
 
-* Create a Mule Domain file to accompany your Mule project. Click *File* > *New* > *Mule Domain Project*. This file contains the `<http:listener-config` statement that the Mule flow requires.
-* Configure the property placeholders in the configuration in your `mule-app.properties` file, which you can find in your Package Explorer under `src/main/app`.
+* In your API project, configure the property placeholders in the configuration in the `mule-app.properties` file, which you can find in your Package Explorer under `src/main/app`.
 +
 [source,code,linenums]
 ----
@@ -518,39 +517,27 @@ For most cases, the auto-generated proxy should be good for deploying as it come
 
 You can now edit your proxy application in Studio's visual editor or XML editor.
 
-[IMPORTANT]
-When you load your proxy, Studio displays a message about a missing listener configuration, this is because the connector configuration is hosted in a domain – which is an abstraction useful for link:/mule-user-guide/v/3.7/shared-resources[sharing resources] between apps – that resides in CloudHub and in the on-premises Gateway. As this domain is not accessible in Anypoint Studio, you should build a domain project with the same name in order to be able to launch your app in studio. Follow the steps in the section below to achieve this.
+When you're done, you can export your project and then deploy it either on premises or to CloudHub. Keep in mind that you are only exporting and deploying your proxy app, not the domain project that is linked to it. When deployed to production, your app will rely on the domain that exists in that environment.
 
-When you're done, you can export your project and then deploy it either on premises or to CloudHub. Keep in mind that you are only exporting and deploying your proxy app, not the domain that you created for it.
+=== The Proxy Domain in Studio
 
-=== Configuring a Proxy Domain
+Mule domains are a useful abstraction for link:/mule-user-guide/v/3.7/shared-resources[sharing resources] between apps. All API Gateway proxy apps – both those deployed to CloudHub and those deployed to the standalone API Gateway – rely on a domain that includes sevaral common configuration parameters. When importing your proxy application into Studio, notice that your project is linked to a *domain* project named `api-gateway` (which is automatically created in studio if not already present). This domain project is identical to the domain that exists in Cloudhub and in your standalone API Gateway On Premise by default. This domain necessary for being able to deploy your app to the Anypoing Studio server under the same conditions as when deployed to production.
+image:domain_project.png[domain]
 
-The auto-generated proxys are built to run in CloudHub or in the on-premises standalone API Gateway, in both cases they rely on a default domain, this domain is not available when you try to deploy your app to the built-in server in Anypoint Studio. Mule domains are a useful abstraction for  link:/mule-user-guide/v/3.7/shared-resources[sharing resources]  between apps.  If you wish to deploy your app to the Studio server, you must first build a Domain project that replaces this default domain that exists in CloudHub and when deploying to the API Gateway on-premises, it must be named just like it and contain the same configuration elements.
+You can check that this domain is associated to your project by viewing the `mule-project.xml` file of your project.
+image:gateway_domain_associated.png[domain associated]
 
-Follow these steps to have a default domain replica to link your projects to:
+You can modify this domain in Studio freely, keep in mind though, that when exporting your proxy project out of Studio you'll only be exporting the proxy itself, not the domain it's linked to. In production, the proxy will rely on the domain that exists in that environment. This has different implications depending on where you want to deploy to:
+* *Standalone API Gateway On Premise*: If you modified your domain in Studio, you must also modify the actual domain that exists in the API Gateway to match these changes.
+* *CloudHub*: You cannot modify the domain that exists in the cloud, so you must build your proxy apps in such a way that they are compatible with the default domain.
 
-. Download link:_attachments/api-gateway.zip[the api-gateway.zip file] that contains a copy of the default domain.
-. Import it into Studio through File > Import >  *Anypoint Studio Generated Deployable File (.zip)*
+[TIP]
+====
+If you already had a proxy project in Studio that you imported prior to September 2015 and you want to link it to a Domain project, you can easily do so by left clicking on your project in the package explorer and selecting `Domains > Associate with API Gateway Domain`
+image:add_gateway_domain.png[add domain]
+====
 
-As an Alternative, you can build your own domain from scratch:
-
-. Create a new domain project. Click *File* > *New* > *Mule Domain*. 
-. Name your domain just like the default one: *api-gateway*
-. Open the `mule-domain-config.xml` file, which is under `src/main/domain`.
-. Replace the XML code in it with this:
-+
-[source,xml,linenums]
-----
-<mule-domain xmlns="http://www.mulesoft.org/schema/mule/ee/domain" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/domain http://www.mulesoft.org/schema/mule/ee/domain/current/mule-domain-ee.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
- 
-   <http:listener-config name="http-lc-0.0.0.0-8081" host="0.0.0.0" port="8081" protocol="HTTP"/>
- 
-</mule-domain>
-----
-+
-. Save the `mule-domain-config.xml` file.
-
-Whether you downloaded or built your domain from scratch, it contains an HTTP listener config for HTTP protocol messages that listens on port 8081:
+The Domain project contains the `<http:listener-config` statement that listens on port 8081  that the Mule flow requires:
 
 [source,xml,linenums]
 ----
@@ -560,19 +547,6 @@ Whether you downloaded or built your domain from scratch, it contains an HTTP li
 [TIP]
 If you want to include HTTPS support, you may have to include a second HTTP listener config that supports HTTPS and listens on port 8082, depending on where you want to deploy to. See <<Using HTTPS>> for more details.
 
-[WARNING]
-====
-Remember that this domain serves as a replacement of the default domain that exists in CloudHub and on the on-premises API Gateway. All of the names and configuration in the domain you create must be identical to what's configured in the default domain, as the app then uses the default domain when deployed to CloudHub or on-premises. 
-
-You can customise the default domain if you're deploying on premises to match any changes you may want to make, but you can't if you're deploying to CloudHub.
-====
-
-To configure your proxy so that it references the domain:
-
-. Open the API Gateway project's `mule-project.xml`.
-. In this file, change the *Domain* field to the name you used for your Mule Domain Project. For example:
-+
-image:MuleProjectDomain.png[MuleProjectDomain]
 
 == See Also
 
