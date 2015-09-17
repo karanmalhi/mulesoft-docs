@@ -1,0 +1,465 @@
+= Managing Applications and Domains
+:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
+
+This document describes how manage (deploy and list) Mule applications and domains through the Mule agent API.
+
+
+== Managing Applications
+
+=== Operation: List Applications
+
+This operation lists all of the applications running on the Mule instance.
+
+*Request:*
+
+----
+GET <host:port>/mule/applications/ HTTP/1.1
+----
+
+*Example:*
+
+----
+GET localhost:9999/mule/applications/ HTTP/1.1
+----
+
+*Response:*
+[source, json, linenums]
+----
+[
+  {
+    name: 'domain1', domain: 'domain1', state: 'CREATED'
+  },
+  {
+    name: 'domain2', domain: 'domain2', state: 'STARTED'
+  }
+]
+----
+
+==== Application States
+
+The application state returned by the API, such as `CREATED` or `STARTED` in the example above, displays the status of the application depending on the Mule context phase currently being executed. Valid application states are listed below.
+
+* `CREATED`
+* `INITIALISED`
+* `STARTED`
+* `STOPPED`
+* `DESTROYED`
+* `DEPLOYMENT_FAILURE`
+
+=== Operation: Deploy Application
+
+To successfully execute this operation, you need to do one of the following:
+
+* Send an *application/JSON* message posting the URL for the application file +
+or
+* Send an *application/octet-stream* with the application zip file encoded
+
+Both methods are illustrated in the examples below.
+
+*Basic Request:*
+
+----
+PUT <host:port>/mule/applications/<application name> HTTP/1.1
+----
+
+*Example:*
+[source, json, linenums]
+----
+PUT http://localhost:9999/mule/applications/myapp HTTP/1.1
+----
+
+==== Example Using JSON
+
+*Request:*
+
+----
+PUT http://localhost:9999/mule/applications/myapp HTTP/1.1
+Content-Type: application/json
+ 
+{
+url: "http://myDomain.com/myApp.zip"
+}
+----
+
+*Response:*
+[source, json, linenums]
+----
+{
+  application: {
+    name: "applicationName"
+  },
+  status: "Deployment attempt started"
+}
+----
+
+==== Example Using Octet Stream
+
+*Request:*
+
+----
+PUT http://localhost:9999/mule/applications/myapp HTTP/1.1
+Content-Type: application/octet-stream
+ 
+Body: Binary zip file
+----
+
+*Response:*
+[source, json, linenums]
+----
+{
+  application: {
+    name: "applicationName"
+  },
+  status: "Deployment attempt started"
+}
+----
+
+=== Operation: Undeploy an Application
+
+This operation undeploys the specified application.
+
+*Request:*
+
+----
+DELETE <host:port>/mule/applications/<application name> HTTP/1.1
+Content-Type: application/json
+----
+
+*Example:*
+
+----
+DELETE http://localhost:9999/mule/applications/myapp HTTP/1.1
+Content-Type: application/json
+----
+
+*Response:*
+[source, json, linenums]
+----
+{
+  application: {
+    name: "applicationName"
+  },
+  status: "Undeployment attempt started"
+}
+----
+
+=== Operation: Restart an Application
+
+*Request:*
+
+----
+PUT <host:port>/mule/applications/<application name>/restart
+----
+
+*Example:*
+
+----
+PUT http://localhost:9999/mule/applications/myapp/restart HTTP/1.1
+Content-Type: application/json
+----
+
+*Response:*
+[source, json, linenums]
+----
+{
+  application: {
+    name: "applicationName",
+    domain: "domainName",
+    state: "STARTED"
+  },
+  status: "Restart attempt started"
+}
+----
+
+=== Operation: Get an Application
+
+This operation retrieves a specific application status
+
+*Request:*
+
+----
+GET <host:port>/mule/applications/<application name> HTTP/1.1
+----
+
+*Example:*
+
+----
+http://localhost:9999/mule/applications/myapp HTTP/1.1
+----
+
+*Response:*
+[source, json, linenums]
+----
+{
+  name: 'myapp'
+  domain: 'domain'
+  state: 'STARTED'
+}
+----
+
+=== Operation: Start an Application
+
+This operation starts the specified application.
+
+*Request:*
+
+----
+PUT <host:port>/mule/applications/<application name>/start HTTP/1.1
+----
+
+*Example:*
+
+----
+PUT http://localhost:9999/mule/applications/myapp/start HTTP/1.1
+----
+
+*Response:*
+[source, json, linenums]
+----
+{
+  application: {
+    name: "applicationName",
+    domain: "domainName",
+    state: "STOPPED"
+  },
+  status: "Start attempt started"
+}
+----
+
+=== Operation: Stop an Application
+
+This operation stops the specified application.
+
+*Request:*
+
+----
+PUT <host:port>/mule/applications/<application name>/stop HTTP/1.1
+----
+
+*Example:*
+
+----
+PUT http://localhost:9999/mule/applications/myapp/stop HTTP/1.1
+----
+
+*Response:*
+[source, json, linenums]
+----
+{
+  application: {
+    name: "applicationName",
+    domain: "domainName",
+    state: "STARTED"
+  },
+  status: "Stop attempt started"
+}
+----
+
+== Managing Domains
+
+=== Operation: List Domains
+
+This operation lists all of the domains and their corresponding applications.
+
+*Request:*
+
+----
+GET <host:port>/mule/domains HTTP/1.1
+----
+
+*Example:*
+
+----
+GET http://localhost:9999/mule/domains HTTP/1.1
+----
+
+*Response:*
+[source, json, linenums]
+----
+[
+  {
+    name: "myDomain1",
+    applications:[
+      {
+        name: "domain1",
+        domain: "domain1",
+        state: "CREATED"
+      },
+      {
+        name: "domain2",
+        domain: "domain2",
+        state: "STARTED"
+      }
+    ]
+  },
+  {
+    name: "myDomain2",
+    applications:[
+      {
+        name: "otherDomain1",
+        domain: "otherDomain1",
+        state: "CREATED"
+      },
+      {
+        name: "otherDomain2",
+        domain: "otherDomain2",
+        state: "STARTED"
+      }
+    ]
+  }
+]
+----
+
+=== Operation: Deploy/Redeploy a Domain
+
+This operation deploys the specified domain, or redeploys the specified domain if it is already deployed. In this latter case, the agent will undeploy the domain, then redeploy it using the new file provided.
+
+To successfully execute this operation, you need to do one of the following:
+
+* Send an *application/JSON* message posting the URL for the domain jar +
+or
+* Send an *application/octet-stream* with the domain zip file
+
+Both methods are illustrated in the examples below.
+
+*Basic Request:*
+
+----
+PUT <host:port>/mule/domains/<domain name> HTTP/1.1
+----
+
+*Example:*
+[source, json, linenums]
+----
+PUT http://localhost:9999/mule/domains/mydomain HTTP/1.1
+----
+
+
+
+==== Example Using JSON
+
+*Request:*
+
+----
+PUT http://localhost:9999/mule/domains/mydomain HTTP/1.1
+Content-Type: application/json
+ 
+{
+  url: "http://localhost/myDomain.jar"
+}
+----
+
+*Response:*
+[source, json, linenums]
+----
+{
+  domain: "domainName",
+  status: "Deployment attempt started"
+}
+----
+
+==== Example Using Octet Stream
+
+*Request:*
+
+----
+PUT http://localhost:9999/mule/domains/mydomain HTTP/1.1
+Content-Type: application/octet-stream
+ 
+Body: Binary zip file
+----
+
+*Response:*
+[source, json, linenums]
+----
+{
+  domain: "domainName",
+  status: "Deployment attempt started"
+}
+----
+
+=== Operation: Undeploy a Domain
+
+This operation undeploys the specified domain.
+
+*Request:*
+
+----
+DELETE <host:port>/mule/domains/<domain name>
+----
+
+*Example:*
+
+----
+DELETE http://localhost:9999/mule/domains/mydomain HTTP/1.1
+Content-Type: application/json
+----
+
+*Response:*
+[source, json, linenums]
+----
+{
+  domain: "domainName",
+  status: "Undeployment attempt started"
+}
+----
+
+=== Operation: Restart a Domain
+
+*Request:*
+
+----
+PUT <host:port>/mule/domains/<domain name>/restart
+----
+
+*Example:*
+
+----
+PUT http://localhost:9999/mule/domains/mydomain/restart HTTP/1.1
+Content-Type: application/json
+----
+
+*Response:*
+[source, json, linenums]
+----
+{
+  domain: "domainName",
+  status: "Restart attempt started"
+}
+----
+
+=== Operation: Get a Domain
+
+This operation retrieves the status of the specified domain.
+
+*Request:*
+
+----
+GET <host:port>mule/domains/<domain name> HTTP/1.1
+----
+
+*Example:*
+
+----
+GET http://localhost:9999/mule/domains/myDomain HTTP/1.1
+----
+
+*Response:*
+[source, json, linenums]
+----
+{
+  name: "myDomain",
+  aplications:[
+    {
+      name: "otherDomain1",
+      domain: "otherDomain1",
+      state: "CREATED"
+    },
+    {
+      name: "otherDomain2",
+      domain: "otherDomain2",
+      state: "STARTED"
+    }
+  ]
+}
+----
