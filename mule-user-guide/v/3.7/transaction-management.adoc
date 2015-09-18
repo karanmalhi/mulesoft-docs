@@ -1,4 +1,7 @@
 = Transaction Management
+:keywords: transaction, management, demarcation, jms, jdbc, vm, database, resource
+
+== Overview
 
 Mule applies the concept of link:http://en.wikipedia.org/wiki/Transaction_processing[transactions] to operations in application for which the result cannot remain indeterminate.  In other words, where a series of steps in a flow must succeed or fail as one unit, Mule uses a transaction to demarcate such a unit.  For example, you might use a transaction to encapsulate several steps in a flow for which the end result involves committing information to a database.  In this type of scenario, the commit is either entirely complete and succeeds, or is incomplete and it fails. Even if partially complete, the commit – or transaction – fails. Where a transaction fails, Mule rolls back the operations within the transaction so that no one part results in partial completion.
 
@@ -14,7 +17,7 @@ The following connectors support transactional demarcation:
 
 A Mule flow may begin with a non-transactional inbound connector – such as HTTP or SFTP – but which requires the use of a transaction within the flow. For example, a Mule flow may accept information from an external Web service,  then transform the data, before charging a credit card, and saving invoice information to a database. In such a situation, you can demarcate a transaction by wrapping the credit card charge and database commit operations within a transaction to ensure either complete success or complete failure and rollback.
 
-Transaction Types
+== Transaction Types
 
 Mule supports three different types of transactions: single resource, multiple resource, and extended architecture (XA). The following table describes characteristics of each type.
 
@@ -26,12 +29,12 @@ Mule supports three different types of transactions: single resource, multiple r
 |link:/mule-user-guide/v/3.7/single-resource-transactions[Single Resource Transactions] a|
 * Receives or sends messages to only one resource.
 
- |1 a|
+|1 a|
 * JMS
 * VM
 * JDBC 
 
- a|
+a|
 * Relative to the others, performs better
 
 |link:/mule-user-guide/v/3.7/multiple-resource-transactions[Multiple Resource Transactions] a|
@@ -39,12 +42,12 @@ Mule supports three different types of transactions: single resource, multiple r
 * Can handle partial commits and rollbacks. 
 * Uses 1.5 commit protocol as opposed to two-phase commit protocol.
 
- |>1 a|
+|>1 a|
 * JMS
 * VM
 * JDBC
 
- a|
+a|
 * Performs better than XA, though slower than Single Resource
 * With 1.5PC, functions less reliably than XA.
 
@@ -66,12 +69,12 @@ Mule supports three different types of transactions: single resource, multiple r
 
 [NOTE]
 ====
-*Multi-source vs. XA* +
+*Multi-source vs. XA*
 
 While link:http://stage.mulesoft.org/documentation/display/current/XA+Transactions[XA Transactions] offer similar functionality, link:/mule-user-guide/v/3.7/multiple-resource-transactions[Multiple Resource transactions] use less overhead.  XA transactions are more reliable. Both can include JDBC resources. For a discussion of different approaches – including the 1.5 phase commit concept which Multiple Resource transactions use – see the link:http://www.javaworld.com/javaworld/jw-01-2009/jw-01-spring-transactions.html[JavaWorld article on distributed transactions].
 ====
 
-== Assumption
+== Prerequisites
 
 This document assumes that you are familiar with Mule ESB and/or the link:/mule-fundamentals/v/3.7/anypoint-studio-essentials[Anypoint Studio interface]. To increase your familiarity with Anypoint Studio, consider completing one or more link:/mule-fundamentals/v/3.7/first-day-with-mule[Anypoint Studio Tutorials]. Further, this document assumes you have some knowledge of transaction processing and are familiar with link:/mule-user-guide/v/3.7/anypoint-connectors[Anypoint Connectors].  
 
@@ -83,7 +86,7 @@ You can demarcate a transaction by either applying a transactional configuration
 * *Apply a transaction to an outbound connector* when you want Mule to handle the outgoing operation as part of an existing transaction.
 * *Apply a transaction as a wrapper* (known as a *scope* in Studio) when you want to apply a transaction to elements within a flow that _do not_ begin with a inbound connector configured as a transaction.
 
- The following subsections outline the steps to apply transactions in your flow.
+The following subsections outline the steps to apply transactions in your flow.
 
 === Applying a Transaction to a Connector
 
@@ -126,12 +129,11 @@ image:jms_transaction.png[jms_transaction]
 
 Use link:/mule-user-guide/v/3.7/transactions-configuration-reference[Transactions Configuration Reference] for quick access to attribute configurations.
 ....
-[tab,title="Studio or Standalone XML"]
+[tab,title="XML Editor"]
 ....
 
 . Add a `transactional` child element to the inbound connector you wish to make transactional. 
-
- +
++
 [width="100%",cols="34%,33%,33%",]
 |===
 |*Child Element* |*Available on Connector* |*Use*
@@ -145,7 +147,6 @@ Use link:/mule-user-guide/v/3.7/transactions-configuration-reference[Transaction
 +
 . Configure transactional attributes:
 +
-
 [cols=",",options="header"]
 |===
 |Attribute |Value |Available on Connector |Use
@@ -158,23 +159,24 @@ Use link:/mule-user-guide/v/3.7/transactions-configuration-reference[Transaction
 |*timeout* |- |JMS   VM JDBC |Insert an integer to represent the number of milliseconds (ms) that Mule allows to pass before it ends the transaction.
 |*interactWithExternal* |true  |JMS VM JDBC |When set to true, Mule acknowledges transactions that began externally. For example, if you set the transaction action to BEGIN_OR_JOIN, and set interactWithExternal to true, Mule joins any transaction that is already in progress when it receives a message, regardless of whether the transaction began outside of Mule.
 |===
++
+. If you applied an XA transaction to multiple connectors in your flow, access the global connectors each references, and configure the connectors to use *XA-enabled resources*.
 
-. If you applied an XA transaction to multiple connectors in your flow, access the global connectors each references, and configure the connectors to use **XA-enabled resources**.
-
-View Namespace
+=== View Namespace
 
 [source, xml, linenums]
 ----
 <mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" 
-...
-xmlns:xsi="
-http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+   ...
+   xmlns:xsi="
+   http://www.mulesoft.org/schema/mule/jms
+   http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
 ----
 
 [source, xml, linenums]
 ----
 <jms:inbound-endpoint doc:name="JMS">
-            <xa-transaction action="ALWAYS_BEGIN" timeout="35000"/>
+    <xa-transaction action="ALWAYS_BEGIN" timeout="35000"/>
 </jms:inbound-endpoint>
 ----
 
@@ -192,15 +194,12 @@ Use link:/mule-user-guide/v/3.7/transactions-configuration-reference[Transaction
 *_Enterprise_*
 
 . From the *Scopes* palette group, drag a *Transactional* scope onto the canvas. Drag building blocks into the Transactional scope to build your transaction.
-
 +
 image:transactional1.png[transactional1] +
 +
-
 Alternatively, select multiple building blocks in a flow (shift+left click), then right-click to select *Wrap in...* > *Transactional*.
 . Configure the details of the transaction according to the table below.
 +
-
 [cols=",",options="header"]
 |===
 |Field |Value |Use
@@ -213,47 +212,44 @@ _Apply a transaction to a flow that involves a single resource. See link:/mule-u
 _When it receives a message, Mule always starts a new transaction.
 |BEGIN_OR_JOIN |When it receives a message, Mule joins a transaction if one is already in progress. Otherwise, Mule simply begins a new transaction.
 |===
-
++
 . Drag building blocks inside the Transactional scope to build your transaction.
- +
++
 image:transactional2.png[transactional2]
 ....
-[tab,title="Studio or Standalone XML"]
+[tab,title="XML Editor"]
 ....
-_*Enterprise*_
+
+*_Enterprise_*
 
 . To your Mule flow, add one of the following types of `transactional` elements:
 +
-[width="100%",cols="50%,50%",]
-|===
-|Single Resource transaction a|
+* *Single Resource transaction*
++
+[source,xml,linenums]
 ----
-
 <ee:transactional>
 </ee:transactional> 
 ----
-
-|Multiple Resource transaction a|
++
+* *Multiple Resource transaction*
++
+[source,xml,linenums]
 ----
------
 <ee:multi-transactional>
 </ee:multi-transactional>
 ----
------
-
-|XA transaction a|
++
+* *XA transaction*
++
+[source,xml,linenums]
 ----
---
 <ee:xa-transactional>
 </ee:xa-transactional>
 ----
---
-
-|===
-
++
 . Configure two attributes of the transactional element.
 +
-
 [cols,",",options="header"]
 |===
 |*Attribute* |*Value* |*Description*
@@ -263,20 +259,21 @@ _*Enterprise*_
 |===
 . Add child elements inside your new transactional scope to build a transaction.
 
-View the Namespace
+=== View the Namespace
 
 [source, xml, linenums]
 ----
 <mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" 
-...
-xmlns:xsi="
-http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+   ...
+   xmlns:xsi="
+   http://www.mulesoft.org/schema/mule/vm
+   http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
 ----
 
 [source, xml, linenums]
 ----
 <flow>
-...
+   ...
    <transactional action="BEGIN_OR_JOIN">
       <vm:outbound-endpoint path="out1"/>
       <vm:outbound-endpoint path="out2"/>
@@ -285,7 +282,7 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
          <vm:outbound-endpoint path="dead.letter.queue"/>
       </catch-exception-strategy>
    </transactional>
-...
+   ...
 </flow>
 ----
 
@@ -296,11 +293,11 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
 
 * Operations that occur inside a transaction execute *synchronously*. You cannot build an asynchronous flow inside a transaction.
 * Mule creates a transaction for the first outbound connector that can be part of a transaction (JMS, JDBC, VM). All the outbound connectors in the flow that appear after the first outbound connector, and which use the same type of resource, then participate in the transaction. Where such a following connector does not use the same type of resource (such as where a JDBC connector follows a JMS connector), the transaction initiated by the first outbound connector fails. To avoid execution failure in such a situation, configure the secondary outbound connector outside the transaction by setting the action attribute to NOT_SUPPORTED.
-* If you apply an XA transaction to multiple connectors in your flow, be sure to configure the connectors to use **XA-enabled resources**.
+* If you apply an XA transaction to multiple connectors in your flow, be sure to configure the connectors to use *XA-enabled resources*.
 * If you apply an XA transaction to a JMS inbound connector in your flow, you have the option of specifying the polling frequency of the queue. Access link:/mule-user-guide/v/3.7/xa-transactions[XA Transactions] for configuration details.
-* Mule can manage** non-transactional outbound connectors.** By default, an outbound connector from a non-transactional transport ignores an active transaction rather than rejecting it. In other words, the default transactional action for such connectors is no longer `NONE`. The example code below illustrates this behavior. Mule processes messages it receives from the VM queue synchronously and transactionally. The file transport in the code example is not transactional thus, writing to the file is not part of the transaction. However, if a message throws an exception while Mule is creating the file, Mule rolls back the transaction and reprocesses the message. This example is, in effect, a multiple resource transaction.
+* Mule can manage Non-transactional outbound connectors. By default, an outbound connector from a non-transactional transport ignores an active transaction rather than rejecting it. In other words, the default transactional action for such connectors is no longer `NONE`. The example code below illustrates this behavior. Mule processes messages it receives from the VM queue synchronously and transactionally. The file transport in the code example is not transactional thus, writing to the file is not part of the transaction. However, if a message throws an exception while Mule is creating the file, Mule rolls back the transaction and reprocesses the message. This example is, in effect, a multiple resource transaction.
 
- View the Namespace
+=== View the Namespace
 
 [source, xml, linenums]
 ----
@@ -335,28 +332,27 @@ Refer to the link:/mule-user-guide/v/3.7/error-handling[Error Handling] docume
 [tab,title="Studio Visual Editor"]
 ....
 
-. Add a *Transactiona*l scope to your flow (refer to steps above), then add building blocks within the scope to build a transaction.
+. Add a *Transactional* scope to your flow (refer to steps above), then add building blocks within the scope to build a transaction.
 . From the *Error Handling* palette group, drag and drop an exception strategy into the exception strategy section at the bottom of the scope. 
 +
 image:transactional3.png[transactional3]
-
++
 . Configure the exception strategy as needed, keeping in mind Mule uses this exception strategy to handle any exceptions thrown while processing the transaction. Reference the link:/mule-user-guide/v/3.7/error-handling[Error Handling] documentation for exception strategy configuration details.
 
 ....
-[tab,title="Studio or Standalone XML"]
+[tab,title="XML Editor"]
 ....
 
 . Within your `transactional` scope, add an `exception-strategy` child element _at the bottom_ of the scope.
 +
-
 [source, xml, linenums]
 ----
 <ee:multi-transactional action="ALWAYS_BEGIN" doc:name="Transactional">
-            <jdbc-ee:outbound-endpoint exchange-pattern="one-way" queryTimeout="-1" doc:name="Database"/>
-            <rollback-exception-strategy doc:name="Rollback Exception Strategy"/>
+  <jdbc-ee:outbound-endpoint exchange-pattern="one-way" queryTimeout="-1" doc:name="Database"/>
+  <rollback-exception-strategy doc:name="Rollback Exception Strategy"/>
 </ee:multi-transactional> 
 ----
-
++
 . Configure the exception strategy as needed, keeping in mind Mule uses this exception strategy to handle any exceptions thrown while processing the transaction. Reference the link:/mule-user-guide/v/3.7/error-handling[Error Handling] documentation for exception strategy configuration details.
 
 ....

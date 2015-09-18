@@ -20,7 +20,7 @@ NOTE: It is not possible to mock flow control message processors, such as Filter
 
 For the purpose of this documentation, we'll assume we are testing the following Mule code:
 
-[source,xml]
+[source, xml, linenums]
 .Test code
 ----
 <flow name="exampleFlow">
@@ -33,7 +33,7 @@ For the purpose of this documentation, we'll assume we are testing the following
 
 When defining a mock we make use of the `when` message processor, as shown below.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mock:when messageProcessor="mule:set-payload">
 
@@ -51,7 +51,7 @@ When defining a mock we make use of the `when` message processor, as shown below
 
 The `messageProcessor` attribute accepts regular expressions. For example, you can create a mock as follows:
 
-[source,xml]
+[source, xml, linenums]
 ----
 <mock:when messageProcessor=".*:set-payload">
 
@@ -67,7 +67,7 @@ NOTE: The regular expression language is the same as Java.
 
 A mock definition is based on _matchers_, i.e. parameters that match features of the desired message processor. Defining a mock solely on the name of the message processor largely limits your scope and actions regarding the mock. For this reason, MUnit allows you to define a mock by defining matchers over the value of a message processor's attributes.
 
-[source,xml]
+[source, xml, linenums]
 .Defining a mock by attributes
 ----
 <mock:when messageProcessor="mule:set-payload">
@@ -98,7 +98,7 @@ TIP: If the attribute you wish to use when mocking is similar to `config-ref` an
 Several attributes in Mule's message processors support expressions, which are evaluated at runtime. MUnit is smart enough to understand this.
 
 Suppose we change the test code to:
-[source,xml]
+[source, xml, linenums]
 ----
 <flow name="exampleFlow">
   <set-variable variableName="#[1==1? 'var_true': 'var_false']" value="#['some value']" doc:name="Variable"/>
@@ -108,7 +108,7 @@ Suppose we change the test code to:
 
 In this example, we are going to mock _only_ the first `set-variable`. To specify this, we'll use _attributes_, as shown below:
 
-[source,xml]
+[source, xml, linenums]
 ----
 <mock:when messageProcessor="mule:set-variable">
   <mock:with-attributes>
@@ -121,7 +121,7 @@ In this example, we are going to mock _only_ the first `set-variable`. To specif
 
 In MUnit, you don't mock or verify a `flow-ref` message processor, but the flow or sub-flow that would be invoked by `flow-ref`.
 
-[source,xml]
+[source, xml, linenums]
 ----
 <mock:when messageProcessor="mule:sub-flow"">
 </mock:when>
@@ -129,7 +129,7 @@ In MUnit, you don't mock or verify a `flow-ref` message processor, but the flow 
 
 Notice that neither `flow` or `sub-flow` have the attribute `doc:name`; the attribute `name` is used instead. So, to mock a `flow-ref` to a `flow`:
 
-[source,xml]
+[source, xml, linenums]
 ----
 <mock:when messageProcessor="mule:flow"">
   <mock:with-attributes>
@@ -140,7 +140,7 @@ Notice that neither `flow` or `sub-flow` have the attribute `doc:name`; the attr
 
 Also, note that to mock a `sub-flow` you can't just type the name of the `sub-flow`. Instead, you need to use the MUnit matcher `matchContains`:
 
-[source,xml]
+[source, xml, linenums]
 ----
 <mock:when messageProcessor="mule:sub-flow"">
   <mock:with-attributes>
@@ -150,7 +150,7 @@ Also, note that to mock a `sub-flow` you can't just type the name of the `sub-fl
 ----
 
 
-[source,xml]
+[source, xml, linenums]
 ----
 #[matchContains('exampleSub_Flow1')]
 ----
@@ -164,7 +164,7 @@ NOTE: When mocking or verifying a sub-flow and using the `name` attribute, alway
 
 When mocking a message processor, you can define the Mule message that the mocked message processor should return.
 
-[source,xml]
+[source, xml, linenums]
 ----
 <mock:when messageProcessor="mule:set-payload">
   <mock:with-attributes>
@@ -202,7 +202,7 @@ Sometimes it's easier to load complex payloads from a file. MUnit offers a set o
 
 |===
 
-[source, xml]
+[source, xml, linenums]
 .Example: getResource
 ----
 <mock:then-return payload="#[getResource('users.xml').asStream()]"/> <!--1-->
@@ -213,7 +213,7 @@ Sometimes it's easier to load complex payloads from a file. MUnit offers a set o
 <2> Return the content of `users.xml` as a string.
 <3> Return the content of `users.xml` as a byte array.
 
-[source, xml]
+[source, xml, linenums]
 .Example: resultOfScript
 ----
 <script:script name="groovyScriptPayloadGenerator" engine="groovy"><![CDATA[  <!--1-->
@@ -237,7 +237,7 @@ Sometimes it's easier to load complex payloads from a file. MUnit offers a set o
 
 With MUnit you can also define the properties of the message to be returned by a mock. The following code expands on the example <<def_payload,above>> to modify the returned payload:
 
-[source,xml]
+[source, xml, linenums]
 ----
 <mock:when messageProcessor="mule:set-payload">
   <mock:with-attributes>
@@ -274,7 +274,7 @@ In some scenarios, you may want to validate how your flow behaves if a message p
 
 This feature is offered through a different message processor: `mock:throw-an`.
 
-[source, xml]
+[source, xml, linenums]
 ----
 <mock:config name="mock_config" doc:name="Mock configuration"/>
 ...
@@ -302,7 +302,7 @@ Message Processor Attributes
 
 You can use <<matchers,matchers>> -- parameters that match features of the desired message processor -- to create a mock to throw an exception.
 
-[source,xml]
+[source, xml, linenums]
 ----
 <mock:throw-an whenCalling="mule:set-payload" exception-ref="#[new java.lang.Exception()]">
   <mock:with-attributes>

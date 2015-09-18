@@ -1,0 +1,69 @@
+= Connecting ARM to Splunk Tutorial
+keywords: analytics, monitoring, splunk, mule events, logging, api analytics, metrics, traceability, arm, anypoint runtime manager
+
+The objective of this demo is to show different alternatives to the use for how business events (phase #1) and api analytics (phase #2) can be consumed when using on premise installations.
+
+In order to provide a real life demo, we reused the APILed Workshop Order Tracking application which is an RAML based API for creating order to buy products that also contains an API proxy on top that we will use in Phase #2 to extract analytics.
+
+The following diagram is an overview on the entire API Led Demo:
+
+image:arm_tutorial_big_picture.png[ARM Tutorial Big Picture]
+
+== API Led Demo Summary
+
+This demo shows an order system following an API Led approach as shown in the diagram where an user can create orders using a mobile application (simulator) and query the status of the orders he created.
+When creating an order, the user needs to complete the order form and depending on the values of those fields different business flows called.
+
+The most important one is the country:
+
+* *country = United States* implies that once the order gets created, a message in a queue is created for all the listeners to consume it.
+* *country = Other* implies that once the order just gets created.
+
+This is the demo main flow.
+
+image:arm_tutorial_full_flow.png[full flow]
+
+Since the initial objective of this demo is to show how Business Events, both default and custom ones, can be monitored and consumed using Splunk, we slightly modified the demo in order to created business events when:
+* a new order is placed
+** if the country is United States, another additional event gets created, showing the confirmation that the message was put into the queue.
+* a existing order is queried to get the status
+
+== Environment Configuration
+
+Since we will be using an on premise ESB, we created an Windows AWS instance to the ESB where the demo application is running.
+* *For Splunk*, we are using an instance provided to us by engineering.
+* *For ARM* we are using a Staging version since the release it's not out yet.
+
+All the information about hosts and users is listed below:
+
+* *AWS Instance*
+** host: 54.209.14.145:443
+** user: msps
+** pass: Anypoint1357!
+* *Staging ARM*
+** host: https://stg.anypoint.mulesoft.com/
+** user: arm-demo
+** pass: Mule1379
+* *Splunk instance*
+** host: https://ec2-52-88-188-182.us-west-2.compute.amazonaws.com
+** user: admin
+** pass: Muleftw1!
+
+== How to Run the Demo
+
+This demo can be used to show that a user can integrate their onprem systems (like Splunk, ELK or any other third party systems) to consume information produced by Mule such as Business Events, API analytics, logs, etc.
+
+Depending on what you want to position is how you should run the demo. The demo consists on:
+
+. Running the business use case
+. Running the integration section
+.. Business events: show business events integration with Splunk
+.. Analytics: show API analytics events integration with Splunk.
+. Running the agent configuration section.
+
+
+=== Running the business use case
+
+. Connect to the AWS instance using Remote Desktop
++
+image:arm_demo_remote_desktop.png[remote desktop]
