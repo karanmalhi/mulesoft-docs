@@ -1,0 +1,286 @@
+= Sending Data from ARM to External Monitoring Software
+keywords: analytics, monitoring, splunk, elk, elastisearch, logstash, kibana, logs, mule events, logging, apy analytics, metrics, traceability, arm, anypoint runtime manager
+
+By simply configuring a few settings on the Anypoint Runtime Manager (ARM), the event notifications produced by your running Mule Applications can be easily sent out to your existing monitoring and analytics third party software.
+
+You can currently send data out to any of the following:
+
+* Splunk
+* ELK (as an example for anything that consumes system Logs)
+
+[INFO]
+Future releases will also feature integrating with other third party systems.
+
+The goal of this document to enable you to integrate ARM with a third party tool such as Splunk or ELK.
+
+== Basic Architecture
+
+The Anypoint Runtime Manager (ARM) exists both as a component of the link:/mule-fundamentals/v/3.7/anypoint-platform-primer[Anypoint Platform] and as an link:/anypoint-platform-on-premises/v/1.0/installing-anypoint-runtime-manager-on-premise[application that can be installed on premise]. The on premise version of ARM manages applications that are deployed on premise, the Cloud version of ARM allows you manage applications deployed to link:/cloudhub/index[CloudHub] as well as applications that are deployed on premise. Users of ARM, using the Cloud and On-Prem version, are able to monitor their applications. Applications deployed on Cloud can use Insights, MuleSoft’s Analytics & Monitoring feature, and Apps deployed on CloudHub have the ability to integrate into third party monitoring applications for a unified view of monitoring and analytics.
+
+You have the ability to leverage both options to monitor business events, custom business events, logs, and – in the case of apps deployed to an link:/anypoint-platform-for-apis/api-gateway-101[API Gateway] Runtime – API Analytics and governance.
+
+image:arm_big_picture.png[image]
+
+At a closer level of detail, the integration between ARM and third party monitoring and analytics software looks like the diagram below:
+
+image:amc_onprem_diagram_detail.jpg[image]
+
+In between ARM and the external services is the link:/mule-agent/v/1.2.0/[Mule Agent], a module of Mule ESB that enables easy integration and sends event notifications to third party monitoring tools.
+
+== Prerequisites
+
+Please make sure you have the following software installed:
+* Mule ESB – Version 3.6 or above
+* API Gateway Standalone – Version 2.1.0 or above  (optional in case you want to deal with apps that are built with the API Gateway Runtime)
+
+[NOTE]
+Mule Agent 1.2.0 or above is required, the steps to install and configure it are provided below.
+
+== Installation and Setup of ARM with a third party monitoring tool
+
+In order to have ARM send data to an external monitoring tool, you must follow these steps, which are explained in detail further down.
+
+image:steps-for-external-logs.png[steps]
+
+
+=== Install the Mule Agent
+
+First you must install the Mule Agent, which is in charge of sending messages out of mule. In order to send event information to third party software, you need to have version *1.2.0* or newer of the Mule Agent.
+See link:/mule-agent/v/1.2.0/installing-mule-agent[Installing the Mule Agent].
+
+[NOTE]
+====
+Although the Mule Agent exists by default bundled with the Mule ESB download as of version 3.7, all ESB versions older than version 3.7.2 contain an old version of the Mule Agent that doesn't support this feature. If this is your case, you must download the latest version of the Mule Agent separatley.
+
+*Download it from http://mule-agent.s3.amazonaws.com/1.2.0/mule-agent-1.2.0.zip[here]*
+====
+
+=== Register the Mule Agent
+
+[TIP]
+Before you can register the agent, you must first undeploy all of your running apps and remove them from your `{MULE HOME}/apps` folder.
+
+Place the agent file in your `MULE HOME}/bin` folder, and then you must register it to ARM by running a command in the terminal. Depending on wether you wish to use ARM on-prem or through the cloud platform, you must pass this command a different set of arguments to register it. To obtain the basic command that you must run (complete with your ARM instance ID) you must do the following:
+
+To obtain this code, you must do the following:
+
+. Log in to your ARM account
++
+[TIP]
+To open ARM On Premise, make sure you've already initiated ARM. If you haven't then you must boot it by running docker. Once initiated, you can access it by navigating to https://localhost in a browser.
+. Navigate to `CloudHub - > Servers`
+. Click `Add Server`. Without needing to actually add a new server, a sample command will be displayed in a popup window that includes the code for your particular organization. Copy this command, depending on where you wish to deploy, you may need to add extra arguments to it.
+
++
+image:org_code.jpg[image]
+
+
+[tabs]
+------
+[tab,title="ARM Cloud"]
+....
+
+When using ARM as part of the Anypoint Platform, launch the agent with exactly the same command that you found on the ARM UI:
+
+[source, linenums]
+----
+amc_setup -H 1c3eded9-7917-4a5e-bbe0-f73f9d4f33c1---2 myServer
+----
+
+or on Windows:
+
+[source, linenums]
+----
+amc_setup.bat -H 1c3eded9-7917-4a5e-bbe0-f73f9d4f33c1---2 myServer
+----
+
+The argument `-H` is an id that references your organization in the Anypoint platform and ARM on premise installation.
+
+The final argument of this command is the name that you assign for your Mule Agent instance, in the above example, `myServer`. This name will then be visible when interacting with the agent from your ARM console.
+
+....
+[tab,title="ARM On Premise"]
+....
+
+When using ARM as an on premise application, launch the agent with the following arguments:
+
+[source, linenums]
+----
+amc_setup -A http://localhost:8080/hybrid/api/v1 -W wss://localhost:8443/mule -C https://dev.anypoint.mulesoft.com/accounts -H 361755d7-c619-42ce-9187-19db7a6d94a0---2 myServer
+----
+
+or on Windows:
+
+[source, linenums]
+----
+amc_setup.bat -A http://localhost:8080/hybrid/api/v1 -W wss://localhost:8443/mule -C https://dev.anypoint.mulesoft.com/accounts -H 361755d7-c619-42ce-9187-19db7a6d94a0---2 myServer
+----
+
+The argument `-H` is an id that references your organization in the Anypoint platform and ARM on premise installation.
+
+The final argument of this command is the name that you assign for your Mule Agent instance, in the above example, `myServer`. This name will then be visible when interacting with the agent from your ARM console.
+
+Note that three extra arguments must be added to what you copied from the ARM UI: -A, -W and -C.
+* *A* sets the AMC host address
+* *C* sets the Core Services host address
+* *W* sets the Mule Communicatiosn Manager (MCM) host address
+
+....
+------
+
+[TIP]
+For more information on how to install the Mule Agent, see link:/mule-agent/v/1.2.0/installing-mule-agent[Installing the Mule Agent]
+
+image:agent_server.jpg[image]
+
+[NOTE]
+Creating multiple agents within a single server is not supported.
+
+==== Verifying Agent Registration
+
+After running the above command, open ARM to verify that the agent has been registered successfully:
+
+. Log in to ARM with your credentials
+. Go to `CloudHub - > Servers`. You should now see that one of those servers is your Agent instance, named with the name you provided when installing it:
+
+image:verify_agent.jpg[image]
+
+=== Configure Mule Custom Events
+
+You can configure AMC to send out Mule Events to external software, this includes flow executions, exceptions raised, etc. This works with apps deployed to any runtime, and for both AMC in the cloud and the AMC that can be downloaded on premise.
+
+==== Integrating to Splunk
+
+With link:http://www.splunk.com/[Splunk] you can capture and index Mule event notification data into a searchable repository from which you can then generate graphs, reports, alerts, dashboards and visualizations.
+
+image:amc_onprem_diagram_detail_splunk.jpg[image]
+
+To direct information to your Splunk account, you must do the following:
+
+. Select the server who's information you want to send out
+. In the menu on the right, select *Agent Plugins*
++
+image:log_menu.jpg
+. Select the kind of information that you want to send out in the *Level* dropdown menu
++
+image:track_type.jpg
+. Activate the *Splunk* switch, this will open a pop up menu where you can provide your Splunk user data and the address where Splunk is hosted.
++
+image:splunk_config.jpg
+. Optionally, you can open the advanced menu and set up certain formatting properties of the data that will be sent out
++
+image:splunk_config_advanced.jpg
+
+
+==== Integrating to an ELK Stack
+
+ELK combines three open source tools (Elasticsearch, Logstash, Kibana) that work together to help you store, search and analyze log data. You can output the Mule event notifications as generic system logs, which can be handled by your ELK stack. Logstash captures and indexes the data into the log, from which you can then use Elastisearch and Kibana to generate graphs, reports, alerts, dashboards and visualizations.
+The Agent helps helps you store all of the Event Notifications produced from the Mule ESB flows into a configurable log file with a rolling file policy.
+
+image:amc_onprem_diagram_detail_elk.jpg[image]
+
+To direct information to the folder where your ELK stack reads from, you must do the following:
+
+. Select the server who's information you want to send out
+. In the menu on the right, select *Agent Plugins*
++
+image:log_menu.jpg
+. Select the kind of information that you want to send out in the *Level* dropdown menu
++
+image:track_type.jpg
+. Activate the *ELK* switch, this will open a pop up menu where you can provide the address to the folder where you keep the log files that your ELK stack reads.
++
+image:elk_config.jpg
+. Optionally, you can open the advanced menu and set up certain formatting properties of the data you send out and how the information is archived.
++
+image:elk_config_advanced.jpg
+
+=== Configure API Analytics
+
+Before you can set up the connection to external software through the ARM UI, you must first make some changes to the API Gateway to prepare it for this.
+
+. In your API Gateway Standalone directory, look for the `conf/wrapper.conf` file
+. In it find the following line and make sure that the property is set to "true"
++
+[source,java,linenums]
+----
+wrapper.java.additional.<n>=-Danypoint.platform.analytics_enabled=true
+----
+
+. Look for this other line:
++
+[source,java,linenums]
+----
+wrapper.java.additional.<n>=-Danypoint.platform.analytics_base_uri=https://analytics-ingest.anypoint.mulesoft.com
+----
+. Remove the URL in it, so that it looks like this:
++
+[source,java,linenums]
+----
+wrapper.java.additional.<n>=-Danypoint.platform.analytics_base_uri=
+----
+. When using ARM On premises, there's one more parameter you need to change:
++
+[source,java,linenums]
+----
+wrapper.java.additional.<n>=-Danypoint.platform.on_prem=true
+----
++
+`anypoint.platfrom.on_prem` is set to `false` by default. To manage it through AMC on premise, you must set it to `true`. To manage it throguh AMC in the cloud, leave it as `false`.
+
+[TIP]
+Note that in the above code snippets, when lines that contain `.<n>`, that should be replaced with an integer number that is unique within the wrapper.
+
+Once you have set up your Stand Alone API Gateway, the steps for connecting to Splunk and ELK are identical to those when dealing with Mule Custom Events, except that you should set them up via the corresponding switches.
+
+image:arm_api_analytics_settings.png
+
+[WARNING]
+If you modify your `wrapper.conf` file as described above but don't assign an external destination for your data (as you can do via the ARM UI), then this analytics data will be stored in a queue in the server where the API Gateway is being run and could pile up to the point of crashing the system.
+
+== Encrypting Passwords
+
+It's recommended that you assign a master password to your Mule ESB instance or your API Gateway Standalone instance when launching these. If you don't, then when setting up your credentials for external applications via the ARM UI, these will be stored as plain text in the `conf/mule-agent.yml` file. This is not recommendable for security reasons.
+
+Instead, what you should do is launch Mule ESB or API Gateway with an extra argument that is then used to encrypt these passwords when storing them in this .yaml file.
+
+
+[tabs]
+------
+[tab,title="Mule ESB"]
+....
+
+[source]
+----
+{MULE_HOME}/bin/mule -M-Dmule.agent.configuration.password=myMasterPassword
+----
+
+or on Windows:
+
+[source]
+----
+{MULE_HOME}\bin\mule.bat -M-Dmule.agent.configuration.password=myMasterPassword
+----
+
+
+....
+[tab,title="API Gateway Standalone"]
+....
+
+[source]
+----
+{MULE_HOME}/bin/gateway -M-Dmule.agent.configuration.password=myMasterPassword
+----
+
+or on windows:
+
+[source]
+----
+{MULE_HOME}\bin\gateway.bat -M-Dmule.agent.configuration.password=myMasterPassword
+----
+
+....
+------
+
+Note that, in order to have access to these encrypted passwords when you start Mule ESB and API Gateway again, you must assign the same master password you used when generating them.
+In the case that you decide to change the master password or you omitted it when you launched the runtime, you have to reassign your passwords through the ARM UI to keep the third party integrations working.
