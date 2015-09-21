@@ -309,6 +309,29 @@ Keep in mind that for this example to work, you must manually configure the foll
 * Consumer Secret
 ====
 
+[source, xml, linenums]
+----
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+    xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/twitter http://www.mulesoft.org/schema/mule/twitter/3.1/mule-twitter.xsd">
+ 
+    <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
+    <twitter:config name="Twitter1" accessKey="" accessSecret="" consumerKey="" consumerSecret="" doc:name="Twitter"/>
+    <flow name="connector_tutorialFlow1" doc:name="connector_tutorialFlow1">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="gettweets" doc:name="HTTP"/>
+        <twitter:get-user-timeline-by-screen-name config-ref="Twitter1" screenName="#[message.inboundProperties.'http.query.params'.sname]" doc:name="Twitter"/>
+        <foreach doc:name="For Each">
+            <logger message="#[payload.text]" level="INFO" doc:name="Logger"/>
+        </foreach>
+    </flow>
+</mule>
+----
+
+
 == Running the Application
 
 Having built, configured, and saved your new application, you are ready to run it on the embedded Mule server (included as part of the bundled download of Anypoint Studio).
@@ -338,7 +361,7 @@ image:StopApp.png[StopApp]
 
 == Extra Credit
 
-Now that you're familiar with connectors, try applying your knowledge to an extra task. Revise your application so that, after retrieving tweets from a user, it posts the last of these to your own demo twitter account.
+Now that you're familiar with connectors, try applying your knowledge to an extra task. Revise your application so that, after retrieving tweets from a user, it posts the last of these to your own demo twitter account.b
 
 As it's kind of impolite to copy someone's tweet without acknowledging its origin, keep in mind that your retweet should follow this structure *RT @screenname : tweet text*
 
