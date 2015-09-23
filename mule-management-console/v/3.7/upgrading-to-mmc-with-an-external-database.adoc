@@ -1,4 +1,4 @@
-= Upgrading to MMC 3.6.0 with an External Database
+= Upgrading to MMC with an External Database
 :keywords: mmc, debug, install, upgrade, update
 
 *_Enterprise_*
@@ -12,11 +12,11 @@ In version 3.4.2 of the Mule Management Console, the process for link:/mule-man
 Note that you do not need to migrate your database configuration if you are using MMC's default internal databases for data persistence. You are only required to migrate your database configuration if you are persisting MMC environment or tracking data to an external database.
 
 [NOTE]
-If your current installation of MMC link:/mule-management-console/v/3.7/setting-up-and-managing-users-via-ldap[uses LDAP for managing users], you will also need to migrate your LDAP configuration. See link:/mule-management-console/v/3.7/upgrading-to-mmc-3.6.0-with-ldap[Upgrading to MMC 3.6.0 with LDAP] for details.
+If your current installation of MMC link:/mule-management-console/v/3.7/setting-up-and-managing-users-via-ldap[uses LDAP for managing users], you will also need to migrate your LDAP configuration. See link:/mule-management-console/v/3.7/upgrading-to-mmc-with-ldap[Upgrading to MMC with LDAP] for details.
 
 == Assumptions
 
-You have MMC 3.4.1 or earlier installed and configured to persist its environment and/or transaction data to an external database, and are about to upgrade MMC to version 3.6.0.
+You have MMC 3.4.1 or earlier installed and configured to persist its environment and/or transaction data to an external database, and are about to upgrade MMC to its latest version.
 
 == Persisting Environment Data
 
@@ -29,7 +29,7 @@ These files store connection parameters to the external database such as usernam
 
 Also, for safety, back up your current MMC installation's `mmc-data` directory, which is under the root directory of your Web application server.
 
-After you downloaded and expanded the .war file for 3.6.0, enter your MMC 3.6.0 home directory (the root directory of the expanded .war) and locate the following directory: `<MMC_HOME>/WEB-INF/classes/META-INF/databases`. This directory stores configuration files for database persistence. These files are named in the format: `<type of data>-<database name>.properties`, where:
+After you downloaded and expanded the .war file for your new MMC, your new MMC home directory (the root directory of the expanded .war) and locate the following directory: `<MMC_HOME>/WEB-INF/classes/META-INF/databases`. This directory stores configuration files for database persistence. These files are named in the format: `<type of data>-<database name>.properties`, where:
 
 * `type of data` = `mmc` for environment data, or `tracking-persistence` for transaction data
 * `database name` = name of the database server to use, for example `postgres`
@@ -40,29 +40,29 @@ These files define the parameters for connecting to the database: driver, user, 
 
 To migrate the configuration for persisting environment data, complete these steps:
 
-. In MMC 3.6.0, locate the relevant `mmc-<database>.properties` file according to the database you wish to connect to, and open it for editing.
+. In the new MMC install, locate the relevant `mmc-<database>.properties` file according to the database you wish to connect to, and open it for editing.
 . In old your old MMC installation, open the file `mmc.properties` to extract the relevant parameters and values.
-. Using the parameters and values from the old `mmc.properties` file, modify the relevant `mmc-<database>.properties` file in 3.6.0, migrating the values to the new config format according to the table below.
+. Using the parameters and values from the old `mmc.properties` file, modify the relevant `mmc-<database>.properties` file in the new MMC install, migrating the values to the new config format according to the table below.
 +
 [width="100%",cols="34%,33%,33%",options="header",]
 |===
-|Parameter name in old MMC version |Parameter name in MMC 3.6.0 |Notes
+|Parameter name in old MMC version |Parameter name in new MMC versions |Notes
 |`datasource.username` |`env.username` | 
 |`datasource.password` |`env.password` | 
 |`datasource.url` |`env.host` a|
-From the value of `datasource.url`, extract the host where your database server resides, and assign it as the value of `env.host` in the database config file in 3.6.0.
+From the value of `datasource.url`, extract the host where your database server resides, and assign it as the value of `env.host` in the database config file in your new MMC.
 
-For example, if your database resides at host `dbserver`, from `datasource.url=jdbc:mysql://dbserver/mmc_persistency_status` extract `dbserver` to `env.host=dbserver` in the 3.6.0 config file.
+For example, if your database resides at host `dbserver`, from `datasource.url=jdbc:mysql://dbserver/mmc_persistency_status` extract `dbserver` to `env.host=dbserver` in the new config file.
 
 |`datasource.url` |`env.port` a|
-From the value of `datasource.url`, extract the port on which your database server is listening, and assign it as the value of `env.port` in the database config file in 3.6.0.
+From the value of `datasource.url`, extract the port on which your database server is listening, and assign it as the value of `env.port` in the database config file in your new MMC.
 
-For example, if your database resides at host `dbserver` port 9155, from `datasource.url=jdbc:mysql://dbserver:9155/mmc_persistency_status` extract `9155` to `env.port=9155` in the 3.6.0 config file.
+For example, if your database resides at host `dbserver` port 9155, from `datasource.url=jdbc:mysql://dbserver:9155/mmc_persistency_status` extract `9155` to `env.port=9155` in the new config file.
 
 Note that if the port number is not present in the URL, it probably means that the default port for the database server is being used, for example 1521 for Oracle, 3306 for MySQL, etc.
 
 |`datasource.url` |`env.servicename` (Oracle only.) a|
-From the value of `datasource.url`, extract the Oracle service name for your connection, and assign it as the value of `env.servicename` in the database config file in 3.6.0. +
+From the value of `datasource.url`, extract the Oracle service name for your connection, and assign it as the value of `env.servicename` in the database config file in your new MMC install. +
  +
 
 For example, if the value of `datasource.url` in the old MMC installation is `jdbc\:oracle\:thin\:MMC_STATUS/mmc123``@dbserver``\:``1521``\:xe`, then the service name is `xe`. Assign it in the new config file with the parameter `env.servicename=xe`.
@@ -80,9 +80,9 @@ For example, if the value of `datasource.url` in the old MMC installation is `j
     <Workspace name="mmcworkspace">
 ----
 In the example above, both the workspace name and the default workspace name are `mmcworskpace`.
-. In MMC 3.6.0, go to the `<MMC_HOME>/WEB-INF/classes/META-INF/jackrabbit` directory, then locate the jackrabbit-repo file relevant for your database, for example `jackrabbit-repo-postgres.xml` if persisting data on Postgres. Open the file for editing.
-. Find the workspace name declaration in the 3.6.0 jackrabbit-repo file, and ensure that the *workspace name* and the *default workspace name* coincide between your old MMC version and MMC 3.6.0.
-. Check that the values of all `schemaObjectPrefix` declarations in the jackrabbit-repo file for MMC 3.6.0 follow the values declared in the jackrabbit-repo file of your old MMC installation. For example, if your old MMC jackrabbit-repo file contains the following:
+. In the MMC install, go to the `<MMC_HOME>/WEB-INF/classes/META-INF/jackrabbit` directory, then locate the jackrabbit-repo file relevant for your database, for example `jackrabbit-repo-postgres.xml` if persisting data on Postgres. Open the file for editing.
+. Find the workspace name declaration in the new jackrabbit-repo file, and ensure that the *workspace name* and the *default workspace name* coincide between the old and new versions of MMC.
+. Check that the values of all `schemaObjectPrefix` declarations in the jackrabbit-repo file for the new MMC installation follow the values declared in the jackrabbit-repo file of your old MMC installation. For example, if your old MMC jackrabbit-repo file contains the following:
 +
 [source, xml, linenums]
 ----
@@ -93,7 +93,7 @@ In the example above, both the workspace name and the default workspace name are
     -->
     <Workspace name="mmcworkspace">
 ----
-and the relevant declaration in the 3.6.0 jackrabbit-repo file reads:
+and the relevant declaration in the new jackrabbit-repo file reads:
 +
 [source, xml, linenums]
 ----
@@ -104,9 +104,9 @@ and the relevant declaration in the 3.6.0 jackrabbit-repo file reads:
     -->
     <Workspace name="mmcworkspace">
 ----
-then modify the 3.6.0 jackrabbit-repo file to read exactly as the old jackrabbit-repo file – in this case, in 3.6.0 change the value of `schemaObjectPrefix` to `ws1_`. Be sure to repeat this operation for all `schemaObjectPrefix` declarations in the files.
-. Save and close the 3.6.0 jackrabbit-repo file.
-. In MMC 3.6.0, locate the file `<MMC_HOME>/WEB-INF/web.xml` and open it for editing.
+then modify the new jackrabbit-repo file to read exactly as the old jackrabbit-repo file – in this case, in the new install change the value of `schemaObjectPrefix` to `ws1_`. Be sure to repeat this operation for all `schemaObjectPrefix` declarations in the files.
+. Save and close the new jackrabbit-repo file.
+. In your MMC install, locate the file `<MMC_HOME>/WEB-INF/web.xml` and open it for editing.
 . In the `web.xml` file, locate the section shown below.
 +
 [source, xml, linenums]
@@ -117,9 +117,9 @@ then modify the 3.6.0 jackrabbit-repo file to read exactly as the old jackrabbit
 </context-param>
 ----
 . Replace the string `env-derby` with `env-<database_name>`. For example, if persisting data on postgres, replace it with `env-postgres`.
-. After completing the above steps, you can remove your old MMC installation by deleting its home directory in the root directory of your Web app server. However, it is recommended that you keep the backup copies of the old database configuration files until you ensure that MMC 3.6.0 connects properly to the database.
+. After completing the above steps, you can remove your old MMC installation by deleting its home directory in the root directory of your Web app server. However, it is recommended that you keep the backup copies of the old database configuration files until you ensure that your new MMC connects properly to the database.
 
-After you have completed configuration, start MMC 3.6.0.
+After you have completed configuration, start your new MMC.
 
 == Persisting Transaction Data
 
@@ -133,7 +133,7 @@ These files store connection parameters to the external database such as usernam
 
 Also, for safety, back up your current MMC installation's `mmc-data` directory, which is under the root directory of your Web application server.
 
-After you downloaded and expanded the .war file for 3.6.0, enter your MMC 3.6.0 home directory and locate the following directory: `<MMC_HOME/WEB-INF/classes/META-INF/databases`. This directory stores configuration files for database persistence. These files are named in the format: `<type of data>-<database name>.properties`, where:
+After you downloaded and expanded the .war file for your new MMC, enter your new MMC home directory and locate the following directory: `<MMC_HOME/WEB-INF/classes/META-INF/databases`. This directory stores configuration files for database persistence. These files are named in the format: `<type of data>-<database name>.properties`, where:
 
 * `type of data` = `mmc` for environment data, or `tracking-persistence` for transaction data
 * `database name` = name of the database server to use, for example `postgres`
@@ -156,34 +156,34 @@ To migrate the configuration for persisting tracking data, complete these steps:
 </bean>
 ----
 
-You will migrate the values in the code above to the database config files in MMC 3.6.0.
+You will migrate the values in the code above to the database config files in your new MMC.
 [NOTE]
 Depending on the configuration in your old MMC installation, some of the values displayed in the code above may actually reside in `persistence.xml` or `mmc-persistence.properties`.
-. In MMC 3.6.0, locate the relevant `tracking-persistence-<database>.properties` file according to the database you wish to connect to, and open it for editing.
-. Using the parameters and values from your old MMC installation, modify the relevant `mmc-<database>.properties` file in MMC 3.6.0, migrating the values to the new config format according to the table below.
+. In your new MMC, locate the relevant `tracking-persistence-<database>.properties` file according to the database you wish to connect to, and open it for editing.
+. Using the parameters and values from your old MMC installation, modify the relevant `mmc-<database>.properties` file in your new MMC install, migrating the values to the new config format according to the table below.
 [width="100%",cols="34%,33%,33%",options="header",]
 |===
-|Parameter name in old MMC versions |Parameter name in 3.6.0 |Notes
+|Parameter name in old MMC versions |Parameter name in new MMC versions |Notes
 |`username` |`mmc.tracking.db.username` | 
 |`password` |`mmc.tracking.db.password` | 
 |`url` |`mmc.tracking.db.host` a|
-From the value of `url`, extract the host where your database server resides, and assign it as the value of `mmc.tracking.db.host` in the database config file in 3.6.0.
+From the value of `url`, extract the host where your database server resides, and assign it as the value of `mmc.tracking.db.host` in the database config file in the new installation.
 
-For example, if your database resides at host `dbserver`, from `datasource.url=jdbc:mysql://dbserver/mmc_persistency_status` extract `dbserver` to `mmc.tracking.db.host=dbserver` in the 3.6.0 config file.
+For example, if your database resides at host `dbserver`, from `datasource.url=jdbc:mysql://dbserver/mmc_persistency_status` extract `dbserver` to `mmc.tracking.db.host=dbserver` in the new config file.
 
 |`url` |`mmc.tracking.db.port` a|
-From the value of `url`, extract the port on which your database server is listening, and assign it as the value of `mmc.tracking.db.port` in the database config file in 3.6.0.
+From the value of `url`, extract the port on which your database server is listening, and assign it as the value of `mmc.tracking.db.port` in the database config file in the new installation.
 
-For example, if your database resides at host `dbserver` port 9155, from `datasource.url=jdbc:mysql://dbserver:9155/mmc_persistency_status` extract `9155` to `mmc.tracking.db.port=9155` in the 3.6.0 config file.
+For example, if your database resides at host `dbserver` port 9155, from `datasource.url=jdbc:mysql://dbserver:9155/mmc_persistency_status` extract `9155` to `mmc.tracking.db.port=9155` in the new config file.
 
 Note that if the port number is not present in the URL, it probably means that the default port for the database server is being used, for example 1521 for Oracle, 3306 for MySQL, etc.
 
 |`url` |`mmc.tracking.db.servicename` a|
-From the value of `url`, extract the Oracle service name for your connection, and assign it as the value of `mmc.tracking.db.servicename` in the database config file in 3.6.0
+From the value of `url`, extract the Oracle service name for your connection, and assign it as the value of `mmc.tracking.db.servicename` in the database config file in the new installation.
 
 For example, if the value of `url` in your old MMC installation is `jdbc:oracle:thin:MMC_STATUS/mmc123``@dbserver``:``1521``:xe`, then the service name is `xe`. Assign it in the new config file with the parameter `env.servicename=xe`.
 |===
-. In MMC 3.6.0, locate the file `<MMC_HOME>/WEB-INF/web.xml` and open it for editing.
+. In the new MMC install, locate the file `<MMC_HOME>/WEB-INF/web.xml` and open it for editing.
 . In the `web.xml` file, locate the section shown below.
 +[source, xml, linenums]
 ----
@@ -194,14 +194,14 @@ For example, if the value of `url` in your old MMC installation is `jdbc:oracle:
 ----
 
 . Replace the string `tracking-h2` with `tracking-<database_name>`. For example, if persisting data on postgres, replace it with `tracking-postgres`.
-. After completing the above steps, you can remove your old MMC installation by deleting its home directory in the root directory of your Web app server. However, it is recommended that you keep the backup copies of the old database configuration files until you ensure that MMC 3.6.0 connects properly to the database.
+. After completing the above steps, you can remove your old MMC installation by deleting its home directory in the root directory of your Web app server. However, it is recommended that you keep the backup copies of the old database configuration files until you ensure that your new MMC connects properly to the database.
 
 [NOTE]
 The exact configuration details in your old MMC installation may vary. Before deleting your old MMC installation, make complete backups of all relevant config files. Bear in mind that aside from the database connection parameters listed in this page, a custom configuration may contain additional parameters not listed here, which you will also need to migrate to the new configuration.
 
-After you have completed configuration, start MMC 3.6.0.
+After you have completed configuration, start your new MMC.
 
 == See Also
 
 * Read an overview of link:/mule-management-console/v/3.7/configuring-mmc-for-external-databases-quick-reference[configuring MMC for external databases], which includes links to detailed instructions for each supported database server.
-* Learn how to link:/mule-management-console/v/3.7/upgrading-to-mmc-3.6.0-with-ldap[upgrade to MMC 3.5.0 with LDAP].
+* Learn how to link:/mule-management-console/v/3.7/upgrading-to-mmc-with-ldap[upgrade to MMC with LDAP].
