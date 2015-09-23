@@ -1,0 +1,59 @@
+#%RAML 0.8
+title: External AES Tutorial
+version: 1.0
+baseUri: http://localhost:8080/api
+securitySchemes:
+  - oauth_2_0:
+      description: |
+        This API supports OAuth 2.0 for authenticating all API requests.
+      type: OAuth 2.0
+      describedBy:
+        headers:
+          Authorization:
+            description: |
+               Used to send a valid OAuth 2 access token. Do not use with the "access_token" query
+               string parameter.
+            type: string
+        queryParameters:
+          access_token:
+            description: |
+               Used to send a valid OAuth 2 access token. Do not use together with the "Authorization"
+               header
+            type: string
+        responses:
+          401:
+            description: |
+              Bad or expired token. This can happen if the user or the API revoked or expired an access token. To fix, you should re-authenticate the user.
+          403:
+            description: |
+              Bad OAuth request (wrong consumer key, bad nonce, expired timestamp...). Unfortunately, re-authenticating the user won't help here. 
+      settings:
+        authorizationUri: https://localhost:8082/authorize 
+        accessTokenUri: https://localhost:8082/access_token
+        authorizationGrants: [code, token]
+/teams:
+  displayName: Teams
+  get:
+    securedBy: [oauth_2_0]
+    queryParameters:
+      city:
+        type: string
+        required: false
+        example: Barcelona
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              [{
+                "name": "Athletic Bilbao",
+                "id": "ATH",
+                "homeCity": "Bilbao",
+                "stadium": "San Mames"
+              },
+              {
+                "name": "Atletico Madrid",
+                "id": "ATL",
+                "homeCity": "Madrid",
+                "stadium": "Vicente Calderon"
+              }]
