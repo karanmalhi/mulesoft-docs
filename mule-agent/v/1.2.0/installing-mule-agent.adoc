@@ -1,0 +1,282 @@
+= Installing the Mule Agent
+:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
+
+_Enterprise Edition_
+
+link:/release-notes/mule-agent-1.2.0-release-notes[Mule Agent 1.2.0 Release Notes]
+
+Mule agent version 1.2.0 installs as a plugin from a zip file available link:http://mule-agent.s3.amazonaws.com/1.2.0/mule-agent-1.2.0.zip[here].
+
+[IMPORTANT]
+====
+Mule 3.7.x and API Gateway 2.x provide an link:/mule-agent/v/1.1.1/index[older version of the Mule Agent]. This version doesn't provide support for link:/cloudhub/sending-data-from-arm-to-external-monitoring-software[Sending Data from ARM to External Monitoring Software]. Version 1.2.0 of the Agent must be downloaded separately.
+====
+
+== Prerequisites
+
+The Mule agent continues to be available with the Mule and API Gateway software distributions; however, you should use the new zip version to update your Mule agent to the latest version..
+
+This document assumes that your enterprise license is current. See link:/mule-user-guide/v/3.7/installing-an-enterprise-license[Installing an Enterprise License] for information on obtaining and installing an enterprise license.
+
+The Mule agent works with Mule 3.6.0 and newer, and API Gateway 2.1 and newer.
+
+[TIP]
+We recommend that you run the latest version of Mule Enterprise. You can download the latest version from the link:http://www.mulesoft.com/support-login[customer portal].
+
+== Download the Latest Version of the Agent
+
+link:http://mule-agent.s3.amazonaws.com/1.2.0/mule-agent-1.2.0.zip[Mule Agent zip file]
+
+== Installing the Agent from the Zip File
+
+. Unzip the ` mule-agent-[VERSION].zip` to the `$MULE_HOME/bin` folder.
++
+[INFO]
+====
+The agent zip file contains these 3 files - the `amc_setup` files install the Mule agent plugin.
+
+* `amc_setup` - Mac and Linux installation file
+* `amc_setup.bat` - Windows installation file
+* `agent-setup-<version>.jar` - Called by the installation files
+====
+
+. Run the installation file that matches your OS via the command line
+
+
+The installed Mule agent works correctly with Mule and GW runtimes versions that include the agent in the distribution.
+
+== Running the Updater
+
+If you already had a previous version of the agent registered, then all you have to do is run the update script, no need to register the newer version.
+
+After downloading the Mule agent zip file:
+
+. Stop Mule or the API Gateway runtime. You can stop Mule with the `./bin stop` command or by killing the process. Restart Mule with the `./bin start` command. For information on starting and stopping API Gateway, see link:/anypoint-platform-for-apis/configuring-an-api-gateway[Configuring an API Gateway].
+. Unzip the `mule-agent-[VERSION].zip` to the `$MULE_HOME/bin` folder.
+. Run `./amc_setup -U` to update the agent version. If you are using Windows, run: `amc_setup.bat -U`.
+
+=== Agent Update Process
+
+. Back up the current version of the agent (everything under `$MULE_HOME/plugins/MULE_AGENT_PLUGIN_FOLDER`) within `$MULE_HOME/tools` folder.
+. Update agent libs under `$MULE_HOME/plugins/MULE_AGENT_PLUGIN_FOLDER/lib`
+. Keep modules under `$MULE_HOME/plugins/MULE_AGENT_PLUGIN_FOLDER/lib/modules` unchanged. All custom modules added to the agent that are not included in the agent distribution should be installed in this folder.
+. No reregistration is needed after the process is done, just restart the Mule or API Gateway instance.
+
+== Installing from a Software Distribution
+
+[IMPORTANT]
+====
+Currently, Mule 3.7.x and API Gateway 2.x provide an link:/mule-agent/v/1.1.1/index[older version of the Mule Agent]. This version doesn't provide support for link:/cloudhub/sending-data-from-arm-to-external-monitoring-software[Sending Data from ARM to External Monitoring Software]. Version 1.2.0 of the Agent must be downloaded separately.
+====
+
+The following sections explain how to install from either the link:https://www.mulesoft.com/platform/mule[Mule Runtime] or API Gateway on premise installations. 
+
+The agent comes bundled with your Mule installation. You can install it by running `$MULE_HOME/bin/amc_setup` (or `$MULE_HOME\bin\amc_setup.bat` if on Windows).
+
+*Mule 3.6.0 and 3.6.1 Installation:*
+
+Download the agent and follow the steps in the previous <<Installing the Agent from the Zip File,Installing the Agent from the Zip File>> section. Then run `amc_setup` or `amc_setup.bat` depending on your OS.
+
+== Installation Options
+
+[width="100%",cols="20a,80a",options="header"]
+|===
+|Parameter|Description
+
+|`-H`
+|Configures the Mule agent to connect to the Anypoint Management Center (AMC). This option requires a token (provided by the AMC console) and a name for the Mule server as you want it to appear in AMC. For example:
+
+[source,yaml]
+----
+-H <token> myserver
+----
+
+To obtain the token, you need to use the *Add Server* option in AMC. Once you have the token, copy-paste it as the `-H` parameter for your agent installation command.
+
+For details, see the *Add a Server* section in link:/cloudhub/managing-applications-and-servers-in-the-cloud-and-on-premises[Managing Applications and Servers in the Cloud and On Premises.]
+
+|`-I`
+|Configures the Mule agent to use an unencrypted connection. It is valid for the REST transport only. You can interact with the API using a browser or other tool for making HTTP requests.
+
+|`-S`
+|Configures the Mule agent to establish a TLS connection with an on-premises administration console. You need to provide the truststore and keystore in JKS format. This option enables a TLS channel for REST communications only. See <<Secure Connection Channel, Secure Connection Channel>>.
+
+|`-P`
+` --proxy`
+|When configuring Mule agent to connector the Anypoint Management Center via a proxy, this option defines proxy details. See <<Installation Via Proxy, Installation Via Proxy>>.
+
+|`--mule-home`
+|Your `$MULE_HOME` directory. Use this option if you are not running the installation script from `$MULE_HOME/bin`.
+
+|`-U`
+|Update the Mule agent software.
+
+|===
+
+
+=== Secure Connection Channel
+
+[source, code]
+----
+Anypoint Mule Agent Installer ----------- Mode [Secure connection Channel(S) / Insecure Connection Channel(I) / Quit(Q)] (?):
+----
+
+This option configures the Mule agent to establish a TLS connection with an on-premises administration console. You need to provide the truststore and keystore in JKS format. This option enables a TLS channel for REST communications only. Once you select the Secure connection Channel mode, you see the following menu:
+
+[source,yaml, linenums]
+----
+The communication channel for the agent will be encrypted using public/private key certificates. In the following steps you will be asked to provide the keystore and truststore. Both keystore and truststore format must be JKS.
+
+Keystore location (?):
+Truststore location (?):
+Keystore Password (?):
+Keystore Alias (?):
+Keystore Alias Password (?):
+INFO: Mule agent was successfully configured to use a TLS channel for REST communications.
+----
+_Keystore location_
+
+The location of the keystore file to encrypt the communication channel. The keystore must be in JKS format. It is mandatory to provide one.
+
+_Truststore location_
+
+The location where of the truststore file to accept incoming requests from the administration console. The truststore must be in JKS format and must not have a password.
+
+_Keystore Password_
+
+The password to read the keystore. The password is used by the agent to open the keystore.
+
+_Keystore Alias_
+
+The alias of the key stored in the keystore.
+
+_Keystore Alias Password_
+
+The alias password in the keystore.
+
+
+=== Insecure Connection Channel
+
+This option configures the Mule agent to use an unencrypted connection. It is valid for the REST transport only. You can interact with the API using a browser or other tool for making HTTP requests.
+
+
+=== Hybrid Management
+
+Configures the Mule agent to connect to the Anypoint Management Center (AMC). This option requires a token (provided by the AMC console and an instance name. For further information, link:http://www.mulesoft.com/support-login[contact us].
+
+=== Installation Via Proxy
+
+If you are configuring the Mule agent to connect to the Anypoint Management Center via a proxy, use this option to define proxy details. User and password are optional and may be omitted if the proxy doesn't require authentication.
+
+Where:
+
+* _Proxy Host_ - The host of the desired proxy.
+* _Proxy Port_ - The port of the desired proxy.
+* _Proxy User_ - The user with which to authenticate against the proxy.
+* _Proxy Password_ - The password with which to authenticate against the proxy.
+
+If you have already installed the Mule agent and want to change its configuration to use a proxy, you can do so by editing the `wrapper.conf` file. For details, see link:/mule-agent/v/1.2.0/configuring-a-proxy-for-the-mule-agent[Configuring a Proxy for the Mule Agent].
+
+
+== Configuring the Agent
+
+The sections that follow provide additional configuration details for Mule agent.
+
+[NOTE]
+If you wish to use the Agent to send data from ARM to Slpunk, an ELK stack or other external software, then you must configure it in a different way from the one described below. See link:/cloudhub/sending-data-from-arm-to-external-monitoring-software[Sending Data from ARM to External Monitoring Software] for details.
+
+
+=== Configuring mule-agent.yml
+
+At startup, the Mule agent reads its configuration from the file `$MULE_HOME/conf/mule-agent.yml`. You must manually add, then edit this file with your installation's configuration parameters.
+
+[source,yaml]
+----
+muleInstanceUniqueId: validId
+organizationId: organizationId
+
+transports:
+    rest.agent.transport:
+        security:
+            keyStorePassword: mykeystorePassword
+            keyStoreAlias: agent
+            keyStoreAliasPassword: agentpassword
+        port: 9997
+
+services:
+    mule.agent.application.service:
+        enabled: true
+
+    mule.agent.domain.service:
+        enabled: true
+
+    mule.agent.jmx.publisher.service:
+        enabled: true
+        frequency: 15
+        frequencyTimeUnit: MINUTES
+        beans:
+            -   beanQueryPattern: java.lang:type=Runtime
+                attribute: Uptime
+                monitorMessage: Monitoring memory up-time
+            -   beanQueryPattern: java.lang:type=MemoryPool,*
+                attribute: Usage.used
+                monitorMessage" : Used Memory
+
+internalHandlers:
+    domaindeploymentnotification.internal.message.handler:
+        enabled: false
+
+    applicationdeploymentnotification.internal.message.handler:
+        enabled: false
+----
+
+==== Configuration File Structure
+
+The `mule-agent.yml` file is structured in three levels:
+
+* First level: Component types: transports, services, internalHandlers, and externalHanders.
+** Second level: Component name, for example, `mule.agent.jmx.publisher.service`.
+*** Third level: Component configuration. A component can have complex object configurations, including more than one recursive level.
+
+To learn more on how to configure the Mule agent, refer to the documentation of each component.
+
+==== Configuring During Runtime
+
+Some agent components allow you to configure them during runtime. For further information, see link:/mule-agent/v/1.2.0/administration-service[Administration Service].
+
+== Enabling REST Agent Transport and Websocket Transport
+
+When you register the API Gateway in AMC, the generated `mule-agent.yml` disables the REST agent Transport.
+
+Conversely, if you run `./amc_setup -I`, you enable the REST agent Transport and disable the WebSocket Transport, that is the one used to connect to AMC.
+
+To run both transports, modify the `mule-agent.yml` file as follows:
+
+[source,yaml, linenums]
+----
+transports:
+  websocket.transport:
+    consoleUri: wss://mule-manager.anypoint.mulesoft.com:443/mule
+    security:
+      keyStorePassword: <password>
+      keyStoreAlias: agent
+      keyStoreAliasPassword: <password>
+      handshake:
+        enabled: true
+        body:
+          agentVersion: 1.1.0
+          muleVersion: 3.7.0
+          gatewayVersion: 2.0.2
+  rest.agent.transport:
+    port: 8888
+
+services:
+  mule.agent.jmx.publisher.service:
+    enabled: true
+    frequency: 15
+    frequencyTimeUnit: MINUTES
+----
+
+== See Also
+
+link:/anypoint-platform-for-apis/configuring-an-api-gateway[Configuring an API Gateway].

@@ -1,0 +1,153 @@
+= Mule Agent Notifications
+:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
+
+The Mule agent publishes notifications about events that occur in the Mule instance in JSON format, which allows you to implement your own system for receiving and handling notifications. Notifications are sent over both the REST and WebSocket transports (for more information on transports refer to the Mule Agent Architecture documentation).
+
+== Application Deployment Notifications
+
+The Mule agent sends a notification every time there is a change in state during an application deployment or undeployment. Notifications are sent via a PUT request to the `applications/<appname>/deployment` path, as shown below.
+
+----
+PUT <callback URL>/applications/<application name>/deployment HTTP/1.1
+----
+
+=== Example Notification
+
+[source, json, linenums]
+----
+{
+  "application": {
+    "name": "applicationName",
+    "domain": "domainName",
+    "state": "STARTED"
+  },
+  "status": "DEPLOYED",
+  "message": "Application succesfully deployed."
+}
+----
+
+=== Notification Fields
+
+Application deployment notifications contain the fields listed below.
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Field |Description
+|`application` a|
+Contains the following itemized information about the application:
+
+* Application name
+* Name of the domain to which the application is deployed
+* Current state of the application
+
+For a list of all possible application states, see the link:/mule-agent/v/1.2.0/Mule-Agent-Notifications#MuleAgentNotifications-appendix[Application States and Deployment Status] section.
+
+|`status` a|
+Current status of the deployment. After a deployment operation is completed, the message remains as `DEPLOYED`; after an undeployment operation the message remains as `UNDEPLOYED`.
+
+For a list of all possible status messages, see the link:/mule-agent/v/1.2.0/Mule-Agent-Notifications#MuleAgentNotifications-appendix[Application States and Deployment Status] section.
+
+|`message` |An informational message about the current deployment stage. In case of a deployment failure, information about the reason for the failure is included in the message.
+|===
+
+== Domain Deployment Notifications
+
+The Mule agent sends a notification every time there is a change in state during a domain deployment or undeployment. Notifications are sent via a PUT request to the `domains/<domainname>/deployment` path, as shown below.
+
+----
+PUT <callback URL>/domains/<domain name>/deployment HTTP/1.1
+----
+
+=== Example Notification
+
+[source, json, linenums]
+----
+"domain": {
+    "name": "domainName",
+    "applications": [
+      {
+        "name": "application1",
+        "domain": "domainName",
+        "state": "STARTED"
+      },
+      {
+        "name": "application2",
+        "domain": "domainName",
+        "state": "STOPPED"
+      },
+    ]
+  },
+  "status": "DEPLOYED",
+  "message": "Domain succesfully deployed."
+}
+----
+
+=== Notification Fields
+
+Domain deployment notifications contain the fields listed below.
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Field |Description
+|`domain` a|
+Contains the following itemized information about the domain:
+
+* Domain name
+* List of applications deployed to the domain, specifying:
+* Application name
+* Domain name
+** Application status
+
+|`status` a|
+Current status of the deployment. After a deployment operation is completed, the message remains as `DEPLOYED`; after an undeployment operation the message remains as `UNDEPLOYED`.
+
+For a list of all possible status messages, see the link:/mule-agent/v/1.2.0/mule-agent-notifications[Application States and Deployment Status] section.
+
+|`message` |An informational message about the current deployment stage. In case of a deployment failure, information about the reason for the failure is included in the message.
+|===
+
+== Keep-Alive Notifications
+
+The Mule agent sends a periodic keep-alive notification to verify that the Mule instance is still running. The notification is sent via a POST request with an empty body to the keeAlive path, as shown below.
+
+----
+POST <callback URL>/keepAlive HTTP/1.1
+----
+
+== Application States and Deployment Status
+
+=== Application States
+
+Application states represent the different stages in the lifecycle of a Mule application.
+
+Valid Application states are:
+
+* `CREATED`
+* `INITIALISED`
+* `STARTED`
+* `STOPPED`
+* `DEPLOYMENT_FAILED`
+* `DESTROYED`
+
+=== Deployment Status
+
+Deployment statuses represent the different steps for successful deployment or undeployment of an application or a domain.
+
+Valid deployment statuses are:
+
+* `DEPLOYMENT_STARTED`
+* `DEPLOYED`
+* `CONTEXT_CREATED`
+* `CONTEXT_INITIALISING`
+* `CONTEXT_INITIALISED`
+* `CONTEXT_STARTING`
+* `CONTEXT_STARTED`
+* `CONTEXT_CONFIGURED`
+* `CONTEXT_STOPPING`
+* `CONTEXT_STOPPED`
+* `CONTEXT_DISPOSING`
+* `CONTEXT_DISPOSED`
+* `UNDEPLOYING`
+* `UNDEPLOYED`
+* `DEPLOYMENT_FAILED`
+* `UNDEPLOYMENT_FAILED`

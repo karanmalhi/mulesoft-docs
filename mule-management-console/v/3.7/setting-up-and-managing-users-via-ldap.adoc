@@ -25,7 +25,7 @@ Groups have to be created both on the LDAP server and on the console. When the c
 
 When using LDAP, the console needs to authenticate _itself_ on the LDAP server to gain access to the LDAP database. The console needs to log in with a user account defined on the LDAP database. This user account can be any one of the accounts set up for users of the console, or it can be a separate account altogether (not belonging to any group) whose sole purpose is to authenticate the console.
 
-For example, you can create a user on the LDAP database called `mmc`, and configure the console to connect to the LDAP server using `mmc`'s credentials. When a user logs into the console — as user `admin`, for example — the console first authenticates _itself_ on the LDAP server using `mmc`'s credentials, then it sends `admin`'s credentials to the LDAP server. If `admin`'s credentials are valid, the LDAP server provides the console with `admin`'s group information. The console then grants appropriate permissions to `admin` in accordance with the permissions specified for the groups to which `admin` belongs.
+For example, you can create a user on the LDAP database called `mmc`, and configure the console to connect to the LDAP server using the credentials for this user. When a user logs into the console — as user `admin`, for example — the console first authenticates _itself_ on the LDAP server using the credentials for user `mmc`. Then, it sends `admin` 's credentials to the LDAP server. If `admin` 's credentials are valid, the LDAP server provides the console with `admin` 's group information. The console then grants appropriate permissions to `admin` in accordance with the permissions specified for the groups to which `admin` belongs.
 
 The last section of this document provides an <<Example: A Simple LDAP Setup>> detailing this configuration.
 
@@ -75,7 +75,7 @@ You must enable LDAP on the console so that the console can authenticate users a
 These steps involve the following two files:
 
 * <Mule install path>/apps/mmc/webapps/mmc/WEB-INF/web.xml, which instructs the console to enable the LDAP spring profile, which is necessary for LDAP authentication.
-* <Mule install path>/apps/mmc/webapps/mmc/WEB-INF/classes/mmc-ldap.properties, which contains the information necessary to connect to an LDAP server and to search for users on that server.
+* <MMC install path>/apps/mmc/webapps/mmc/WEB-INF/classes/mmc-ldap.properties, which contains the information necessary to connect to an LDAP server and to search for users on that server.
 
 === Enabling the LDAP Spring Profile
 
@@ -100,7 +100,7 @@ Complete the following steps:
 
 Complete the following steps:
 
-. Navigate to the classpath directory: <Mule install path>/apps/mmc/webapps/mmc/WEB-INF/classes
+. Navigate to the classpath directory: <MMC install path>/apps/mmc/webapps/mmc/WEB-INF/classes/META-INF
 . Create a file called `mmc-ldap.properties`. This will be the LDAP configuration file.
 +
 [NOTE]
@@ -711,7 +711,7 @@ After modifying the LDAP database, restart the console to allow it to re-read th
 
 To automatically create database objects in LDAP, you first define the objects in an LDIF file, then import the file into LDAP with the `ldapadd` command.
 
-[source,, linenums]
+[source, code, linenums]
 ----
 ldapadd -x -D "cn=Manager,dc=company,dc=com" -W -f <file>
 ----
@@ -722,7 +722,7 @@ You may wish to modify the `userPassword` values before importing.
 
 LDIF file contents:
 
-[source,, linenums]
+[source, code, linenums]
 ----
 
 dn: ou=groups,dc=company,dc=com
@@ -790,9 +790,8 @@ By default, the LDAP server logs events to `/var/log/syslog`. In case of authent
 
 Below is an extract of the log, showing events logged by `slapd` when a user logs into the console. There are two `BIND` operations (user authentications) to the LDAP server; the first occurs when the console starts and authenticates itself (See: the second and third lines in the extract below). After establishing the context base for searching, LDAP searches for `user admin`, authenticates the user, then searches for the groups the user belongs to.
 
-[source,, linenums]
+[source, code, linenums]
 ----
-
 Jun  6 17:02:21 syrah slapd[1099]: conn=1007 fd=15 ACCEPT from IP=127.0.0.1:34467 (IP=0.0.0.0:389)
 Jun  6 17:02:21 syrah slapd[1099]: conn=1007 op=0 BIND dn="cn=mmc,ou=people,dc=company,dc=com" method=128
 Jun  6 17:02:21 syrah slapd[1099]: conn=1007 op=0 BIND dn="cn=mmc,ou=people,dc=company,dc=com" mech=SIMPLE ssf=0

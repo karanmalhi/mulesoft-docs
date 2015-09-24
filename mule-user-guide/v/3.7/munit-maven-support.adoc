@@ -1,161 +1,149 @@
 = MUnit Maven Support
-:keywords: mule, esb, tests, qa, quality assurance, verify, functional testing, unit testing, stress testing
+:version-info: 3.7.0 and later
+:keywords: munit, testing, unit testing
 
 MUnit provides a Maven plugin that allows you to run your MUnit tests as part of your continuous integration environment.
 
 == Setting Up your `pom.xml`
 
-MUnit is a composition of several modules, all of which are needed to run your MUnit test. It was designed this way to offer as much flexibility as possible.
+MUnit is a composition of several modules, all of which are necessary to run your MUnit test. It was designed this way to offer as much flexibility as possible.
 
-For MUnit to run properly with Maven, you need add a few sections to your `pom.xml` file.
+For MUnit to run properly with Maven, you need to add a few sections to your `pom.xml` file.
 
-[TIP]
-If you are using Anypoint Studio, Maven integration is already solved for you. See link:/mule-user-guide/v/3.7/using-maven-in-anypoint-studio[Using Maven in Anypoint Studio] for details.
+TIP: If you are using Anypoint Studio, Maven integration is already solved for you. See link:/mule-user-guide/v/3.7/using-maven-in-anypoint-studio[Using Maven in Anypoint Studio] for details.
 
-[NOTE]
-This documentation assumes you have the following property in your `pom.xml`: `<munit.version></munit.version>`. +
+NOTE: This documentation assumes you have the following properties in your `pom.xml`: `<munit.version>` and `<mule.munit.support.version>`. +
  +
-Although MUnit is a composition of modules, you should not combine MUnit modules of different versions. That is the, `munit.version` should be the same across all MUnit artifacts in your `pom.xml`, including the plugin.
+You should not combine MUnit modules of different versions. That is, the `munit.version` should be the same across all MUnit artifacts in your `pom.xml`, like the plugin or the runner. +
+ +
+Regarding the Mule MUnit support module, the `mule.munit.support.version` should match the `mule.version`. For example, `3.7.0` version of the support module would be compatible with `3.7.0`, `3.7.1`, `3.7.2` and other versions of Mule, but not necessarily with `3.6.0`.
 
 === MUnit Maven Plugin
 
-The MUnit Maven Plugin is what allows you to run MUnit tests from Maven. To enable the plugin, add the following section to your `pom.xml`.
+The MUnit Maven Plugin allows you to run MUnit tests from Maven. To enable the plugin, add the following section to your `pom.xml`.
 
 [source, xml, linenums]
+.MUnit Maven Plugin
 ----
 <build>
-  <plugins>
-  ...
- 
-    <plugin>
-      <groupId>org.mule.munit.tools</groupId>
-      <artifactId>munit-maven-plugin</artifactId>
-      <version>${munit-version}</version>
-      <executions>
-        <execution>
-          <id>test</id>
-          <phase>test</phase>
-          <goals>
-            <goal>test</goal>
-          </goals>
-        </execution>
-      </executions>
-    </plugin>
- 
-  ...
-  </plugins>
+  <plugins>
+  ...
+
+    <plugin>
+      <groupId>com.mulesoft.munit.tools</groupId>
+      <artifactId>munit-maven-plugin</artifactId>
+      <version>${munit-version}</version>
+      <executions>
+        <execution>
+          <id>test</id>
+          <phase>test</phase>
+          <goals>
+            <goal>test</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+
+  ...
+  </plugins>
 </build>
 ----
 
 ==== MUnit Folder
-
 All the MUnit Test Suite files reside in `src/test/munit`. You need to tell Maven to add this folder to the classpath.
 
 [source, xml, linenums]
+.MUnit Folder
 ----
 <build>
 ...
- 
-  <testResources>
-    <testResource>
-      <directory>src/test/munit</directory>      (1)
-    </testResource>
-    <testResource>
-      <directory>src/test/resources</directory>  (2)
-    </testResource>
-  </testResources>
- 
+
+  <testResources>
+    <testResource>
+      <directory>src/test/munit</directory>      // <1>
+    </testResource>
+    <testResource>
+      <directory>src/test/resources</directory>  // <2>
+    </testResource>
+  </testResources>
+
 ...
 <1> The actual MUnit test folder.
 <2> The normal resources folder, usually used to store other files.
- 
+
 </build>
 ----
 
 === MUnit Dependencies
-
 Listed below are the _minimal artifacts_ required to enable MUnit to run from Maven.
 
 [source, xml, linenums]
+.MUnit Dependencies
 ----
 <dependencies>
 ...
- 
-  <dependency>
-    <groupId>org.mule.munit</groupId>
-    <artifactId>munit-assert</artifactId>
-    <version>${munit.version}</version>
-    <scope>test</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.mule.munit</groupId>
-    <artifactId>munit-mock</artifactId>
-    <version>${munit.version}</version>
-    <scope>test</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.mule.munit</groupId>
-    <artifactId>munit-common</artifactId>
-    <version>${munit.version}</version>
-    <scope>test</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.mule.munit</groupId>
-    <artifactId>munit-runner</artifactId>
-    <version>${munit.version}</version>
-    <scope>test</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.mule.modules</groupId>
-    <artifactId>mule-interceptor-module</artifactId>
-    <version>${munit.version}</version>
-    <scope>test</scope>
-  </dependency>
- 
+
+  <dependency>
+    <groupId>com.mulesoft.munit</groupId>
+    <artifactId>mule-munit-support</artifactId>
+    <version>${mule.munit.support.version}</version>
+    <scope>test</scope>
+  </dependency>
+  <dependency>
+    <groupId>com.mulesoft.munit</groupId>
+    <artifactId>munit-runner</artifactId>
+    <version>${munit.version}</version>
+    <scope>test</scope>
+  </dependency>
+
 ...
 </dependencies>
 ----
 
 === MUnit Repositories
 
-MUnit artifacts are deployed in the Mule Maven repositories, which you’ve probably seen before.
+MUnit artifacts are deployed in the Mule Maven repositories, which you've probably seen before.
 
 [source, xml, linenums]
+.Repositories
 ----
 <repositories>
-  <repository>
-    <id>mulesoft-releases</id>
-      <name>MuleSoft Releases Repository</name>
-      <url>http://repository.mulesoft.org/releases/</url>
-      <layout>default</layout>
-    </repository>
+  <repository>
+    <id>mulesoft-releases</id>
+      <name>MuleSoft Releases Repository</name>
+      <url>http://repository.mulesoft.org/releases/</url>
+      <layout>default</layout>
+    </repository>
 </repositories>
 ----
 
-You’ll also need to add the Plugin repository.
+You'll also need to add the Plugin repository.
 
 [source, xml, linenums]
+.Plugin Repositories
 ----
 <pluginRepositories>
-  <pluginRepository>
-    <id>muleforge-releases</id>
-    <name>MuleSoft Releases Repository</name>
-    <url>http://repository.mulesoft.org/releases/</url>
-    <layout>default</layout>
-  </pluginRepository>
+  <pluginRepository>
+    <id>mulesoft-release</id>
+    <name>mulesoft release repository</name>
+    <layout>default</layout>
+    <url>http://repository.mulesoft.org/releases/</url>
+    <snapshots>
+      <enabled>false</enabled>
+    </snapshots>
+  </pluginRepository>
 </pluginRepositories>
 ----
 
-[TIP]
-If you code your MUnit tests in Java, you don’t need the MUnit Maven Plugin nor the plugin repository.
+TIP: If you code your MUnit tests in Java, you don't need the MUnit Maven Plugin nor the plugin repository.
 
 == The MUnit Maven Plugin
 
-The MUnit Maven Plugin makes it possible to run the XML-based tests. It has a few feature we’ll discuss them below.
+The MUnit Maven Plugin makes it possible to run the XML-based tests. It has a few features we'll discuss below.
 
 === Running MUnit Tests From Maven
-
-[source, code, linenums]
+[source,console]
+.Running MUnit tests in a project example
 ----
 mvn clean test
 ----
@@ -165,8 +153,8 @@ mvn clean test
 You can instruct MUnit Maven Plugin to run only tests that belong to a specific test suite.
 
 To do this, we use the property `munit.test`.
-
-[source, code, linenums]
+[source,console]
+.Running a specific MUnit Test Suite example
 ----
 mvn clean test -Dmunit.test=<regex-test-suite>
 ----
@@ -174,8 +162,7 @@ mvn clean test -Dmunit.test=<regex-test-suite>
 As you can see, the property `munit.test` accepts regular expressions. The expression will be applied to the name of the MUnit Test Suite file. The regular expression language is the Java implementation.
 
 The following is a valid example:
-
-[source, code, linenums]
+[source,console]
 ----
 mvn clean test -Dmunit.test=.*my-test.*
 ----
@@ -186,28 +173,27 @@ You can leverage this feature by adding naming conventions to your MUnit Test su
 
 In the same way that you instruct MUnit to run one test suite, you can also tell it to run a specific test inside that test suite. To do so, we again make use of the property `munit.test`, with one addition:
 
-[source, code, linenums]
+[source,console]
 ----
-mvn clean test -Dmunit.test=<regex-test-suite>#<regex-test-name> 
+mvn clean test -Dmunit.test=<regex-test-suite>#<regex-test-name>
 ----
 
 The addition is the special character `#`. To the right of it you should type the test name. As you can see, it also accepts regular expressions. The expression will be applied to the attribute `name` of the MUnit Test.
 
 The following is a valid example:
-
-[source, code, linenums]
+[source,console]
 ----
-mvn clean test -Dmunit.test=.*my-test.*#.*test-scenario-1.* 
+mvn clean test -Dmunit.test=.*my-test.*#.*test-scenario-1.*
 ----
 
-[TIP]
-The tests inside the MUnit Test Suite that don’t match the regular expression will be flagged as *ignored*.
+TIP: The tests inside the MUnit Test Suite that don't match the regular expression will be flagged as *ignored*.
 
 === Skip MUnit Tests
 
-When building you application, you may want to avoid a test from running. MUnit leverages the same mechanism as Maven, so if you wish to skip tests you can make use of the parameter `skipTests`.
+When building your application, you may want to prevent a test from running. MUnit leverages the same mechanism as Maven, so if you wish to skip tests you can make use of the parameter `skipTests`.
 
-[source, code, linenums]
+[source,console]
+.Skipping MUnit Tests example
 ----
 mvn clean package -DskipTests
 ----
@@ -221,27 +207,27 @@ The MUnit Maven Plugin offers a minor set of configurations.
 By default, logs are output to the console, but you can redirect them to a file.
 
 [source, xml, linenums]
+.Redirecting logs example
 ----
 <plugin>
-  <groupId>org.mule.munit.tools</groupId>
-  <artifactId>munit-maven-plugin</artifactId>
-  <version>${muni.version}</version>
-  <executions>
-    <execution>
-      <id>test</id>
-      <phase>test</phase>
-      <goals>
-        <goal>test</goal>
-      </goals>
-    </execution>
-  </executions>
-  <configuration>
-    <logToFile>true</logToFile> (1)
-  </configuration>
+  <groupId>com.mulesoft.munit.tools</groupId>
+  <artifactId>munit-maven-plugin</artifactId>
+  <version>${munit.version}</version>
+  <executions>
+    <execution>
+      <id>test</id>
+      <phase>test</phase>
+      <goals>
+        <goal>test</goal>
+      </goals>
+    </execution>
+  </executions>
+  <configuration>
+    <logToFile>true</logToFile> //<1>
+  </configuration>
 </plugin>
 ----
-
-. Redirect logs.
+<1> Redirect logs.
 
 The log will output to `target/surefire-reports/munit.-output.txt`.
 
@@ -250,117 +236,114 @@ The log will output to `target/surefire-reports/munit.-output.txt`.
 You may wish to define specific environment variables needed for your MUnit test to run successfully. The example below shows how you can send them.
 
 [source, xml, linenums]
+.Sending environment variables
 ----
 <plugin>
-  <groupId>org.mule.munit.tools</groupId>
-  <artifactId>munit-maven-plugin</artifactId>
-  <version>${muni.version}</version>
-  <executions>
-    <execution>
-      <id>test</id>
-      <phase>test</phase>
-      <goals>
-        <goal>test</goal>
-      </goals>
-    </execution>
-  </executions>
-  <configuration>
-    <systemPropertyVariables>   (1)
-      <my.property.key>my.property.value</my.property.key>
-    </systemPropertyVariables>
-  </configuration>
+  <groupId>com.mulesoft.munit.tools</groupId>
+  <artifactId>munit-maven-plugin</artifactId>
+  <version>${munit.version}</version>
+  <executions>
+    <execution>
+      <id>test</id>
+      <phase>test</phase>
+      <goals>
+        <goal>test</goal>
+      </goals>
+    </execution>
+  </executions>
+  <configuration>
+    <systemPropertyVariables>   //<1>
+      <my.property.key>my.property.value</my.property.key>
+    </systemPropertyVariables>
+  </configuration>
 </plugin>
 ----
-
-. Sends variables.
+<1> Sends variables.
 
 == Reading MUnit Test Results
 
 This section briefly explains how to read the MUnit console logs.
 
-Successful build:
-
-[source, code, linenums]
+[source,console]
+.Successful Build
 ----
 =======================================================
-===========  Running  test-config.xml  test ===========
+===========  Running  test-config.xml  test ===========
 =======================================================
 Running testingEchoFlow
 SUCCESS - Test testingEchoFlow finished Successfully.
- 
+
 ===========================================================================
 Number of tests run: 1 - Failed: 0 - Errors: 0 - Skipped: 0
 ===========================================================================
- 
-    =====================================
-      Munit Summary
-    =====================================
-     >> test-config.xml test result: Errors: 0, Failures:0
+
+    =====================================
+      Munit Summary
+    =====================================
+     >> test-config.xml test result: Errors: 0, Failures:0
 ----
 
-Failed build:
-
-[source, code, linenums]
+[source,console]
+.Failed Build
 ----
 =======================================================
-===========  Running  test-config.xml  test ===========
+===========  Running  test-config.xml  test ===========
 =======================================================
 Running testingEchoFlow
 FAILURE - The test testingEchoFlow finished with a Failure.
 expected:< Bye world!> but was:< Hello world!>
 java.lang.AssertionError: expected:< Bye world!> but was:< Hello world!>
-    at testingEchoFlow.munit:assert-payload-equals{payloadIs-ref= Bye world!}(test-config.xml:22)
-    at testingEchoFlow.munit:assert-not-null{}(test-config.xml:21)
-    at echoFlow .mule:echo-component{}(mule-config.xml:8)
-    at testingEchoFlow.munit:set{payload-ref= Hello world!}(test-config.xml:19)
- 
- 
+    at testingEchoFlow.munit:assert-payload-equals{payloadIs-ref= Bye world!}(test-config.xml:22)
+    at testingEchoFlow.munit:assert-not-null{}(test-config.xml:21)
+    at echoFlow .mule:echo-component{}(mule-config.xml:8)
+    at testingEchoFlow.munit:set{payload-ref= Hello world!}(test-config.xml:19)
+
+
 ===========================================================================
 Number of tests run: 1 - Failed: 1 - Errors: 0 - Skipped: 0
 ===========================================================================
- 
-    =====================================
-      Munit Summary
-    =====================================
-     >> test-config.xml test result: Errors: 0, Failures:1
-         ---testingEchoFlow <<< FAILED
+
+    =====================================
+      Munit Summary
+    =====================================
+     >> test-config.xml test result: Errors: 0, Failures:1
+         ---testingEchoFlow <<< FAILED
 ----
 
-Build error:
-
-[source, code, linenums]
+[source,console]
+.Build Error
 ----
 =======================================================
-===========  Running  test-config.xml  test ===========
+===========  Running  test-config.xml  test ===========
 =======================================================
 Running testingEchoFlow
 ERROR - The test testingEchoFlow finished with an Error.
 Failed to invoke set. Message payload is of type: NullPayload
 org.mule.api.MessagingException: Failed to invoke set. Message payload is of type: NullPayload
-    at testingEchoFlow.munit:set{payload-ref=#[strig: Hello world!]}(test-config.xml:19)
+    at testingEchoFlow.munit:set{payload-ref=#[strig: Hello world!]}(test-config.xml:19)
 Caused by: org.mule.api.expression.InvalidExpressionException: [Error: unknown class or illegal statement: org.mvel2.ParserContext@b6ba69]
 [Near : {... strig: Hello world! ....}]
-                               ^
+                               ^
 [Line: 1, Column: 19]
-    at org.mule.el.mvel.MVELExpressionLanguage.validate(MVELExpressionLanguage.java:244)
-    at org.mule.el.mvel.MVELExpressionLanguage.evaluateInternal(MVELExpressionLanguage.java:195)
-    at org.mule.el.mvel.MVELExpressionLanguage.evaluate(MVELExpressionLanguage.java:169)
- 
- 
+    at org.mule.el.mvel.MVELExpressionLanguage.validate(MVELExpressionLanguage.java:244)
+    at org.mule.el.mvel.MVELExpressionLanguage.evaluateInternal(MVELExpressionLanguage.java:195)
+    at org.mule.el.mvel.MVELExpressionLanguage.evaluate(MVELExpressionLanguage.java:169)
+
+
 ===========================================================================
 Number of tests run: 1 - Failed: 0 - Errors: 1 - Skipped: 0
 ===========================================================================
- 
-    =====================================
-      Munit Summary
-    =====================================
-     >> test-config.xml test result: Errors: 1, Failures:0
-         ---testingEchoFlow <<< ERROR
+
+    =====================================
+      Munit Summary
+    =====================================
+     >> test-config.xml test result: Errors: 1, Failures:0
+         ---testingEchoFlow <<< ERROR
 ----
 
 == Surefire Support
 
-MUnit has Surefire support built in. No configuration is needed.
+MUnit has Surefire support built in. No additional configuration is needed.
 
 The reports can be found under `target/surefire-reports`.
 
@@ -368,16 +351,17 @@ The reports can be found under `target/surefire-reports`.
 
 If you wish to create a Mule application project with MUnit support directly from Maven, you can use the Maven archetype.
 
-[source, code, linenums]
+[source,console]
+.MUnit Maven archetype
 ----
 mvn archetype:generate
-  -DarchetypeGroupId=org.mule.munit.tools
-  -DarchetypeArtifactId=mule-munit-archetype-mule-app
-  -DarchetypeVersion=3.6.0
-  -DgroupId=org.mule
-  -DartifactId=mule-test-archetype
-  -Dversion=1.0-SNAPSHOT
-  -DmuleVersion=3.6.0
-  -Dpackage=org.mule
-  -DarchetypeRepository=http://repository.mulesoft.org/releases
+  -DarchetypeGroupId=com.mulesoft.munit.tools
+  -DarchetypeArtifactId=mule-munit-archetype-mule-app
+  -DarchetypeVersion=3.6.0
+  -DgroupId=org.mule
+  -DartifactId=mule-test-archetype
+  -Dversion=1.0-SNAPSHOT
+  -DmuleVersion=3.6.0
+  -Dpackage=org.mule
+  -DarchetypeRepository=http://repository.mulesoft.org/releases
 ----

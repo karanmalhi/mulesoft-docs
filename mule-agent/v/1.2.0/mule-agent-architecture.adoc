@@ -1,0 +1,135 @@
+= Mule Agent Architecture
+:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
+
+The Mule agent is a Mule plugin that exposes the Mule ESB JAVA API as a service, allowing users to manipulate and monitor Mule ESB instances from external systems.
+
+This document shows an overview of the Mule agent architecture and its main components.
+
+== Mule Agent Main Components
+
+=== Mule Service
+
+Connects to the Mule API. This component is not aware of the transport layer (how the messages are going to be communicated by/to the user).
+
+=== Transport
+
+Handles the communication layer. Includes keep-alive status, security and protocol.
+
+=== External Message handler
+
+Exposes a Web Service API to users. Any incoming message (e.g. a deployment request) is handled by an external message handler. Depending on the request, a Mule service or multiple Mule services may be executed.
+
+=== Internal Message Handler
+
+Called by a Mule service every time it receives a Mule notification.
+
+== Messaging
+
+The agent has three ways to communicate with Mule, outlined below.
+
+=== Synchronous communication
+
+Example: Get deployed applications.
+
+image:synchronous.png[synchronous]
+
+=== Asynchronous Communication
+
+Example: Deploy and notify about the deployment stages.
+
+image:asynchronous.png[asynchronous]
+
+=== Push Communication
+
+Example: Push JMX information to an external system.
+
+image:push.png[push]
+
+== Architecture Diagram
+
+The agent's architecture is quite simple:
+
+* The transports handle communication
+* The external message handlers dispatch messages
+* The services connect to Mule API
+* The internal message handlers dispatch Mule notifications
++
+image:architecture.png[architecture]
++
+
+
+The interaction of each component is shown in the diagram below for each of the three types of messages (synchronous, asynchronous and push):
+
+== How Components Interact
+
+Below is an outline of a typical sequence of component interaction:
+
+. An external system sends a request to the agent.
+. An external message handler is executed, and calls a Mule service using the interface.
+. The Mule service calls Mule to perform the corresponding action.
+. Mule responds with a notification.
+. The service maps the notification to an agent notification, and looks for the internal message handlers that may handle the notification type.
+. The corresponding internal message handlers are executed.
+
+== Mule Agent Configuration
+
+At startup, the Mule agent reads its configuration from the file `$MULE_HOME/conf/mule-agent.yml`. You must manually add, then edit this file with your installation's configuration parameters. The format is self-explanatory; a sample file is available for download.
+
+During installation, you also have the option to configure the Mule agent via a quick-start script. For details, see link:/mule-agent/v/1.1.1/installing-mule-agent[Installing Mule Agent].
+
+== Configurable Components
+
+You can configure component attributes in the `mule-agent.yml` file. For this purpose, you can annotate the class attributes as `@Configurable`.
+
+[source, java, linenums]
+----
+@Singleton
+public class MyRequestHandler implements ExternalMessageHandler
+{
+    @Inject
+    private MuleService muleService;
+
+    @Configurable
+    public String host;
+    ...
+}
+----
+
+== The Mule Agent WebSocket Protocol
+
+Communication over WebSockets to the agent implements the HTTP protocol. All messages sent to and from the agent are HTTP messages sent as binary messages or text (depending on the agent configuration) over WebSocket. These HTTP messages are the same as those used in the agent REST communication.
+
+=== The WebSocket Handshake
+
+Handshaking is a process specific to the WebSocket transport. On startup, the agent sends a handshake request to the WebSocket address corresponding to the console (obtained from the agent configuration). After this, the agent ignores all incoming messages not recognizable as a handshake response. When it receives a message that it identifies as a handshake response, it checks that the response is valid. If it is, the agent begins responding to all incoming messages.
+
+==== The Handshake Request
+
+Below is an example of a handshake request.
+----
+POST handshake HTTP/1.1
+Content-Type: application/json
+Message-Id: ${messageId}
+accept: application/json
+Content-length: 1234
+
+{
+"agentVersion": "1.0.0",
+"muleVersion": "${muleVersion}",
+"uniqueId": "${uniqueId}"
+}
+----
+
+==== Handshake Response
+
+Authorized:
+----
+HTTP 200 OK
+Message-Id: ${messageId}
+----
+
+Unauthorized:
+----
+HTTP 401 UNAUTHORIZED
+Message-Id: ${messageId}
+----
