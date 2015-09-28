@@ -7,8 +7,8 @@ Included in the EDIFACT Module are the following capabilities:
 
 * EDIFACT message reading, validation, and writing
 * Integration with DataSense and DataMapper 
-* EDIFACT message packs for D.96A, D.98B, and D.01B versions
 * The ability to define your own schemas or customize the base EDIFACT schemas
+* Support for many link:/anypoint-b2b/supported-edi-document-types[common EDIFACT versions] out of the box
 
 To get started using the connector, follow these steps:
 
@@ -27,10 +27,7 @@ Follow the steps below to install an EDIFACT Module connector in Anypoint Studi
 
 . Under the *Help* menu in *Anypoint Studio*, select *Install New Software*. 
 . Click Add to add the EDI EDIFACT module beta update site.
-. Enter "EDI Module EDIFACT Beta" for the update site name and `http://edi-module-update-site.s3.amazonaws.com/beta-updates` for the URL. 
-+
-image:Screen+Shot+2015-05-08+at+2.28.32+PM.png[Screen+Shot+2015-05-08+at+2.28.32+PM]
-+
+. Select the Anypoint Connectors Update Site
 . In the table below the *Filter* field, click to expand the *Premium* folder, then select `EDIFACT Module`. Click *Next*. 
 +
 image:Screen+Shot+2015-05-08+at+2.28.50+PM.png[Screen+Shot+2015-05-08+at+2.28.50+PM]
@@ -176,7 +173,7 @@ The items list references values in the segment by position. The values for thes
 
 === Determining the EDIFACT Schema Location
 
-To use the connector, you need to know the locations of the schemas in your project. If you're using the out of the box EDIFACT schemas and not customizing anything, the schema location follows the pattern "/edifact/{version}/{message}.esl", so for the D.98B version of the ORDERS message your schema location is "/edifact/d98b/ORDERS.esl".
+To use DataSense views of input and output EDI data you need to know the locations of the schemas in your project. If you're using the out of the box EDIFACT schemas and not customizing anything, the schema location follows the pattern "/edifact/{version}/{message}.esl", so for the D.98B version of the ORDERS message your schema location is "/edifact/d98b/ORDERS.esl".
 
 If you're creating a custom implementation convention, you should put your schemas under a directory in src/main/app and refer to the location using ${app.home}. For example, if you've put your ORDERS schema under src/main/app/mypartner/ORDERS.esl, your schema location is "${app.home}/mypartner/ORDERS.esl".
 
@@ -247,13 +244,15 @@ Using the schcema locations determined above, switch to the XML view by clicking
 </edifact-edi:config>
 ----
 
+When the connector is processing an input or output message it first looks for a match among the configured schemas. If it doesn't find a match with one of these it then tries to load a schema from the classpath, using the path construction described at the start of this section. So you can work with messages which are not included in the configuration, but only the data structures for these will not show up in DataSense within Anypoint Studio.
+
 === Setting your Interchange IDs
 
 You can also configure the interchange and group identifiers and qualifiers for you and your partner on the EDIFACT module configuration.
 
 The "Self identification" parameters identify your side of the trading partner relationship, while the "Partner identification" parameters identify your trading partner. The values you set are used when writing EDI messages to supply the sender interchange identifier, interchange identifier qualifier, group application identifier, and group identifier qualifier, and are verified in receive messages. If you don't want to restrict incoming messages you can leave these blank, and set the values for outgoing message in the write operation or the actual outgoing message. Values set in the write operation  override the connector configuration, and values set directly in the message override both the connector configuration and any values set in the write operation.
 
-== Understanding EDIFACT Message Structure
+== Understanding the Mule Message Structure for EDIFACT documents
 
 The connector enables reading or writing of EDIFACT documents into or from the canonical EDI message structure. This structure is represented as a hierarchy of Java Maps and Lists, which can be manipulated using DataMapper or code. Each transaction has its own structure, as defined in the schemas, as outlined above.
 
@@ -263,10 +262,11 @@ The message itself contains the following keys:
 |===
 |Key name |Description
 |Delimiters (optional) |The delimiters used for the message (set based on the last interchange processed by a read operation). If set for a write operation this override the values in the module configuration. The characters in the string are interpreted based on position, in the following order: (data separator), (component separator), (repetition separator, or ' ' if none), (segment terminator), (release indicator)
+|Errors (read only) |A list of errors which are associated with the input as a whole, or with interchanges with no messages. (See the EdifactError structure description in the Reading and Validating EDI Messages section below)
 |FunctionalAcksGenerated (read only) |A list of CONTRL acknowledgments that were generated by the module during the read operation. To send an acknowledgement, see the Sending Acknowledgements section below.
-|Group |Map of UNG group header segment values. For read operations, these values are from the last group read. For write operations, these values are used as defaults when writing groups. (not yet implemented in 1.0)
-|Interchange |Map of UNB interchange header segment values. For read operations, these values are from the last interchange read. For write operations, these values are used as defaults when writing interchanges.
-|Transactions |A hierarchy of the messages which were read by the module during a read operation, or which are to be sent by the module during a write operation. For example, if you configured ORDERS and ORDRSP schemas on your module configuration, the Transactions map would contain a Map with two keys, "ORDERS" and "ORDRSP". Each of these would contain a list of individual ORDERS and ORDRSP messages that you could then process. If you're using CONTRL functional acknowledgments "CONTRL" is the key for a list of CONTRL messages.
+|Group (write only) |Map of UNG group header segment values used as defaults when writing groups. (not yet implemented in 1.0)
+|Interchange (write only) |Map of UNB interchange header segment values used as defaults when writing interchanges.
+|Messages |A hierarchy of the messages which were read by the module during a read operation, or which are to be sent by the module during a write operation. The value of this top-level key is a map with standard versions as keys, in the form "D00A" (for instance). The value associated with each standard version is another map, this one keyed by message name. For example, if you were only using D.00A ORDERS and ORDRSP messages, the Messages map would contain a single key, "D00A", with another map as the value. This map would in turn have two keys, "ORDERS" and "ORDRSP", each with a list as the value. Each list would containg the individual messages that you could then process. If you're using CONTRL functional acknowledgments "CONTRL" is the key for a list of CONTRL messages.
 |===
 
 Individual transaction sets have their own maps, with the following keys:
@@ -275,6 +275,7 @@ Individual transaction sets have their own maps, with the following keys:
 |====
 |Key name |Description
 |Detail |Map of segments or segment groups from the detail section of the transaction set. Values are maps for segments or groups which occur at most once, lists of maps for values which may be repeated.
+|Errors (read only) |A list of errors which are associated with the input as a whole, or with interchanges with no messages. (See the EdifactError structure description in the Reading and Validating EDI Messages section below)
 |Group |Map of UNG group header segment values, when groups are used. When reading, this map is the actual data from the enclosing group (a single map linked from all messages in the group). When writing, these values are used for optionally creating an enclosing group (gathering message with the same interchange and group values into a single group, regardless of whether the actual maps are the same or not). Values not populated in this map default to the values from the group map at the message level.
 |Heading |Map of segments or segment groups from the heading section of the transaction set. Values are maps for segments or groups which occur at most once, lists of maps for values which may be repeated.
 |Id |Message id, which must match the key of the containing message list.
@@ -288,9 +289,22 @@ Individual transaction sets have their own maps, with the following keys:
 
 To read an EDIFACT message, search the palette for "EDIFACT EDI" and drag the EDIFACT module into a flow. Then, go to the properties view, select the connector configuration you created above and select the "Read" operation. This operation  reads any byte stream into the structure described by your EDI schemas.
 
-The EDIFACT module validates the input when it reads it in. Validation includes checking the syntax and content of interchange envelope segments UNA/UNB and UNZ, optional group envelope segments UGH and UNE, as well as the actual messages. Normally errors are both logged and accumulated and reported in CONTRL acknowledgment messages, and all accepted messages (whether error free or with non-fatal errors) are passed on for processing as part of the output message Map. Errors in reading the input data  results in exceptions being thrown.
+The EDIFACT module validates the input when it reads it in. Validation includes checking the syntax and content of interchange envelope segments UNA/UNB and UNZ, optional group envelope segments UGH and UNE, as well as the actual messages. Normally errors are both logged and entered in the receive data map, as well as accumulated and reported in CONTRL acknowledgment messages. All accepted messages (whether error free or with non-fatal errors) are passed on for processing as part of the output message Map. Errors in reading the input data  results in exceptions being thrown.
 
 image:Screen+Shot+2015-01-26+at+9.58.45+PM.png[Screen+Shot+2015-01-26+at+9.58.45+PM]
+
+Error data entered in the receive data map uses the EdifactError class, a read-only JavaBean with the following properties:
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Property |Description
+|segment |The zero-based index within the input of the segment causing the error
+|fatal |Flag for a fatal error, meaning the associated message, group, or interchange was rejected as a result of the error
+|errorCode |EDIFACT syntax error code
+|errorText |Text description of the error
+|===
+
+Error data is returned by the read operation as optional lists with the "Errors" key at every level of the data structure. At the message level, this list contains non-fatal errors encountered during the parsing of that message. At the interchange level, this list contains errors (both fatal and non-fatal) for messages with fatal errors. At the root level of the read, this list contains both interchange errors and errors for messages included in interchanges with no valid messages.
 
 === Writing EDIFACT Messages
 
@@ -305,7 +319,7 @@ To write an outgoing message, you'll need to construct an outgoing EDIFACT mes
 
 == Sending Acknowledgements
 
-Sending acknowledgments is the same as writing any other EDIFACT message, except you set the transactions list to the acknowledgements that were generated during the read operation. For example:
+Sending acknowledgments is the same as writing any other EDIFACT message, except you set the messages list to the acknowledgements that were generated during the read operation. For example:
 
 [source,xml, linenums]
 ----
