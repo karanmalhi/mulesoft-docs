@@ -1,0 +1,82 @@
+= Transmission Tracking Walkthrough
+:keywords: b2b, tracking
+
+== Audience
+
+This document is aimed at a technical audience possessing basic knowledge of Anypoint Studio and Anypoint B2B.
+
+== Prerequisites
+
+* Anypoint Studio with Mule Server 3.7.0 EE runtime
+* Anypoint Platform account
+* Amazon S3 bucket for file storage (optional)
+
+== Running the example
+
+. Download the link:_attachments/b2b-tracking-transmission.zip[application] and import it into Anypoint Studio.
+. From your web browser, log into Anypoint Partner Manager. Go to the Home Organization page and copy your secret API key.
+. From the imported Mule project in Anypoint Studio, click the file `b2b-tracking-transmission.xml` in the `app` folder, and select the *Global Elements* view tab. Open the B2B Connector configuration and set the API Key you read from the Anypoint Partner Manager.
+. Right-click  the imported project folder from the *Project Explorer* view. Select *Run As* and click *Mule Application*.
+. Create a copy of the file `po.xml` in `src/test/resources` and place it in the `outbox` directory
+. The file should disappear from the directory since the File Connector message source  deletes the file after it reads it.
+. Access the B2B Transmissions page in the Anypoint Partner Manager to confirm that the B2B exchange was tracked.
+
+= Anypoint B2B Platform Transmission Tracking Walkthrough
+
+This walkthrough shows you how to leverage the Anypoint B2B Platform to track B2B exchanges for non-EDI messages and connectors that are not included in Anypoint B2B. In this walkthrough you will develop a Mule application that simulates a B2B exchange of a XML purchase order. The application will read a purchase order file from a directory in your local filesystem and save it to another directory. In between, the exchange, in terms of metadata, message content and other data, will be tracked using the B2B Connector. Once tracked, the exchange can be viewed from the Anypoint Partner Manager.
+
+. Launch Anypoint Studio and create a new Mule project.
+. Switch to the *Global Elements* view and create a B2B Connector configuration as described in the link:/anypoint-b2b/as2-and-edi-x12-purchase-order-walkthrough[AS2 and X12 Purchase Order Walkthrough].
+. Go back to the *Message Flow* view. Drag the *File Connector* from the palette to the canvas in order to create a message source:
++
+image:transmission-tracking-walk-1.png[transmission-tracking-walk-1]
++
+. Configure the *File Connector* message source to read from a directory called `outbox`:
++
+image:transmission-tracking-walk-2.png[transmission-tracking-walk-2]
++
+. Add an *Object to String* transformer after the message source in order to read from the file stream:
++
+image:transmission-tracking-walk-3.png[transmission-tracking-walk-3]
++
+. Drag the *B2B Connector* from the palette and add it to the flow:
++
+image:transmission-tracking-walk-4.png[transmission-tracking-walk-4]
++
+. Select as *Connector Configuration* the config that you created in step 2. Select *Track transmission* for the *operation*:
++
+image:transmission-tracking-walk-5.png[transmission-tracking-walk-5]
++
+. Configure the *Track transmission* operation as follows:
++
+[cols=",",]
+|===
+|*Field* |*Value*
+|From-party identifier|`#[xpath3(''/PurchaseOrder/Address/Name'')`]
+|To-party identifier|`My Organisation`
+|Content Reference (Set only if you have configured the File Storage type on the B2B Connector config)|`#[payload]`
+|Filename|`#[flowVars.originalFilename]`
+|Format Type|`XML`
+|===
++
+image:transmission-tracking-walk-6.png[transmission-tracking-walk-6]
++
+In addition to the above, click on Create Object manually which is located next to the *Metadata* attribute. This action brings up the *Object Builder* that allows you to define the metadata to be saved as part of the transmission. Define the metadata entries as shown in the screenshot below:
++
+image:transmission-tracking-walk-7.png[transmission-tracking-walk-7]
++
+. Add a *File Connector* to the flow such that the purchase order is written out to a different directory called `inbox`:
++
+image:transmission-tracking-walk-8.png[transmission-tracking-walk-8]
++
+. Right-click on the project and run the application as a Mule project:
++
+image:transmission-tracking-walk-9.png[transmission-tracking-walk-9]
++
+If you have enabled S3 storage in the B2B Connector config, then you need to add the AWS and S3 parameters to the Mule application VM arguments. Consult the link:/anypoint-b2b/as2-and-edi-x12-purchase-order-walkthrough[AS2 and X12 Purchase Order Walkthrough] for information on how to add the parameters.
++
+. Drop the file link:_attachments/po.xml[b2b-tracking-po.xml] in the `outbox` directory. You should see the file moved to the `inbox` directory.
++
+. Access the Anypoint Partner Manager and go to the B2B transmissions view to confirm that the exchange was tracked:
++
+image:transmission-tracking-walk-10.png[transmission-tracking-walk-10]
