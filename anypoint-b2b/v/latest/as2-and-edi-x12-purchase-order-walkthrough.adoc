@@ -3,11 +3,11 @@
 
 === Audience
 
-This document is for a technical audience possessing basic knowledge of AS2, X12, and Anypoint Platform. Familiarity of link:http://modusintegration.github.io/mule-connector-as2/quickstart.html[AS2 Connector], link:/anypoint-b2b/x12-module[X12 Module] and link:/mule-user-guide/v/3.7/Datamapper-User-Guide-and-Reference[DataMapper] is *assumed*.
+This document is for a technical audience possessing basic knowledge of link:/mule-user-guide/v/3.7/Datamapper-User-Guide-and-Reference[DataMapper], link:http://modusintegration.github.io/mule-connector-as2/quickstart.html[AS2 Connector], link:/anypoint-b2b/x12-module[X12 Module], and Anypoint Platform.
 
 === Prerequisites
 
-* Anypoint Studio with Mule Server 3.6.1 EE runtime
+* Anypoint Studio with Mule Server 3.7.1 EE runtime
 * AS2 Connector 2.0, B2B Connector 1.0, and X12 Module 1.0 installed
 * Anypoint Platform account
 * Amazon S3 bucket for AS2 and EDI file storage (optional)
@@ -24,14 +24,14 @@ To run this example follow the steps below:
 
 . Download the link:_attachments/as2-x12-doc.zip[as2-x12-doc.zip application], and unzip.
 . Import the application in Anypoint Studio: click *File* > *Import* > *Anypoint Studio Project from External Location*. Click *Next*, select the downloaded application, and click *Finish*.
-. From your web browser, log in to the Anypoint Partner Manager, then click your HomeOrg view, and copy your API key (reference step 3.2.).
-. In Anypoint, click the file `customer.xml` in the app folder, and select the Global view tab. Then open the configurations of B2B, and insert the API Key you got from the Anypoint Partner Manager.
-. Right-click  the imported project folder, `as2-x12-doc`, select *Run As*, and click *Mule Application*.
-. Inside the project is a file in src/test/resources called po.xml. Create a copy and place it in the "outbox" folder. You can get a copy of the po.xml file from the link:_attachments/as2-x12-po.xml[as2-x12-po.xml] attachment. Rename as po.xml.
-. The file should disappear from the directory since the File inbound endpoint  deletes the file once it reads it.
+. From your web browser, log in to the Anypoint Partner Manager and then click the home organization view in the top right corner. Copy your API key (reference step 3.2.).
+. In Anypoint Studio, click the file _customer.xml_ in the app directory, and select the Global view tab. Double-click the B2B global element configuration and insert the API key you got from the Anypoint Partner Manager.
+. Right-click on the imported project directory _as2-x12-doc_. Select *Run As* and click *Mule Application*.
+. Inside the project is a file in _src/test/resources_ called link:_attachments/as2-x12-po.xml[po.xml]. Create a copy and place it in the _outbox_ directory.
+. The file should disappear from the directory since the File message source deletes the file once it reads it.
 . Access the B2B Transmissions view in the Anypoint Partner Manager to confirm that the AS2 and X12 transmissions have taken place.
 
-== Anypoint B2B Platform AS2 and EDI X12 Purchase Order Example
+== Introduction
 
 This example shows how to leverage the Anypoint B2B Platform to manage and track B2B exchanges. The goal is to develop a Mule application, representing a customer, that transforms an XML purchase order read from the filesystem to an X12 850 and sends it to a supplier over AS2. The supplier returns an X12 997 to an AS2 endpoint the application is listening on in order to inform the customer whether the 850 was accepted or rejected. All B2B transactions are managed and recorded by Anypoint B2B Platform while the actual files exchanged are stored in an Amazon S3 bucket.
 
@@ -39,11 +39,11 @@ image:B2B_AS2EDI_01.png[B2B_AS2EDI_01]
 
 == Partnership Set Up
 
-The first stage of the solution is to create a partnership between your organisation and the supplier from the Anypoint Partner Manager. A partnership establishes the context in which B2B data can be exchanged between you and your partner. Furthermore, it allows this data to be tracked and viewed from the Anypoint Partner Manager.
+The first stage of the solution is to create a partnership between your organization and the supplier from the Anypoint Partner Manager. A partnership establishes the context in which B2B data can be exchanged between you and your partner. Furthermore, it allows this data to be tracked and viewed from the Anypoint Partner Manager.
 
 === Create Partnership
 
-. Login into lAnypoint Partner Manager:
+. Login into Anypoint Partner Manager:
 +
 image:B2B_AS2EDI_02.png[B2B_AS2EDI_02]
 +
@@ -70,7 +70,7 @@ image:B2B_AS2EDI_05.png[B2B_AS2EDI_05]
 image:B2B_AS2EDI_06.png[B2B_AS2EDI_06]
 +
 . Press *Save*.
-. Navigate to the *Trading Partners* page and click the home organisation settings link on the upper right corner, next to the home icon:
+. Navigate to the *Trading Partners* page and click the home organization settings link on the upper right corner, next to the home icon:
 +
 image:B2B_AS2EDI_07.png[B2B_AS2EDI_07]
 +
@@ -81,7 +81,21 @@ image:B2B_AS2EDI_08.png[B2B_AS2EDI_08]
 == Set Up X12
 
 . Return to the *Trading Partners* page and select the newly created *My Supplier* from your list of partners. Click the *X12* format settings found on the left hand side menu.
-. In the *Outbound* section, fill in the fields according to the table below: 
+. In the *Inbound* section, fill in the fields according to the table below: 
++
+[cols=",",]
+|===
+|*Field* |*Value*
+|Interchange sender ID qualifier  (ISA 05) |ZZ
+|Interchange sender ID (ISA 06) |MY-SUPPLIER
+|Interchange receiver ID qualifier (ISA 07) |ZZ
+|Interchange receiver ID (ISA 08) |MOUNTAINOUT
+|Require unique GS control numbers (GS 06) |FALSE
+|===
++
+image:B2B_AS2EDI_24.png[B2B_AS2EDI_24]
++
+. In the *Outbound* section, fill in the fields according to the table below:
 +
 [cols=",",]
 |===
@@ -93,30 +107,12 @@ image:B2B_AS2EDI_08.png[B2B_AS2EDI_08]
 |Repetition separator character (ISA 11) |U
 |Default Interchange usage indicator (ISA 15) |Test
 |Component element separator character (ISA 16) |>
-|Application sender code (GS 02) |MOUNTAINOUT
-|Application receiver code (GS 03) |MY-SUPPLIER
-|Version identifier code suffix (GS 08) |005010
 |Segment terminator character |~
 |Data Element Delimiter |*
 |Character set |Extended
 |Character encoding |ASCII
 |Line ending between segments |LFCR
 |Require unique GS control numbers (GS 06) |TRUE
-|===
-+
-. Scroll down to the *Inbound* section and fill in the fields according to the table below:
-+
-[cols=",",]
-|===
-|*Field* |*Value*
-|Interchange sender ID qualifier  (ISA 05) |ZZ
-|Interchange sender ID (ISA 06) |MY-SUPPLIER
-|Interchange receiver ID qualifier (ISA 07) |ZZ
-|Interchange receiver ID (ISA 08) |MOUNTAINOUT
-|Application sender code (GS 02) |MY-SUPPLIER
-|Application receiver code (GS 03) |MOUNTAINOUT
-|Require unique GS control numbers (GS 06) |FALSE
-|Require unique transaction set control numbers (ST 02) |FALSE
 |===
 +
 image:B2B_AS2EDI_09.png[B2B_AS2EDI_09]
@@ -134,8 +130,8 @@ The next stage of the solution is to develop a Mule application that transforms 
 Each part has its own Mule configuration file.
 
 * Launch Anypoint Studio and create a new Mule project.
-* Rename the initial Mule config file created by Studio to _customer.xml_ 
-* Create a new Mule config and name it _mock-supplier_
+* Rename the initial Mule configuration file created by Studio to _customer.xml_ 
+* Create a new Mule configuration file and name it _mock-supplier_
 +
 image:B2B_AS2EDI_10.png[B2B_AS2EDI_10]
 
@@ -148,13 +144,13 @@ Create the customer’s connector configs in the customer Mule config file befor
 The B2B Connector acts like a bridge between Mule and Anypoint‘s B2B services. It allows the AS2 Connector and EDI Module to fetch partnerships and record transmissions.
 
 . Click the *Global Elements* view. Go to *Create* > *Connector Configuration* > *B2B*.
-. Enter your secret API key which is retrieved from your home organisation’s *Contacts* settings page in the Anypoint Partner Manager. Remember, the home organisation settings is accessed by clicking on the home organisation settings link on the upper right corner, next to the home icon:
+. Enter your secret API key which is retrieved from your home organization’s *Contacts* settings page in the Anypoint Partner Manager. Remember, the home organization settings is accessed by clicking on the home organization settings link on the upper right corner, next to the home icon:
 +
 image:B2B_AS2EDI_11.png[B2B_AS2EDI_11]
 +
 image:B2B_AS2EDI_12.png[B2B_AS2EDI_12]
 +
-. If you have an Amazon S3 bucket available, you should select *s3* as the *File Storage Type*. Setting this option tells the B2B Connector to persist X12 documents and AS2 message content to S3.
+. If you have an Amazon S3 bucket available, you should select *amazon_s3* as the *File Storage Type*. Setting this option tells the B2B Connector to persist X12 documents and AS2 message content to Amazon S3.
 +
 image:B2B_AS2EDI_13.png[B2B_AS2EDI_13]
 +
@@ -238,10 +234,6 @@ image:B2B_AS2EDI_16.png[B2B_AS2EDI_16]
 |Quantity |PO102 - Quantity
 |USPrice |PO104 - Unit Price
 |PartNumber |PO107 - Produce/Service ID
-|City |Heading -> 3100_N1 -> 3400_N4 -> N401 - City Name
-|State |Heading -> 3100_N1 -> 3400_N4 -> N402 - State or Province Code
-|Zip |Heading -> 3100_N1 -> 3400_N4 -> N403 - Postal Code
-|Country |Heading -> 3100_N1 -> 3400_N4 -> N404 - Country Code
 |TotalPrice |Summary -> 100_CTT -> 0200_AMT -> AMT02 - Monetary Amount
 |'TT' |Summary -> 100_CTT -> 0200_AMT -> AMT01 - Amount Qualifier Code
 |===========
