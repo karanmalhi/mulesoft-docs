@@ -110,15 +110,16 @@ For details on how Docker handles networking on the host OS, see the Docker link
 
 Other clients on your network can connect to your on-premise Anypoint Platform installation using the network address of the host where Anypoint Platform resides.
 
+[[host]]
 === Host Name (Running on a Virtual Machine)
 
-If you are running Docker on a virtual machine (as you do when using Docker Machine),  you need to obtain the virtual machine's IP address. This is the IP address that you will use to connect to the Anypoint Platform instance that you will install on the virtual machine.
+If you are running Docker on a virtual machine (as you do when using Docker Machine), you need to obtain the virtual machine's IP address. This is the IP address that you will use to connect to the Anypoint Platform instance that you will install on the virtual machine.
 
 ==== Using Docker Machine
 
 If you are using Docker Machine, to find out the IP address of your virtual machine, open a terminal on your host machine and run:
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 docker machine ip
 ----
@@ -145,14 +146,14 @@ If you created a virtual machine in VirtualBox, by default it will have only one
 . Click *OK*, then start your virtual machine. VirtualBox should create a private network on the 192.168.* range and assign an IP to your virtual machine.
 . Login to your virtual machine, and check its network interfaces for the "host-only" address. For example, run:
 +
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 ifconfig -a | grep 192
 ----
 +
 Output should be similar to the following:
 +
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 inet addr:192.168.56.103  Bcast:192.168.56.255  Mask:255.255.255.0
 ----
@@ -164,8 +165,8 @@ When you install Anypoint Platform, you can connect to it from your host machin
 ==== Setting Up a Host Name for Your Docker Machine
 
 On your host system (OS X or Windows), open the `hosts` file and add the following line:
-+
-[code, basch, linenums]
+
+[code, bash, linenums]
 ----
 <IP address> anypoint.mulesoft.local
 ----
@@ -207,7 +208,7 @@ Log in to your Docker machine as the root user, or as a user authorized to run D
 ====
 In virtual machines you can run Docker commands as a non-root user by adding the user to the `docker` group. To add a user to the `docker` group, run (as root):
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 usermod -a -G docker <user>
 ----
@@ -221,7 +222,7 @@ Running Docker commands as a non-root user is recommended for the commands for l
 
 On your Docker machine, login to your Docker Hub account.
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 docker login -e <email> -p <password> -u <username>
 ----
@@ -234,7 +235,7 @@ Uncompress the Anypoint Docker Setup .zip file to your Docker machine. The conte
 ====
 Docker Machine is set up to use VirtualBox https://www.virtualbox.org/manual/ch04.html#sharedfolders[shared folders] to enable file transfers between your host OS and the Docker machine. In a normal Docker Machine installation, your home folder should be shared by default to `docker-machine`, and you should see it on the Docker machine by running the `df` command. The output below shows the OS X folder `/Users` mounted on a docker-machine virtual machine.
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 Filesystem                Size      Used Available Use% Mounted on
 tmpfs                     1.8G    115.3M      1.6G   6% /
@@ -254,7 +255,7 @@ Using a terminal, navigate to the `full-anypoint-platform` directory. Here you 
 
 Run the script as root:
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 ./pull-docker-images.sh
 ----
@@ -281,7 +282,7 @@ NOTE: You need to disable SELinux and iptables if they are enabled on your host 
 
 After startup completes, you need to seed the platform database with an initial set of users.On the Docker machine, open another terminal and run the following command while in the Anypoint Platform folder:
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 ./seed-database.sh
 ----
@@ -299,7 +300,7 @@ https://anypoint.mulesoft.local/accounts/#/setup
 
 Ensure to use `https` instead of `http`, or login will not work.
 
-NOTE: For the above address to work, you need to have set up a DNS entry with this address. For details on how to find out the IP address and set up a network host name, see <<host,above>>.
+NOTE: For the above address to work, you need to have set up a DNS entry with this address. For details on how to find out the IP address and set up a network host name, see <<host, above>>.
 
 When you login to Anypoint Platform for the first time, Anypoint Platform prompts you to create an organization and user.
 
@@ -358,12 +359,12 @@ These commands are run on the Docker machine, as root or as a user authorized to
 
 On the Docker machine, go to the `full-anypoint-platform` directory, which contains the configuration file for Anypoint Platform on premise, `docker-compose.yml`. From this directory, run:
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 docker-compose stop
 ----
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 docker@docker-machine:/home/docker/full-anypoint-platform# docker-compose stop
 Stopping fullanypointplatform_mcm_1...
@@ -376,7 +377,7 @@ Stopping fullanypointplatform_hybriddb_1...
 
 This command sends a SIGTERM to all running containers. There is a timeout of ten seconds, after which the SIGKILL signal is sent to any remaining running containers. You can modify the timeout value with the `-t` parameter:
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 docker-compose stop -t 30
 ----
@@ -385,14 +386,14 @@ To start all Anypoint Platform containers, use `docker-compose start`.
 
 === Checking Status of Docker Containers
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 docker ps -a
 ----
 
 The output below shows the listing for a full running Anypoint Platform on-premises Edition installation (only the first five columns are displayed).
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 CONTAINER ID        IMAGE                                  COMMAND                CREATED             STATUS
 4ce947f1da77        mulesoft/mcm                           "catalina.sh run"      2 days ago          Up 2 days
@@ -421,7 +422,7 @@ Docker stores logs in the directory `<Docker user's home>/dockerlogs`, where `<D
 
 Docker log files begin with the date they were created.
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 docker@docker-machine:~/dockerlog# ls -l
 total 1200
@@ -432,7 +433,7 @@ total 1200
 
 To view the files, you can use a terminal pager such as `less`:
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 less 0150807.b51cbaf472f07e28d.log
 ----
@@ -447,7 +448,7 @@ The `dockerlogs` directory contains logs of startup, shutdown and other events 
 
 Running `docker` without parameters prints a help message with options and commands.
 
-[code, basch, linenums]
+[code, bash, linenums]
 ----
 docker@docker-machine:~$ docker
 Usage: docker [OPTIONS] COMMAND [arg...]
