@@ -53,12 +53,12 @@ Oracle EBS Connector 1.0 is compatible with:
 Oracle EBS offers different technologies or products to address various types of integrations. Listed below are the most widely used for integration with enterprise applications:
 
 . Data-centric integration.
-. Event-driven integration using Oracle Business Event System.
+. Event-driven integration using Oracle Business Event System and XML Gateway queues.
 . Integration through Web Services using Integrated SOA gateway.
 
 The following illustration shows the integration architecture of the MuleSoft Oracle EBS connector:
 
-image:oracle_ebs_connector_architecture.jpg[oracle_ebs_connector_architecture]
+image:oracle_ebs_connector_architecture.png[oracle_ebs_connector_architecture]
 
 link:https://docs.oracle.com/cd/E18727_01/index.htm[Go to Oracle E-Business Suite Documentation Web Library for more information]. 
 
@@ -98,7 +98,7 @@ image:javacheck.png[javacheck]
 +
 . Click *Finish* to create the project.
 
-== Configuring a Global Element
+== Configuring an Oracle EBS Global Element
 
 To use the Oracle EBS connector in your Mule application, you must configure a global Oracle EBS element that can be used by all the Oracle EBS connectors in the application (read more about link:/mule-fundamentals/v/3.7/global-elements[global elements]).
 
@@ -110,7 +110,7 @@ Follow these steps to create an Oracle EBS global element:
 
 . Click the *Global Elements* tab at the base of the canvas.
 . On the Global Mule Configuration Elements screen, click *Create*.
-. In the *Choose Global Type wizard*, expand *Connector Configuration*, and then select *OracleEBS: Connection Management*.
+. In the *Choose Global Type wizard*, expand *Connector Configuration*, and then select *OracleEBS: Configuration*.
 +
 image:oracle_ebs_connector_config.png[oracle_ebs_connector_config]
 +
@@ -188,7 +188,7 @@ Follow these steps to configure a Oracle EBS connector in your application:
 |===
 |*Parameter* |*Description*
 |*Name* |Enter a name for the configuration with which it can be referenced later.
-|*Username* |Username to log in to Oracle EBS web services.
+|*Username* |Username to log into Oracle EBS web services.
 |*Password* |Password for the username.
 |*Host* |Enter the host of the Oracle EBS instance.
 |*Port* |Enter the port of the Oracle EBS web services.
@@ -201,7 +201,7 @@ Follow these steps to configure a Oracle EBS connector in your application:
 |*Responsibility Appl. Name* |Enter the application short name that is needed to execute the operation.
 |*Security Group Name* |Enter the security group key of the Oracle EBS instance (optional).
 |*NLS language* |Enter the NLS language of the Oracle EBS instance (optional).
-|*Org. ID* |Enter the organization id of the Oracle EBS instance (optional).
+|*Org. ID* |Enter the organization ID of the Oracle EBS instance (optional).
 |===
 
 ....
@@ -209,13 +209,15 @@ Follow these steps to configure a Oracle EBS connector in your application:
 
 == Using the Connector
 
-Oracle EBS connector is an operation-based connector, which means that when you add the connector to your flow, you need to configure a specific web service for the connector to perform. After you select the web service, you can use the Type field to select a method that you want to execute.
+The Oracle EBS connector can be used both as a message source, if you wish to subscribe to queues, and as an operation-based connector, if your goal is to invoke web service operations.
+If you intend to subscribe to a queue or topic (such as the XML Gateway Outbound queue or the Business Events topic), you will need to drag the connector to the "Source" section of your flow. After doing so, and selecting a Connector Configuration, you will have to choose the queue/topic you wish to subscribe to, from the *Operation* dropdown.
+If you drag the connector to the "Process" section of your flow, you will need to select a web service operation and fill in its input parameters. If the operation you need to invoke is a PL/SQL function exposed as a web service, you will select the Invoke PL/SQL Operation, and then the PL/SQL and Function from the two dropdowns that appear below.
 
-=== Use Cases
+== PL/SQL Operation Use Case
 
 The following is a common use case for the Oracle EBS connector: 
 
-* Execute a custom PL/SQL operation from the custom PL/SQL web service. 
+* Execute a PL/SQL operation from the custom PL/SQL web service. 
 
 === Adding to a Flow
 
@@ -237,7 +239,7 @@ image:oracle_ebs_config.png[oracle_ebs_config]
 . Click the blank space on the canvas to save your configurations.
 . If you select the *Invoke PL/SQL* operation, you need to add a *DataMapper* transformer to map the values from the flow to the input parameters for the PL/SQL operation.
 
-== Example Use Case
+=== Example Use Case
 
 Execute a custom PL/SQL operation from the custom PL/SQL web service. 
 
@@ -247,8 +249,8 @@ Execute a custom PL/SQL operation from the custom PL/SQL web service. 
 ....
 image:oracle_ebs_example_flow.png[oracle_ebs_example_flow]
 
-. Create a Mule project in your Anypoint Studio.
-. Drag an HTTP connector into the canvas, then select it to open the properties editor console.
+. Create a Mule project in Anypoint Studio.
+. Drag an HTTP connector onto the canvas, then select it to open the properties editor console.
 . Add a new HTTP Listener Configuration global element:
 .. In *General Settings*, click the plus sign (*+*):
 +
@@ -281,7 +283,7 @@ image:connectorconfig.png[connectorconfig]
 |=======
 |Field|Description
 |*Name* |Enter a name you prefer
-|*Username* |Username to log in to Oracle EBS web services.
+|*Username* |Username to log into Oracle EBS web services.
 |*Password* |Password for the username.
 |*Host* |Enter the host of the Oracle EBS instance.
 |*Port* |Enter the port of the Oracle EBS web services.
@@ -294,12 +296,15 @@ image:connectorconfig.png[connectorconfig]
 |*Responsibility Appl. Name* |Enter the application short name that is needed to execute the operation.
 |*Security Group Name* |Enter the security group key of the Oracle EBS instance (optional).
 |*NLS language* |Enter the NLS language of the Oracle EBS instance (optional).
-|*Org. ID* |Enter the organization id of the Oracle EBS instance (optional).
+|*Org. ID* |Enter the organization ID of the Oracle EBS instance (optional).
 |*Custom PL/SQL web services* |Select *Create Object manually*, click the button on the right and add all custom PL/SQL web services you want to execute. In the example we use FND_WEB_SEC.
+|*Required dependencies* |Select the location in your local file system for the Oracle AQ API and Oracle JDBC Driver. Both are used in the Test Connection process and subscription to queues and topics.
 |=======
 +
 .. Click *Test Connection* to confirm that Mule can connect with the Oracle EBS instance. If the connection is successful, click *OK* to save the configurations. If unsuccessful, revise or correct any incorrect parameters, then test again.
 . Back in the properties editor of the Oracle EBS connector, configure the remaining parameters according to the table below:
++
+image:oracle_ebs_connector_operation_config.png[oracle_ebs_connector_operation_config]
 +
 [cols=",",]
 |=====
@@ -307,8 +312,8 @@ image:connectorconfig.png[connectorconfig]
 |*Display Name* |Testing custom PL/SQL operation (or any other name you prefer)
 |*Connector Configuration* |Oracle (Enter name of the global element you have created)
 |*Operation* |Invoke PL/SQL
-|*PL/SQL* |Web Sec
-|*Function* |Validate Login (custom)
+|*PL/SQL* |Fnd Web Sec (custom)
+|*Function* |Validate Login
 |*Input Reference* |From Message `#[payload]`
 |=====
 +
@@ -340,7 +345,7 @@ image:queryParamsDataMapper.png[queryParamsDataMapper]
 |*Level* |INFO (Default)
 |===
 +
-. Add a *Catch Exception Strategy* and add a logger component inside it. Configure the logger message attribute with `[payload]`, and set the level to ERROR.
+. Add a *Catch Exception Strategy* and add a logger component inside it. Configure the logger message attribute with `#[payload]`, and set the level to ERROR.
 +
 [width="100%",cols="50a,50a",options="header"]
 |===
@@ -358,7 +363,14 @@ image:queryParamsDataMapper.png[queryParamsDataMapper]
 +
 [source, xml, linenums]
 ----
-<oracle-ebs:config-name name="OracleEBS__ConnectionManagement" username="${oracle.username}" password="${oracle.password}" host="${oracle.host}" port="${oracle.port}" responsibilityName="${oracle.responsibilityName}" responsibilityApplName="${oracle.responsibilityApplName}" doc:name="OracleEBS: ConnectionManagement">
+<oracle-ebs:config name="OracleEBS__Configuration" username="${username}" password="${password}" host="${host}" port="${port}" dbUser="${dbUser}" dbPassword="${dbPassword}" dbHost="${dbHost}" dbPort="${dbPort}" dbSid="${dbSid}" responsibilityName="${responsibilityName}" responsibilityApplName="${responsibilityApplName}" doc:name="OracleEBS: Configuration">
+----
++
+. Do the same, but configure the HTTP endpoint as follows:
++
+[source, xml, linenums]
+----
+<http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
 ----
 +
 . Configure your Oracle EBS custom PL/SQL web services in the Mule application. To do so, find the `<oracle-ebs:custom-pl-sql-name-list>` internal tag and replace it with the following:
@@ -366,8 +378,8 @@ image:queryParamsDataMapper.png[queryParamsDataMapper]
 [source, xml, linenums]
 ----
 <oracle-ebs:custom-pl-sql-name-list>
-            <oracle-ebs:custom-pl-sql-name-list>FND_WEB_SEC</oracle-ebs:custom-pl-sql-name-list>
-    </oracle-ebs:custom-pl-sql-name-list>
+    <oracle-ebs:custom-pl-sql-name-list>FND_WEB_SEC</oracle-ebs:custom-pl-sql-name-list>
+</oracle-ebs:custom-pl-sql-name-list>
 ----
 +
 . Begin the flow with a HTTP endpoint, configuring the endpoint as follows:
@@ -390,10 +402,10 @@ image:queryParamsDataMapper.png[queryParamsDataMapper]
 +
 [source, xml, linenums]
 ----
-<oracle-ebs:invoke-pl-sql config-ref="OracleEBS" doc:name="Testing custom PL/SQL operation" type="fnd_web_sec#VALIDATE_LOGIN"/>
+<oracle-ebs:invoke-pl-sql config-ref="OracleEBS__Configuration" type="fnd_web_sec||VALIDATE_LOGIN" doc:name="Testing custom PL/SQL operation"/>
 ----
 +
-. Add  a DOM to XML Transformer.
+. Add a DOM to XML Transformer.
 +
 [source, xml, linenums]
 ----
@@ -420,7 +432,7 @@ image:queryParamsDataMapper.png[queryParamsDataMapper]
 ....
 ------
 
-== Example Code
+=== Example Code
 
 [source, xml, linenums]
 ----
@@ -446,7 +458,7 @@ http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/
     <flow name="oracle-ebs-exampleFlow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP"/>
         <data-mapper:transform config-ref="Map_To_Xml_InputParameters_" input-ref="#[message.inboundProperties[&quot;http.query.params&quot;]]" doc:name="Map To Xml&lt;InputParameters&gt;"/>
-        <oracle-ebs:invoke-pl-sql config-ref="OracleEBS__Configuration" type="fnd_web_sec#VALIDATE_LOGIN" doc:name="OracleEBS"/>
+        <oracle-ebs:invoke-pl-sql config-ref="OracleEBS__Configuration" type="fnd_web_sec||VALIDATE_LOGIN" doc:name="OracleEBS"/>
         <mulexml:dom-to-xml-transformer doc:name="DOM to XML"/>
         <logger message="### EBS Test #[payload]" level="INFO" doc:name="Logger"/>
     </flow>
@@ -454,6 +466,142 @@ http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/
         <logger message="#[payload]" level="ERROR" doc:name="Logger"/>
     </catch-exception-strategy>
 </mule>
+----
+
+== Business Events Use Case
+
+This use case describes how a basic flow should be configured in order to use the connector as a source. More specifically, this sample will subscribe to the Business Events topic and log all messages that arrive from it.
+
+=== Adding to a Flow
+
+. Create a new Mule project in Anypoint Studio.
+. Drag a new Flow scope element onto the canvas.
+. Add an Oracle EBS connector as an Inbound endpoint at the beginning of the flow.
+. Drag a Logger to the Process section of the flow.
+. Configure the connector's parameters according to the table below.
++
+image:oracle_ebs_config_source_2.png[oracle_ebs_config_source_2]
++
+[cols=",",]
+|===
+|*Field* |*Description*
+|*Display Name* |Enter a unique label for the connector in your application.
+|*Connector Configuration* |Connect to a global element linked to this connector. Global elements encapsulate reusable data about the connection to the target resource or service. Select the global Oracle EBS connector element that you just created.
+|*Operation* |Select the queue or topic you wish to subscribe to from the dropdown. In this example, we will select Business Events, but you could also pick XML Gateway Outbound.
+|===
+. Click the blank space on the canvas to save your configurations.
+
+=== Example Use Case
+
+Subscribe to the Business Events topic.
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+image:oracle_ebs_example_flow_source.png[oracle_ebs_example_flow_source]
+
+. Create a Mule project in your Anypoint Studio.
+. Drag a Flow into the canvas.
+. Drag the Oracle EBS connector into the Source section of the flow, then configure it according to the steps below:
+.. Add a new Oracle EBS Global Element by clicking the plus sign (*+*).
++
+image:connectorconfig_source.png[connectorconfig_source]
++
+.. Configure the global element according to the table below:
++
+[width="100%",cols="50a,50a",options="header",]
+|=======
+|Field|Description
+|*Name* |Enter a name you prefer
+|*Username* |Username to log into Oracle EBS web services.
+|*Password* |Password for the username.
+|*Host* |Enter the host of the Oracle EBS instance.
+|*Port* |Enter the port of the Oracle EBS web services.
+|*DB Username* |Username for the Oracle EBS database.
+|*DB Password* |Enter the password for the username.
+|*DB Host* |Enter the host of the Oracle EBS database is located.
+|*DB Port* |Enter the port of the Oracle EBS database.
+|*Database SID* |Enter the SID of the database.
+|*Responsibility Name* |Enter the responsibility name that is needed to execute the operation.
+|*Responsibility Appl. Name* |Enter the application short name that is needed to execute the operation.
+|*Security Group Name* |Enter the security group key of the Oracle EBS instance (optional).
+|*NLS language* |Enter the NLS language of the Oracle EBS instance (optional).
+|*Org. ID* |Enter the organization ID of the Oracle EBS instance (optional).
+|*Custom PL/SQL web services* |Select *None*.
+|*Required dependencies* |Select the location in your local file system for the Oracle AQ API and Oracle JDBC Driver. Both are used in the Test Connection process and subscription to queues and topics.
+|=======
++
+.. Click *Test Connection* to confirm that Mule can connect with the Oracle EBS instance. If the connection is successful, click *OK* to save the configurations. If unsuccessful, revise or correct any incorrect parameters, then test again.
+. Back in the properties editor of the Oracle EBS connector, configure the remaining parameters according to the table below:
++
+[cols=",",]
+|=====
+|*Field* |*Value*
+|*Display Name* |Business Events (or any other name you prefer)
+|*Connector Configuration* |OracleEBS__Configuration (Enter name of the global element you have created)
+|*Operation* |Business events
+|=====
++
+. Add a *Logger* scope right after the EBS Connector, to print the messages received from the Business Events topic in the Mule Console. Configure the Logger according to the table below:
++
+[width="100%",cols="50a,50a",options="header"]
+|===
+|*Field* |*Value*
+|*Display Name* |Logger (or any other name you prefer)
+|*Message* |`#[payload]`
+|*Level* |INFO (Default)
+|===
++
+. Save and run the project as a Mule Application.
+....
+[tab,title="XML Editor"]
+....
+. Add an oracle:config global element to your project, then configure its attributes as follows:
++
+[source, xml, linenums]
+----
+<oracle-ebs:config name="OracleEBS__Configuration" username="${username}" password="${password}" host="${host}" port="${port}" dbUser="${dbUser}" dbPassword="${dbPassword}" dbHost="${dbHost}" dbPort="${dbPort}" dbSid="${dbSid}" responsibilityName="${responsibilityName}" responsibilityApplName="${responsibilityApplName}" doc:name="OracleEBS: Configuration"/>
+----
++
+. Begin the flow with a Oracle EBS connector source, configuring the endpoint as follows:
++
+[source, xml, linenums]
+----
+<oracle-ebs:business-events config-ref="OracleEBS__Configuration" doc:name="OracleEBS (Streaming)"/>
+----
++
+. Add  a logger component and set message attribute value to _#[payload]_
++
+[source, xml, linenums]
+----
+<logger message="#[payload]" level="INFO" doc:name="Logger"/>
+----
++
++
+. Save and run the project as a Mule Application.
+....
+------
+
+=== Example Code
+
+[source, xml, linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:oracle-ebs="http://www.mulesoft.org/schema/mule/oracle-ebs" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/oracle-ebs http://www.mulesoft.org/schema/mule/oracle-ebs/current/mule-oracle-ebs.xsd">
+    <oracle-ebs:config name="OracleEBS__Configuration" username="${username}" password="${password}" host="${host}" port="${port}" dbUser="${dbUser}" dbPassword="${dbPassword}" dbHost="${dbHost}" dbPort="${dbPort}" dbSid="${dbSid}" responsibilityName="${responsibilityName}" responsibilityApplName="${responsibilityApplName}" doc:name="OracleEBS: Configuration"/>
+    <flow name="demo-business-eventsFlow">
+        <oracle-ebs:business-events config-ref="OracleEBS__Configuration" doc:name="OracleEBS (Streaming)"/>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+    </flow>
+</mule>
+
 ----
 
 == See Also
