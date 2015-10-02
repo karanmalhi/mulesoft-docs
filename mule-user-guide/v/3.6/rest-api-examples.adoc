@@ -333,9 +333,9 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
     <db:generic-config name="Postgres" url="jdbc:postgresql://dbserver/stock" driverClassName="org.postgresql.Driver" doc:name="Generic Database Configuration"/>
     <db:template-query name="insert_into_current" doc:name="Template Query">
         <db:parameterized-query><![CDATA[INSERT INTO current("name", "date", "bookvalue") VALUES(:name,:date,:bookvalue);]]></db:parameterized-query>
-        <db:in-param name="name" defaultValue="#[xpath('//Name').text]"/>
-        <db:in-param name="date" type="DATE" defaultValue="#[xpath('//LastTradeDate').text]"/>
-        <db:in-param name="bookvalue" defaultValue="#[xpath('//BookValue').text])"/>
+        <db:in-param name="name" defaultValue="#[xpath3('//Name').text]"/>
+        <db:in-param name="date" type="DATE" defaultValue="#[xpath3('//LastTradeDate').text]"/>
+        <db:in-param name="bookvalue" defaultValue="#[xpath3('//BookValue').text])"/>
     </db:template-query>
         
     <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
@@ -352,9 +352,9 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         <logger level="INFO" doc:name="Logger"/>
          
         <byte-array-to-string-transformer doc:name="Byte Array to String"/>
-        <splitter expression="#[xpath('//results')]" doc:name="Splitter"/>
+        <splitter expression="#[xpath3('//results')]" doc:name="Splitter"/>
         <db:insert config-ref="Postgres" doc:name="Database">
-            <db:dynamic-query><![CDATA[INSERT INTO mystock("name", "date", "bookvalue") VALUES(#[xpath('//Name').text], #[xpath('//LastTradeDate').text], #[xpath('//BookValue').text]);]]></db:dynamic-query>
+            <db:dynamic-query><![CDATA[INSERT INTO mystock("name", "date", "bookvalue") VALUES(#[xpath3('//Name').text], #[xpath3('//LastTradeDate').text], #[xpath3('//BookValue').text]);]]></db:dynamic-query>
         </db:insert> 
     </flow>
 </mule>
@@ -403,13 +403,13 @@ The HTTP request connector passes the XML it received from the API to a byte-arr
 
 So if you were to use this example application to query several stock symbols at once, the splitter would split the incoming XML into chunks corresponding to each queried symbol, then feed each chunk to the next message processor.
 
-To split the incoming XML, the splitter uses the link:/mule-user-guide/v/3.6/mule-expression-language-mel[Mule Expression Language] expression `#[xpath('//results')]`, which as you can see contains the http://en.wikipedia.org/wiki/XPath[XPath] expression that actually retrieves the XML element `<results>`.
+To split the incoming XML, the splitter uses the link:/mule-user-guide/v/3.6/mule-expression-language-mel[Mule Expression Language] expression `#[xpath3('//results')]`, which as you can see contains the http://en.wikipedia.org/wiki/XPath[XPath] expression that actually retrieves the XML element `<results>`.
 
 The last element in the flow, a link:/mule-user-guide/v/3.6/jdbc-connector[Database (JDBC)] connector, receives each XML chunk corresponding to each queried symbol. The JDBC connector is configured to run the following SQL query:
 
 [source, code, linenums]
 ----
-INSERT INTO mystock("name", "date", "bookvalue") VALUES(#[xpath('//Name').text], #[xpath('//LastTradeDate').text], #[xpath('//BookValue').text]);
+INSERT INTO mystock("name", "date", "bookvalue") VALUES(#[xpath3('//Name').text], #[xpath3('//LastTradeDate').text], #[xpath3('//BookValue').text]);
 ----
 
 The full configuration for this example is detailed below. To see the application in action, skip to <<Running This Example>>.
@@ -661,7 +661,7 @@ The splitter splits the incoming message into parts, dividing them with a user-d
 |*Display Name* |`Byte Array to String` .4+|image:splitter-gentab.png[splitter-gentab]
 |*Enable Correlation* |`IF_NOT_SET` (default)
 |*Message Info Mapping* |`-`
-|*Expression* |`#[xpath('//results')]`
+|*Expression* |`#[xpath3('//results')]`
 |===
 
 The Advanced tab is set to its default values; no configuration is necessary.
@@ -672,7 +672,7 @@ The Advanced tab is set to its default values; no configuration is necessary.
 
 [source, xml, linenums]
 ----
-<splitter expression="#[xpath('//results')]" doc:name="Splitter"/>
+<splitter expression="#[xpath3('//results')]" doc:name="Splitter"/>
 ----
 ....
 ------
@@ -696,7 +696,7 @@ The Advanced tab is set to its default values; no configuration is necessary.
 
 [source, code, linenums]
 ----
-INSERT INTO mystock("name", "date", "bookvalue") VALUES(#[xpath('//Name').text], #[xpath('//LastTradeDate').text], #[xpath('//BookValue').text]);
+INSERT INTO mystock("name", "date", "bookvalue") VALUES(#[xpath3('//Name').text], #[xpath3('//LastTradeDate').text], #[xpath3('//BookValue').text]);
 ----
 |===
 
@@ -711,7 +711,7 @@ image:db_conn_adv_tab.png[db_conn_adv_tab]
 [source, xml, linenums]
 ----
 <db:insert config-ref="Postgres" doc:name="Database">
-   <db:dynamic-query><![CDATA[INSERT INTO mystock("name", "date", "bookvalue") VALUES(#[xpath('//Name').text], #[xpath('//LastTradeDate').text], #[xpath('//BookValue').text]);]]> 
+   <db:dynamic-query><![CDATA[INSERT INTO mystock("name", "date", "bookvalue") VALUES(#[xpath3('//Name').text], #[xpath3('//LastTradeDate').text], #[xpath3('//BookValue').text]);]]> 
    </db:dynamic-query>
 </db:insert>
 ----
@@ -823,9 +823,9 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
     <db:generic-config name="Postgres" url="jdbc:postgresql://dbserver/stock" driverClassName="org.postgresql.Driver" doc:name="Generic Database Configuration"/>
     <db:template-query name="insert_into_current" doc:name="Template Query">
         <db:parameterized-query><![CDATA[INSERT INTO current("name", "date", "bookvalue") VALUES(:name,:date,:bookvalue);]]></db:parameterized-query>
-        <db:in-param name="name" defaultValue="#[xpath('//Name').text]"/>
-        <db:in-param name="date" type="DATE" defaultValue="#[xpath('//LastTradeDate').text]"/>
-        <db:in-param name="bookvalue" defaultValue="#[xpath('//BookValue').text])"/>
+        <db:in-param name="name" defaultValue="#[xpath3('//Name').text]"/>
+        <db:in-param name="date" type="DATE" defaultValue="#[xpath3('//LastTradeDate').text]"/>
+        <db:in-param name="bookvalue" defaultValue="#[xpath3('//BookValue').text])"/>
     </db:template-query>
      
      <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
