@@ -339,7 +339,19 @@ Sending acknowledgments is the same as writing any other EDI message, except you
 ----
 <x12-edi:read config-ref="Walmart" doc:name="Read EDI Doc"/>
 ...
-<set-payload value="#[ ['Transactions' : ['997' : payload.FunctionalAcksGenerated] ] ]" doc:name="Create outgoing message"/>
+<dw:transform-message doc:name="Create Outgoing Message">
+            <dw:input-payload doc:sample="InMessage.dwl"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	TransactionSets: {
+		v005010: {
+			'997' : payload.FunctionalAcksGenerated
+		}
+	}
+}]]></dw:set-payload>
+</dw:transform-message>
 <x12-edi:write config-ref="Walmart" doc:name="Send 997"/>
 <file:outbound-endpoint responseTimeout="10000" doc:name="File" path="output" outputPattern="ack.edi"/>
 ----

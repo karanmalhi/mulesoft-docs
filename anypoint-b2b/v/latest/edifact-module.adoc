@@ -325,6 +325,19 @@ Sending acknowledgments is the same as writing any other EDIFACT message, exce
 ----
 <edifact-edi:read config-ref="Walmart" doc:name="Read EDI Doc"/>
 ...
+<dw:transform-message doc:name="Transform Message">
+<dw:input-payload doc:sample="InMessage.dwl"/>
+<dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+    Messages: {
+        D96A: {
+            CONTRL: payload.FunctionalAcksGenerated
+        }
+    }
+}]]></dw:set-payload>
+ </dw:transform-message>
 <set-payload value="#[ ['Transactions' : ['CONTRL' : payload.FunctionalAcksGenerated] ] ]" doc:name="Create outgoing message"/>
 <edifact-edi:write config-ref="MyTradingPartner" doc:name="Send CONTRL Ack"/>
 <file:outbound-endpoint responseTimeout="10000" doc:name="File" path="output" outputPattern="ack.edi"/>
