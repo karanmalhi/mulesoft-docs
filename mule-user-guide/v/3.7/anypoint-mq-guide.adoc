@@ -1,0 +1,56 @@
+= Anypoint MQ Guide
+:keywords: mq, destinations, queues, exchanges
+
+== Overview
+
+Anypoint MQ (AMQ) is a pub/sub and point-to-point messaging broker that handles messages between:
+
+* Applications running on premises and applications in the Anypoint Resource Manager (ARM).
+* Applications running on CloudHub or in Anypoint API Gateway.
+
+AMQ works with Anypoint Studio using the MQ Connector to send and receive messages.
+
+Receiver applications register with AMQ to receive messages. Notification events trigger when a message arrives in AMQ.
+
+=== Use Case
+
+An example of AMQ would be where an application running Salesforce customer relationship manager (CRM) wants to communicate with two applications that handle different databases.
+
+image:mq-crm-to-dbs.png[CRM sends msg to MQ that apps receive]
+
+Using AMQ, the Salesforce application sends a pub/sub message to the AMQ message exchange, and the two applications receive the message from the message exchange and convey the message to their respective databases.
+
+In AMQ you create two queues, one for each database application, and you bind those two together to create a message exchange. The Salesforce application then writes its message to the message exchange and the database applications receive and process the message.
+
+=== Definitions
+
+AMQ provides these core concepts:
+
+* *Ack/Nack*: +
+*Ack* - Acknowledge a message. In this case, an application receives a message and the message deletes from the queue. +
+*Nack* - Negative acknowledge a message. In this case, an application does not receive a message and the message does not delete from the queue.
+* *Binding* - Enables pub/sub applications to bridge the simple pub/sub structure and utilize point-to-point features of sending a message to specific applications. Bindings identify which queues comprise an exchange. In Anypoint Platform, by specifying which message queues are in an exchange, Anypoint MQ creates and manages the bindings for you.
+* *Destination* - A middleware software component to which applications register to provide or receive messages, a storage area where messages are sent to, and from where an application receives a message. In Anypoint Studio, the destination is configured from the Anypoint MQ Connector.
+* *Durable message* - When a message is destined for the ID of a client, if AMQ is interrupted, such as by a network fault, the message waits until the client receives it.
+* *Message* - Serializable  link:/mule-fundamentals/v/3.7/mule-message-structure[Mule Message] content that applications send and receive, so that the applications can communicate with each other.
+* *Message Exchange* - A pub/sub message source with multiple outputs. Applications register to subscribe to what messages the exchange publishes.
+* *Point-to-point* - A pattern that allows an application to send a message that only one other MQ application can receive.
+* *Pub/sub* (publish/subscribe) - A ​pattern that allows messages to be distributed to multiple consumers.
+* *Publisher* - Applications that send messages to Anypoint MQ.
+* *Queue* - A point-to-point message storage area that holds a message that a client receives.
+* *Subscriber* - Applications that receive messages from Anypoint MQ.
+
+== Creating Queues
+
+You can use Anypoint Platform to create queues and exchanges.
+
+The Create Queue window lets you specify the Time-to-Live duration for how long a message persists in a queue, and how long you can apply a lock to a message so that your application has exclusive access to the message.
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. Click *MQ*:
++
+image:mq-in-taskbar.png[MQ appears in the upper AP taskbar]
++
+. Click the blue plus circle and click *Queue*:
++
+image:click-queue.png[Click the Queue option from the blue circle menu]
