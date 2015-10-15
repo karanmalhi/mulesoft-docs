@@ -1,14 +1,13 @@
 = Anypoint Connector Tutorial
-
 :keywords: connectors, tutorial, fundamentals
 
-After learning some of the basic functionality in the link:/mule-fundamentals/v/3.7/basic-studio-tutorial[Basic] and link:/mule-fundamentals/v/3.7/content-based-routing-tutorial[Content-Based Routing Tutorials], it's time to try your hand at developing a more complex application which makes use of **Anypoint Connectors**.
+After learning some of the basic functionality in the link:/mule-fundamentals/v/3.7/basic-studio-tutorial[Basic] and link:/mule-fundamentals/v/3.7/content-based-routing-tutorial[Content-Based Routing Tutorials], it's time to try your hand at developing a more complex application which makes use of *Anypoint Connectors*.
 
 image:mulestudio.png[mulestudio]
 
 Out of the box, Anypoint Studio comes with a set of connectors that you can easily add to flows to connect your application with several common software as a service (SaaS) applications such as Salesforce, Google Contacts, Facebook, and Twitter. These connectors simplify the interaction with the SaaS providers' APIs considerably as they provide pre-built methods for all of the available connector operations. Because much of the functionality of the individual connectors is dependent upon its target, there is link:http://www.mulesoft.org/connectors[specific documentation] for each connector; that said, there are also many features common to almost all connectors. After creating and running the application in this tutorial, you should be able to apply what you've learned to connect applications to various SaaS applications. 
 
-== Assumptions
+== Prerequisites
 
 This tutorial assumes that you have link:/mule-fundamentals/v/3.7/download-and-launch-anypoint-studio[downloaded and installed Anypoint Studio]. If you do not have any previous experience with Eclipse or an Eclipse-based IDE, please review the brief introduction to the link:/mule-fundamentals/v/3.7/anypoint-studio-essentials[Anypoint Studio interface] and the document describing link:/mule-fundamentals/v/3.7/global-elements[Global Elements in Mule]. Further, consider following the link:/mule-fundamentals/v/3.7/basic-studio-tutorial[Basic] and link:/mule-fundamentals/v/3.7/content-based-routing-tutorial[Content-Based Routing] tutorials.
 
@@ -29,7 +28,7 @@ In this tutorial, your goals are to:
 
 In order to use the Twitter API you must first create a Twitter developer account and obtain a set of credentials.
 
-. If you don't already have one, create a link:http://twitter.com/signup[regular Twitter account]. You may wish to create an account specifically for testing as you will be posting things to Twitter in this exercise. 
+. If you don't already have one, create a link:http://twitter.com/signup[regular Twitter account]. You may wish to create an account specifically for testing for posting things to Twitter in this exercise. 
 . Visit the link:https://dev.twitter.com/[Twitter Developers page] and sign in using your Twitter account credentials. This activity creates a separate developer account for you, with an association to your regular Twitter account. +
 . To create a new *Twitter Application*, navigate to https://dev.twitter.com/apps/new
 . Complete the *Application Details* form according to the table and image below.
@@ -39,7 +38,7 @@ In order to use the Twitter API you must first create a Twitter developer accoun
 |*Field* |*Value*
 |*Name* |A name for your application which must be unique to the Twitter system and which cannot contain the word "Twitter".
 |*Description* |A brief overview of the application you are building.
-|*Website* |An entry is required here, however, because this Twitter application will not be public, this field is not meaningful; enter a simple placeholder value.
+|*Website* |An entry is required here, however, because this Twitter application is not public, this field is not meaningful; enter a simple placeholder value.
 |*Callback URL* |Leave blank.
 |===
 +
@@ -98,9 +97,7 @@ image:flow1.png[flow1]
 
 Once you configure the individual elements within it, which is in the next section, this flow accomplishes the goals that you set out to achieve with this application. Each building block that you select and place on the canvas performs part of the functionality of your application, as shown in the image below.
 
-image:flow+globitos.png[flow+globitos]
-
-
+image:flow-globitos.png[flow-globitos]
 
 == Configuring the Flow Elements
 
@@ -109,23 +106,23 @@ Next, configure the flow elements to make the application accept HTTP requests, 
 Nearly all Mule elements provide configuration options, which you can set in one of two ways:
 
 * Via the building block *Properties* *Editor* in the console of Studio's visual editor
-* Via XML code in Studio's *XML* editor, or in any other XML editing environment +
-
+* Via XML code in Studio's *XML* editor, or in any other XML editing environment
 
 The following instructions walk you through how to configure each building block in the visual editor and via XML. Use the tabs to switch back and forth between the instructions for the visual editor and the XML editor. 
 
 === HTTP Connector
 
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
 . Click the HTTP building block in your flow to open its link:/mule-fundamentals/v/3.7/the-properties-editor[Properties Editor].  For this element to work, you must reference an abstract element called a *Connector Configuration*, which contains several of the high level necessary configuration properties. One single Connector Configuration element can be referenced by as many HTTP connectors as you like. Create a new Connector Configuration element by clicking the green plus sign next to the Connector Configuration field.
 +
-image:http+long.png[http+long]
-
-. A new window opens up. Fill in the two required fields: *Host* and *Port*. Set `localhost` as the host and leave the default value `8081` as the port.
+image:http-long.png[http-long]
 +
-image:global+element.png[global+element]
-
-
-  
+. A new window opens. Fill in the two required fields: *Host* and *Port*. Set `localhost` as the host and leave the default value `8081` as the port.
++
+image:global-element.png[global-element]
 +
 [cols=",",options="header",]
 |===
@@ -134,6 +131,7 @@ image:global+element.png[global+element]
 |*Host* |`localhost`
 |*Port* |`8081`
 |===
++
 . Click *Ok* to close this dialogue. Notice how the Connector Configuration field now contains a reference to the element you just created. You can edit it further by clicking the `edit` icon.
 . Now provide a value for the required field *Path*: `gettweets`.
 +
@@ -144,8 +142,9 @@ image:http.png[http]
 |Field |Value
 |*Path* |`gettweets`
 |===
-
-+
+....
+[tab,title="XML Editor or Standalone"]
+....
 Configure the HTTP connector as follows:
 +
 [width="100%",cols="50%,50%",options="header",]
@@ -154,33 +153,40 @@ Configure the HTTP connector as follows:
 |*doc:name* |`HTTP`
 |*config-ref* a|
 `HTTP_Listener_Configuration`
-
-
 |*path* |`gettweets`
 |===
 
 For this element to work, you must reference an abstract element called a *Connector Configuration*, which contains several of the high level necessary configuration properties. One single Connector Configuration element can be referenced by as many HTTP connectors as you like. The attribute in the connector *config-ref* references this connector configuration element. You must now create an element outside the flow that matches the referenced name.
+
+[source,xml,linenums]
+----
+<http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
+----
 
 [width="100%",cols="50%,50%",]
 |===
 |*Attribute* |*Value*
 |*name* a|
 `HTTP_Listener_Configuration`
-
 |*host* |`localhost`
 |*port* |`8081`
 |*doc:name* a|
 `HTTP_Listener_Configuration`
-
 |===
+....
+------
 
 === Twitter Connector
 
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
 Click the *Twitter connector* to open its Properties Editor, then enter values for the fields according to the table below.
 
 image:cttwitter.png[cttwitter]
 
-[cols=",,",options="header",]
+[cols=",",options="header",]
 |===
 |Field |Value |Description
 |*Display Name* |`Twitter` |The name Studio displays for the element in the flow.
@@ -190,26 +196,39 @@ image:cttwitter.png[cttwitter]
 |*Count* |`20` |Defines the number of tweets the query returns. 20 is the default value.
 |*Since Id* |-1 |Returns results with an id greater than the one specified here. -1 is the default value.
 |===
+....
+[tab,title="XML Editor or Standalone"]
+....
+Configure the Twitter connector as follows (note that one attribute is excluded on purpose; add the attribute in the next step):
 
-Configure the Twitter connector as follows (note that one attribute is excluded on purpose; you will add the attribute in the next step):
+[source,xml,linenums]
+----
+<twitter:get-user-timeline-by-screen-name doc:name="Twitter" screenName="#[message.inboundProperties.'http.query.params'.sname]"/>
+----
 
 [cols=",",options="header",]
 |====
 |Element |Description
-|*`twitter:get-user-timeline-by-screen-name`* |Defines the operation to perform on Twitter; this value returns a tweet stream from the twitter user you specify.
+|`twitter:get-user-timeline-by-screen-name` |Defines the operation to perform on Twitter; this value returns a tweet stream from the twitter user you specify.
 |====
 
-[cols=",,",options="header",]
+[cols=",",options="header",]
 |=====
 |Attribute |Value |Description
 |*doc:name* |`Twitter` |The name Studio displays for the element in the flow.
 |*screenName* |`#[message.inboundProperties.'http.query.params'.sname]` |Defines the twitter user; set to an expression that extracts a parameter from the HTTP request.
 |=====
+....
+------
 
 You may notice that the Studio visual editor displays a red *x* and a note that the config-ref attribute is required. Studio is alerting you that this connector requires a global connector configuration, which you define as a *global element*. A global element allows you to enter configuration information once, then reference the credentials from multiple elements in a flow or in multiple flows. In this case, you use the Twitter global element to configure all your connection details and API access credentials which the Twitter connector in your flow uses when it queries Twitter.
 
 Read more about link:/mule-fundamentals/v/3.7/global-elements[Global Elements in Mule].
 
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
 . Click the plus sign next to the *Connector Configuration* field.
 +
 image:cttwitterplus.png[cttwitterplus] +
@@ -228,12 +247,17 @@ image:twt4.png[twt4] +
 |*Consumer Secret* |Your unique Consumer Secret value as obtained from Twitter
 |*Use SSL* |`true` (checked)
 |====
-   
++
 . Click *OK* to save the configurations. The *Connector Configuration* field should now be populated with the name of the global element you just created, `Twitter1`.
-
-. Above all flows in your application, configure the global element as follows: +
-  
-
+....
+[tab,title="XML Editor or Standalone"]
+....
+. Above all flows in your application, configure the global element as follows:
++
+[source,xml,linenums]
+----
+<twitter:config name="Twitter1" accessKey="" accessSecret="" consumerKey="" consumerSecret="" doc:name="Twitter1">
+----
 +
 [cols=",",options="header",]
 |===
@@ -245,12 +269,24 @@ image:twt4.png[twt4] +
 |*consumerSecret* |Your unique Consumer Secret value as obtained from Twitter
 |*doc:name* |Twitter1
 |===
-. Revisit the configuration of the Twitter connector in your flow. Add the *`config-ref`* attribute as follows:
++
+. Revisit the configuration of the Twitter connector in your flow. Add the `config-ref` attribute as follows:
+
+[source,xml,linenums]
+----
+<twitter:get-user-timeline-by-screen-name config-ref="Twitter1"      doc:name="Twitter" screenName="#[message.inboundProperties.'http.query.params'.sname]"/>
+----
+....
+------
 
 === Foreach Scope
 
-When Twitter returns a response to the query, the payload is an array of objects, each of which describes a tweet and its attending metadata. The only field this application needs to access is **`text`**, as it contains the actual tweet content. You can access the text of the latest tweet via the expression `#[message.payload[0].text]`, but this application uses a Foreach scope to access the text of every tweet in the array.
+When Twitter returns a response to the query, the payload is an array of objects, each of which describes a tweet and its attending metadata. The only field this application needs to access is `text`, as it contains the actual tweet content. You can access the text of the latest tweet via the expression `#[message.payload[0].text]`, but this application uses a Foreach scope to access the text of every tweet in the array.
 
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
 Click the *Foreach* to open its Properties Editor. Keep the default values, as shown below.
 
 image:ForEachunconfig.png[ForEachunconfig]
@@ -263,7 +299,9 @@ image:ForEachunconfig.png[ForEachunconfig]
 |*Batch Size* |`1`
 |*Root Message Variable Name* |`rootMessage`
 |===
-
+....
+[tab,title="XML Editor or Standalone"]
+....
 Add a *Foreach* scope as follows:
 
 [cols=",",options="header",]
@@ -271,9 +309,15 @@ Add a *Foreach* scope as follows:
 |Attribute |Value
 |*doc:name* |`For Each`
 |====
+....
+------
 
 === Logger
 
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
 Click the  *Logger* to open its Properties Editor, then enter values for the fields according to the table below.
 
 image:actlog.png[actlog]
@@ -285,7 +329,9 @@ image:actlog.png[actlog]
 |*Message* |`#[payload.text]`
 |*Level* |`INFO `
 |===
-
+....
+[tab,title="XML Editor or Standalone"]
+....
 Configure the *Logger*, _inside the Foreach scope_, as follows:
 
 [cols=",",options="header",]
@@ -295,13 +341,14 @@ Configure the *Logger*, _inside the Foreach scope_, as follows:
 |*message* |`#[payload.text]`
 |*level* |`INFO `
 |===
-
+....
+------
 
 Your complete application XML, once configured, should look like the code below.
 
 [NOTE]
 ====
-Keep in mind that for this example to work, you must manually configure the following values of the *Twitter global element* (**`twitter:config`** element):
+Keep in mind that for this example to work, you must manually configure the following values of the *Twitter global element* (`twitter:config` element):
 
 * Access Key
 * Access Secret
@@ -312,13 +359,13 @@ Keep in mind that for this example to work, you must manually configure the foll
 [source, xml, linenums]
 ----
 <mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-    xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.0"
+    xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/twitter http://www.mulesoft.org/schema/mule/twitter/3.1/mule-twitter.xsd">
- 
+
     <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
     <twitter:config name="Twitter1" accessKey="" accessSecret="" consumerKey="" consumerSecret="" doc:name="Twitter"/>
     <flow name="connector_tutorialFlow1" doc:name="connector_tutorialFlow1">
@@ -331,16 +378,14 @@ http://www.mulesoft.org/schema/mule/twitter http://www.mulesoft.org/schema/mule/
 </mule>
 ----
 
-
 == Running the Application
 
 Having built, configured, and saved your new application, you are ready to run it on the embedded Mule server (included as part of the bundled download of Anypoint Studio).
 
 . In the  *Package Explorer*, right-click project name, then select  *Run As*  >  *Mule Application* . (If you have not already saved, Mule prompts you to save now.)
-. Mule immediately kicks into gear, starting your application and letting it run. When the startup process is complete, Studio displays a message in the console that reads,  `Started app 'connector_tutorial'` . +
-
-image:started_connector_app.png[started_connector_app] +
-
+. Mule immediately kicks into gear, starting your application and letting it run. When the startup process is complete, Studio displays a message in the console that reads,  `Started app 'connector_tutorial'`.
++
+image:started_connector_app.png[started_connector_app]
 
 == Using the Application
 
@@ -361,7 +406,7 @@ image:StopApp.png[StopApp]
 
 == Extra Credit
 
-Now that you're familiar with connectors, try applying your knowledge to an extra task. Revise your application so that, after retrieving tweets from a user, it posts the last of these to your own demo twitter account.b
+Now that you're familiar with connectors, try applying your knowledge to an extra task. Revise your application so that, after retrieving tweets from a user, it posts the last of these to your own demo twitter account.
 
 As it's kind of impolite to copy someone's tweet without acknowledging its origin, keep in mind that your retweet should follow this structure *RT @screenname : tweet text*
 
@@ -397,11 +442,11 @@ image:twitter2.png[twitter2]
 . Set its *Connector Configuration* to the same global element as the first Twitter Connector.
 . Set its Operation to *Update Status*, then set the status to `#[payload]`.
 
-image:flow+extra+credit.png[flow+extra+credit]
+image:flow-extra-credit.png[flow-extra-credit]
 
 [NOTE]
 ====
-Keep in mind that for this example to work, you must manually configure the following values of the global Twitter connector (`twitter:config `element):
+Keep in mind that for this example to work, you must manually configure the following values of the global Twitter connector (`twitter:config` element):
 
 * accessKey
 * accessSecret
