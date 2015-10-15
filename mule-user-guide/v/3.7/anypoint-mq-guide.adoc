@@ -87,6 +87,59 @@ image:mq-create-exchange.png[Create an exchange window]
 +
 . Click *Save Changes*.
 
+== Message Exchange Details
+
+The message exchange details appear to the right of the exchange entry:
+
+image:mq-exchange-details.png[Exchange details to the right of the entry]
+
+You can use the details to:
+
+* Delete the exchange
+* Monitor exchange throughput
+* View which queues are bound to the exchange
+
+== Anypoint Studio MQ Connector
+
+To add the MQ connector to Studio:
+
+. In Studio, click *Help* > *Install New Software*.
+. Next to the *Works with* field, click *Add*.
+.. Set the name to `Incubator` and the URL to: +
++
+`http://s3.amazonaws.com/mule-tooling-incubator/lanin`
++
+. Follow the prompts to install the software.
+. Open the `conf.properties` file in `src/main/resources` and specify the
+`client.id` and `client.secret` properties. Copy the ID and Secret from the client you created.
+
+
+=== Example Studio Flow
+
+Create a new Mule Project and copy the following to the XML editor view of Studio.
+
+[source,xml,linenums]
+----
+<mq:config name="Anypoint_MQ_Configuration" doc:name="Anypoint MQ Configuration">
+       <mq:access brokerUrl="${url}" clientId="${client.id}" clientSecret="${client.secret}"/>
+   </mq:config>
+   <flow name="producerFlow">
+       <poll doc:name="Poll">
+           <dw:transform-message doc:name="Create Customer">
+               <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+    "firstName" : "Joe",
+    "lastName" : "Schmoe",
+    "company" : "Acme, Inc"
+}]]></dw:set-payload>
+           </dw:transform-message>
+       </poll>
+       <mq:publish config-ref="Anypoint_MQ_Configuration" destination="customer-updates" doc:name="Anypoint MQ"/>
+   </flow>
+----
+
 == See Also
 
 * AMQP
