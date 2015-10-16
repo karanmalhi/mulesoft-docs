@@ -1,1293 +1,343 @@
-  <html>
-    <head>
-      <meta charset="utf-8">
-      <title>test</title>
-      <style>
+= FTPS and EDI X12 Purchase Order Walkthrough
+:keywords: b2b, ftps, edi x12 purchase, order, walkthrough, amazon, s3
 
-        #wrapper {width: 960px; margin: 0 auto;}
-            /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
-        article, aside, details, figcaption, figure, footer, header, hgroup, main, nav, section, summary { display: block; }
-        audio, canvas, video { display: inline-block; }
-        audio:not([controls]) { display: none; height: 0; }
-        [hidden], template { display: none; }
-        script { display: none !important; }
-        html { font-family: sans-serif; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
-        body { margin: 0; }
-        a { background: transparent; }
-        a:focus { outline: thin dotted; }
-        a:active, a:hover { outline: 0; }
-        h1 { font-size: 2em; margin: 0.67em 0; }
-        abbr[title] { border-bottom: 1px dotted; }
-        b, strong { font-weight: bold; }
-        dfn { font-style: italic; }
-        hr { -moz-box-sizing: content-box; box-sizing: content-box; height: 0; }
-        mark { background: #ff0; color: #000; }
-        code, kbd, pre, samp { font-family: monospace, serif; font-size: 1em; }
-        pre { white-space: pre-wrap; }
-        q { quotes: "\201C" "\201D" "\2018" "\2019"; }
-        small { font-size: 80%; }
-        sub, sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
-        sup { top: -0.5em; }
-        sub { bottom: -0.25em; }
-        img { border: 0; }
-        svg:not(:root) { overflow: hidden; }
-        figure { margin: 0; }
-        fieldset { border: 1px solid #c0c0c0; margin: 0 2px; padding: 0.35em 0.625em 0.75em; }
-        legend { border: 0; padding: 0; }
-        button, input, select, textarea { font-family: inherit; font-size: 100%; margin: 0; }
-        button, input { line-height: normal; }
-        button, select { text-transform: none; }
-        button, html input[type="button"], input[type="reset"], input[type="submit"] { -webkit-appearance: button; cursor: pointer; }
-        button[disabled], html input[disabled] { cursor: default; }
-        input[type="checkbox"], input[type="radio"] { box-sizing: border-box; padding: 0; }
-        input[type="search"] { -webkit-appearance: textfield; -moz-box-sizing: content-box; -webkit-box-sizing: content-box; box-sizing: content-box; }
-        input[type="search"]::-webkit-search-cancel-button, input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; }
-        button::-moz-focus-inner, input::-moz-focus-inner { border: 0; padding: 0; }
-        textarea { overflow: auto; vertical-align: top; }
-        table { border-collapse: collapse; border-spacing: 0; }
-        meta.foundation-mq-small { font-family: "only screen and (min-width: 768px)"; width: 768px; }
-        meta.foundation-mq-medium { font-family: "only screen and (min-width:1280px)"; width: 1280px; }
-        meta.foundation-mq-large { font-family: "only screen and (min-width:1440px)"; width: 1440px; }
-        *, *:before, *:after { -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box; }
-        html, body { font-size: 100%; }
-        body { background: white; color: #222222; padding: 0; margin: 0; font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-weight: normal; font-style: normal; line-height: 1; position: relative; cursor: auto; }
-        a:hover { cursor: pointer; }
-        img, object, embed { max-width: 100%; height: auto; }
-        object, embed { height: 100%; }
-        img { -ms-interpolation-mode: bicubic; }
-        #map_canvas img, #map_canvas embed, #map_canvas object, .map_canvas img, .map_canvas embed, .map_canvas object { max-width: none !important; }
-        .left { float: left !important; }
-        .right { float: right !important; }
-        .text-left { text-align: left !important; }
-        .text-right { text-align: right !important; }
-        .text-center { text-align: center !important; }
-        .text-justify { text-align: justify !important; }
-        .hide { display: none; }
-        .antialiased, body { -webkit-font-smoothing: antialiased; }
-        img { display: inline-block; vertical-align: middle; }
-        textarea { height: auto; min-height: 50px; }
-        select { width: 100%; }
-        p.lead, .paragraph.lead > p, #preamble > .sectionbody > .paragraph:first-of-type p { font-size: 1.21875em; line-height: 1.6; }
-        .subheader, #content #toctitle, .admonitionblock td.content > .title, .exampleblock > .title, .imageblock > .title, .listingblock > .title, .literalblock > .title, .mathblock > .title, .openblock > .title, .paragraph > .title, .quoteblock > .title, .sidebarblock > .title, .tableblock > .title, .verseblock > .title, .videoblock > .title, .dlist > .title, .olist > .title, .ulist > .title, .qlist > .title, .hdlist > .title, .tableblock > caption { line-height: 1.4; color: #7a2518; font-weight: 300; margin-top: 0.2em; margin-bottom: 0.5em; }
-        div, dl, dt, dd, ul, ol, li, h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6, pre, form, p, blockquote, th, td { margin: 0; padding: 0; direction: ltr; }
-        a { color: #005498; text-decoration: underline; line-height: inherit; }
-        a:hover, a:focus { color: #00467f; }
-        a img { border: none; }
-        p { font-family: inherit; font-weight: normal; font-size: 1em; line-height: 1.6; margin-bottom: 1.25em; text-rendering: optimizeLegibility; }
-        p aside { font-size: 0.875em; line-height: 1.35; font-style: italic; }
-        h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6 { font-family: Georgia, "URW Bookman L", Helvetica, Arial, sans-serif; font-weight: normal; font-style: normal; color: #ba3925; text-rendering: optimizeLegibility; margin-top: 1em; margin-bottom: 0.5em; line-height: 1.2125em; }
-        h1 small, h2 small, h3 small, #toctitle small, .sidebarblock > .content > .title small, h4 small, h5 small, h6 small { font-size: 60%; color: #e99b8f; line-height: 0; }
-        h1 { font-size: 2.125em; }
-        h2 { font-size: 1.6875em; }
-        h3, #toctitle, .sidebarblock > .content > .title { font-size: 1.375em; }
-        h4 { font-size: 1.125em; }
-        h5 { font-size: 1.125em; }
-        h6 { font-size: 1em; }
-        hr { border: solid #dddddd; border-width: 1px 0 0; clear: both; margin: 1.25em 0 1.1875em; height: 0; }
-        em, i { font-style: italic; line-height: inherit; }
-        strong, b { font-weight: bold; line-height: inherit; }
-        small { font-size: 60%; line-height: inherit; }
-        code { font-family: Consolas, "Liberation Mono", Courier, monospace; font-weight: normal; color: #6d180b; }
-        ul, ol, dl { font-size: 1em; line-height: 1.6; margin-bottom: 1.25em; list-style-position: outside; font-family: inherit; }
-        ul, ol { margin-left: 1.5em; }
-        ul.no-bullet, ol.no-bullet { margin-left: 1.5em; }
-        ul li ul, ul li ol { margin-left: 1.25em; margin-bottom: 0; font-size: 1em; }
-        ul.square li ul, ul.circle li ul, ul.disc li ul { list-style: inherit; }
-        ul.square { list-style-type: square; }
-        ul.circle { list-style-type: circle; }
-        ul.disc { list-style-type: disc; }
-        ul.no-bullet { list-style: none; }
-        ol li ul, ol li ol { margin-left: 1.25em; margin-bottom: 0; }
-        dl dt { margin-bottom: 0.3125em; font-weight: bold; }
-        dl dd { margin-bottom: 1.25em; }
-        abbr, acronym { text-transform: uppercase; font-size: 90%; color: #222222; border-bottom: 1px dotted #dddddd; cursor: help; }
-        abbr { text-transform: none; }
-        blockquote { margin: 0 0 1.25em; padding: 0.5625em 1.25em 0 1.1875em; border-left: 1px solid #dddddd; }
-        blockquote cite { display: block; font-size: inherit; color: #555555; }
-        blockquote cite:before { content: "\2014 \0020"; }
-        blockquote cite a, blockquote cite a:visited { color: #555555; }
-        blockquote, blockquote p { line-height: 1.6; color: #6f6f6f; }
-        .vcard { display: inline-block; margin: 0 0 1.25em 0; border: 1px solid #dddddd; padding: 0.625em 0.75em; }
-        .vcard li { margin: 0; display: block; }
-        .vcard .fn { font-weight: bold; font-size: 0.9375em; }
-        .vevent .summary { font-weight: bold; }
-        .vevent abbr { cursor: auto; text-decoration: none; font-weight: bold; border: none; padding: 0 0.0625em; }
-        @media only screen and (min-width: 768px) { h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6 { line-height: 1.4; }
-          h1 { font-size: 2.75em; }
-          h2 { font-size: 2.3125em; }
-          h3, #toctitle, .sidebarblock > .content > .title { font-size: 1.6875em; }
-          h4 { font-size: 1.4375em; } }
-        .print-only { display: none !important; }
-        @media print { * { background: transparent !important; color: #000 !important; box-shadow: none !important; text-shadow: none !important; }
-          a, a:visited { text-decoration: underline; }
-          a[href]:after { content: " (" attr(href) ")"; }
-          abbr[title]:after { content: " (" attr(title) ")"; }
-          .ir a:after, a[href^="javascript:"]:after, a[href^="#"]:after { content: ""; }
-          pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
-          thead { display: table-header-group; }
-          tr, img { page-break-inside: avoid; }
-          img { max-width: 100% !important; }
-          @page { margin: 0.5cm; }
-          p, h2, h3, #toctitle, .sidebarblock > .content > .title { orphans: 3; widows: 3; }
-          h2, h3, #toctitle, .sidebarblock > .content > .title { page-break-after: avoid; }
-          .hide-on-print { display: none !important; }
-          .print-only { display: block !important; }
-          .hide-for-print { display: none !important; }
-          .show-for-print { display: inherit !important; } }
-        table { background: white; margin-bottom: 1.25em; border: solid 1px #dddddd; }
-        table thead, table tfoot { background: whitesmoke; font-weight: bold; }
-        table thead tr th, table thead tr td, table tfoot tr th, table tfoot tr td { padding: 0.5em 0.625em 0.625em; font-size: inherit; color: #222222; text-align: left; }
-        table tr th, table tr td { padding: 0.5625em 0.625em; font-size: inherit; color: #222222; }
-        table tr.even, table tr.alt, table tr:nth-of-type(even) { background: #f9f9f9; }
-        table thead tr th, table tfoot tr th, table tbody tr td, table tr td, table tfoot tr td { display: table-cell; line-height: 1.6; }
-        .clearfix:before, .clearfix:after, .float-group:before, .float-group:after { content: " "; display: table; }
-        .clearfix:after, .float-group:after { clear: both; }
-        *:not(pre) > code { font-size: 0.9375em; padding: 1px 3px 0; white-space: nowrap; background-color: #f2f2f2; border: 1px solid #cccccc; -webkit-border-radius: 4px; border-radius: 4px; text-shadow: none; }
-        pre, pre > code { line-height: 1.4; color: inherit; font-family: Consolas, "Liberation Mono", Courier, monospace; font-weight: normal; }
-        kbd.keyseq { color: #555555; }
-        kbd:not(.keyseq) { display: inline-block; color: #222222; font-size: 0.75em; line-height: 1.4; background-color: #F7F7F7; border: 1px solid #ccc; -webkit-border-radius: 3px; border-radius: 3px; -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px white inset; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px white inset; margin: -0.15em 0.15em 0 0.15em; padding: 0.2em 0.6em 0.2em 0.5em; vertical-align: middle; white-space: nowrap; }
-        kbd kbd:first-child { margin-left: 0; }
-        kbd kbd:last-child { margin-right: 0; }
-        .menuseq, .menu { color: #090909; }
-        b.button:before { content: '[ '; }
-        b.button:after { content: ' ]'; }
-        p a > code:hover { color: #561309; }
-        #header, #content, #footnotes, #footer { width: 100%; margin-left: auto; margin-right: auto; margin-top: 0; margin-bottom: 0; max-width: 62.5em; *zoom: 1; position: relative; padding-left: 0.9375em; padding-right: 0.9375em; }
-        #header:before, #header:after, #content:before, #content:after, #footnotes:before, #footnotes:after, #footer:before, #footer:after { content: " "; display: table; }
-        #header:after, #content:after, #footnotes:after, #footer:after { clear: both; }
-        #header { margin-bottom: 2.5em; }
-        #header > h1 { color: black; font-weight: normal; border-bottom: 1px solid #dddddd; margin-bottom: -28px; padding-bottom: 32px; }
-        #header span { color: #6f6f6f; }
-        #header #revnumber { text-transform: capitalize; }
-        #header br { display: none; }
-        #header br + span { padding-left: 3px; }
-        #header br + span:before { content: "\2013 \0020"; }
-        #header br + span.author { padding-left: 0; }
-        #header br + span.author:before { content: ", "; }
-        #toc { border-bottom: 3px double #ebebeb; padding-bottom: 1.25em; }
-        #toc > ul { margin-left: 0.25em; }
-        #toc ul.sectlevel0 > li > a { font-style: italic; }
-        #toc ul.sectlevel0 ul.sectlevel1 { margin-left: 0; margin-top: 0.5em; margin-bottom: 0.5em; }
-        #toc ul { list-style-type: none; }
-        #toctitle { color: #7a2518; }
-        @media only screen and (min-width: 768px) { body.toc2 { padding-left: 15em; padding-right: 0; }
-          #toc.toc2 { position: fixed; width: 15em; left: 0; top: 0; border-right: 1px solid #ebebeb; border-bottom: 0; z-index: 1000; padding: 1em; height: 100%; overflow: auto; }
-          #toc.toc2 #toctitle { margin-top: 0; font-size: 1.2em; }
-          #toc.toc2 > ul { font-size: .90em; }
-          #toc.toc2 ul ul { margin-left: 0; padding-left: 1em; }
-          #toc.toc2 ul.sectlevel0 ul.sectlevel1 { padding-left: 0; margin-top: 0.5em; margin-bottom: 0.5em; }
-          body.toc2.toc-right { padding-left: 0; padding-right: 15em; }
-          body.toc2.toc-right #toc.toc2 { border-right: 0; border-left: 1px solid #ebebeb; left: auto; right: 0; } }
-        @media only screen and (min-width: 1280px) { body.toc2 { padding-left: 20em; padding-right: 0; }
-          #toc.toc2 { width: 20em; }
-          #toc.toc2 #toctitle { font-size: 1.375em; }
-          #toc.toc2 > ul { font-size: 0.95em; }
-          #toc.toc2 ul ul { padding-left: 1.25em; }
-          body.toc2.toc-right { padding-left: 0; padding-right: 20em; } }
-        #content #toc { border-style: solid; border-width: 1px; border-color: #d9d9d9; margin-bottom: 1.25em; padding: 1.25em; background: #f2f2f2; border-width: 0; -webkit-border-radius: 4px; border-radius: 4px; }
-        #content #toc > :first-child { margin-top: 0; }
-        #content #toc > :last-child { margin-bottom: 0; }
-        #content #toc a { text-decoration: none; }
-        #content #toctitle { font-weight: bold; font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; font-size: 1em; padding-left: 0.125em; }
-        #footer { max-width: 100%; background-color: #222222; padding: 1.25em; }
-        #footer-text { color: #dddddd; line-height: 1.44; }
-        .sect1 { padding-bottom: 1.25em; }
-        .sect1 + .sect1 { border-top: 3px double #ebebeb; }
-        #content h1 > a.anchor, h2 > a.anchor, h3 > a.anchor, #toctitle > a.anchor, .sidebarblock > .content > .title > a.anchor, h4 > a.anchor, h5 > a.anchor, h6 > a.anchor { position: absolute; width: 1em; margin-left: -1em; display: block; text-decoration: none; visibility: hidden; text-align: center; font-weight: normal; }
-        #content h1 > a.anchor:before, h2 > a.anchor:before, h3 > a.anchor:before, #toctitle > a.anchor:before, .sidebarblock > .content > .title > a.anchor:before, h4 > a.anchor:before, h5 > a.anchor:before, h6 > a.anchor:before { content: '\00A7'; font-size: .85em; vertical-align: text-top; display: block; margin-top: 0.05em; }
-        #content h1:hover > a.anchor, #content h1 > a.anchor:hover, h2:hover > a.anchor, h2 > a.anchor:hover, h3:hover > a.anchor, #toctitle:hover > a.anchor, .sidebarblock > .content > .title:hover > a.anchor, h3 > a.anchor:hover, #toctitle > a.anchor:hover, .sidebarblock > .content > .title > a.anchor:hover, h4:hover > a.anchor, h4 > a.anchor:hover, h5:hover > a.anchor, h5 > a.anchor:hover, h6:hover > a.anchor, h6 > a.anchor:hover { visibility: visible; }
-        #content h1 > a.link, h2 > a.link, h3 > a.link, #toctitle > a.link, .sidebarblock > .content > .title > a.link, h4 > a.link, h5 > a.link, h6 > a.link { color: #ba3925; text-decoration: none; }
-        #content h1 > a.link:hover, h2 > a.link:hover, h3 > a.link:hover, #toctitle > a.link:hover, .sidebarblock > .content > .title > a.link:hover, h4 > a.link:hover, h5 > a.link:hover, h6 > a.link:hover { color: #a53221; }
-        .imageblock, .literalblock, .listingblock, .mathblock, .verseblock, .videoblock { margin-bottom: 1.25em; }
-        .admonitionblock td.content > .title, .exampleblock > .title, .imageblock > .title, .listingblock > .title, .literalblock > .title, .mathblock > .title, .openblock > .title, .paragraph > .title, .quoteblock > .title, .sidebarblock > .title, .tableblock > .title, .verseblock > .title, .videoblock > .title, .dlist > .title, .olist > .title, .ulist > .title, .qlist > .title, .hdlist > .title { text-align: left; font-weight: bold; }
-        .tableblock > caption { text-align: left; font-weight: bold; white-space: nowrap; overflow: visible; max-width: 0; }
-        table.tableblock #preamble > .sectionbody > .paragraph:first-of-type p { font-size: inherit; }
-        .admonitionblock > table { border: 0; background: none; width: 100%; }
-        .admonitionblock > table td.icon { text-align: center; width: 80px; }
-        .admonitionblock > table td.icon img { max-width: none; }
-        .admonitionblock > table td.icon .title { font-weight: bold; text-transform: uppercase; }
-        .admonitionblock > table td.content { padding-left: 1.125em; padding-right: 1.25em; border-left: 1px solid #dddddd; color: #6f6f6f; }
-        .admonitionblock > table td.content > :last-child > :last-child { margin-bottom: 0; }
-        .exampleblock > .content { border-style: solid; border-width: 1px; border-color: #e6e6e6; margin-bottom: 1.25em; padding: 1.25em; background: white; -webkit-border-radius: 4px; border-radius: 4px; }
-        .exampleblock > .content > :first-child { margin-top: 0; }
-        .exampleblock > .content > :last-child { margin-bottom: 0; }
-        .exampleblock > .content h1, .exampleblock > .content h2, .exampleblock > .content h3, .exampleblock > .content #toctitle, .sidebarblock.exampleblock > .content > .title, .exampleblock > .content h4, .exampleblock > .content h5, .exampleblock > .content h6, .exampleblock > .content p { color: #333333; }
-        .exampleblock > .content h1, .exampleblock > .content h2, .exampleblock > .content h3, .exampleblock > .content #toctitle, .sidebarblock.exampleblock > .content > .title, .exampleblock > .content h4, .exampleblock > .content h5, .exampleblock > .content h6 { line-height: 1; margin-bottom: 0.625em; }
-        .exampleblock > .content h1.subheader, .exampleblock > .content h2.subheader, .exampleblock > .content h3.subheader, .exampleblock > .content .subheader#toctitle, .sidebarblock.exampleblock > .content > .subheader.title, .exampleblock > .content h4.subheader, .exampleblock > .content h5.subheader, .exampleblock > .content h6.subheader { line-height: 1.4; }
-        .exampleblock.result > .content { -webkit-box-shadow: 0 1px 8px #d9d9d9; box-shadow: 0 1px 8px #d9d9d9; }
-        .sidebarblock { border-style: solid; border-width: 1px; border-color: #d9d9d9; margin-bottom: 1.25em; padding: 1.25em; background: #f2f2f2; -webkit-border-radius: 4px; border-radius: 4px; }
-        .sidebarblock > :first-child { margin-top: 0; }
-        .sidebarblock > :last-child { margin-bottom: 0; }
-        .sidebarblock h1, .sidebarblock h2, .sidebarblock h3, .sidebarblock #toctitle, .sidebarblock > .content > .title, .sidebarblock h4, .sidebarblock h5, .sidebarblock h6, .sidebarblock p { color: #333333; }
-        .sidebarblock h1, .sidebarblock h2, .sidebarblock h3, .sidebarblock #toctitle, .sidebarblock > .content > .title, .sidebarblock h4, .sidebarblock h5, .sidebarblock h6 { line-height: 1; margin-bottom: 0.625em; }
-        .sidebarblock h1.subheader, .sidebarblock h2.subheader, .sidebarblock h3.subheader, .sidebarblock .subheader#toctitle, .sidebarblock > .content > .subheader.title, .sidebarblock h4.subheader, .sidebarblock h5.subheader, .sidebarblock h6.subheader { line-height: 1.4; }
-        .sidebarblock > .content > .title { color: #7a2518; margin-top: 0; line-height: 1.6; }
-        .exampleblock > .content > :last-child > :last-child, .exampleblock > .content .olist > ol > li:last-child > :last-child, .exampleblock > .content .ulist > ul > li:last-child > :last-child, .exampleblock > .content .qlist > ol > li:last-child > :last-child, .sidebarblock > .content > :last-child > :last-child, .sidebarblock > .content .olist > ol > li:last-child > :last-child, .sidebarblock > .content .ulist > ul > li:last-child > :last-child, .sidebarblock > .content .qlist > ol > li:last-child > :last-child { margin-bottom: 0; }
-        .literalblock pre:not([class]), .listingblock pre:not([class]) { background: none; }
-        .literalblock pre, .literalblock pre[class], .listingblock pre, .listingblock pre[class] { border-width: 1px 0; border-style: dotted; border-color: #bfbfbf; -webkit-border-radius: 4px; border-radius: 4px; padding: 0.75em 0.75em 0.5em 0.75em; word-wrap: break-word; }
-        .literalblock pre.nowrap, .literalblock pre[class].nowrap, .listingblock pre.nowrap, .listingblock pre[class].nowrap { overflow-x: auto; white-space: pre; word-wrap: normal; }
-        .literalblock pre > code, .literalblock pre[class] > code, .listingblock pre > code, .listingblock pre[class] > code { display: block; }
-        @media only screen { .literalblock pre, .literalblock pre[class], .listingblock pre, .listingblock pre[class] { font-size: 0.8em; } }
-        @media only screen and (min-width: 768px) { .literalblock pre, .literalblock pre[class], .listingblock pre, .listingblock pre[class] { font-size: 0.9em; } }
-        @media only screen and (min-width: 1280px) { .literalblock pre, .literalblock pre[class], .listingblock pre, .listingblock pre[class] { font-size: 1em; } }
-        .listingblock pre.highlight { padding: 0; }
-        .listingblock pre.highlight > code { padding: 0.75em 0.75em 0.5em 0.75em; }
-        .listingblock > .content { position: relative; }
-        .listingblock:hover code[class*=" language-"]:before { text-transform: uppercase; font-size: 0.9em; color: #999; position: absolute; top: 0.375em; right: 0.375em; }
-        .listingblock:hover code.asciidoc:before { content: "asciidoc"; }
-        .listingblock:hover code.clojure:before { content: "clojure"; }
-        .listingblock:hover code.css:before { content: "css"; }
-        .listingblock:hover code.groovy:before { content: "groovy"; }
-        .listingblock:hover code.html:before { content: "html"; }
-        .listingblock:hover code.java:before { content: "java"; }
-        .listingblock:hover code.javascript:before { content: "javascript"; }
-        .listingblock:hover code.python:before { content: "python"; }
-        .listingblock:hover code.ruby:before { content: "ruby"; }
-        .listingblock:hover code.sass:before { content: "sass"; }
-        .listingblock:hover code.scss:before { content: "scss"; }
-        .listingblock:hover code.xml:before { content: "xml"; }
-        .listingblock:hover code.yaml:before { content: "yaml"; }
-        .listingblock.terminal pre .command:before { content: attr(data-prompt); padding-right: 0.5em; color: #999; }
-        .listingblock.terminal pre .command:not([data-prompt]):before { content: '$'; }
-        table.pyhltable { border: 0; margin-bottom: 0; }
-        table.pyhltable td { vertical-align: top; padding-top: 0; padding-bottom: 0; }
-        table.pyhltable td.code { padding-left: .75em; padding-right: 0; }
-        .highlight.pygments .lineno, table.pyhltable td:not(.code) { color: #999; padding-left: 0; padding-right: .5em; border-right: 1px solid #dddddd; }
-        .highlight.pygments .lineno { display: inline-block; margin-right: .25em; }
-        table.pyhltable .linenodiv { background-color: transparent !important; padding-right: 0 !important; }
-        .quoteblock { margin: 0 0 1.25em; padding: 0.5625em 1.25em 0 1.1875em; border-left: 1px solid #dddddd; }
-        .quoteblock blockquote { margin: 0 0 1.25em 0; padding: 0 0 0.5625em 0; border: 0; }
-        .quoteblock blockquote > .paragraph:last-child p { margin-bottom: 0; }
-        .quoteblock .attribution { margin-top: -.25em; padding-bottom: 0.5625em; font-size: inherit; color: #555555; }
-        .quoteblock .attribution br { display: none; }
-        .quoteblock .attribution cite { display: block; margin-bottom: 0.625em; }
-        table thead th, table tfoot th { font-weight: bold; }
-        table.tableblock.grid-all { border-collapse: separate; border-spacing: 1px; -webkit-border-radius: 4px; border-radius: 4px; border-top: 1px solid #dddddd; border-bottom: 1px solid #dddddd; }
-        table.tableblock.frame-topbot, table.tableblock.frame-none { border-left: 0; border-right: 0; }
-        table.tableblock.frame-sides, table.tableblock.frame-none { border-top: 0; border-bottom: 0; }
-        table.tableblock td .paragraph:last-child p > p:last-child, table.tableblock th > p:last-child, table.tableblock td > p:last-child { margin-bottom: 0; }
-        th.tableblock.halign-left, td.tableblock.halign-left { text-align: left; }
-        th.tableblock.halign-right, td.tableblock.halign-right { text-align: right; }
-        th.tableblock.halign-center, td.tableblock.halign-center { text-align: center; }
-        th.tableblock.valign-top, td.tableblock.valign-top { vertical-align: top; }
-        th.tableblock.valign-bottom, td.tableblock.valign-bottom { vertical-align: bottom; }
-        th.tableblock.valign-middle, td.tableblock.valign-middle { vertical-align: middle; }
-        tbody tr th { display: table-cell; line-height: 1.6; background: whitesmoke; }
-        tbody tr th, tbody tr th p, tfoot tr th, tfoot tr th p { color: #222222; font-weight: bold; }
-        td > div.verse { white-space: pre; }
-        ol { margin-left: 1.75em; }
-        ul li ol { margin-left: 1.5em; }
-        dl dd { margin-left: 1.125em; }
-        dl dd:last-child, dl dd:last-child > :last-child { margin-bottom: 0; }
-        ol > li p, ul > li p, ul dd, ol dd, .olist .olist, .ulist .ulist, .ulist .olist, .olist .ulist { margin-bottom: 0.625em; }
-        ul.unstyled, ol.unnumbered, ul.checklist, ul.none { list-style-type: none; }
-        ul.unstyled, ol.unnumbered, ul.checklist { margin-left: 0.625em; }
-        ul.checklist li > p:first-child > i[class^="icon-check"]:first-child, ul.checklist li > p:first-child > input[type="checkbox"]:first-child { margin-right: 0.25em; }
-        ul.checklist li > p:first-child > input[type="checkbox"]:first-child { position: relative; top: 1px; }
-        ul.inline { margin: 0 auto 0.625em auto; margin-left: -1.375em; margin-right: 0; padding: 0; list-style: none; overflow: hidden; }
-        ul.inline > li { list-style: none; float: left; margin-left: 1.375em; display: block; }
-        ul.inline > li > * { display: block; }
-        .unstyled dl dt { font-weight: normal; font-style: normal; }
-        ol.arabic { list-style-type: decimal; }
-        ol.decimal { list-style-type: decimal-leading-zero; }
-        ol.loweralpha { list-style-type: lower-alpha; }
-        ol.upperalpha { list-style-type: upper-alpha; }
-        ol.lowerroman { list-style-type: lower-roman; }
-        ol.upperroman { list-style-type: upper-roman; }
-        ol.lowergreek { list-style-type: lower-greek; }
-        .hdlist > table, .colist > table { border: 0; background: none; }
-        .hdlist > table > tbody > tr, .colist > table > tbody > tr { background: none; }
-        td.hdlist1 { padding-right: .8em; font-weight: bold; }
-        td.hdlist1, td.hdlist2 { vertical-align: top; }
-        .literalblock + .colist, .listingblock + .colist { margin-top: -0.5em; }
-        .colist > table tr > td:first-of-type { padding: 0 .8em; line-height: 1; }
-        .colist > table tr > td:last-of-type { padding: 0.25em 0; }
-        .qanda > ol > li > p > em:only-child { color: #00467f; }
-        .thumb, .th { line-height: 0; display: inline-block; border: solid 4px white; -webkit-box-shadow: 0 0 0 1px #dddddd; box-shadow: 0 0 0 1px #dddddd; }
-        .imageblock.left, .imageblock[style*="float: left"] { margin: 0.25em 0.625em 1.25em 0; }
-        .imageblock.right, .imageblock[style*="float: right"] { margin: 0.25em 0 1.25em 0.625em; }
-        .imageblock > .title { margin-bottom: 0; }
-        .imageblock.thumb, .imageblock.th { border-width: 6px; }
-        .imageblock.thumb > .title, .imageblock.th > .title { padding: 0 0.125em; }
-        .image.left, .image.right { margin-top: 0.25em; margin-bottom: 0.25em; display: inline-block; line-height: 0; }
-        .image.left { margin-right: 0.625em; }
-        .image.right { margin-left: 0.625em; }
-        a.image { text-decoration: none; }
-        span.footnote, span.footnoteref { vertical-align: super; font-size: 0.875em; }
-        span.footnote a, span.footnoteref a { text-decoration: none; }
-        #footnotes { padding-top: 0.75em; padding-bottom: 0.75em; margin-bottom: 0.625em; }
-        #footnotes hr { width: 20%; min-width: 6.25em; margin: -.25em 0 .75em 0; border-width: 1px 0 0 0; }
-        #footnotes .footnote { padding: 0 0.375em; line-height: 1.3; font-size: 0.875em; margin-left: 1.2em; text-indent: -1.2em; margin-bottom: .2em; }
-        #footnotes .footnote a:first-of-type { font-weight: bold; text-decoration: none; }
-        #footnotes .footnote:last-of-type { margin-bottom: 0; }
-        #content #footnotes { margin-top: -0.625em; margin-bottom: 0; padding: 0.75em 0; }
-        .gist .file-data > table { border: none; background: #fff; width: 100%; margin-bottom: 0; }
-        .gist .file-data > table td.line-data { width: 99%; }
-        div.unbreakable { page-break-inside: avoid; }
-        .big { font-size: larger; }
-        .small { font-size: smaller; }
-        .underline { text-decoration: underline; }
-        .overline { text-decoration: overline; }
-        .line-through { text-decoration: line-through; }
-        .aqua { color: #00bfbf; }
-        .aqua-background { background-color: #00fafa; }
-        .black { color: black; }
-        .black-background { background-color: black; }
-        .blue { color: #0000bf; }
-        .blue-background { background-color: #0000fa; }
-        .fuchsia { color: #bf00bf; }
-        .fuchsia-background { background-color: #fa00fa; }
-        .gray { color: #606060; }
-        .gray-background { background-color: #7d7d7d; }
-        .green { color: #006000; }
-        .green-background { background-color: #007d00; }
-        .lime { color: #00bf00; }
-        .lime-background { background-color: #00fa00; }
-        .maroon { color: #600000; }
-        .maroon-background { background-color: #7d0000; }
-        .navy { color: #000060; }
-        .navy-background { background-color: #00007d; }
-        .olive { color: #606000; }
-        .olive-background { background-color: #7d7d00; }
-        .purple { color: #600060; }
-        .purple-background { background-color: #7d007d; }
-        .red { color: #bf0000; }
-        .red-background { background-color: #fa0000; }
-        .silver { color: #909090; }
-        .silver-background { background-color: #bcbcbc; }
-        .teal { color: #006060; }
-        .teal-background { background-color: #007d7d; }
-        .white { color: #bfbfbf; }
-        .white-background { background-color: #fafafa; }
-        .yellow { color: #bfbf00; }
-        .yellow-background { background-color: #fafa00; }
-        span.icon > [class^="icon-"], span.icon > [class*=" icon-"] { cursor: default; }
-        .admonitionblock td.icon [class^="icon-"]:before { font-size: 2.5em; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); cursor: default; }
-        .admonitionblock td.icon .icon-note:before { content: "\f05a"; color: #005498; color: #003f72; }
-        .admonitionblock td.icon .icon-tip:before { content: "\f0eb"; text-shadow: 1px 1px 2px rgba(155, 155, 0, 0.8); color: #111; }
-        .admonitionblock td.icon .icon-warning:before { content: "\f071"; color: #bf6900; }
-        .admonitionblock td.icon .icon-caution:before { content: "\f06d"; color: #bf3400; }
-        .admonitionblock td.icon .icon-important:before { content: "\f06a"; color: #bf0000; }
-        .conum { display: inline-block; color: white !important; background-color: #222222; -webkit-border-radius: 100px; border-radius: 100px; text-align: center; width: 20px; height: 20px; font-size: 12px; font-weight: bold; line-height: 20px; font-family: Arial, sans-serif; font-style: normal; position: relative; top: -2px; letter-spacing: -1px; }
-        .conum * { color: white !important; }
-        .conum + b { display: none; }
-        .conum:after { content: attr(data-value); }
-        .conum:not([data-value]):empty { display: none; }
-        .literalblock > .content > pre, .listingblock > .content > pre { -webkit-border-radius: 0; border-radius: 0; }
+This document is for a technical audience possessing basic knowledge of AS2, X12, and Anypoint Platform. Familiarity of link:http://modusintegration.github.io/mule-connector-ftps/readme.html[FTPS Connector], link:/anypoint-b2b/x12-module[X12 Module] and link:/mule-user-guide/v/3.7/datamapper-user-guide-and-reference[Anypoint DataMapper User Guide and Reference] is assumed.
 
-      </style>
-      <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
-    </head>
-    <body>
-      <div id="wrapper">
-        <div class="article">
-          <h1>FTPS and EDI X12 Purchase Order Walkthrough</h1>
-<div id="preamble">
-<div class="sectionbody">
-<div class="paragraph">
-<p>This document is for a technical audience possessing basic knowledge of AS2, X12, and Anypoint Platform. Familiarity of <a href="http://modusintegration.github.io/mule-connector-ftps/readme.html">FTPS Connector</a>, <a href="/anypoint-b2b/x12-module">X12 Module</a> and <a href="/mule-user-guide/v/3.7/datamapper-user-guide-and-reference">Anypoint DataMapper User Guide and Reference</a> is assumed.</p>
-</div>
-</div>
-<div id="toc" class="toc">
-<div id="toctitle">Table of Contents</div>
-<ul class="sectlevel2">
-<li><a href="#_prerequisites">1. Prerequisites</a></li>
-<li><a href="#_attachments">2. Attachments</a></li>
-<li><a href="#_to_run_this_example_follow_the_steps_below">3. To run this example follow the steps below:</a></li>
-<li><a href="#_anypoint_b2b_platform_ftps_and_edi_x12_purchase_order_example">4. Anypoint B2B Platform FTPS and EDI X12 Purchase Order Example</a></li>
-<li><a href="#_1_partnership_set_up">5. 1. Partnership Set Up</a>
-<ul class="sectlevel2">
-<li><a href="#_create_partnership">5.1. Create partnership</a></li>
-<li><a href="#_specify_ftps_settings">5.2. Specify FTPS Settings</a></li>
-<li><a href="#_specify_ftps_transactions">5.3. Specify FTPS Transactions</a></li>
-<li><a href="#_set_up_x12">5.4. Set Up X12</a></li>
-</ul>
-</li>
-<li><a href="#_2_mule_project_set_up">6. 2. Mule Project Set Up</a></li>
-<li><a href="#_3_customer_connector_configs">7. 3. Customer Connector Configs</a>
-<ul class="sectlevel2">
-<li><a href="#_create_b2b_connector_config">7.1. Create B2B Connector Config</a></li>
-<li><a href="#_create_ftps_connector_configs">7.2. Create FTPS Connector Configs</a></li>
-<li><a href="#_create_x12_module_config">7.3. Create X12 Module Config</a></li>
-</ul>
-</li>
-<li><a href="#_4_transform_and_send_850_over_ftps">8. 4. Transform and Send 850 over FTPS</a></li>
-<li><a href="#_5_receive_997_over_ftps">9. 5. Receive 997 over FTPS</a></li>
-<li><a href="#_6_develop_a_mock_supplier">10. 6. Develop a Mock Supplier</a></li>
-<li><a href="#_7_run_application_after_disabling_s3_storage">11. 7. Run Application After Disabling S3 Storage</a></li>
-<li><a href="#_8_run_application_after_enabling_s3_storage">12. 8. Run Application After Enabling S3 Storage</a></li>
-</ul>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_prerequisites">1. Prerequisites</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>Anypoint Studio with Mule Server 3.6.1 EE runtime</p>
-</li>
-<li>
-<p>FTPS Connector 1.0.0, B2B Connector 1.0, and X12 Module 1.0 installed</p>
-</li>
-<li>
-<p>Anypoint Platform account</p>
-</li>
-<li>
-<p>Amazon S3 bucket for FTPS and EDI file storage (optional)</p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_attachments">2. Attachments</h3>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="_attachments/ftps-doc.zip">ftps-doc.zip</a></p>
-</li>
-<li>
-<p><a href="_attachments/ftps-po.xml">ftps-po.xml</a></p>
-</li>
-<li>
-<p><a href="_attachments/ftps-po.xsd">ftps-po.xsd</a></p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_to_run_this_example_follow_the_steps_below">3. To run this example follow the steps below:</h2>
-<div class="sectionbody">
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Download the application by clicking the<a href="_attachments/ftps-doc.zip">ftps-doc.zip</a>, and unzip.</p>
-</li>
-<li>
-<p>Import the application into Anypoint Studio from <strong>File</strong> &gt; <strong>Import</strong>, and selecting <strong>Anypoint Studio Project from External Location</strong>. Then click <strong>Next</strong>, select the downloaded application, and click <strong>Finish</strong>.</p>
-</li>
-<li>
-<p>From your web browser, log in to the Anypoint Partner Manager, then click  your HomeOrg view and copy your API key (reference step 3.2.).</p>
-</li>
-<li>
-<p>In Anypoint, click the file "customer.xml" in the app folder, and select the Global view tab. Then open the configurations of B2B, and insert the API Key you got from the Anypoint Partner Manager.</p>
-</li>
-<li>
-<p>Right-click the imported project folder, "ftps-doc", select <strong>Run As</strong>, and click <strong>Mule Application</strong>.</p>
-</li>
-<li>
-<p>Inside the project is a file in src/test/resources called "po.xml". Create a copy and place it in the "outbox" folder. The po.xml file is also available to download, and which you can rename from the <a href="_attachments/ftps-po.xml">ftps-po.xml</a> file.</p>
-</li>
-<li>
-<p>The file should disappear from the directory since the File inbound endpoint  deletes the file once it reads it.</p>
-</li>
-<li>
-<p>Access the B2B Transmissions view in the Anypoint Partner Manager to confirm that the AS2 and X12 transmissions have taken place.</p>
-</li>
-</ol>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_anypoint_b2b_platform_ftps_and_edi_x12_purchase_order_example">4. Anypoint B2B Platform FTPS and EDI X12 Purchase Order Example</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This example shows how to leverage the Anypoint B2B Platform to manage and track B2B exchanges. The goal is to develop a Mule application, represent a customer who transforms an XML purchase order read from the filesystem to an X12 850, and sends it to a supplier over FTPS. The supplier returns an X12 997 to a FTPS server that the application is aware of in order to inform the customer whether the 850 was accepted or rejected. Anypoint B2B Platform manages and records all B2B transactions while the actual files exchanged are optionally stored in an Amazon S3 bucket.</p>
-</div>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_01.png" alt="b2b_ftps_01"></span></p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_1_partnership_set_up">5. 1. Partnership Set Up</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The first stage of the solution is to create a partnership between your organisation and the supplier from the Anypoint Partner Manager. A partnership establishes the context in which B2B data can be exchanged between you and your partner. Furthermore, it allows this data to be tracked and viewed from the Anypoint Partner Manager.</p>
-</div>
-<div class="sect2">
-<h3 id="_create_partnership">5.1. Create partnership</h3>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Log in to Anypoint Anypoint Partner Manager:</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_02.png" alt="b2b_ftps_02"></span></p>
-</div>
-</li>
-<li>
-<p>Click <strong>Trading Partners</strong> on the left side of the menu:</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_02.png" alt="b2b_ftps_02"></span></p>
-</div>
-</li>
-<li>
-<p>Click <strong>Create</strong> in the lower right side corner.</p>
-</li>
-<li>
-<p>Enter <em>My Supplier</em> as <strong>Company Name</strong> and press <strong>Save</strong>.</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_03.png" alt="b2b_ftps_03"></span></p>
-</div>
-<div class="paragraph">
-<p>With a partnership in place, set the runtime parameters in which the FTPS Connector and X12 Module operate when sending to the supplier or receiving from a supplier.</p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_specify_ftps_settings">5.2. Specify FTPS Settings</h3>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Sign up for an FTPS cloud service (for example, see <a href="https://hostedftp.com/signup" class="bare">https://hostedftp.com/signup</a>).</p>
-</li>
-<li>
-<p>Click the <strong>FTP/S</strong> transport settings on the left side of the menu.</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_04.png" alt="b2b_ftps_04"></span></p>
-</div>
-</li>
-<li>
-<p>Enter the following values in the <strong>FTP Settings - Outbound</strong> sections:</p>
-<div class="olist loweralpha">
-<ol class="loweralpha" type="a">
-<li>
-<p>In the <strong>Server Address</strong> field, the address for the server you procured in Step 1.</p>
-</li>
-<li>
-<p>In the <strong>Port</strong> field, enter the number of the port for your server.</p>
-</li>
-<li>
-<p><em>demo</em> in the <strong>User Name</strong> field</p>
-</li>
-<li>
-<p>In the <strong>Password</strong> field, the password for the account you created on the FTPS cloud service you procured in Step 1.</p>
-</li>
-<li>
-<p><em>Passive</em> in the <strong>Transfer Mode</strong> field</p>
-</li>
-<li>
-<p><em>Implicit</em> in the <strong>SSL Mode</strong> field</p>
-</li>
-</ol>
-</div>
-</li>
-<li>
-<p>Leave checkbox, ‘<strong>Enable server validation field</strong>’ unchecked.</p>
-</li>
-<li>
-<p>Reuse those fields values to fill in the <strong>FTP Settings - Inbound</strong> section.</p>
-</li>
-<li>
-<p>Click Save.</p>
-</li>
-</ol>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_specify_ftps_transactions">5.3. Specify FTPS Transactions</h3>
-<div class="paragraph">
-<p>The settings configured in the previous section are meant to be reused by all inbound and outbound transactions within the application. Now we need to create transactions for exchanging files with the supplier.</p>
-</div>
-<div class="paragraph">
-<p>To send the 850 to the supplier, create an Outbound Transaction:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Click  <strong>Transactions</strong> in the left side of the menu.</p>
-</li>
-<li>
-<p>Click  <strong>New</strong> in the top right corner.</p>
-</li>
-<li>
-<p>In the <strong>Profile</strong> section, select <em>FTP</em>&nbsp;from <strong>Transport</strong> the drop-down menu.</p>
-</li>
-<li>
-<p>Select <em>Outbound</em> in the <strong>Direction</strong> drop-down menu.</p>
-</li>
-<li>
-<p>Select <em>X12</em> as <strong>Format</strong> and 850&nbsp;as <strong>Transaction</strong>.</p>
-</li>
-<li>
-<p>Enter the following details:</p>
-<div class="ulist">
-<ul>
-<li>
-<p>/demo/supplier-inbox/ as <strong>Path</strong></p>
-</li>
-<li>
-<p>Leave the <strong>File Name</strong> field empty, the FTPS connector assigsn a name for it</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p>Click  <strong>Save</strong>.</p>
-<div class="paragraph">
-<p>Now the inbound transaction for receiving the 997 file from the supplier needs to be created</p>
-</div>
-</li>
-<li>
-<p>Click  <strong>Transactions</strong> on the left  side of the menu.</p>
-</li>
-<li>
-<p>Click  <strong>New</strong> on the top right corner.</p>
-</li>
-<li>
-<p>In the <strong>Profile</strong> section, select <em>FTP</em>&nbsp;from <strong>Transport</strong> the drop-down menu.</p>
-</li>
-<li>
-<p>Select <em>Inbound</em> in the <strong>Direction</strong> drop-down menu.</p>
-</li>
-<li>
-<p>Select <em>X12</em> as <strong>Format</strong> and <em>997</em>&nbsp;as custom value for <strong>Transaction</strong>.</p>
-</li>
-<li>
-<p>Enter the following details:</p>
-<div class="ulist">
-<ul>
-<li>
-<p><em>/demo/consumer-inbox/</em> as <strong>Path</strong></p>
-</li>
-<li>
-<p><em>*.dat</em> as <strong>File Name</strong></p>
-</li>
-<li>
-<p><em>2000</em> as <strong>Polling Frequency</strong></p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p>Click  <strong>Save</strong>.</p>
-</li>
-</ol>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_set_up_x12">5.4. Set Up X12</h3>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Return to the <strong>Trading Partners</strong> page and select the newly created <strong>My Supplier</strong> from your list of partners. Click the X12 format settings found on the left side of the menu.</p>
-</li>
-<li>
-<p>In the <strong>Outbound</strong> section, fill in the fields according to the table below:</p>
-<table class="tableblock frame-all grid-all spread">
-<colgroup>
-<col style="width: %;">
-<col style="width: %;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Field</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Value</strong></p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Interchange sender ID qualifier (ISA 05)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ZZ</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Interchange sender ID (ISA 06)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MOUNTAINOUT</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Interchange receiver ID qualifier (ISA 07)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ZZ</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Interchange receiver ID (ISA 08)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MY-SUPPLIER</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Repetition separator character (ISA 11)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">U</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Default Interchange usage indicator (ISA 15)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Test</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Component element separator character (ISA 16)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">&gt;</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Application sender code (GS 02)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MOUNTAINOUT</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Application receiver code(GS 03)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MY-SUPPLIER</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Version identifier code suffix (GS 08)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">005010</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Segment terminator character</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Data Element Delimiter</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">*</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Character set</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Extended</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Character encoding</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ASCII</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Line ending between segments</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">LFCR</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Require Unique GS Control Numbers (GS 06)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">TRUE</p></td>
-</tr>
-</tbody>
-</table>
-</li>
-<li>
-<p>Scroll down to the <strong>Inbound</strong> section and fill in the fields according to the table below:</p>
-<table class="tableblock frame-all grid-all spread">
-<colgroup>
-<col style="width: %;">
-<col style="width: %;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Field</strong></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Value</strong></p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Interchange sender ID qualifier (ISA 05)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ZZ</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Interchange sender ID (ISA 06)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MY-SUPPLIER</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Interchange receiver ID qualifier (ISA 07)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">ZZ</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Interchange receiver ID (ISA 08)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MOUNTAINOUT</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Application sender code (GS 02)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MY-SUPPLIER</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Application receiver code (GS 03)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MOUNTAINOUT</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Require unique GS control numbers (GS 06)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">FALSE</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Require unique transaction set control numbers (ST 02)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">FALSE</p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_05.png" alt="b2b_ftps_05"></span></p>
-</div>
-</li>
-<li>
-<p>Click <strong>Save</strong>.</p>
-</li>
-</ol>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_2_mule_project_set_up">6. 2. Mule Project Set Up</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The next stage of the solution is to develop a Mule application that transforms an XML purchase order read from the filesystem to an X12 850 and sends it to the supplier over FTPS. The supplier returns an X12 997 to a FTPS server the application is aware of in order to inform the customer whether the 850 was accepted or rejected. The exchange of data  operates in the context of the partnership we created in <a href="https://docs.google.com/document/d/1R6H0-pKoO7n5swWerkpKXfO6liDFG3TNsnBnhqKfbTc/edit#heading=h.afo4sqok4iqk">Partnership Set Up</a>. The application is split into two parts:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>A customer part that sends an 850 and receives a 997.</p>
-</li>
-<li>
-<p>A mock supplier that  permits us to test the application without any external dependencies.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Each part  has its own Mule configuration file.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Launch Anypoint Studio and create a new Mule project.</p>
-</li>
-<li>
-<p>Rename the initial Mule config file created by Studio to <em>customer.xml</em></p>
-</li>
-<li>
-<p>Create a new Mule config and name it <em>mock-supplier</em></p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_63.png" alt="b2b_ftps_06"></span></p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_3_customer_connector_configs">7. 3. Customer Connector Configs</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Create the customer’s connector configs in the <em>customer</em> Mule config file before proceeding to build the customer flows.</p>
-</div>
-<div class="sect2">
-<h3 id="_create_b2b_connector_config">7.1. Create B2B Connector Config</h3>
-<div class="paragraph">
-<p>The B2B Connector acts like a bridge between Mule and Anypoint‘s B2B services. It allows the FTPS Connector and EDI Module to fetch partnerships and record transmissions.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Click the <strong>Global Elements</strong> view. Go to <strong>Create</strong> &gt; <strong>Connector Configuration</strong> &gt; <strong>B2B</strong>.</p>
-</li>
-<li>
-<p>Enter your secret API key which is retrieved from your home organization’s <strong>Contacts</strong> settings page in the Anypoint Partner Manager.</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>Follow these steps:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Click <strong>Trading Partners</strong> on the left.</p>
-</li>
-<li>
-<p>Click the home icon on the right.</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_07.png" alt="b2b_ftps_07"></span></p>
-</div>
-</li>
-<li>
-<p>Copy the API Key that displays at the top right.</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_08.png" alt="b2b_ftps_08"></span></p>
-</div>
-</li>
-<li>
-<p>If you have an Amazon S3 bucket available, you should select <strong>s3</strong> as the <strong>File Storage Type</strong>. Setting this option  tells the B2B Connector to persist X12 documents and AS2 message content to S3.</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_09.png" alt="b2b_ftps_09"></span></p>
-</div>
-</li>
-<li>
-<p>Click <strong>OK</strong>.</p>
-</li>
-</ol>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_create_ftps_connector_configs">7.2. Create FTPS Connector Configs</h3>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Remain in the <strong>Global Elements <em>view</em></strong> to create a FTPS Connector config by going to <strong>Create</strong> &gt; <strong>Connector Configuration</strong> &gt; <strong>FTPS</strong>. Name it <em>b2b-based-ftps</em>.</p>
-</li>
-<li>
-<p>Enable the <strong>Use B2B Provider</strong> option on configs to allow Anypoint B2B platform to manage the FTPS processors.</p>
-</li>
-</ol>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_create_x12_module_config">7.3. Create X12 Module Config</h3>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Create an X12 Module config in the <strong>Global Elements</strong> view, name it <strong>X12_EDI</strong></p>
-</li>
-<li>
-<p>Enable <strong>Use B2B Provider</strong> to allow Anypoint B2B platform to manage the X12 processors.</p>
-</li>
-<li>
-<p>Check the <strong>Create Object Manually</strong> radio button and open the <strong>Object Builder</strong> to enter the schema path <em>/x12/005010/850.esl</em> in the first entry list.</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_10.png" alt="b2b_ftps_10"></span></p>
-</div>
-</li>
-<li>
-<p>Set the interchange identifier attributes so that they correspond with the interchange identifiers you configured in the Anypoint Partner Manager:</p>
-<div class="paragraph">
-<p>Self Identification:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="editor-colors lang-code"><div class="line"><span class="text plain null-grammar"><span>Interchange&nbsp;sender/receiver&nbsp;ID&nbsp;qualifier&nbsp;(ISA05/ISA07)&nbsp;=&nbsp;_ZZ_</span></span></div><div class="line"><span class="text plain null-grammar"><span>Interchange&nbsp;sender/receiver&nbsp;ID&nbsp;(ISA06/ISA08)&nbsp;=&nbsp;_MOUNTAINOUT_</span></span></div><div class="line"><span class="text plain null-grammar"><span>Application&nbsp;sender/receiver&nbsp;code&nbsp;(GS02/GS03)&nbsp;=&nbsp;_MOUNTAINOUT_</span></span></div></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Partner Identification:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="editor-colors lang-code"><div class="line"><span class="text plain null-grammar"><span>Interchange&nbsp;sender/receiver&nbsp;ID&nbsp;qualifier&nbsp;(ISA05/ISA07)&nbsp;=&nbsp;_ZZ_</span></span></div><div class="line"><span class="text plain null-grammar"><span>Interchange&nbsp;sender/receiver&nbsp;ID&nbsp;(ISA06/ISA08)&nbsp;=&nbsp;_MY-SUPPLIER_</span></span></div><div class="line"><span class="text plain null-grammar"><span>Application&nbsp;sender/receiver&nbsp;code&nbsp;(GS02/GS03)&nbsp;=&nbsp;_MY-SUPPLIER_</span></span></div></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The interchange identifiers are the key for looking up the partnership to use for X12 processing.</p>
-</div>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_11.png" alt="b2b_ftps_11"></span></p>
-</div>
-<div class="paragraph">
-<p>The following screenshot should match what you have in the <strong>Global Elements</strong> view:</p>
-</div>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_12.png" alt="b2b_ftps_12"></span></p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_4_transform_and_send_850_over_ftps">8. 4. Transform and Send 850 over FTPS</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>With the connector configs out of the way, we now build a flow to read an XML purchase order from the filesystem, transform it to a canonical EDI message structure, and finally, write it out as an X12 850 document to send it out to your supplier over FTPS.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Remain in the customer Mule config but change to the <strong>Message Flow</strong> view.</p>
-</li>
-<li>
-<p>Drag a <strong>File</strong> inbound endpoint to the canvas to create a flow. Set the <strong>Path</strong> attribute to <em>outbox</em>.</p>
-</li>
-<li>
-<p>Add a <strong>DataMapper</strong> next to the File message source.</p>
-</li>
-<li>
-<p>Put an <strong>X12</strong> processor after the DataMapper. Set the <strong>Connector Configuration</strong> to the X12 config that you created in the previous section and select <strong>Write</strong> for the <strong>Operation</strong>.</p>
-</li>
-<li>
-<p>Go back to the DataMapper. Select for input type XML and use the schema po.xsd under src/test/resources to derive the structure to be mapped. Click  <strong>Create mapping</strong>. You can download and rename a copy of <a href="_attachments/ftps-po.xsd">ftps-po.xsd</a>.</p>
-</li>
-<li>
-<p>Perform the mapping from XML to X12 850 as follows:</p>
-<table class="tableblock frame-all grid-all spread">
-<colgroup>
-<col style="width: 30%;">
-<col style="width: 70%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p><strong>Source: XML</strong></p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p><strong>Target: X12 850</strong></p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>PurchaserOrderNumber</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>BEG03 - Purchase Order Number</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>'00'</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>BEG01 - Transaction Set Purpose Code</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>'NE'</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>BEG02 - Purchase Order Type Code</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>OrderDate</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>BEG05 - Date</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>Quantity</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>PO102 - Quantity</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>USPrice</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>PO104 - Unit Price</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>PartNumber</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>PO107 - Produce/Service ID</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>City</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>Heading &gt; 3100 N1 &gt; 3400 N4 &gt; N401 - City Name</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>State</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>Heading &gt; 3100 N1 &gt; 3400 N4 &gt; N402 - State or Province Code</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>Zip</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>Heading &gt; 3100 N1 &gt; 3400 N4 &gt; N403 - Postal Code</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>Country</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>Heading &gt; 3100 N1 &gt; 3400 N4 &gt; N404 - Country Code</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>TotalPrice</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>Summary &gt; 100 CTT &gt; 0200 AMT &gt; AMT02 - Monetary Amount</p>
-</div></div></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>TT</p>
-</div></div></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
-<p>Summary &gt; 100 CTT &gt; 0200 AMT &gt; AMT01 - Amount Qualifier Code</p>
-</div></div></td>
-</tr>
-</tbody>
-</table>
-</li>
-<li>
-<p>The last message processor in the flow is an FTPS processor that sends the 850. Set the <strong>operation</strong> to <strong>Write</strong>. Additionally, set <strong>SpecId</strong> in the <strong>B2B options</strong> section to the <strong>FTP/S Settings ID</strong> value of the in the <strong>Transactions</strong> section of the Anypoint Partner Manager for the 850 transaction:</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_13.png" alt="b2b_ftps_13"></span></p>
-</div>
-<div class="paragraph">
-<p>Note that this identifier was configured in the Anypoint Partner Manager. Copy and paste it into your FTPS processor:</p>
-</div>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_14.png" alt="b2b_ftps_14"></span></p>
-</div>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_15.png" alt="b2b_ftps_15"></span></p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_5_receive_997_over_ftps">9. 5. Receive 997 over FTPS</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The subsequent flow to develop receives a 997 over &nbsp;FTPS from the supplier in response to the 850 sent by you. In the <em>customer.xml</em> Mule config:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Drag the FTPS processor to the canvas so as to create it as a message source of a new flow. Select the <strong>Read</strong> operation and set <strong>SpecId</strong> in the <strong>B2B options</strong> section to the FTP/S Settings ID value of the in the <strong>Transactions</strong> section of the Anypoint Partner Manager for the 997 transaction:</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_16.png" alt="b2b_ftps_16"></span></p>
-</div>
-<div class="paragraph">
-<p>The FTP/S Settings ID identifiers are the key for looking up the partnership to use for receiving FTPS transfers. Copy and paste it in your FTPS processor configuration:</p>
-</div>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_17.png" alt="b2b_ftps_17"></span></p>
-</div>
-<div class="paragraph">
-<p>Note that when using a B2B &nbsp;based configuration for FTPS all locally defined fields are ignored.</p>
-</div>
-</li>
-<li>
-<p>Drag a <strong>Byte Array to String</strong> transformer next to the FTPS source.</p>
-</li>
-<li>
-<p>Add an <strong>X12</strong> processor next to message source and select the <strong>Read</strong> operation. Point the <strong>Connector Configuration</strong> to the X12 Module config that you created in the previous section</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_18.png" alt="b2b_ftps_18"></span></p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_6_develop_a_mock_supplier">10. 6. Develop a Mock Supplier</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>A mock supplier receives the 850 and generates a 997 to send back to the customer over FTPS:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Open the <em>mock-supplier.xml</em> Mule config.</p>
-</li>
-<li>
-<p>Similar to what you did for the customer, create a FTPS global configuration and a X12 Module config. Ensure that:</p>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Use B2B Provider</strong> remains <strong>disabled</strong> for all relevant configs.</p>
-</li>
-<li>
-<p>X12 Module config schema path is set to <em>/x12/005010/850.esl</em></p>
-</li>
-<li>
-<p>Unique names are given to the configs</p>
-<div class="paragraph">
-<p>The following screenshot should match what you have in the mock supplier’s <strong>Global Elements</strong> view:</p>
-</div>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_19.png" alt="b2b_ftps_19"></span></p>
-</div>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p>Switch to the <strong>Message Flow</strong> view. Drag the FTPS processor to the canvas and select the <strong>Read</strong> operation. Make sure that <strong>Connector Configuration</strong> points to the mock supplier’s FTPS config (highlighted above).</p>
-</li>
-<li>
-<p>Enter <em>/demo/supplier-inbox/</em> as <strong>Path</strong> and <em>*.dat</em> in <strong>Filename</strong>. Note that we’re leaving the B2B options unset. The polling setting can be safely ignored by now.</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_20.png" alt="b2b_ftps_20"></span></p>
-</div>
-</li>
-<li>
-<p>Add a <strong>ByteArray to String</strong> transformer.</p>
-</li>
-<li>
-<p>The next processor in the chain is an <strong>X12</strong> processor that has its operation set to <strong>Read</strong> and Connector Configuration set to <strong>X12_EDI</strong>.</p>
-</li>
-<li>
-<p>After the 850 is parsed by the X12 processor, the generated 997 needs to be extracted from the payload. Add the <strong>Set Payload</strong> processor to the processor chain and set <strong>Value</strong> to: <em>#[ [<em>Transactions</em> : [<em>997</em> : <strong>payload</strong>.FunctionalAcksGenerated] ] ]</em></p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_21.png" alt="b2b_ftps_21"></span></p>
-</div>
-</li>
-<li>
-<p>Add Another <strong>X12</strong> processor to serialize the 997. Expand the <strong>Operation</strong> drop-down menu and select <strong>Write</strong>; set the <strong>Connector Configuration</strong> to <strong>X12_EDI</strong>.</p>
-</li>
-<li>
-<p>The last step in the flow to send the 997 over FTPS. Append a FTPS processor to the flow; select the same local FTPS global configuration for the FTPS message source of point 3, select the <strong>Write</strong> operation and enter <em>/demo/consumer-inbox/</em> in <strong>Path</strong>.</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_22.png" alt="b2b_ftps_22"></span></p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_7_run_application_after_disabling_s3_storage">11. 7. Run Application After Disabling S3 Storage</h2>
-<div class="sectionbody">
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>Run the application as a <strong>Mule Application</strong>. On startup, the application creates the <em>outbox</em> directory in the project’s root directory. If the <em>outbox</em> directory isn’t visible, try refreshing the project in the <strong>Package Explorer</strong> view.</p>
-</li>
-<li>
-<p>Drop the purchase order file <em>po.xml</em>, included with this document, in the <em>outbox</em> directory. The file should disappear from the directory since the <strong>File</strong> inbound endpoint  deletes the file once it reads it.</p>
-</li>
-<li>
-<p>Access the B2B Transmissions view in the Anypoint Partner Manager to confirm that the AS2 and X12 transmissions have taken place.</p>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_23.png" alt="b2b_ftps_23"></span></p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_8_run_application_after_enabling_s3_storage">12. 8. Run Application After Enabling S3 Storage</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>If you enabled S3 storage configured in the B2B Connector config, then you need to add the AWS and S3 parameters to the Mule application VM arguments.</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>From the <strong>Run As</strong> menu, select <strong>Mule Application (configure)</strong>.</p>
-</li>
-<li>
-<p>Click the <strong>Arguments</strong> tab.</p>
-</li>
-<li>
-<p>Add the following parameters in the <strong>VM arguments</strong> text box:</p>
-<div class="paragraph">
-<p>-Daws.accessKeyId=<em>[Your access key]&nbsp;_-Daws.secretKey=</em>[Your secret key]_</p>
-</div>
-<div class="paragraph">
-<p>-Daws.s3.bucketName=<em>[Your bucket name]</em></p>
-</div>
-<div class="paragraph">
-<p>The value of each property needs to be substituted with the required setting retrieved from your AWS Management Console.</p>
-</div>
-<div class="paragraph">
-<p><span class="image"><img src="C:\Users\Ian\Documents\mulesoft-docs\anypoint-b2b\v\latest\b2b_ftps_walk_24.png" alt="b2b_ftps_24"></span></p>
-</div>
-</li>
-</ol>
-</div>
-</div>
-</div>
-        </div>
-      </div>
-    </body>
-  </html>
+=== Prerequisites
+
+* Anypoint Studio with Mule Server 3.6.1 EE runtime
+* FTPS Connector 1.0.0, B2B Connector 1.0, and X12 Module 1.0 installed
+* Anypoint Platform account
+* Amazon S3 bucket for FTPS and EDI file storage (optional)
+
+=== Attachments
+
+* link:_attachments/ftps-doc.zip[ftps-doc.zip]
+* link:_attachments/ftps-po.xml[ftps-po.xml]
+* link:_attachments/ftps-po.xsd[ftps-po.xsd]
+
+== To run this example follow the steps below:
+
+. Download the application by clicking thelink:_attachments/ftps-doc.zip[ftps-doc.zip], and unzip.
+. Import the application into Anypoint Studio from *File* > *Import*, and selecting *Anypoint Studio Project from External Location*. Then click *Next*, select the downloaded application, and click *Finish*.
+. From your web browser, log in to the Anypoint Partner Manager, then click  your HomeOrg view and copy your API key (reference step 3.2.).
+. In Anypoint, click the file "customer.xml" in the app folder, and select the Global view tab. Then open the configurations of B2B, and insert the API Key you got from the Anypoint Partner Manager.
+. Right-click the imported project folder, "ftps-doc", select *Run As*, and click *Mule Application*.
+. Inside the project is a file in src/test/resources called "po.xml". Create a copy and place it in the "outbox" folder. The po.xml file is also available to download, and which you can rename from the link:_attachments/ftps-po.xml[ftps-po.xml] file.
+. The file should disappear from the directory since the File inbound endpoint  deletes the file once it reads it.
+. Access the B2B Transmissions view in the Anypoint Partner Manager to confirm that the AS2 and X12 transmissions have taken place.
+
+== Anypoint B2B Platform FTPS and EDI X12 Purchase Order Example
+
+This example shows how to leverage the Anypoint B2B Platform to manage and track B2B exchanges. The goal is to develop a Mule application, represent a customer who transforms an XML purchase order read from the filesystem to an X12 850, and sends it to a supplier over FTPS. The supplier returns an X12 997 to a FTPS server that the application is aware of in order to inform the customer whether the 850 was accepted or rejected. Anypoint B2B Platform manages and records all B2B transactions while the actual files exchanged are optionally stored in an Amazon S3 bucket.
+
+image:b2b_ftps_walk_01.png[b2b_ftps_01]
+
+== 1. Partnership Set Up
+
+The first stage of the solution is to create a partnership between your organisation and the supplier from the Anypoint Partner Manager. A partnership establishes the context in which B2B data can be exchanged between you and your partner. Furthermore, it allows this data to be tracked and viewed from the Anypoint Partner Manager.
+
+=== Create partnership
+
+. Log in to Anypoint Anypoint Partner Manager:
++
+image:b2b_ftps_walk_02.png[b2b_ftps_02]
++
+. Click *Trading Partners* on the left side of the menu:
++
+image:b2b_ftps_walk_02.png[b2b_ftps_02]
++
+. Click *Create* in the lower right side corner.
+. Enter _My Supplier_ as *Company Name* and press *Save*.
++
+image:b2b_ftps_walk_03.png[b2b_ftps_03]
++
+With a partnership in place, set the runtime parameters in which the FTPS Connector and X12 Module operate when sending to the supplier or receiving from a supplier.
+
+=== Specify FTPS Settings
+. Sign up for an FTPS cloud service (for example, see https://hostedftp.com/signup).
+. Click the *FTP/S* transport settings on the left side of the menu.
+. Enter the following values in the *FTP Settings - Outbound* sections:
+.. In the *Server Address* field, the address for the server you procured in Step 1.
+.. In the *Port* field, enter the number of the port for your server.
+.. _demo_ in the *User Name* field
+.. In the *Password* field, the password for the account you created on the FTPS cloud service you procured in Step 1.
+.. _Passive_ in the *Transfer Mode* field
+.. _Implicit_ in the *SSL Mode* field
+. Leave checkbox, ‘*Enable server validation field*’ unchecked.
+. Reuse those fields values to fill in the *FTP Settings - Inbound* section.
+. Click Save.
+
+=== Specify FTPS Transactions
+
+The settings configured in the previous section are meant to be reused by all inbound and outbound transactions within the application. Now we need to create transactions for exchanging files with the supplier.
+
+To send the 850 to the supplier, create an Outbound Transaction:
+
+. Click  *Transactions* in the left side of the menu.
+. Click  *New* in the top right corner.
+. In the *Profile* section, select _FTP_ from *Transport* the drop-down menu.
+. Select _Outbound_ in the *Direction* drop-down menu.
+. Select _X12_ as *Format* and 850 as *Transaction*.
+. Enter the following details:
+** /demo/supplier-inbox/ as *Path*
+** Leave the *File Name* field empty, the FTPS connector assigsn a name for it
+. Click  *Save*.
++
+Now the inbound transaction for receiving the 997 file from the supplier needs to be created
++
+. Click  *Transactions* on the left  side of the menu.
+. Click  *New* on the top right corner.
+. In the *Profile* section, select _FTP_ from *Transport* the drop-down menu.
+. Select _Inbound_ in the *Direction* drop-down menu.
+. Select _X12_ as *Format* and _997_ as custom value for *Transaction*.
+. Enter the following details:
+* _/demo/consumer-inbox/_ as *Path*
+* _*.dat_ as *File Name*
+* _2000_ as *Polling Frequency*
+. Click  *Save*.
+
+=== Set Up X12
+
+. Return to the *Trading Partners* page and select the newly created *My Supplier* from your list of partners. Click the X12 format settings found on the left side of the menu.
+. In the *Outbound* section, fill in the fields according to the table below: 
++
+[cols=",",]
+|===
+|*Field* |*Value*
+|Interchange sender ID qualifier (ISA 05) |ZZ
+|Interchange sender ID (ISA 06) |MOUNTAINOUT
+|Interchange receiver ID qualifier (ISA 07) |ZZ
+|Interchange receiver ID (ISA 08) |MY-SUPPLIER
+|Repetition separator character (ISA 11) |U
+|Default Interchange usage indicator (ISA 15) |Test
+|Component element separator character (ISA 16) |>
+|Application sender code (GS 02) |MOUNTAINOUT
+|Application receiver code(GS 03) |MY-SUPPLIER
+|Version identifier code suffix (GS 08) |005010
+|Segment terminator character |~
+|Data Element Delimiter |*
+|Character set |Extended
+|Character encoding |ASCII
+|Line ending between segments |LFCR
+|Require Unique GS Control Numbers (GS 06) |TRUE
+|===
++
+. Scroll down to the *Inbound* section and fill in the fields according to the table below:
++
+[cols=",",]
+|===
+|*Field* |*Value*
+|Interchange sender ID qualifier (ISA 05) |ZZ
+|Interchange sender ID (ISA 06) |MY-SUPPLIER
+|Interchange receiver ID qualifier (ISA 07) |ZZ
+|Interchange receiver ID (ISA 08) |MOUNTAINOUT
+|Application sender code (GS 02) |MY-SUPPLIER
+|Application receiver code (GS 03) |MOUNTAINOUT
+|Require unique GS control numbers (GS 06) |FALSE
+|Require unique transaction set control numbers (ST 02) |FALSE
+|===
++
+image:b2b_ftps_walk_05.png[b2b_ftps_05]
++
+. Click *Save*.
+
+== 2. Mule Project Set Up
+
+The next stage of the solution is to develop a Mule application that transforms an XML purchase order read from the filesystem to an X12 850 and sends it to the supplier over FTPS. The supplier returns an X12 997 to a FTPS server the application is aware of in order to inform the customer whether the 850 was accepted or rejected. The exchange of data  operates in the context of the partnership we created in link:https://docs.google.com/document/d/1R6H0-pKoO7n5swWerkpKXfO6liDFG3TNsnBnhqKfbTc/edit#heading=h.afo4sqok4iqk[Partnership Set Up]. The application is split into two parts:
+
+* A customer part that sends an 850 and receives a 997.
+* A mock supplier that  permits us to test the application without any external dependencies.
+
+Each part  has its own Mule configuration file.
+
+. Launch Anypoint Studio and create a new Mule project.
++
+. Rename the initial Mule config file created by Studio to _customer.xml_
+. Create a new Mule config and name it _mock-supplier_
++
+image:b2b_ftps_walk_63.png[b2b_ftps_06]
+
+
+== 3. Customer Connector Configs
+
+Create the customer’s connector configs in the _customer_ Mule config file before proceeding to build the customer flows.
+
+=== Create B2B Connector Config
+
+The B2B Connector acts like a bridge between Mule and Anypoint‘s B2B services. It allows the FTPS Connector and EDI Module to fetch partnerships and record transmissions.
+
+. Click the *Global Elements* view. Go to *Create* > *Connector Configuration* > *B2B*.
+. Enter your secret API key which is retrieved from your home organization’s *Contacts* settings page in the Anypoint Partner Manager.
+
+Follow these steps:
+
+. Click *Trading Partners* on the left.
+. Click the home icon on the right.
++
+image:b2b_ftps_walk_07.png[b2b_ftps_07]
++
+. Copy the API Key that displays at the top right.
++
+image:b2b_ftps_walk_08.png[b2b_ftps_08]
++
+. If you have an Amazon S3 bucket available, you should select *s3* as the *File Storage Type*. Setting this option  tells the B2B Connector to persist X12 documents and AS2 message content to S3.
++
+image:b2b_ftps_walk_09.png[b2b_ftps_09]
++
+. Click *OK*.
+
+=== Create FTPS Connector Configs
+
+. Remain in the *Global Elements _view_* to create a FTPS Connector config by going to *Create* > *Connector Configuration* > *FTPS*. Name it _b2b-based-ftps_.
+. Enable the *Use B2B Provider* option on configs to allow Anypoint B2B platform to manage the FTPS processors.
+
+=== Create X12 Module Config
+
+. Create an X12 Module config in the *Global Elements* view, name it *X12_EDI*
+. Enable *Use B2B Provider* to allow Anypoint B2B platform to manage the X12 processors.
+. Check the *Create Object Manually* radio button and open the *Object Builder* to enter the schema path _/x12/005010/850.esl_ in the first entry list.
++
+image:b2b_ftps_walk_10.png[b2b_ftps_10]
++
+. Set the interchange identifier attributes so that they correspond with the interchange identifiers you configured in the Anypoint Partner Manager:
++
+Self Identification:
++
+[source,code,linenums]
+----
+Interchange sender/receiver ID qualifier (ISA05/ISA07) = _ZZ_
+Interchange sender/receiver ID (ISA06/ISA08) = _MOUNTAINOUT_
+Application sender/receiver code (GS02/GS03) = _MOUNTAINOUT_
+----
++
+Partner Identification:
++
+[source,code,linenums]
+----
+Interchange sender/receiver ID qualifier (ISA05/ISA07) = _ZZ_
+Interchange sender/receiver ID (ISA06/ISA08) = _MY-SUPPLIER_
+Application sender/receiver code (GS02/GS03) = _MY-SUPPLIER_
+----
++
+The interchange identifiers are the key for looking up the partnership to use for X12 processing.
++
+image:b2b_ftps_walk_11.png[b2b_ftps_11]
++
+The following screenshot should match what you have in the *Global Elements* view:
++
+image:b2b_ftps_walk_12.png[b2b_ftps_12]
+
+== 4. Transform and Send 850 over FTPS
+
+With the connector configs out of the way, we now build a flow to read an XML purchase order from the filesystem, transform it to a canonical EDI message structure, and finally, write it out as an X12 850 document to send it out to your supplier over FTPS.
+
+. Remain in the customer Mule config but change to the *Message Flow* view.
+. Drag a *File* inbound endpoint to the canvas to create a flow. Set the *Path* attribute to _outbox_.
+. Add a *DataMapper* next to the File message source.
+. Put an *X12* processor after the DataMapper. Set the *Connector Configuration* to the X12 config that you created in the previous section and select *Write* for the *Operation*.
+. Go back to the DataMapper. Select for input type XML and use the schema po.xsd under src/test/resources to derive the structure to be mapped. Click  *Create mapping*. You can download and rename a copy of link:_attachments/ftps-po.xsd[ftps-po.xsd].
+. Perform the mapping from XML to X12 850 as follows:
++
+[width="100%",cols="30a,70a"]
+|===
+|*Source: XML* |*Target: X12 850*
+|PurchaserOrderNumber |BEG03 - Purchase Order Number
+|'00' |BEG01 - Transaction Set Purpose Code
+|'NE' |BEG02 - Purchase Order Type Code
+|OrderDate |BEG05 - Date
+|Quantity |PO102 - Quantity
+|USPrice |PO104 - Unit Price
+|PartNumber |PO107 - Produce/Service ID
+|City |Heading > 3100 N1 > 3400 N4 > N401 - City Name
+|State |Heading > 3100 N1 > 3400 N4 > N402 - State or Province Code
+|Zip |Heading > 3100 N1 > 3400 N4 > N403 - Postal Code
+|Country |Heading > 3100 N1 > 3400 N4 > N404 - Country Code
+|TotalPrice |Summary > 100 CTT > 0200 AMT > AMT02 - Monetary Amount
+|TT |Summary > 100 CTT > 0200 AMT > AMT01 - Amount Qualifier Code
+|===
++
+. The last message processor in the flow is an FTPS processor that sends the 850. Set the *operation* to *Write*. Additionally, set *SpecId* in the *B2B options* section to the *FTP/S Settings ID* value of the in the *Transactions* section of the Anypoint Partner Manager for the 850 transaction:
++
+image:b2b_ftps_walk_13.png[b2b_ftps_13]
++
+Note that this identifier was configured in the Anypoint Partner Manager. Copy and paste it into your FTPS processor:
++
+image:b2b_ftps_walk_14.png[b2b_ftps_14]
++
+image:b2b_ftps_walk_15.png[b2b_ftps_15]
+
+== 5. Receive 997 over FTPS
+
+The subsequent flow to develop receives a 997 over  FTPS from the supplier in response to the 850 sent by you. In the _customer.xml_ Mule config:
+
+. Drag the FTPS processor to the canvas so as to create it as a message source of a new flow. Select the *Read* operation and set *SpecId* in the *B2B options* section to the FTP/S Settings ID value of the in the *Transactions* section of the Anypoint Partner Manager for the 997 transaction:
++
+image:b2b_ftps_walk_16.png[b2b_ftps_16]
++
+The FTP/S Settings ID identifiers are the key for looking up the partnership to use for receiving FTPS transfers. Copy and paste it in your FTPS processor configuration:
++
+image:b2b_ftps_walk_17.png[b2b_ftps_17]
++
+Note that when using a B2B  based configuration for FTPS all locally defined fields are ignored.
++
+. Drag a *Byte Array to String* transformer next to the FTPS source.
+. Add an *X12* processor next to message source and select the *Read* operation. Point the *Connector Configuration* to the X12 Module config that you created in the previous section
++
+image:b2b_ftps_walk_18.png[b2b_ftps_18]
+
+== 6. Develop a Mock Supplier
+
+A mock supplier receives the 850 and generates a 997 to send back to the customer over FTPS:
+
+. Open the _mock-supplier.xml_ Mule config.
+. Similar to what you did for the customer, create a FTPS global configuration and a X12 Module config. Ensure that:
++
+** *Use B2B Provider* remains *disabled* for all relevant configs.
+** X12 Module config schema path is set to _/x12/005010/850.esl_
+** Unique names are given to the configs
++
+The following screenshot should match what you have in the mock supplier’s *Global Elements* view:
++
+image:b2b_ftps_walk_19.png[b2b_ftps_19]
++
+. Switch to the *Message Flow* view. Drag the FTPS processor to the canvas and select the *Read* operation. Make sure that *Connector Configuration* points to the mock supplier’s FTPS config (highlighted above).
++
+. Enter _/demo/supplier-inbox/_ as *Path* and _*.dat_ in *Filename*. Note that we’re leaving the B2B options unset. The polling setting can be safely ignored by now.
++
+image:b2b_ftps_walk_20.png[b2b_ftps_20]
++
+. Add a *ByteArray to String* transformer.
+. The next processor in the chain is an *X12* processor that has its operation set to *Read* and Connector Configuration set to *X12_EDI*.
+. After the 850 is parsed by the X12 processor, the generated 997 needs to be extracted from the payload. Add the *Set Payload* processor to the processor chain and set *Value* to: _#[ ['Transactions' : ['997' : *payload*.FunctionalAcksGenerated] ] ]_
++
+image:b2b_ftps_walk_21.png[b2b_ftps_21]
++
+. Add Another *X12* processor to serialize the 997. Expand the *Operation* drop-down menu and select *Write*; set the *Connector Configuration* to *X12_EDI*.
+. The last step in the flow to send the 997 over FTPS. Append a FTPS processor to the flow; select the same local FTPS global configuration for the FTPS message source of point 3, select the *Write* operation and enter _/demo/consumer-inbox/_ in *Path*.
++
+image:b2b_ftps_walk_22.png[b2b_ftps_22]
+
+== 7. Run Application After Disabling S3 Storage
+
+. Run the application as a *Mule Application*. On startup, the application creates the _outbox_ directory in the project’s root directory. If the _outbox_ directory isn’t visible, try refreshing the project in the *Package Explorer* view.
+. Drop the purchase order file _po.xml_, included with this document, in the _outbox_ directory. The file should disappear from the directory since the *File* inbound endpoint  deletes the file once it reads it.
+. Access the B2B Transmissions view in the Anypoint Partner Manager to confirm that the AS2 and X12 transmissions have taken place.
++
+image:b2b_ftps_walk_23.png[b2b_ftps_23]
+
+== 8. Run Application After Enabling S3 Storage
+
+If you enabled S3 storage configured in the B2B Connector config, then you need to add the AWS and S3 parameters to the Mule application VM arguments.
+
+. From the *Run As* menu, select *Mule Application (configure)*.
+. Click the *Arguments* tab.
+. Add the following parameters in the *VM arguments* text box:
++
+-Daws.accessKeyId=_[Your access key] _-Daws.secretKey=_[Your secret key]_
++
+-Daws.s3.bucketName=_[Your bucket name]_
++
+The value of each property needs to be substituted with the required setting retrieved from your AWS Management Console.
++
+image:b2b_ftps_walk_24.png[b2b_ftps_24]
