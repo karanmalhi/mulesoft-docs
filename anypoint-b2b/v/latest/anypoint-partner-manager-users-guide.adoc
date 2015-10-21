@@ -6,7 +6,7 @@ Anypoint Partner Manager is currently in beta. For access or more information, t
 
 Anypoint Partner Manager enables all configuration and monitoring for AnyPoint B2B flows.
 
-image:b2b_intro_03.png[b2b_intro_03]
+// image:b2b_intro_03.png[b2b_intro_03]
 
 == Trading Partner Management
 
@@ -50,7 +50,7 @@ In order to exchange B2B messages with another company, you must create a Tradin
 
 In the contacts section you can configure the name that is displayed for the trading partner, and optionally technical and business contacts for the partner.
 
-====== To enter contact information
+===== Enter contact information
 
 . Start APM. The *Anypoint Platform* page appears, with *B2B Transmisssions* selected.
 . Click *Trading Partners*. The *Trading Partners* page appears.
@@ -89,13 +89,13 @@ AS2 is a secure transport protocol that enables files to be signed or encrypted 
 between your company and your trading partners. You can enter information for both inbound and outbound settings.
 
 
-====== To enter AS2 Identity Settings
+====== Enter AS2 Identity Settings
 
 . In the *AS2 Identity* box, enter the trading partner-assigned name associated with this trading partner’s Production AS2 ID.
 . Click Choose File to select and upload this trading partner’s AS2 Certificate.
 + The *Certificate Name*, *Expiration* and *Thumbprint* fields automatically populate when an AS2 certificate is uploaded.
 
-====== To enter AS2 Settings - Outbound
+====== Enter AS2 Settings - Outbound
 
 The AS2 Outbound Settings are for your trading partner’s specific AS2 settings such as *URL*.
 
@@ -140,7 +140,7 @@ def
 MDN Async::
 def
 
-====== To enter AS2 Settings - Inbound
+====== Enter AS2 Settings - Inbound
 
  URL::
  def
@@ -149,7 +149,7 @@ def
  Preferred Digest Algorithm::
  Dropdown listbox: *None*, *SHA1*, *MD5*
 
- Checkbox Options:
+Checkbox options:
 
  Compress::
  def
@@ -166,25 +166,113 @@ def
  MDN Signed::
  def
 
-===== FTP
+===== FTPS
 
-intro
+_FTPS_ is an extension to the commonly used File Transfer Protocol (FTP) that adds support for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) cryptographic protocols.
 
-====== To enter FTP information
+====== Enter FTP Settings - Outbound
 
-procedure and box info
+Server Address::
+Location in which inbound documents will be placed.
+Port::
+Specific inbound port to be used with this trading partner. Set the host of your FTP server, this can be an IP address or a host name.
+User Name::
+def
+Password::
+def
+Transfer Mode::
+Use passive mode whenever possible. It is easier to set up from the client’s perspective.
+SSL Mode::
+Explicit|Implicit
+Enable Server Validation::
+Selecting this checkbox will validate the servers identity; only JKS format is supported at this time.
+Upload Temporary Directory::
+Places the files in this location until they complete uploading.
+
+====== Enter FTP Settings - Inbound
+
+FTPS Outbound has the same settings as FTPS Inbound as described above with the addition of  *Maximum Number of Download Threads*, which is the number of worker threads to use when downloading multiple files (useful when reading files using a wildcard pattern or a directory).
+
 
 ==== Format
 
-In the Format Settings section you can configure the default options for supported B2B format standards, currently EDI X12 and EDIFACT.
+In the Format Settings section you can configure the default options for supported B2B format standards (currently EDI X12 and EDIFACT).
 
 ===== X12
 
-intro
+X12 standards define the structure, format, and content of business transactions conducted through Electronic Data Interchange (EDI) and are used in conjunction with
+AS2 or FTPS as transport for these transaction sets.
 
-====== To enter X12 information
+====== Enter X12 Identity Settings
 
-procedure and box info
+Interchange ID qualifier (ISA)::
+def
+Interchange ID (ISA)::
+def
+
+====== Enter X12 Settings - Inbound
+
+*Envelope Headers (ISA)*:
+
+Auth. Info. Qualifier (ISA 01)::
+Defaults to *00*, but there are six other valid
+values in the dropdown. The most common value is *00*.
+
+Authorization Information (ISA 02)::
+defaults to a blank value. This field is editable if another value is needed.
+
+Security Inf. Qualifier (ISA 03)::
+defaulted to a 00 but is an editable field if another value is needed.
+
+Security Information (ISA 04)::
+defaults to a blank value. This field is editable if another value is needed in this field.
+Interchange sender ID qualifier (ISA 05)::
+drop down populated with the more common EDI Partner qualifiers. If you need a different value choose Custom in the drop down and enter your valid trading partner qualifier.
+
+Interchange sender ID (ISA 06)::
+free form field to enter your trading partner’s EDI ID. This field is alphanumeric with a max of 15 characters
+
+Interchange receiver ID qualifier (ISA 07)::
+drop down populated with the more common EDI Partner qualifiers. If you need a different value choose Custom in the drop down and enter your valid qualifier.
+
+Interchange receiver ID (ISA 08)::
+free form field to enter EDI ID. This field is alphanumeric with a max of 15 characters.
+
+Interchange Control Version (ISA 12)::
+Drop down value to choose which X12 version
+Your partner will be using.  this time 4010 and 5010 are the supported versions.
+
+*Parser checkbox settings*:
+
+There are eight optional Parser settings that you can select for trading partners inbound documents. The expected behavior if these options are selected is a *997* stating a failure will be sent for the condition.
+
+* Fail document when value length outside allowed range
+* Fail document when invalid character in value
+* Allow only ASCII characters for AN values
+* Fail document if unknown segments are used
+* Fail document when segments are out of order
+* Fail document when unused segments are included
+* Fail document when too many repeats of a segment
+* Generate 999 +
+If a 999 acknowledgement is needed check this box. The default X12 acknowledgement will be 997.
+
+*Character Set and Encoding*
+
+The Character Set field is a drop down. Basic, Extended and Unrestricted are the field value choices supported.
+
+The Basic character set includes the following uppercase letters, digits, space, and special characters: A through Z, 0 through 9, ! “ & ’ ( ) * + , - . / : ; ? = (space).
+The Extended character set includes the characters in the Basic character set, and lowercase letters, select language characters, and other special characters: a through z, % @ [ ] _ { } \ | < > ~ # $.
+
+The Unrestricted character set takes in all characters.
+
+*Control Number Settings*
+
+These settings, if checked, will require unique inbound ISA 13, GS 06 and ST 02 control numbers on all inbound documents for this trading partner.
+
+* Require unique ISA control numbers (ISA 13)
+* Require unique GS control numbers (GS 06)
+* Require unique transaction set control numbers (ST 02)
+
 
 ===== EDIFACT
 
@@ -219,7 +307,7 @@ In Beta 1, you are only required to set up transactions if you are using the FTP
 
 The Partner Manager also supports monitoring the tracking data for B2B Transmissions.
 
-image:b2b_intro_05.png[b2b_intro_05]
+// image:b2b_intro_05.png[b2b_intro_05]
 
 YOu can use the settings in the following sections to filter for the specific data you are looking for.
 
