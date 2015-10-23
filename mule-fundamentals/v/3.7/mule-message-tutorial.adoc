@@ -7,7 +7,7 @@ This tutorial walks you through how you can access information about the conten
 
 After following the guided steps in this tutorial, you should be able to apply what you have learned to access information about the Mule message as it moves through your own applications and create MEL expressions based on this information.
 
-== Assumptions
+== Prerequisites
 
 This tutorial assumes that you have downloaded and installed link:http://www.mulesoft.com/platform/mule-studio[Anypoint Studio]. If you do not have any previous experience with Eclipse or an Eclipse-based IDE, please review the brief introduction to the link:/mule-fundamentals/v/3.7/anypoint-studio-essentials[Anypoint Studio interface] or complete the link:/mule-fundamentals/v/3.7/basic-studio-tutorial[Basic Studio Tutorial]. 
 
@@ -47,26 +47,29 @@ One reliable and fast way to get a wealth of information about your message is t
 image:basic+flow.png[basic+flow]
 
 . Configure your HTTP connector so that the *path* is *'*'* and that it has a connector configuration element with *Host* set to *localhost* and *Port* set to *8081*
-. Save and then run your project by selecting your project in the package explorer and selecting **Run As > Mule Application**.
+. Save and then run your project by selecting your project in the package explorer and selecting *Run As* > *Mule Application*.
 . Select the Console tab and wait for the indication that Mule is up and kicking. 
 . Open a browser and point it to `http://localhost:8081`.
 . Observe that, by default, the logger logs all the information about the Mule message, except for the payload.
 +
 [INFO]
-----
+====
 Why isn't the payload included in this log output?
 
 By design, the logger's default output is all information about the Mule message except for the payload. The payload is not included because it might be very verbose or in an unreadable format. Instead, this default output includes information about the payload type, which is very useful information in a situation where you are interested in seeing a collection of all the key information about the message and its fields.
 Of course, logging the payload is also very easy to do: simply set the logger message to `#[message.payload]`.
-----
+====
 +
 image:log+output.png[log+output]
-
-. The key-value pairs displayed by the logger correspond to the *fields* of the message and the *properties* and *variables* that you can access with a Mule expression at this point in the flow. In this example, the log output provides the names and values of a long list of inbound properties set by the HTTP connector through which this message arrived into the flow. So, you could use this information to write a MEL expression to select one of these inbound properties, like this: +
-`#[message.inboundProperties.'http.method']` +
++
+. The key-value pairs displayed by the logger correspond to the *fields* of the message and the *properties* and *variables* that you can access with a Mule expression at this point in the flow. In this example, the log output provides the names and values of a long list of inbound properties set by the HTTP connector through which this message arrived into the flow. So, you could use this information to write a MEL expression to select one of these inbound properties, like this:
++
+`#[message.inboundProperties.'http.method']`
++
 If you feed Mule this expression in some message processor later in your flow, Mule evaluates that expression at runtime and returns a value of GET.
-
++
 You can log the Mule message to the console at any time in an application to give you quick access to this summary of data about the message and its properties and variables.
+
 ....
 [tab,title="Mule Standalone"]
 ....
@@ -103,17 +106,17 @@ image:deploy-success.png[deploy-success]
 . Observe the log output produced by the message that you sent via your browser.
 +
 [INFO]
-----
+====
 Why isn't the payload included in this log output?
 
 By design, the logger's default output is all information about the Mule message except for the payload. The payload is not included because it might be very verbose or in a not particularly readable format. Instead, this default output includes information about the payload type, which is very useful information in a situation where you are interested in seeing a collection of all the key information about the message and its fields.
 
 Of course, logging the payload is also very easy to do: simply set the logger message to +
 `#[message.payload]`
-----
+====
 +
 image:log+output.png[log+output]
-
++
 . The key-value pairs displayed by the logger correspond to the attributes of the message context object and the properties and variables that you could access with a Mule expression at this point in the flow. In this example, the log output provides the names of all the inbound properties that you can access, including their current values. So, you could use this information to write a MEL expression to select one of these inbound properties, like this: +
 `#[message.inboundProperties.'http.method']` +
  If you give Mule this expression in some message processor later in your flow, Mule evaluates that expression at runtime and returns a value of GET.
@@ -136,20 +139,20 @@ image:basic+flow+2.png[basic+flow+2]
 Open the properties editor of your new variable transformer and select the *Set Variable* option. Notice that the *Value* fields contain **#[]**, hinting this field accept MEL expressions (most fields accept mule expressions as well, including the *Name* field too).
 +
 image:variable.png[variable]
-
++
 . For this example, there's no need to use an expression to define the flow variable name, so enter `path`.
 . Place your cursor inside the brackets in the *Value* field, then press *CTRL + Spacebar* to trigger autocomplete.
 +
 image:set-var-auto.png[set-var-auto]
-
++
 . Studio displays a list of context objects and other operands and functions, based on which are most commonly used in Mule. Select *message*, then add a period.
 +
 image:set-var-exp2.png[set-var-exp2]
-
++
 . Studio now displays a list of available fields and properties of the context object message. Note the red X next to the field indicates that, as it is currently written, the expression is not well-formed. Select *inboundProperties* and note how the red X immediately disappears. The expression `#[message.inboundProperties]` is technically complete. Mule would evaluate this and return a map of all inbound properties on the message.
 . After inboundProperties, add another period to trigger autocomplete again. This time, select `http.request.path`, as shown below:
 
-You have now configured the variable transformer to set a flow variable called path with a value that Mule will evaluate at runtime based on the MEL expression`#[message.inboundProperties.'http.request.path']`
+You have now configured the variable transformer to set a flow variable called path with a value that Mule evaluates at runtime based on the MEL expression`#[message.inboundProperties.'http.request.path']`
 
 ==== Using DataSense Explorer
 
@@ -218,9 +221,9 @@ Note that this only works for mutable metadata. Because inbound properties are i
 
 ==== Using the Mule Expression Evaluator
 
-The most direct and dynamic way of exploring which MEL expressions will resolve as you expect them to is to use the Mule Expression Evaluator within the Mule Visual Debugger. You can access the Mule Expression Evaluator while running in Debug mode, after having sent a message and paused it at a breakpoint in your flow.
+The most direct and dynamic way of exploring which MEL expressions resolve as you expect them to is to use the Mule Expression Evaluator within the Mule Visual Debugger. You can access the Mule Expression Evaluator while running in Debug mode, after having sent a message and paused it at a breakpoint in your flow.
 
-. With your flow paused at your Logger breakpoint, open the Mule Expression Evaluator by clicking the image:x+plus+y.png[x+plus+y] icon. In the yellow box that opens, you can test out any MEL expression. Mule will immediately evaluate the expression, relative to the breakpoint in your flow where your message is currently paused, and either return a value or throw an exception.
+. With your flow paused at your Logger breakpoint, open the Mule Expression Evaluator by clicking the image:x+plus+y.png[x+plus+y] icon. In the yellow box that opens, you can test out any MEL expression. Mule immediately evaluates the expression, relative to the breakpoint in your flow where your message is currently paused, and either returns a value or throws an exception.
 
 . Try out the following MEL expressions in the Mule Expression Evaluator and note the results:
 
@@ -264,7 +267,7 @@ image:logger-config-mel.png[logger-config-mel]
 +
 `INFO  2014-12-12 14:40:02,393 [[mel_test].connector.http.mule.default.receiver.02] org.mule.api.processor.LoggerMessageProcessor: mel_test running on Mule version 3.6.0 on AaronMacbook arrived with the path /Aaron`
 
-Your results will vary depending on these factors:
+Your results can vary depending on these factors:
 
 * what you named your mule project
 * what runtime version you are using
@@ -278,7 +281,7 @@ In your existing project that you created in the <<Using the Logger>> section,
 . Modify your flow to include a set-variable element with the name `path` and a value of  +
 `#[message.inboundProperties.'http.request.path']` 
 +
-[source, xml, linenums]
+[source, xml]
 ----
 <set-variable name=path value="#[message.inboundProperties.'http.request.path']"/>
 ----
@@ -298,7 +301,7 @@ In your existing project that you created in the <<Using the Logger>> section,
 
 `org.mule.api.processor.LoggerMessageProcessor: mel_test running on Mule version 3.6.0 on AaronMacbook arrived with the path /Aaron`
 
-Your results will vary depending on these factors:
+Your results can vary depending on these factors:
 
 * what you named your mule project
 * what runtime version you are using
@@ -359,7 +362,7 @@ Be sure to check your brackets!
 Which message processor allows me to use MEL to manipulate one part of my payload while leaving the rest intact?
 // hide
 [TIP]
-Use an *Expression Component* in your flow to manipulate parts of the Mule message without replacing the entire payload. Note that an expression component and expression transformer look very similar, but the latter will always set the value of the expression as the new payload of the message, so you don't want that in this case.
+Use an *Expression Component* in your flow to manipulate parts of the Mule message without replacing the entire payload. Note that an expression component and expression transformer look very similar, but the latter always sets the value of the expression as the new payload of the message, so you don't want that in this case.
 
 
 
@@ -374,14 +377,14 @@ Include `message.payload.favorite_day` in a MEL expression to access the value o
 How do I form the part of the expression that calculates the day of the week?
 // hide
 [TIP]
-Use the server.dateTime function, then format the result by calling the format() method, passing the argument 'EEEE'. Based on http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html[SimpleDateFormat], this will return a string in the form of the day of the week.
+Use the server.dateTime function, then format the result by calling the format() method, passing the argument 'EEEE'. Based on http://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html[SimpleDateFormat], this returns a string in the form of the day of the week.
 
 
 
 Help! I ran my application and it returns some kind of file instead of logging to the console.
 // hide
 [TIP]
-Try running your application in Debug Mode with breakpoints on your message processors. What payload type do you observe? Is that payload type serializable? If it is, Mule is converting your payload to a bytearray per its default behavior. In this case, you want a nice readable string instead, so you need to add an additional message processor after your expression component to change your data type. Browse through the transformers drawer in the palette to find the appropriate one that will do the trick.
+Try running your application in Debug Mode with breakpoints on your message processors. What payload type do you observe? Is that payload type serializable? If it is, Mule is converting your payload to a bytearray per its default behavior. In this case, you want a nice readable string instead, so you need to add an additional message processor after your expression component to change your data type. Browse through the transformers drawer in the palette to find the appropriate one that does the trick.
 
 
 ==== image:answer.png[answer] Answer
