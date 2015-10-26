@@ -154,7 +154,7 @@ Three files are required for both libraries:
     - `libsapjco3.so` (Linux)
 
 [IMPORTANT]
-Do *NOT* change the names of any of the SAP JCo library files from their original names, as they won’t be recognized by JCo. Since *JCo 3.0.11*, the JAR file *cannot be renamed* or repackage from `sapjco3.jar`. Read more about link:/mule-user-guide/v/3.7/sap-troubleshooting[SAP Troubleshooting].
+Do *NOT* change the names of any of the SAP JCo library files from their original names, as they won’t be recognized by JCo. Since *JCo 3.0.11*, the JAR file *cannot be renamed* or repackage from `sapjco3.jar`. Read more about link:/mule-user-guide/v/3.7/sap-connector-troubleshooting[SAP Troubleshooting].
 
 [IMPORTANT]
 The *SAP JCo libraries are OS-dependent*. Therefore, make sure to download the SAP libraries that correspond to the OS and hardware architecture of the *host server on which Mule will be running*. If you *deploy* to a platform different from the one used for development, you *must* change the native library before generating  the zip file.
@@ -224,7 +224,7 @@ For further details, read the *SAP Note* link:https://service.sap.com/sap/suppor
 
 [NOTE]
 ====
-If you plan to use *SAP as an Inbound Endpoint* (i.e. Mule will be called as a BAPI or will receive IDocs), you must perform *additional configurations* within the services file at the OS level. A detailed explanation of the requirements can be found at link:/mule-user-guide/v/3.7/sap-jco-server-services-configuration[SAP JCo Server Services Configuration].
+If you plan to use *SAP as an Inbound Endpoint* (i.e. Mule will be called as a BAPI or will receive IDocs), you must perform *additional configurations* within the services file at the OS level. A detailed explanation of the requirements can be found at link:/mule-user-guide/v/3.7/sap-connector-advanced-features#server-services-configuration[SAP JCo Server Services Configuration].
 ====
 
 ==== Adding the SAP Connector to the Classpath
@@ -335,7 +335,7 @@ image:sap-global-element-advanced.png["scaledwidth="65%", SAP Extended Propertie
 You can provide additional configuration properties by defining a *Spring bean* global element representing a *Map* (`java.util.Map`) instance. This can be used to configure SCN (Secure Connections) or advanced pooling capabilities, among other properties.
 
 [IMPORTANT]
-For this to work you must set the property name, as defined by SAP, in your configuration. Check link:/mule-user-guide/v/3.7/sap-jco-extended-properties#sts=SAP%20JCo%20Extended%20Properties[SAP JCo Extended Properties] for the complete list of properties.
+For this to work you must set the property name, as defined by SAP, in your configuration. Check link:/mule-user-guide/v/3.7/sap-connector-advanced-features#jco-extended-properties[SAP JCo Extended Properties] for the complete list of properties.
 
 [[upgrading]]
 === Upgrading from an Older Version
@@ -422,8 +422,8 @@ The `<sap:connector/>` element allows the configuration of JCo connection para
 |*Connection Count* |`jcoConnectionCount` |The number of connections that should be registered at the gateway. |`2`
 |*Pool Capacity* |`jcoPoolCapacity` |The maximum number of idle connections kept open by the destination. No connection pooling takes place when the value is 0. |`5`
 |*Peak Limit* |`jcoPeakLimit` |The maximum number of active connections that can be created for a destination simultaneously |`10`
-|*TID Store* a| `<sap:default-in-memory-tid-store />`, `<sap:mule-object-store-tid-store-ref/>` | Configuration for the link:/mule-user-guide/v/3.7/sap-connector#configuring-the-tid-handler[TID Handler]. |
-|*Extended Server Properties* |`jcoServerExtendedProperties-ref` |A reference to `java.util.Map`, which contains additional JCo connection parameters. If necessary, consult the link:/mule-user-guide/v/3.7/sap-jco-extended-properties#sap-server-properties[complete list of server parameters]. |
+|*TID Store* a| `<sap:default-in-memory-tid-store />`, `<sap:mule-object-store-tid-store-ref/>` | Configuration for the link:/mule-user-guide/v/3.7/sap-connector-advanced-features#tid-handler[TID Handler]. |
+|*Extended Server Properties* |`jcoServerExtendedProperties-ref` |A reference to `java.util.Map`, which contains additional JCo connection parameters. If necessary, consult the link:/mule-user-guide/v/3.7/sap-connector-advanced-features#jco-server-properties[complete list of server parameters]. |
 |===
 
 [[outbound-endpoint-properties]]
@@ -434,7 +434,7 @@ The `<sap:connector/>` element allows the configuration of JCo connection para
 |Field |XML Attribute |Description |Default Value
 |*Display Name* |`name` |The reference name of the endpoint used internally by Mule configuration. |
 |*Exchange Pattern* |`exchange-pattern` |The available options are *request-response* and *one-way*. |
-|*Address* |`address` |The standard way to provide endpoint properties. |For more information check link:mule-user-guide/3.7/sap-advanced-features#endpoint-address[Endpoint Address]. 
+|*Address* |`address` |The standard way to provide endpoint properties. |For more information check link:mule-user-guide/3.7/sap-connector-advanced-features#endpoint-address[Endpoint Address]. 
 |*Type* |`type` |The type of SAP object this endpoint will process (i.e., *function* or *idoc*). Starting in 2.1.0 *function-metadata* and *idoc-metadata* can be used to retrieve XML structure for a given BAPI or IDoc. |`function`
 |*RFC Type* |`rfcType` |The type of RFC the endpoint uses to receive a function or IDoc. The available options are *srfc* (which is *sync* with *no TID handler*), *trfc* and *qrfc* (both of which are *async*, with a *TID handler*). |`srfc`
 |*Queue Name* |`queueName` |If the RFC type is `qrfc`, then this is the name of the queue. |
@@ -445,7 +445,7 @@ The `<sap:connector/>` element allows the configuration of JCo connection para
 |*Is BAPI Transaction* |`bapiTransaction` |When checked, either *BAPI_TRANSACTION_COMMIT* or *BAPI_TRANSACTION_ROLLBACK* is called at the end of the transaction, depending on the result of that transaction. |`false`
 |*Definition File* |`definitionFile` |The path to the template definition file of either the function to be executed or the IDoc to be sent. |
 |*IDoc Version* |`idocVersion` |When the type is `idoc`, this version is used when sending the IDoc. Values for the IDoc version correspond to *IDOC_VERSION_xxxx* constants in `com.sap.conn.idoc.IDocFactory`.|
-|*Extended Client Properties* |`jcoClientExtendedProperties-ref` |A reference to `java.util.Map`, which contains additional JCo connection parameters. If necessary, consult the link:/mule-user-guide/v/3.7/sap-jco-extended-properties#sap-server-properties[complete list of client parameters]. |
+|*Extended Client Properties* |`jcoClientExtendedProperties-ref` |A reference to `java.util.Map`, which contains additional JCo connection parameters. If necessary, consult the link:/mule-user-guide/v/3.7/sap-connector-advanced-features#jco-client-properties[complete list of client parameters]. |
 |===
 
 [[idoc-versions]]
