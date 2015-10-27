@@ -18,7 +18,7 @@ This document assumes that you are using Anypoint Studio with Mule runtime 3.6 o
 
 * Defining flows, subflows, or any message processors as shared resources is not supported. 
 * To share a WMQ connector as a shared resource, you need to remove the mule-transport-wmq-ee-<mule-version>.jar file from the $MULE_HOME/lib/mule/per-app/ directory and remove all the native jars for wmq connectivity in your application's $MULE_HOME/apps/<my-app>/lib/ directory. Place all these jars in the $MULE_HOME/domains/<my-domain>/lib/ folder instead.
-* Adding properties in the configuration files of applications that use shared resources can result in issues, as these properties will be shared with other apps in the domain and there may be conflicts. You can instead link:/mule-user-guide/v/3.7/setting-environment-variables[set environment variables].
+* Adding properties in the configuration files of applications that use shared resources can result in issues, as these properties are shared with other apps in the domain and there may be conflicts. You can instead link:/mule-user-guide/v/3.7/setting-environment-variables[set environment variables].
 * Only the following connectors and related specifications can be specified as shared resources at this time: +
 ** HTTP/HTTPS (both endpoints and connectors)
 ** VM
@@ -56,7 +56,7 @@ The sections below describe the procedure for each of these steps.
 
 To create a new domain in Aypoint Studio, follow the steps below:
 
-. In the top menu bar select `File > New > Mule Domain Project`
+. In the top menu bar select *File* > *New* > *Mule Domain Project*
 +
 image:new+domain.png[new+domain] +
 +
@@ -90,7 +90,7 @@ Add additional namespaces and schema locations for each resource that you want t
 [NOTE]
 Applications may only be associated with one domain at a time.
 
-To associate an existing application with a domain, edit the `mule-project.xml` file located at root level in the project. In the graphical view of this file, you will see a *Domain* field, which by default is set to *default*, this value gives each project its independent domain. Change this value, the dropdown list on this field will display all of the domains you've created in the current workspace.
+To associate an existing application with a domain, edit the `mule-project.xml` file located at root level in the project. In the graphical view of this file, you see a *Domain* field, which by default is set to *default*, this value gives each project its independent domain. Change this value, the dropdown list on this field displays all of the domains you've created in the current workspace.
 
 image:assign+domain.png[assign+domain]
 
@@ -111,7 +111,31 @@ For example: 
 
 In the following example `mule-domain-config.xml`, an HTTP connector is defined as a shared resource.
 
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule-domain xmlns="http://www.mulesoft.org/schema/mule/domain"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:http="http://www.mulesoft.org/schema/mule/http"
+             xsi:schemaLocation="http://www.mulesoft.org/schema/mule/domain http://www.mulesoft.org/schema/mule/domain/current/mule-domain.xsd
+               http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
+
+</mule-domain>
+----
+
 Any Mule application associated with the domain can make use of the shared resource by referencing it within the configuration, just as you would reference a resource within the project itself. In the example below, the HTTP listener connector references the shared resource named `HTTP_Listener_Configuration`. 
+
+[source,xml,linenums]
+----
+<mule>
+   <flow name="httpService">
+      <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP"/>
+      <set-payload value="success" />
+   </flow>
+</mule>
+----
 
 In Studio's visual editor, you can simply pick the shared resource out of the dropdown list in the *Connector Configuration* field of the connector's properties editor:
 
@@ -153,7 +177,7 @@ You also have the option of bundling the applications associated with a domain i
 
 image:domainBundle.png[domainBundle]
 
-The deployment behavior is the same as deploying a domain and apps separately: Mule will first deploy the domain itself, then the applications. Deploying domain bundles simplifies the deployment mechanism for teams by removing the manual step of deploying applications separately.
+The deployment behavior is the same as deploying a domain and apps separately: Mule first deploys the domain itself, then the applications. Deploying domain bundles simplifies the deployment mechanism for teams by removing the manual step of deploying applications separately.
 
 == Example Mule Domain Projects
 
@@ -163,9 +187,51 @@ The following code examples show sample **`mule-domain-config.xml`** files, ea
 
 Sharing an HTTP connector within a domain allows you to reuse the same port within all the applications that belong to the domain.
 
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule-domain xmlns="http://www.mulesoft.org/schema/mule/domain"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:http="http://www.mulesoft.org/schema/mule/http"
+             xsi:schemaLocation="http://www.mulesoft.org/schema/mule/domain http://www.mulesoft.org/schema/mule/domain/current/mule-domain.xsd
+               http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081"/>
+
+</mule-domain>
+----
+
 === HTTPS
 
 Sharing an HTTPS connector within a domain allows you to reuse the same port within all the applications that belong to the domain.
+
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule-domain
+    xmlns="http://www.mulesoft.org/schema/mule/domain"
+    xmlns:http="http://www.mulesoft.org/schema/mule/http"
+    xmlns:domain="http://www.mulesoft.org/schema/mule/ee/domain"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:spring="http://www.springframework.org/schema/beans"
+    xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+    xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+    xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/domain http://www.mulesoft.org/schema/mule/domain/current/mule-domain.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+        http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+        http://www.mulesoft.org/schema/mule/ee/domain http://www.mulesoft.org/schema/mule/ee/domain/current/mule-domain-ee.xsd
+        http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <http:listener-config name="HTTPS_Listener_Configuration" host="localhost" protocol="HTTPS" port="8081">
+        <tls:context name="MyContext">
+            <tls:trust-store path="ssltest-cacerts.jks" password="mypassword"/>
+            <tls:key-store path="ssltest-keystore.jks" keyPassword="mypassword" password="mypassword"/>
+        </tls:context>
+    </http:listener-config>
+
+</mule-domain>
+----
 
 === VM
 
@@ -173,17 +239,115 @@ Sharing an HTTPS connector within a domain allows you to reuse the same port wit
 
 Sharing a VM connector allows multiple Mule applications within the same domain to communicate through VM queues. Defining a VM connector as a shared resource is a best practice for consuming services provided by other Mule applications within the same container.
 
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule-domain xmlns="http://www.mulesoft.org/schema/mule/ee/domain"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+             xsi:schemaLocation="
+               http://www.mulesoft.org/schema/mule/ee/domain http://www.mulesoft.org/schema/mule/ee/domain/current/mule-domain-ee.xsd
+               http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+
+    <vm:connector name="sharedVmConnector"/>
+
+</mule-domain>
+----
+
 === JMS 
 
 Sharing a JMS connector creates a common connection to the broker between multiple applications, minimizing the number of client connections to the broker. 
+
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule-domain xmlns="http://www.mulesoft.org/schema/mule/domain"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+             xmlns:spring="http://www.springframework.org/schema/beans"
+             xmlns:util="http://www.springframework.org/schema/util"
+             xsi:schemaLocation="
+               http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+               http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-current.xsd
+               http://www.mulesoft.org/schema/mule/domain http://www.mulesoft.org/schema/mule/domain/current/mule-domain.xsd
+               http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+
+    <spring:beans>
+        <util:properties id="providerProperties">
+            <spring:prop key="queue.jndi-queue-in">in</spring:prop>
+            <spring:prop key="topic.jndi-topic-in">in</spring:prop>
+        </util:properties>
+    </spring:beans>
+
+    <jms:connector name="sharedJmsConnector"
+                   connectionFactoryJndiName="ConnectionFactory">
+        <jms:default-jndi-name-resolver
+                jndiInitialFactory="org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+                jndiProviderUrl="vm://localhost?broker.persistent=false&amp;broker.useJmx=false"
+                jndiProviderProperties-ref="providerProperties"/>
+    </jms:connector>
+
+</mule-domain>
+----
 
 === JMS Caching Connection Factory
 
 Mule provides a caching connection factory for JMS connections to improve JMS resource utilization.
 
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule-domain xmlns="http://www.mulesoft.org/schema/mule/domain"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+             xmlns:spring="http://www.springframework.org/schema/beans"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+
+               http://www.mulesoft.org/schema/mule/domain http://www.mulesoft.org/schema/mule/domain/current/mule-domain.xsd
+               http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+
+    <spring:bean name="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <spring:property name="brokerURL" value="vm://localhost?broker.persistent=false&amp;broker.useJmx=false"/>
+    </spring:bean>
+
+    <jms:caching-connection-factory name="cachingConnectionFactory" connectionFactory-ref="connectionFactory"
+                                    cacheProducers="false" sessionCacheSize="1"/>
+
+    <jms:activemq-connector name="sharedJmsConnector"
+                            connectionFactory-ref="cachingConnectionFactory"
+                            specification="1.1"
+                            validateConnections="true"
+                            maxRedelivery="-1"
+                            numberOfConsumers="1"/>
+
+</mule-domain>
+----
+
 === Database Configuration
 
 Sharing a `db` configuration creates a common connection to a database between multiple applications, minimizing the number of client connections to the database.
+
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule-domain xmlns="http://www.mulesoft.org/schema/mule/domain"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:db="http://www.mulesoft.org/schema/mule/db"
+             xmlns:spring="http://www.springframework.org/schema/beans"
+             xsi:schemaLocation="
+               http://www.mulesoft.org/schema/mule/domain http://www.mulesoft.org/schema/mule/domain/current/mule-domain.xsd
+               http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+               http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+
+    <spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardDataSource" destroy-method="shutdown">
+        <spring:property name="driverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
+        <spring:property name="url" value="${database.connection}"/>
+    </spring:bean>
+
+    <db:generic-config name="dbConfig" dataSource-ref="jdbcDataSource"/>
+
+</mule-domain>
+----
 
 === WMQ 
 
@@ -205,9 +369,50 @@ For example:
 |$MULE_HOME/apps/<my-app>/lib/com.ibm.mqjms-7.0.jar |$MULE_HOME/domains/<my-domain>/lib/com.ibm.mqjms-7.0.jar
 |===
 
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule-domain xmlns="http://www.mulesoft.org/schema/mule/ee/domain"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:wmq="http://www.mulesoft.org/schema/mule/ee/wmq"
+             xmlns:context="http://www.springframework.org/schema/context"
+             xsi:schemaLocation="
+               http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+               http://www.mulesoft.org/schema/mule/ee/domain http://www.mulesoft.org/schema/mule/ee/domain/current/mule-domain-ee.xsd
+               http://www.mulesoft.org/schema/mule/ee/wmq http://www.mulesoft.org/schema/mule/ee/wmq/current/mule-wmq-ee.xsd">
+
+    <context:property-placeholder location="wmq-test.properties"/>
+
+    <wmq:connector name="sharedJmsConnector"
+                   hostName="${wmq.host}"
+                   port="${wmq.port}"
+                   queueManager="${wmq.queue.manager}"
+                   transportType="CLIENT_MQ_TCPIP"
+                   username="${wmq.username}"
+                   password="${wmq.password}">
+    </wmq:connector>
+
+</mule-domain>
+----
+
 === JBoss Transaction Manager 
 
 When you define JMS connectors and `db` configurations as shared resources in your domain, you may have to use XA transactions in your applications. In this case, you must define the XA transaction manager in your domain configuration as well. 
+
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule-domain xmlns="http://www.mulesoft.org/schema/mule/domain"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:jbossts="http://www.mulesoft.org/schema/mule/jbossts"
+             xsi:schemaLocation="
+                http://www.mulesoft.org/schema/mule/domain http://www.mulesoft.org/schema/mule/domain/current/mule-domain.xsd
+                http://www.mulesoft.org/schema/mule/jbossts http://www.mulesoft.org/schema/mule/jbossts/current/mule-jbossts.xsd">
+
+    <jbossts:transaction-manager/>
+
+</mule-domain>
+----
 
 === Bitronix Transaction Manager
 
@@ -215,7 +420,54 @@ When you define JMS connectors and `db` configurations as shared resources in 
 
 When you define JMS connectors and `db` configurations as shared resources in your domain, you may have to use XA transactions in your applications. In this case, you must define the XA transaction manager in your domain configuration as well. 
 
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule-domain xmlns="http://www.mulesoft.org/schema/mule/ee/domain"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+      xmlns:bti="http://www.mulesoft.org/schema/mule/ee/bti"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      xsi:schemaLocation="
+               http://www.mulesoft.org/schema/mule/ee/bti http://www.mulesoft.org/schema/mule/ee/bti/current/mule-bti-ee.xsd
+               http://www.mulesoft.org/schema/mule/ee/domain http://www.mulesoft.org/schema/mule/ee/domain/current/mule-domain-ee.xsd
+               http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+
+    <bti:transaction-manager/>
+
+</mule-domain>
+----
+
 The Bitronix module integration also provides a JMS connection factory pool and a datasource pool to be used when using a datasource with XA transactions. You can define either or both of them as shared resources.
+
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule-domain xmlns="http://www.mulesoft.org/schema/mule/ee/domain"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+      xmlns:bti="http://www.mulesoft.org/schema/mule/ee/bti"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      xsi:schemaLocation="
+               http://www.mulesoft.org/schema/mule/ee/bti http://www.mulesoft.org/schema/mule/ee/bti/current/mule-bti-ee.xsd
+               http://www.mulesoft.org/schema/mule/ee/domain http://www.mulesoft.org/schema/mule/ee/domain/current/mule-domain-ee.xsd
+               http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
+
+     <spring:bean name="xaConnectionFactory" class="org.apache.activemq.ActiveMQXAConnectionFactory">
+        <spring:property name="brokerURL" value="vm://localhost?broker.persistent=false&amp;broker.useJmx=false"/>
+    </spring:bean>
+
+
+    <jms:activemq-xa-connector connectionFactory-ref="connectionFactoryPool" name="sharedJmsConnector"
+                               maxRedelivery="-1" specification="1.1" numberOfConsumers="1"/>
+
+    <bti:xa-connection-factory-pool name="connectionFactoryPool" minPoolSize="5" maxPoolSize="15" maxIdleTime="40"
+                                    connectionFactory-ref="xaConnectionFactory"/>
+
+    <bti:transaction-manager/>
+
+</mule-domain>
+----
 
 == Tips
 
