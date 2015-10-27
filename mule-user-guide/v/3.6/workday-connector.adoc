@@ -1,111 +1,156 @@
 = Workday Connector 5.0
 :keywords: anypoint studio, esb, connector, endpoint, workday
 
-*_Enterprise_*
+_Select_
 
-The *Workday Connector* facilitates connections between Mule integration applications and http://www.workday.com[Workday] by allowing you to connect to a Workday database. It is a Standard connector, meaning that you can deploy it into production if you have an Mule Enterprise license or an Anypoint Platform account.
+The Anypoint Connector for Workday is a closed source Enterprise connector which provides a connection between Workday and third party software. It interfaces with the Human Capital Management, Financial Management, Student, and System web services.
 
-The Workday Connector provides access to 13 different modules in the Workday database. It allows you to perform a large set of actions for each module, including inserting, querying, and deleting elements.
-
-*Release Notes*: link:/release-notes/workday-connector-release-notes[Workday Connector Release Notes]
+*Release Notes*: link:/release-notes/workday-connector-release-notes[Workday Connector Release Notes].
 
 == Prerequisites
 
-This document assumes that you are familiar with Mule, link:/mule-user-guide/v/3.6/anypoint-connectors[Anypoint Connectors], and the http://www.mulesoft.org/documentation/display/current/Mule+Studio+Essentials[Anypoint Studio interface]. To increase your familiarity with Studio, consider completing one or more http://www.mulesoft.org/documentation/display/current/Basic+Studio+Tutorial[Anypoint Studio Tutorials]. Further, this page assumes that you have a basic understanding of http://www.mulesoft.org/documentation/display/current/Mule+Concepts[Mule flows] and http://www.mulesoft.org/documentation/display/current/Understand+Global+Mule+Elements[Mule Global Elements]. 
+This document assumes that you are familiar with Workday API. To use the this connector, you need:
 
-This document describes implementation examples within the context of Anypoint Studio, Mule ESB’s graphical user interface, and, in parallel, includes configuration details for doing the same in the XML Editor.
+* A Workday instance with requisite permission
+* A set of valid credentials, including the required Workday endpoints, pointing to your Workday instance.
 
-== Installing the Connector in Studio
+This document also assumes that you are familiar with Mule, link:/mule-user-guide/v/3.7/anypoint-connectors[Anypoint Connectors], and the link:/mule-fundamentals/v/3.7/anypoint-studio-essentials[Anypoint Studio interface]. To increase your familiarity with Studio, consider completing one or more Anypoint Studio Tutorials. Further, this page assumes that you have a basic understanding of link:/mule-fundamentals/v/3.7/elements-in-a-mule-flow[Mule flows] and link:/mule-fundamentals/v/3.7/global-elements[Mule Global Elements]. This document describes implementation examples within the context of Anypoint Studio, Mule ESB’s graphical user interface, and, in parallel, includes configuration details for doing the same in the XML Editor.
 
-You can install a connector in Anypoint Studio using the instructions in link:/mule-fundamentals/v/3.6/anypoint-exchange#installing-a-connector-from-anypoint-exchange[Installing a Connector from Anypoint Exchange].
+== Compatibility
 
-However, to use the Workday Connector in a production environment, you must have *either*:
+The Workday connector 5.0 is compatible with:
 
-* An *Enterprise license* to use Mule 
+[width="100a",cols="50a,50a",options="header"]
+|===
+|Application/Service |Version
+|Workday API |v24.0
+|Mule Runtime |Enterprise Edition 3.5.0 and later
+|Java |JDK 7
+|===
+
+== Installing and Configuring
+
+=== Installing
+
+You can install a connector in Anypoint Studio using the instructions in link:/mule-fundamentals/v/3.7/anypoint-exchange#installing-a-connector-from-anypoint-exchange[Installing a Connector from Anypoint Exchange]. However, to use the Workday Connector in a production environment, you must have either:
+
+* An *Enterprise license* to use Mule
 * A *CloudHub* Starter, Professional, or Enterprise account
 
-Contact the mailto:info@mulesoft.com[MuleSoft Sales Team] to obtain either of these. (Read more about http://www.mulesoft.org/documentation/display/current/Installing+an+Enterprise+License[Installing an Enterprise License].)
-
-Click *Restart Now* to complete the installation. Once you have installed the connector and restarted Studio you will see several new message processors available in the palette, all under the Connectors category.
+Contact the link:/mule-user-guide/v/3.7/siebel-connector[MuleSoft Sales Team] to obtain either of these. (Read more about link:/mule-user-guide/v/3.7/installing-an-enterprise-license[Installing an Enterprise License].) Click *Restart Now* to complete the installation. After you install the connector and restart Studio, you can see several new message processors available in the palette, all under the Connectors category.
 
 image:wd_palette.png[wd_palette]
 
-Alternatively you can also http://mulesoft.github.io/workday-connector/guide/install[install this extension via Maven].
+Alternatively you can also link:/mule-user-guide/v/3.7/installing-extensions[install this extension via Maven].
 
-== Configuring the Workday Human Resource Connector
+=== Updating from an Older Version
 
-All of the examples on this document focuses on the *Workday Human Resource* message processor.
+When a new version of a connector is released, Anypoint studio displays a popup in the bottom right corner of your screen with the following message: *Updates Available*.
 
-To use the Workday Connector, you must configure two things:
+To upgrade to the newer version of the Workday connector:
 
-* The instance of the connector in your application
-* A global Workday Human Resource connector configuration (read more about link:/mule-fundamentals/v/3.7/global-elements[Global Elements in Mule] )
+.  Click the popup and check for the available updates.
+.  Install the individual Workday connectors from the update site.
+. Ensure that the maven dependencies have been updated correctly from `mule-module-workday` to `mule-module-workday-<wd_module_name>`.
 
-To create a global Workday Human Resource connector configuration, follow these steps:
+[NOTE]
+Make sure you update flows that are using Phased Out or Deprecated operations.
 
-. Click the *Global Elements tab* at the base of the canvas, then click *Create*.
-. Use the filter to locate, then select, *Workday Human Resource*, then click OK.
+. Follow the instructions provided by the user interface.
+. Restart Studio when prompted.
+
+After restarting, if you have several versions of the connector installed, Mule asks you for the version of the connector you like to use.
+
+=== Creating a New Project
+
+. In Studio, click *File* > *New* > *Mule Project*.
++
+image:filenew.png[filenew]
++
+. Enter a name for your new project and leave the remaining options with their default values.
+. If you plan to use Git, select *Create a .gitignore file* for the project with default ignores for Studio Projects, and then click *Next*.
+. Click *Finish* to create the project.
+
+== Configuring the Workday Connector Global Element
+
+To use the Workday connector in your Mule application, you must configure a global element for each Workday connector module in the application (read more about link:/mule-fundamentals/v/3.7/global-elements[global elements]). To create a global Workday connector configuration, follow these steps:
+
+. Click the *Global Elements tab* at the base of the canvas, then click *Create*.
+. Use the filter to locate, then select, one of the Workday connector configurations, then click *OK*. The example below uses the Workday Cash Management message processor.
 . Configure the global connector's parameters according to the table below.
+
+image:global_elements_1.jpg[global_elements_1]
+
+[width="100a",cols="33a,33a,33a",options="header"]
+|===
+|Parameter |Description |Example
+|*Name* |Name for the global element |Workday_Cash_Management_Connection_Management
+|*Username* |User for connecting to Workday. The username should follow this structure:
+userID@tenantID |user1@acme_pt1
+|*Password* |Password for connecting to Workday |`********`
+|*Endpoint* |URL where data server is hosted. It should follow this structure:
+ `https://{your Workday domain}/ccx/service/{your tenant name}/{desired Workday Service}/{desired Workday Service Version}` |
+https://services1.workday.com/ccx/service/acme_pt1/Human_Resources/v24.0
+|*wsdl* |Enter the *WSDL Location* property. This defaults to the WSDL found on the Workday Community website. |
+|===
+
+. Access the *Pooling Profile* tab to configure any settings relevant to managing multiple connections via a connection pool.
+. Access the *Reconnection* tab to configure any settings relevant to reconnection strategies that Mule should execute if it loses its connection to Workday.
+
+[NOTE]
+The Workday connector v5.0 enables you to adjust the values for the *Connection Timeout* and the *Receive Timeout* of requests that are sent to Workday. The default value for both of these fields is 60000ms, which means that any requests that take longer than a minute throw an exception. You can override this behavior by setting their values to 0 so that the connector waits indefinitely until a request is successfully sent and a response is received.
+
+. Click *Test Connection* to confirm that the parameters of your global Workday connector are accurate, and that Mule is able to successfully connect to your instance of Workday. (Read more about link:/mule-user-guide/v/3.7/testing-connections[Testing Connections].)
+. Click *OK* to save the global connector configurations.
+
+=== Setting up a Global Configuration with Proxy (Optional)
+
+The Workday connector 5.0 supports the use of HTTP proxy servers. To setup the Global Configuration with Proxy:
+
+. Click the *Global Elements tab* at the base of the canvas, then click *Create*.
+. Use the filter to locate, then select, one of the Workday connector configurations, then click *OK*. The example below uses the Workday Cash Management message processor.
+. Configure the global connector's parameters.
 +
-[width="100%",cols="34%,33%,33%",options="header"]
-|===
-a|
-Parameter
-
- a|
-Description
-
- |Example
-|*Name* |Name for the global element |Workday_Human_Resource1
-|*User* |User for connecting to Workday. The username should follow this structure: +
-userID@tenantID |user1@mulesoft_pt1
-|*Password* |Password for connecting to Workday |**
-|*Endpoint* |URL where data server is hosted. It should follow this structure: +
- https://\{your Workday domain}/ccx/service/\{your tenant name}/\{desired Workday Service}/\{desired Workday Service Version} | https://services1.workday.com/ccx/service/acme/Human_Resources/v1
-|*wsdl* |Workday WSDL location. This is not required for the connector to function properly. | 
-|===
-. Access the *Pooling Profile* tab to configure any settings relevant to managing multiple connections via a connection pool.
-. Access the *Reconnection* tab to configure any settings relevant to reconnection strategies that Mule should execute if it loses its connection to Workday.
-. Click *Test Connection* to confirm that the parameters of your global Workday connector are accurate, and that Mule is able to successfully connect to your instance of Workday. (Read more about http://www.mulesoft.org/documentation/display/current/Testing+Connections[Testing Connections].)
-. Click *OK* to save the global connector configurations.
-. Return to the *Message Flow* tab in Studio. Drag the Human Resource Connector onto the canvas, then select it to open the Properties Editor console.
-. Configure the connector's parameters according to the table below.
-
+image:global_elements_2.jpg[global_elements_2]
 +
+. Under the Proxy Settings section, enter the *Host* address and *Port* number. If one of these fields is an input, the other must also be input.
+. If your proxy server requires you to specify a username and password, you can fill these in the Username and Password fields. However, if your proxy server does not require a username and password, you can leave these fields empty.
 
-[width="100%",cols="34%,33%,33%",options="header"]
+== Using the Connector
+
+The Workday connector is an operation-based connector, which means that when you add the connector to your flow, you need to configure a specific operation the connector is intended to perform.
+
+=== Adding the Workday Connector to a Flow
+
+. Create a new Mule project in Anypoint Studio.
+. Drag the relevant Workday message processor onto the canvas, then select it to open the properties editor. We use the Workday Cash Management connector for an example here.
+. Configure the connector's parameters:
++
+image:cash_management.png[cash_management]
++
+[width="100",cols="33,33,33",options="header"]
 |===
-a|
-Field
-
- a|
-Description
-
- a|
-Default
-
-|*Display Name* |The name with which the element will be displayed in your flow. |Workday Human Resource
-|*Config Reference* |The global element linked to this connector. Global elements encapsulate reusable data about the connection to the DB. | 
-|*Operation* |The operation to perform. |Add update organization
-|*Organization Find Reference* |A parameter that defines the query filter for the set of results. |#[payload]
+|Field |Description |Default
+|*Display Name* |The name of the element in your flow. |Workday Cash Management
+|*Config Reference* |The global element linked to this connector. |
+|*Operation* |The operation to perform. |Get financial institutions
+|*Get Financial Request Reference* |A parameter that defines the query filter for the set of results. |#[payload]
 |===
 +
 . Click blank space on the canvas to save your Workday connector configurations.
 
-=== Example Use Case 1:
+=== Example Use Case
 
-*Note*: Get the first 100 workers in your company and create a CSV file for them.  
-
-As a recruiter, I want to get a partial list of employees in my company and export the list to a file.
+*Note*: Get the first 100 workers in your company and create a CSV file for them. As a recruiter, I want to get a partial list of employees in my company and export the list to a file.
 
 [tabs]
 ------
-[tab,title="STUDIO Visual Editor"]
+[tab,title="Studio Visual Editor"]
 ....
 
-. Drag an HTTP Endpoint into a new flow, and configure it with the following parameters:
+. Drag an HTTP connector into a new flow, and configure it with the following parameters:
 +
-[cols=",",options="header"]
+[width="100a",cols="50a,50a",options="header"]
 |===
 |Property |Value
 |*Host* |`localhost`
@@ -113,14 +158,16 @@ As a recruiter, I want to get a partial list of employees in my company and expo
 |===
 +
 image:HTTP-general.png[HTTP-general]
-image:HTTP-GE.png[HTTP-GE]
-[TIP]
-To set the host for the HTTP connector, you need to add a connector configuration. Click the plus
-sign (*+*) next to *Connector Configuration* (outlined above) to display the global element properties for the HTTP connector. Then, set the value of the *Host* field to `localhost`.
 +
-The new flow is now reachable through the path `http://localhost:8081/getWorker `
-
-. Add a Groovy transformer after the HTTP endpoint to deal with the message payload.
+image:HTTP-GE.png[HTTP-GE]
++
+[TIP]
+====
+To set the host for the HTTP connector, you need to add a connector configuration. Click the plus *+* icon next to *Connector Configuration* (outlined above) to display the global element properties for the HTTP connector. Then, set the value of the *Host* field to `localhost`.
+The new flow is now reachable through the path `http://localhost:8081/getWorker`.
+====
++
+. Add a Groovy transformer after the HTTP connector to deal with the message payload.
 . Add the following code into the Groovy transformer. This groovy script constructs the SOAP request to get workers out of Workday.
 +
 [source, code, linenums]
@@ -138,18 +185,20 @@ getWorkersType.setResponseFilter(responseFilterType);
 //return the getworkerrequest object as the message payload
 return getWorkersType;
 ----
-. Drag a Workday Human Resource connector into the flow. +
- image:workdayFlow1.png[workdayFlow1]
-
-. Add a new Global element by clicking on the plus sign next to the *Connector Configuration* field. +
- image:wd2.png[wd2]
-
-. Configure this Global Element according to the table below (Refer to <<Configuring the Workday Human Resource Connector>> for more details).
-
 +
-image:global_elements_1.png[global_elements_1]
+. Drag a Workday Human Resource connector into the flow.
 +
-[cols=",",options="header"]
+image:workdayFlow1.png[workdayFlow1]
++
+. Add a new Global element by clicking on the plus sign next to the *Connector Configuration* field.
++
+image:wd2.png[wd2]
++
+. Configure this Global Element according to the table below (Refer to Configuring the Workday Human Resource Connector for more details).
++
+image:global_elements_1.jpg[global_elements_1]
++
+[width="100a",cols="50a,50a",options="header"]
 |===
 |Property |Description
 |*Name* |A unique name for this global element to be referenced by connectors
@@ -157,147 +206,130 @@ image:global_elements_1.png[global_elements_1]
 |*password* |Workday password
 |*endpoint* |URL of your Workday server, in the form https://<Workday domain>/ccx/service/<your tenant name</<desired Workday Service>/<desired Workday Service Version> (for example, `https://services1.workday.com/ccx/service/acme/Human_Resources/v1`).
 |===
++
 . Back in the properties editor of the Workday Human Resource connector in your application, configure the remaining parameters according to the table below.
 +
-[cols=",",options="header"]
-|====
+[width="100a",cols="50a,50a",options="header"]
+|===
 |Field |Value
 |*Display Name* |Workday Human Resource
 |*Config Reference* |Workday_Human_Resource (the name of the global element you created)
 |*Operation* |Get workers
 |*Workers Request Reference* |Leave the default #[payload]
-|====
+|===
 +
 image:wd3.png[wd3]
-
++
 . Add a DataMapper transformer, then configure it as per the steps listed below.
 .. For the input type, select *Connector*. The fields should be automatically populated with the following:
 +
-[cols=",",options="header"]
+[width="100a",cols="50a,50a",options="header"]
 |===
 |Property |Value
 |*Connector* |Workday_Human_Resource
 |*Operation* |get-workers
 |*Object* |GetWorkersResponseType
 |===
-.. For the output type, select *CSV*, then *User Defined*. Click *Create/Edit Structure...* to specify the following data structure for the output file:
 +
-[cols=",",options="header"]
+.. For the output type, select *CSV*, then *User Defined*. Click *Create/Edit Structure* to specify the following data structure for the output file:
++
+[width="100a",cols="50a,50a",options="header"]
 |===
 |Variable |Type
 |*UserID* |String
 |*Name* |String
 |*Title* |String
 |===
-.. Once you have defined both input and output, click *Create Mapping*.
-.. In the response data provided by the connector (listed in DataMapper's Input pane) find the *worker* element, then drag it to the output root node as shown below. This will create a new *Element Mapping*.
 +
-image:worker+element.png[worker+element]
-
+.. Once you have defined both input and output, click *Create Mapping*.
+.. In the response data provided by the connector (listed in DataMapper's Input pane) find the *worker* element, then drag it to the output root node as shown below. This creates a new *Element Mapping*.
++
+image:worker-element.png[worker-element]
++
 .. Find the input data fields of the *worker* that you want to map to your CSV output file. Drag each input data field to its corresponding output CSV field.
 +
 image:DM.png[DM]
-
-. Add a File Endpoint at the end of your flow to output the payload to a CSV file. +
-  image:workdayFlow1-final_stage.png[workdayFlow1-final_stage]
 +
-Configure the File Endpoint as shown below.
+. Add a File Endpoint at the end of your flow to output the payload to a CSV file.
 +
-[cols=",",options="header"]
-|=====
+image:workdayFlow1-final_stage.png[workdayFlow1-final_stage]
++
+Configure the File Endpoint:
++
+[width="100a",cols="50a,50a",options="header"]
+|===
 |Property |Value
 |*Display Name* |`File`
 |*Path* |`<desired path to create files in>`
 |*Output Pattern* |`<desired filename>`
-|=====
-
+|===
++
 . Run the project as a Mule application.
-. From a browser, navigate to `http://localhost:8081/getWorker`.
+. From a browser, navigate to http://localhost:8081/getWorker.
 . Mule performs the query, produces a CSV file with a list of contacts matching the query criteria, and inserts the file in the output folder you specified.
-
++
 ....
 [tab,title="XML Editor"]
 ....
 
 . Add a *`wd-hr:config` global element* to your project, then configure its attributes and child elements according to the table below (see code below for a complete sample).
 +
-[source,xml, linenums]
+[source, xml, linenums]
 ----
 <wd-hr:config name="Workday_Human_Resource" doc:name="Workday Human Resource" hrUser="<your user name>" hrPassword="<your password>" hrEndpoint="<your server>">
         <wd-hr:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
 </wd-hr:config>
 ----
 +
-[width="100%",cols="50%,50%",options="header"]
+[width="100a",cols="50a,50a",options="header"]
 |===
-a|
-Attribute
-
- a|
-Value
-
-|*name* |
-`Workday_Human_Resource`
-|*doc:name* |
-`Workday Human Resource`
+|Attribute |Value
+|*name* |`Workday_Human_Resource`
+|*doc:name* |`Workday Human Resource`
 |*objectManager* |`EAIObjMgr_enu`
 |*hrPassword* |`<your password>`
 |*hrEndpoint* |`<your server>`
 |*hrUser* |`<your username>`
 |===
 +
-[width="100%",cols="100%",options="header"]
+[width="100a",cols="100a",options="header"]
 |===
-a|
+|
 Child Element
-
 |*wd-hr:connection-pooling-profile*
 |===
 +
-[width="100%",cols="50%,50%",options="header"]
+[width="100a",cols="50a,50a",options="header"]
 |===
-a|
-Child Element Attribute
-a|
-Value
-a|*initialisationPolicy* |
-`INITIALISE_ONE`
-|*exhaustedAction* |
-`WHEN_EXHAUSTED_GROW`
+|Child Element Attribute |Value
+|*initialisationPolicy* |`INITIALISE_ONE`
+|*exhaustedAction* |`WHEN_EXHAUSTED_GROW`
 |===
-. Create a Mule flow with an *HTTP endpoint*, configuring the endpoint according to the table below (see code below for a complete sample).
 +
-[source,xml, linenums]
+. Create a Mule flow with an *HTTP connector*, configuring according to the table below (see code below for a complete sample).
++
+[source, xml, linenums]
 ----
 <flow name="workdayFlow1"doc:name="workdayFlow1">
     <http:inbound-endpoint exchange-pattern="one-way"host="localhost"port="8081"path="getWorker"doc:name="HTTP"/>
 </flow>
 ----
 +
-[width="100%",cols="50%,50%",options="header"]
-|====
-a|
-Attribute
-a|
-Value
-|*exchange-pattern*
-a|
-one-way
-|*host* a|
-localhost
-|*port* a|
-8081
-|*path* a|
-getWorker
-|*doc:name* a|
-HTTP
-|====
+[width="100a",cols="50a,50a",options="header"]
+|===
+|Attribute |Value
+|*exchange-pattern* |`one-way`
+|*host* |`localhost`
+|*port* |`8081`
+|*path* |`getWorker`
+|*doc:name* |`HTTP`
+|===
 +
-The new flow is now reachable through the path `http://localhost:8081/getWorker`. As the exchange pattern is set to one-way, no response message is returned to the requester.
+The new flow is now reachable through the path http://localhost:8081/getWorker. As the exchange pattern is set to one-way, no response message is returned to the requester.
 +
-. After the HTTP endpoint, add Groovy transformer:
+. After the HTTP connector, add Groovy transformer:
 +
-[source,xml, linenums]
+[source, xml, linenums]
 ----
 <scripting:transformer doc:name="Groovy">
     <scripting:script engine="Groovy">
@@ -327,7 +359,7 @@ return getWorkersType;
 +
 The end result should look like this:
 +
-[source,xml, linenums]
+[source, xml, linenums]
 ----
 <scripting:transformer doc:name="Groovy">
     <scripting:script engine="Groovy"><![CDATA[//This groovy script constructs the SOAP request to get workers out of workday
@@ -347,19 +379,19 @@ return getWorkersType;
 </scripting:transformer>
 ----
 +
-. After the Groovy transformer, add a *http://wd-hrget-workers[`wd-hr:get-workers`]* element to your flow, configuring the attributes according to the table below.
+. After the Groovy transformer, add a *`wd-hr:get-workers`* element to your flow, configuring the attributes according to the table below.
 +
-[cols=",",options="header"]
-|====
+[width="100a",cols="50a,50a",options="header"]
+|===
 |Property |Value
-|*doc:name* |`Workday Human Resource`
+|*doc:name* |Workday Human Resource
 |*config-ref* |`Workday_Human_Resource`
-|====
+|===
 +
-The `config-ref` links this connector to the global element you created at the beginning of this example.
+The `config-ref` links this connector to the global element you created at the beginning of this example.
 . Add a DataMapper element.
 +
-[source,xml, linenums]
+[source, xml, linenums]
 ----
 <data-mapper:config name="new_mapping_grf" transformationGraphPath="new_mapping.grf" doc:name="DataMapper"/>
 ----
@@ -368,65 +400,69 @@ You must configure the DataMapper element through Studio's Visual Editor. Switch
 +
 .. For the input type, select *Connector*. The fields should be automatically populated with the following:
 +
-[cols=",",options="header"]
+[width="100a",cols="50a,50a",options="header"]
 |===
 |Property |Value
 |*Connector* |Workday_Human_Resource
 |*Operation* |get-workers
 |*Object* |GetWorkersResponseType
 |===
++
 .. For the output type, select *CSV*, then *User Defined*. Click *Edit Fields* to specify the following data structure for the output file.
 +
-[cols=",",options="header"]
+[width="100a",cols="50a,50a",options="header"]
 |===
 |Variable |Type
 |*UserID* |String
 |*Name* |String
 |*Title* |String
 |===
-.. Once you have defined both input and output, click *Create Mapping*
-.. In the response data provided by the connector (listed in DataMapper's Input pane) find the *worker* element, then drag it to the output root node as shown below. This will create a new *Element Mapping*.
 +
-image:worker+element.png[worker+element]
-
+.. Once you have defined both input and output, click *Create Mapping*
+.. In the response data provided by the connector (listed in DataMapper's Input pane) find the *worker* element, then drag it to the output root node as shown below. This creates a new *Element Mapping*.
++
+image:worker-element.png[worker-element]
++
 .. Find the input data fields of the worker that you want to map to your CSV output file. Drag each input data field to its corresponding output CSV field.
 +
 image:DM.png[DM]
-
-. Add a ` file:outbound-endpoint ` in the flow after the DataMapper to output the payload into a CSV file. Configure its attributes according to the table below.
 +
-[source,xml, linenums]
-----
-<file:outbound-endpoint path="/Users/mulesoft/AnypointStudio/workspace/workday/testfiles" responseTimeout="10000" doc:name="File"/>
-----
+. Add a `file:outbound-endpoint` in the flow after the DataMapper to output the payload into a CSV file. Configure its attributes as follows:
 +
-[width="100%",cols="50%,50%",options="header"]
-|====
-a|
-Attribute
+`<file:outbound-endpoint path="/Users/mulesoft/AnypointStudio/workspace/workday/testfiles" responseTimeout="10000" doc:name="File"/>`
++
+[width="100a",cols="50a,50a",options="header"]
+|===
+|Attribute |Value
+|*path* |The location in which you wish to capture the CSV file the application produces
+|*responseTimeout* |
 
- a|
-Value
-
-|*path* |location in which you wish to capture the CSV file the application produces
-|*responseTimeout* a|
+[source, code]
+----
 10000
-|*doc:name* a|
-File
-|====
+----
 
+|*doc:name* |
+
+[source, code]
+----
+File
+----
+
+|===
++
 . Run the project as a Mule Application.
-. From a browser, navigate to `http://localhost:8081/getWorker` http://localhost:8081/query-opportunities[ ]
+. From a browser, navigate to `http://localhost:8081/getWorker.`
 . Mule conducts the query, produces a CSV file with a list workers, and inserts the file in the output folder you specified.
 
 ....
 ------
 
-==== Example Code
+== Example Code
 
 [NOTE]
 ====
-Keep in mind that for this example to work, you must manually configure the following values of the global Workday HR connector (`wd-hr:config` element):
+For this example to work, you must manually configure the following values of the global Workday HR connector (`wd-hr:config` element):
 
 * hrUser
 * hrPassword
@@ -435,10 +471,10 @@ Keep in mind that for this example to work, you must manually configure the foll
 Moreover, adjust the filepath configuration to match a valid path on your local system and note that the DataMapper component must be configured manually using Studio's Visual Editor.
 ====
 
-[source,xml, linenums]
+[source, xml, linenums]
 ----
 <mule xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:wd-hr="http://www.mulesoft.org/schema/mule/wd-hr" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-    xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"
+    xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.7.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
@@ -484,6 +520,6 @@ return getWorkersType;
 
 == See Also
 
-* Learn about the http://www.mulesoft.org/documentation/display/current/Datamapper+User+Guide+and+Reference[DataMapper] transformer, the most efficient way to assign mappings to data.
-*  Read advanced information about the http://mulesoft.github.io/workday-connector/mule/modules.html[Workday Connector], including schema, attributes and security details.
-* Read more about http://www.mulesoft.org/documentation/display/current/Anypoint+Connectors[Anypoint Connectors].
+* Learn about the DataMapper transformer, the most efficient way to assign mappings to data.
+*  Read advanced information about the link:http://mulesoft.github.io/workday-connector/mule/modules.html[Workday Connector], including schema, attributes and security details.
+* Read more about link:/mule-user-guide/v/3.7/anypoint-connectors[Anypoint Connectors].
