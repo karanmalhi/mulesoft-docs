@@ -21,13 +21,13 @@ The sections that follow show how to migrate an Anypoint Connector to 3.6.
 
 Before, when using the @Connect annotation, DevKit enabled by default the *Test Connectivity* capability:
 
-image:/documentation/download/attachments/122752566/36TestConnection.png?version=1&modificationDate=1419355330047[image]
+image:36TestConnection.png[image]
 
 For version 3.6 and later, DevKit enhances the Test Connectivity capability for use in Connection Management scenarios other than just the @Connect method. A method annotated with @Connect must now also be annotated with @TestConnectivty to enable Test Connectivity capability, and `@TestConnectivity(active=false)` to disable it.
 
 New - Add @TestConnectivity to enable:
 
-[source,java]
+[source,java, linenums]
 ----
 @ConnectionManagement(configElementName = "config-type",
   friendlyName = "Basic Auth type strategy")
@@ -46,7 +46,7 @@ public class ConnectorConnectionStrategy
 
 Old - Test Connectivity capability was built into @Connect:
 
-[source,java]
+[source,java, linenums]
 ----
 @Connector(...)
 public class ConnectorConnectionStrategy
@@ -68,7 +68,7 @@ In version 3.6 and later, the @TestConnectivity annotation supports custom label
  +
 Code to make a custom button:
 
-[source,java]
+[source,java, linenums]
 ----
 @ConnectionManagement(configElementName = "config-type",
     friendlyName = "Basic Auth type strategy")
@@ -85,7 +85,7 @@ public class ConnectorConnectionStrategy
 }
 ----
 
-image:/documentation/download/attachments/122752566/36BasicAuthTypeStrategy.png?version=1&modificationDate=1420477952340[image]
+image:36BasicAuthTypeStrategy.png[image]
 
 === Deprecated: The connectivityTesting Property in the @Connect and @Module Annotations.
 
@@ -93,7 +93,7 @@ If a connector used the connectivityTesting property in @Connector to disable th
 
 New - Disable Test Connectivity by setting @TestConnectivity to false:
 
-[source,java]
+[source,java, linenums]
 ----
 @Connector(name = "my", schemaVersion = "2.0", friendlyName = "MyConnector")
 @TestConnectivity(active=false)
@@ -109,7 +109,7 @@ public class MyConnector{
 
 Old - Disabled using  `connectivityTesting = ConnectivityTesting.DISABLED`:
 
-[source,java]
+[source,java, linenums]
 ----
 @Connector(name = "my", schemaVersion = "2.0", friendlyName = "MyConnector", minMuleVersion = "3.5", metaData = MetaDataSwitch.OFF,
 connectivityTesting = ConnectivityTesting.DISABLED //DEPRECATED)
@@ -157,7 +157,7 @@ In 3.6 and later, DevKit supports two ways of building a connector, either usin
 
 New - Defaults to Static DataSense:
 
-[source,java]
+[source,java, linenums]
 ----
 @Connector(name = "my", schemaVersion = "2.0", friendlyName = "MyConnector")
 public class MyConnector
@@ -166,7 +166,7 @@ public class MyConnector
 ----
 Old - Used the metaData property to change the DataSense setting:
 
-[source,java]
+[source,java, linenums]
 ----
 @Connector(name = "my", schemaVersion = "2.0", friendlyName = "MyConnector",
 minMuleVersion = "3.5",
@@ -181,7 +181,7 @@ public class MyConnector
 In 3.6 and later @Disconnect method now only supports RuntimeException, any other exception causes a failure in a connector's compilation. +
  +
 New - Throws RunTimeException:
-[source,java]
+[source,java, linenums]
 ----
 @Connector(...)
 public myConnector(){
@@ -195,7 +195,7 @@ public myConnector(){
 ----
 
 Old - Threw IOException:
-[source,java]
+[source,java, linenums]
 ----
 @Connector(...)
 public myConnector(){
@@ -217,7 +217,7 @@ In 3.6 and later, connections are no longer supported at the @Connector level, b
 ===== Old 3.5 Connector with Connection Management
 
 Previously, connection and domain methods were in the same class:
-[source,java]
+[source,java, linenums]
 ----
 @Connector(name="connector", schemaVersion="1.0", friendlyName="My Connector")
 public class MyConnectionManagementConnector
@@ -260,7 +260,7 @@ To update to the Connection Strategy model:
 . Annotate the class with the @ConnectionManagement annotation. 
 . Move the four connection methods (@Connect, @Disconnect, @ValidateConnection and @ConnectionIdentifier) from the old @Connector class to the new Connection Strategy class:
 +
-[source,java]
+[source,java, linenums]
 ----
 @ConnectionManagement(friendlyName="ConnectionManagement", configElementName="config-name")
 public class ConnectionManagementStrategy
@@ -290,7 +290,7 @@ public class ConnectionManagementStrategy
 ----
 . After moving the connection methods to the Connection Strategy class, set  @Connector to reference the connection strategy class by creating a @ConnectionStategy field with the reference to the new strategy. The @Connector is then detached from how it connects with a service: +
 +
-[source,java]
+[source,java, linenums]
 ----
 @Connector(name="myconnector", schemaVersion="1.0", friendlyName="Connector")
 public class MyConnector
@@ -329,7 +329,7 @@ The @OverrideAtProcessor is deprecated and will be removed in DevKit 4.0.0 (as t
 === Migrating Connector with OAuth2 
 
 The same happens for OAuth2 Authentication. Now the @OAuth2 annotation should be placed in another class different from the @Connector class, as a @ConnectionStrategy.
-[source,java]
+[source,java, linenums]
 ----
 @OAuth2( configElementName = "config-oauth2", friendlyName="OAuth2 type Strategy",
 authorizationUrl = "https://api.myconnector.com/uas/oauth/authorize",
@@ -366,7 +366,7 @@ After migrating to the @ConnectionStrategy class, set  @Connector to reference 
 ====
 *About Connection Strategies* +
 
-Connection Strategies supports  @ConnectionManagement ,  @OAuth2 , @Configuration, and  @HttpBasicAuth components. Read more about this http://www.mulesoft.org/documentation/display/current/Annotation+Reference#AnnotationReference-connstratan[here].
+Connection Strategies supports  @ConnectionManagement ,  @OAuth2 , @Configuration, and  @HttpBasicAuth components. Read more about this link:http://www.mulesoft.org/documentation/display/current/Annotation+Reference#AnnotationReference-connstratan[here].
 ====
 
 === Migrating Connector with OAuth V1
