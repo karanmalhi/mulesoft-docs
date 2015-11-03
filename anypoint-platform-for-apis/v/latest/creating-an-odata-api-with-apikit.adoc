@@ -1,12 +1,15 @@
-
 = Creating an OData-Enabled API with APIKit
-:keywords: apikit, beta, sdk, data gateway, odata
+:keywords: apikit, apikit extension, beta, sdk, data gateway, odata
 
-(*NOTE*: Links included in this page are not final and must be replaced by the definitive links; also instructions for updating APIKit via the update site will be included once the update site is made available.)
+== ApiKit 2.0 Beta
 
-== ApiKit 1.8 Beta
+APIKit 2.0, currently in Beta, includes an extension that brings OData support to APIKit. APIKit now allows you to easily create APIs with OData support, which you can then deploy to CloudHub and expose as custom data gateways to Salesforce. You provide your OData entity model in Anypoint Studio, and APIKit scaffolds a Mule application that exposes an OData endpoint with the entities you provided. From Studio, you can run the application and deploy it to CloudHub; from within Salesforce you can register your app like any other application.
 
-APIKit 18.8, currently in Beta, is an extension to APIKit that allows you to easily create APIs with OData support, which you can then deploy to CloudHub and expose as custom data gateways to Salesforce. You provide your OData entity model in Anypoint Studio; APIKit scaffolds a Mule application that exposes an OData endpoint with the entities you provided. From Studio, you can run the application and deploy it to CloudHub; from within Salesforce you can register your app like any other application.
+This document describes APIKit's newly-introduced support for OData.
+
+image:apikit-odata-cycle.png[APIKit Odata Extension Development Cycle]
+
+NOTE: This version of APIKit does NOT support API Gateway. API Gateway support is planned for the next release of APIKit.
 
 == Assumptions
 
@@ -18,46 +21,61 @@ This page assumes basic reader familiarity with:
 == Prerequisites
 
 * Mule 3.7.x runtime or later
-* link:https://github.com/mulesoft/apikit/tree/1.8-BETA[APIKit 1.8 Beta]
-* https://www.mulesoft.com/platform/studio[The latest version of Anypoint Studio]
-* link:https://github.com/mulesoft-labs/apikit-odata-template[Anypoint template for APIKit-OData]
+* The latest version of https://www.mulesoft.com/platform/studio[Anypoint Studio]
+* APIKit with OData Extension, which you download from within Studio (see instructions <<"Installing the APIKit Extension in Studio",below>>)
+* The latest version of link:https://maven.apache.org/download.cgi[Maven]
 
-TIP: Using the template is the quickest, easiest way to build your OData-enabled application; however, it is also possible to do so without the template. For details, see <<Using the SDK Without the Template>> below.
+== Installing and Using the APIKit OData Extension
 
-== Overview
+Once you have the latest version of Maven, and Anypoint Studio with the Mule 3.7 runtime, the basic high-level steps are the following:
 
-Once you have the latest version of Studio and the APIKit extension, the basic high-level steps are the following:
-
-. link:https://github.com/mulesoft-labs/apikit-odata-template[Download the Anypoint template].
-. Import the template into Anypoint Studio.
-. Define your OData entity model in the JSON file provided in the template.
-. Run APIKit to scaffold the application, generating a RAML file that exposes OData endpoints with the entities you defined.
-. Implement the flows in your application.
+. <<install,Install>> the APIKit extension in Studio, using the appropriate update site.
+. <<import,Import>> a provided application template into Studio. This template greatly simplifies building the OData-enabled application.
+. <<define,Define>> your OData entity model in the JSON file provided in the template.
+. <<run_app,"Run APIKit">> to scaffold the application, generating a RAML file that exposes OData endpoints with the entities you defined.
+. <<implement,Implement>> the flows in your application.
 . Run your app locally, then deploy it to CloudHub.
 . Register in Salesforce.
 
 These steps are detailed below.
 
-If you prefer to work without the template, see <<Using the SDK Without the Template>> below.
+TIP: Using the template is the quickest, easiest way to build your OData-enabled application; however, it is also possible to do so without the template. For details, see <<Using the APIKit OData Extension Without the Template>> below.
 
-== Using the APIKit 1.8 SDK
+To use this functionality, ensure you have the latest version of Studio and Mule 3.7 or later runtime (see the prerequisites <<Prerequisites,above>>).
 
-To use this functionality, you must link:https://github.com/mulesoft/apikit/tree/1.8-BETA[download and install APIKit 1.8 Beta]. Also, ensure you have the latest version of Studio and Mule 3.7 or later runtime (see the prerequisites <<Prerequisites,above>>).
+[[install]]
+=== Installing the APIKit OData Extension in Studio
 
-=== Importing the Anypoint Template
+APIKit 2.0 Beta is available via a Studio update site. To install APIKit 2.0 Beta, follow these steps:
 
-. link:https://github.com/mulesoft-labs/apikit-odata-template[Download] the Anypoint template for the APIKit OData extension.
-. Import the template into Studio. To do so, select *File* -> *Import*; then in the *Import* dialog box, select *Anypoint Studio* -> *Maven-based Mule Project from pom.xml* and choose the `pom.xml` file from the location where you downloaded the template. (For details on importing, see link:/mule-user-guide/v/3.5/importing-and-exporting-in-studio[Importing and Exporting in Studio]).
+. Under the *Help* menu in Anypoint Studio, select *Install New Software*.
+. In the installation wizard's *Work with:* field, enter: `http://studio.mulesoft.org/r4/apikit-odata`.
+. Studio displays a list of items to select. Click the checkboxes next to *APIKit Studio Plugin* and *RAML Editor*, then click *Next*.
+. Studio displays details of the selected item. Click *Next*.
+. Click to accept the terms and conditions of the product, then click *Finish*.
+. Click *Restart Now* to complete the installation.
 
-=== Creating the Entity Model
+[[import]]
+=== Importing the Template
+
+. link:https://github.com/mulesoft/apikit-odata-template[Download] the template to use with the APIKit OData extension.
+. Import the template into Studio:
+.. Select *File* -> *Import*.
+.. In the *Import* dialog box, select *Anypoint Studio* -> *Maven-based Mule Project from pom.xml*, then choose the `pom.xml` file from the location where you downloaded the template. (For details on importing, see link:/mule-user-guide/v/3.5/importing-and-exporting-in-studio[Importing and Exporting in Studio]).
+
+[[define]]
+=== Defining the Entity Model
 
 . Once you have imported the template into Studio, the folders and files included in the template appear in Studio's *Package Explorer* pane on the left. In the Package Explorer, open the `src/main/api` folder, then open the file `model.json` for editing (right-click the file, then select *Open*).
-. The `model.json` file contains the structure of the supported entity model. Enter the values for the entities and fields of your specific entity model. (For details on the entity model, <<Supported Data Types>> in this page, or consult the link:https://github.com/mulesoft-labs/apikit-odata-template[full specification]). *NOTE: Spec is currently only available to users logged into github*.
+. The `model.json` file contains the structure of the supported entity model. Enter the values for the entities and fields of your specific entity model. (For details on the entity model, see <<Supported Data Types>> in this page, or consult the link:https://github.com/mulesoft/apikit-odata-template[full specification]. An link:_attachments/model-schema.json[example JSON schema file] is also available.)
 
+[[run_app]]
 === Creating and Deploying the Application
+
 . Once you have defined your entity model, use APIKit to generate the flows for the application. To do this: in the Package Explorer, right-click the application name or the `model.json` file, then select *APIKit* -> *Generate Flows*.
-. When you select to generate the flows, APIKit generates a RAML file (`api.raml`) in the same folder as the `model.json` file. The `api.raml` file contains definitions for as many resources as there are entities in the `model.json` file that you edited. APIKit then scaffolds your OData endpoints as flows, defined in a file called `api.xml`. +
-At this point, you can begin implementing the endpoints in the XML file. When implementing the endpoints, bear in mind that the input for each flow may contain the following variables:
+. When you select to generate the flows, APIKit generates a RAML file (`api.raml`) in the same folder as the `model.json` file. The `api.raml` file contains definitions for as many resources as there are entities in the `model.json` file that you edited. APIKit then scaffolds your OData endpoints as flows, which are defined in a file called `api.xml`. +
+[[implement]]
+At this point, you can begin implementing the endpoints in the XML file. When implementing the endpoints, bear in mind that the flows' input and output *must* be in the JSON format. The input for each flow may contain the following variables:
 
 * `orderby`
 * `top`
@@ -73,18 +91,17 @@ The output for each flow must conform to this format: +
 
 . Package your app by running `mvn clean package`.
 . Run your app locally.
-. Deploy your app to CloudHub: Right-click your project, then select *CloudHub* -> *Deploy to CloudHub*. (For further details, see link:/cloudhub/deploying-a-cloudhub-application[Deploying a CloudHub Application].
-. Register your app in Salesforce. For details, see the link:https://help.salesforce.com/apex/HTViewHelpDoc?id=connected_app_create.htm[Salesforce documentation].
+. Deploy your app to CloudHub: Right-click your project, then select *CloudHub* -> *Deploy to CloudHub*. (For further details, see link:/cloudhub/deploying-a-cloudhub-application[Deploying a CloudHub Application]).
+. Register your app in Salesforce. For details, see the
+link:https://help.salesforce.com/HTViewHelpDoc?id=platform_connect_add_external_data_source.htm&language=en_US[Salesforce documentation].
 
-=== Using the SDK Without the Template
+=== Using the APIKit OData Extension Without the Template
 
-Using the template is the quickest and easiest way to build your OData-enabled application; however, if you do not wish to use the template, follow the steps below.
-
-To use this functionality, you must link:https://github.com/mulesoft/apikit/tree/1.8-BETA[download and install APIKit 1.8 Beta]. Also, ensure you have the latest version of Studio and Mule 3.7 or later runtime (see the prerequisites <<Prerequisites,above>>).
+Using the template is the quickest and easiest way to build your OData-enabled application; however, if you do not wish to use it, follow the steps below.
 
 . Create a new Mule project with Maven support.
 . In the application's `api` folder, create a new JSON file, for example `model.json`.
-. Optionally, validate your JSON file against this link:https://github.com/mulesoft/apikit/blob/1.8-BETA/apikit-tools/apikit-maven-plugin/src/main/resources/model-schema.json[JSON schema file].
+. Optionally, validate your JSON file against this link:_attachments/model-schema.json[JSON schema file].
 . In the Package Explorer, right-click the project or the JSON file you created, then select *APIKit* -> *Generate flows*.
 . Add the following dependencies to the project `pom.xml` file: +
 [source,xml,linenums]
@@ -92,12 +109,12 @@ To use this functionality, you must link:https://github.com/mulesoft/apikit/tree
 <dependency>
 <groupId>org.mule.modules</groupId>
     <artifactId>mule-module-apikit</artifactId>
-    <version>1.8.0-BETA</version>
+    <version>2.0.0-BETA</version>
 </dependency>
 <dependency>
     <groupId>org.mule.modules</groupId>
     <artifactId>mule-module-apikit-odata</artifactId>
-    <version>1.0.0</version>
+    <version>0.9.0</version>
 </dependency>
 ----
 [start=6]
@@ -117,13 +134,13 @@ The output for each flow must conform to this format: +
 
 . Package your app by running `mvn clean package`.
 . Run your app locally.
-. Deploy your app to CloudHub: Right-click your project, then select *CloudHub* -> *Deploy to CloudHub*. (For further details, see link:/cloudhub/deploying-a-cloudhub-application[Deploying a CloudHub Application].
-. Register your app in Salesforce. For details, see the link:https://help.salesforce.com/apex/HTViewHelpDoc?id=connected_app_create.htm[Salesforce documentation].
+. Deploy your app to CloudHub: Right-click your project, then select *CloudHub* -> *Deploy to CloudHub*. (For further details, see link:/cloudhub/deploying-a-cloudhub-application[Deploying a CloudHub Application]).
+. Register your app in Salesforce. For details, see the link:https://help.salesforce.com/HTViewHelpDoc?id=platform_connect_add_external_data_source.htm&language=en_US[Salesforce documentation].
 
 
 == Supported Data Types
 
-TIP: For the complete specification of the data model, see the link:https://github.com/mulesoft-labs/apikit-odata-template/blob/master/README.md[README file] in the APIKit OData template.
+TIP: For the complete specification of the data model, see the link:https://github.com/mulesoft/apikit-odata-template/blob/master/README.md[README file] in the template for the OData-enabled application. You can also check the link:https://github.com/mulesoft/apikit-odata-template/blob/master/examples-edm-types.md[examples of EDM types].
 
 === Model
 
@@ -175,7 +192,7 @@ Each entity must conform to the following structure:
 }
 ----
 
-* `type`: The field's data type. *Mandatory* for all fields. For the full list of supported data types, see the template's link:https://github.com/mulesoft-labs/apikit-odata-template/blob/master/README.md[README file].
+* `type`: The field's data type. *Mandatory* for all fields. For the full list of supported data types, see the template's link:https://github.com/mulesoft/apikit-odata-template/blob/master/README.md[README file].
 * `name`: The name of the field. *Mandatory* for all types.
 * `nullable` (boolean): Whether this field is nullable or not. *Mandatory* for all types.
 * `key` (boolean): Whether this field is a key or not. *Mandatory* for all types.
@@ -188,3 +205,15 @@ Each entity must conform to the following structure:
 * `fixedLength` (boolean): *Mandatory* for `Edm.String` types. Indicates whether the store requires a string to be fixed length or not.
 * `collation` (string): Specifies the collating sequence (or sorting sequence) to be used for performing comparison and ordering operations over string values. Optional for `Edm.String` types.
 * `unicode` (boolean): When set to true, dictates the string type that an instance will store. By default, UNICODE characters are used; otherwise standard ASCII encoding is used. The default value for this property is true. Optional for `Edm.String` types.
+
+== Additional Resources
+
+=== Full Working Example
+
+A full working example of a MySQL data gateway, built using the template, is link:https://github.com/mulesoft/apikit-odata-example[available to view and download] in GitHub.
+
+=== Data Type Definitions, JSON schema
+
+* The application template's link:https://github.com/mulesoft/apikit-odata-template/blob/master/README.md[README file] contains the full specification of the supported data model
+* You can also check the link:https://github.com/mulesoft/apikit-odata-template/blob/master/examples-edm-types.md[examples of EDM types]
+* A complete link:_attachments/model-schema.json[example JSON schema file] is also available
