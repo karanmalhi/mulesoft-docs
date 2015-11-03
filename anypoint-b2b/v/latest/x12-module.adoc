@@ -1,11 +1,11 @@
 = X12 Module
 :keywords: b2b, x12, schema, module, edi
 
-The X12 Module provides message reading, validation and writing capabilities to communicate with trading partners using X12 EDI exchanges.
+The X12 Module provides you with the ability to communicate with trading partners using X12 EDI (electronic data interchange).
 
-Included in the X12 Module are the following capabilities:
+The X12 Module includes:
 
-* X12 EDI message reading, validation and writing
+* X12 EDI message-reading, message-validation and message-writing
 * Integration with DataSense and DataMapper 
 * X12 message packs for 4010 and 5010 versions
 * The ability to define your own schemas or customize the base X12 schemas
@@ -17,35 +17,39 @@ To get started using the connector, follow these steps:
 . Configure the EDI Module for your trading partner according to your implementation convention
 . Use the EDI module inside Mule flows
 
-This page helps you learn how to do each of these 4 steps.
+This page helps provides guidance for each of these steps.
 
 == Installation
 
 === Installing the X12 Module in Anypoint Studio
 
-Follow the steps below to install an X12 Module connector in Anypoint Studio. To use the X12 Module connector in a production environment, you must have purchased a license for Anypoint B2B.
+Follow the steps below to install an X12 Module connector in Anypoint Studio.
 
-. Under the *Help* menu in *Anypoint Studio*, select *Install New Software*. 
-. Select the Anypoint Connectors Update Site
-. In the table below the *Filter* field, click to expand the *Premium* folder, then select `X12 Module`. Click *Next*. 
-+
+NOTE: To use the X12 Module connector in a production environment, you must have purchased a license for Anypoint B2B.
+
+. On the *Help* menu in *Anypoint Studio*, select *Install New Software*. The *Available Software* page appears.
+
 image:x12-module-2.png[x12-module-2]
-+
+
+. In the *Work with* box, select the Anypoint Connectors Update site (that is, http://edi-module-update-site.s3.amazonaws.com/beta-updates)
+. In the table below the *type filter text* box, click to expand the *Premium* folder, then select `X12 Module`. 
+. Click *Next*. The *Install Details* page appears.
 . Review the details of the item you selected, then click *Next*.
 . Click to accept terms and conditions of the product, then click *Finish*.
 . Click *Restart Now* to complete the installation. After you install the connector and restart Studio you can see several new message processors available in the palette, under the Connectors category.
 
 === Using the X12 Module via Maven
 
-If you wish to use the X12 Module in conjunction with Maven, please follow the instructions link:http://mulesoft.github.io/edi-module/x12/guide/install.html[here].
+If you want to use the X12 Module in conjunction with Maven, follow the instructions in the "As a Maven Dependency" section of the *Install* tab on the link:http://mulesoft.github.io/edi-module/x12/guide/install.html[Mule EDI Anypoint X12 Connector page].
 
 == EDI Schema Language
 
-The X12 Module uses a YAML format called ESL (for EDI Schema Language) to represent EDI schemas.  Basic ESLs define the structure of EDI messages in terms of _structures_ (transaction sets, in X12 terminology), _groups_ (loops, in X12), _segments, composites, and elements_. Currently, ESLs for the X12 004010 and 005010 versions are included out of the box. 
+The X12 Module uses a YAML format called ESL (for EDI Schema Language) to represent EDI schemas.  Basic ESLs define the structure of EDI messages in terms of _structures_ (transaction sets, in X12 terminology), _groups_ (loops, in X12), _segments_, _composites_, and _elements_. ESLs for the X12 004010 and 005010 versions are included. 
 
-To configure the X12 Module according to your implementation convention, define an "overlay schema." An overlay schema is a special form of ESL that allows you to modify a base schema, such as an X12 4010 850 schema, with your specific conventions. (You don't need an overlay schema if you're using the structure defined by the standard, but most EDI exchanges modify the base definitions in an implementation convention)
+To configure the X12 Module according to your implementation convention, define an _overlay schema_. An overlay schema is a special form of ESL that allows you to modify a base schema, such as an X12 4010 850 schema, with your specific conventions. (You don't need an overlay schema if you're using the structure defined by the standard, but most EDI exchanges modify the base definitions in an implementation convention).
 
-If you wish, you can also define your own schemas from scratch. Please see the link:/anypoint-b2b/edi-schema-language-reference[EDI Schema Language Reference] for more details.
+You can also define your own schemas from scratch.
+See link:/anypoint-b2b/edi-schema-language-reference[EDI Schema Language Reference] for more details.
 
 [NOTE]
 ====
@@ -339,7 +343,19 @@ Sending acknowledgments is the same as writing any other EDI message, except you
 ----
 <x12-edi:read config-ref="Walmart" doc:name="Read EDI Doc"/>
 ...
-<set-payload value="#[ ['Transactions' : ['997' : payload.FunctionalAcksGenerated] ] ]" doc:name="Create outgoing message"/>
+<dw:transform-message doc:name="Create Outgoing Message">
+            <dw:input-payload doc:sample="InMessage.dwl"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	TransactionSets: {
+		v005010: {
+			'997' : payload.FunctionalAcksGenerated
+		}
+	}
+}]]></dw:set-payload>
+</dw:transform-message>
 <x12-edi:write config-ref="Walmart" doc:name="Send 997"/>
 <file:outbound-endpoint responseTimeout="10000" doc:name="File" path="output" outputPattern="ack.edi"/>
 ----

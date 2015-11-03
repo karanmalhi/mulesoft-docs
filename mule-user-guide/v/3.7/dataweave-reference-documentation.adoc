@@ -1994,6 +1994,60 @@ Strings are treated as arrays of characters, so the operation works just the sam
 }
 --------------------------------------------------------
 
+=== IS
+
+Evaluates if a condition validates to true and returns a boolean value. Conditions may include and & or operators.
+
+
+.Input
+[source,xml,linenums]
+--------------------------------------------------------
+<root>
+    <order>
+      <items> 155 </items>
+    </order>
+    <order>
+      <items> 30 </items>
+    </order>
+    <order>
+        null
+    </order>
+</root>
+--------------------------------------------------------
+
+.Transform
+[source,DataWeave, linenums]
+-----
+%dw 1.0
+%output application/xml
+---
+ROOT: payload.root.*order mapObject (
+  ORDER:{
+    itemsCollectionPresent: $ is :object and $.items?
+  }
+)
+-----
+
+
+.Output
+[source,xml,linenums]
+--------------------------------------------------------
+<?xml version='1.0' encoding='UTF-8'?>
+<ROOT>
+  <ORDER>
+    <itemsCollectionPresent>true</itemsCollectionPresent>
+  </ORDER>
+  <ORDER>
+    <itemsCollectionPresent>true</itemsCollectionPresent>
+  </ORDER>
+  <ORDER>
+    <itemsCollectionPresent>false</itemsCollectionPresent>
+  </ORDER>
+</ROOT>
+--------------------------------------------------------
+
+
+
 
 === AS (Type Coercion)
 
@@ -2074,6 +2128,27 @@ Date types can be coerced from string or number
   "b": "2015-10-07 16:40:32.000"
 }
 ----
+
+
+==== Coerce to Object
+
+You can coerce your input into to a custom object type of whatever class you want.
+
+
+.Transform
+[source,DataWeave, linenums]
+----------------------------------------------------------------------
+%dw 1.0
+%output application/json
+---
+{
+  payload as :object {class : "soa.sfabs.SOAResponseInfoType\$ServiceInfo"}
+}
+----------------------------------------------------------------------
+
+[NOTE]
+Keep in mind that if the class name contains any '$' characters, they must be escaped with a \
+
 
 === Flatten
 
@@ -2972,8 +3047,7 @@ c: |2003-10-01T23:57:59Z| + |P1Y|
 
 Your DataWeave code can call any function you define as a global link:/mule-user-guide/v/3.7/mule-expression-language-mel[Mule Expression Language (MEL)] function, as long as it is correctly defined in the Mule Project where your Transform Message element sits.
 
-Refer to link:/mule-user-guide/v/3.7/using-dataweave-in-studio[Using DataWeave in Studio].
-
+Refer to link:/mule-user-guide/v/3.7/using-dataweave-in-studio#calling-global-mel-functions-from-dataweave-code[Using DataWeave in Studio].
 
 == Object
 
