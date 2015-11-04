@@ -1,7 +1,7 @@
 = Basic Studio Tutorial
 :keywords: studio, tutorial, request, response, http, listener, config
 
-This exercise is designed to introduce you to Anypoint Studio and help you get comfortable building applications.
+This exercise helps you understand Anypoint Studio and get comfortable building applications.
 
 This tutorial walks you through how to use Anypoint Studio to build a simple HTTP request-response application. After creating and running the example locally, you are able to apply what you have learned to create link:/mule-fundamentals/v/3.7/content-based-routing-tutorial[more complex applications].
 
@@ -11,17 +11,17 @@ This tutorial assumes that you have link:/mule-fundamentals/v/3.7/download-and-l
 
 == Goals
 
-In this tutorial, our goals are to:
+This tutorial consists of these parts:
 
-. Create an application in Anypoint Studio containing a single flow that:
-** Receives an HTTP request 
-** Logs the message payload 
-** Returns a modified payload as an HTTP response
-. Run the application on a local runtime embedded in Anypoint Studio.
-. Test the application using your browser. 
-. Stop the application.
-. Edit the application and rerun it.
-. _(Optional)_ Apply your knowledge to an extra credit challenge.
+[width="100%",cols=",",options="header"]
+|===
+|# |Task |Section
+|1 |Launch Anypoint Studio |<<Launching Studio>>
+|2 |Create a simple application that displays a message in a browser |<<Constructing an Application>>
+|3 |Learn about logging to display information in a log file |<<Adding Logging>>
+|4 |Learn about flows in your application |<<Working With Flows>>
+|5 |Add more features to your application |<<Extending Your Application>>
+|===
 
 == Launching Studio
 
@@ -36,63 +36,59 @@ If you have already launched Studio as part of the installation process, and it 
 +
 image:workspacelauncher.png[workspacelauncher]
 +
-. If this is the first time you have launched Studio, you may see a *Welcome* screen. Click *Create a Project* to dismiss the screen and jump straight to the New Mule Project wizard.
+. If this is the first time you have launched Studio, you see a Welcome screen. Click *Create a Project* to dismiss the screen and jump straight to the New Mule Project wizard.
 +
 image:WelcomeScreen.png[WelcomeScreen]
 
-== Creating a New Project
+=== Creating a New Project
 
-. Unless the New Project Wizard is already open, click *File* > *New* > *Mule Project*.
-. Studio opens the *New Mule Project* wizard. Fill in the *Name* field with the value Basic Tutorial.
-. Click the *Server Runtime* to which you want to deploy your project. Anypoint Studio automatically populates the Server Runtime field with a default server that comes bundled with your download. You can change to a different runtime if you have others installed – this project works with any runtime. For more about installing additional runtime versions, see link:/mule-user-guide/v/3.7/installing-extensions[Installing Extensions].
+. If the New Mule Project screen is not open, click *File* > *New* > *Mule Project*.
+. Studio opens the *New Mule Project* wizard. Fill in the *Name* field with the value `Basic Tutorial`.
 +
 image:basic-studio-new-mule-project.png[basic-studio-new-mule-project]
 +
 . Click *Finish* to create the project.
-. In the *Package Explorer*, `Basic Tutorial.xml` appears inside the `src/main/app` folder.
-+
-image:packages.png[packages]
-+
-The `.xml` file stores flow information for the visual editor. When your new project opens for the first time, Anypoint Studio automatically opens the `.xml file` and presents you with a blank canvas. The main sections of the UI are the following:
-+
+
+The main sections of the UI are the following:
+
 image:blank+canvas.png[blank+canvas]
-+
-Find out more about mule-project.xml file: +
-The *mule-project.xml* file is the Mule project descriptor file. Open this file to change the project runtime, set or edit environment variables, or edit the project description. Commit this file, along with your <name>.xml file to your source control systems to avoid errors when sharing your project.
 
-== Modeling a Mule Flow
+The blue area in the center is the canvas where you build a visual representation of your Mule program by dragging building blocks from the palette outlined in green to the canvas. We explain this in greater detail in the next section.
 
-In this tutorial, your goal is to build an application that receives an HTTP request, logs the message payload, and then modifies the payload before returning it as an HTTP response. You can build this application using three building blocks in Studio:
+If necessary, see this link:/mule-fundamentals/v/3.7/anypoint-studio-essentials[quick overview] on how to use the visual editor to drag and drop building blocks from the palette onto the canvas.
+
+At the bottom of the canvas are 3 tabs that let you alternate between visual and XML editing.
+
+image:basic-t-canvas-tabs.png[basic-t-canvas-tabs]
+
+These tabs are:
+
+* *Message Flow* - The visual editor in the canvas.
+* *Global Elements* - Lets you set properties for the building blocks.
+* *Configuration XML* - A text editor that lets you view and change the XML file behind the visual representation.
+
+=== More on the XML File
+
+When you create a Mule Project, Anypoint Studio creates an XML file for you. Because you named the project Basic Tutorial, Studio creates the `Basic Tutorial.xml` for you, which appears in
+the *Package Explorer*, which is outlined in orange. This XML file appears inside the `src/main/app` folder:
+
+image:packages.png[packages]
+
+The `.xml` file stores flow information for the visual editor. When your new project opens for the first time, Anypoint Studio automatically opens the `.xml file` and presents you with a blank canvas.
+
+The *mule-project.xml* file is the Mule project descriptor file. Open this file to change the project runtime, set or edit environment variables, or edit the project description. After you finish creating your project, you can commit this file, along with your <project_name>.xml file to your source control systems to avoid errors when sharing your project.
+
+== Constructing an Application
+
+In this section of the tutorial, we build an application that just displays a message you set in your browser.
+
+This section uses these building blocks:
 
 [cols=",",]
 |===
 |*link:/mule-user-guide/v/3.7/http-connector[HTTP Connector]* |Allows your Mule application to connect to Web resources through the HTTP or HTTPS protocol. Find this in the Connectors section of the palette.  
-|*link:/mule-user-guide/v/3.7/logger-component-reference[Logger Component]* |Logs messages or activity based on the value of a Mule expression. Find this in the Components section of the palette.
 |*link:/mule-user-guide/v/3.7/set-payload-transformer-reference[Set Payload Transformer]* |Modifies your payload into a "Hello, World" message. Find this in the Transformers section of the palette.
 |===
-
-Drag and drop these three building blocks into place on the canvas to visually construct, or model, your flow, in the order shown:
-
-image:flow.png[flow]
-
-More detailed instructions:
-
-If necessary, consult this link:/mule-fundamentals/v/3.7/anypoint-studio-essentials[quick overview] on how to use the visual editor to drag and drop building blocks from the palette onto the canvas.
-
-Or, follow this step-by-step guide to model the flow for this example.
-
-. Click and drag an *HTTP Connector* from the Connectors section of the palette onto the canvas.
-+
-image:add-http.png[add-http]
-+
-. Click and drag a *Logger* from the Components section of the palette and drop it to the right of the HTTP endpoint on the canvas.
-+
-image:add-logger.png[add-logger]
-+
-. Lastly, place a *Set Payload* transformer immediately to the right of the Logger component, making sure to drop it inside the dashed line area.
-+
-image:add-set-payload.png[add-set-payload.]
-+
 
 [NOTE]
 ====
@@ -103,13 +99,94 @@ image:basic-studio-search.png[basic-studio-search.png]
 *Note*: Building blocks in each category of the palette are organized alphabetically. To avoid scrolling, use the search tool in the upper right corner of the palette to find the building blocks that you want more quickly. You can also use this area to view more information about the building block in link:/mule-fundamentals/v/3.7/anypoint-exchange[Anypoint Exchange].
 ====
 
-With just a few clicks, you have modeled your entire application on the Studio canvas.
+. Search for "http" and drag the *HTTP Connector* to the canvas followed by *Set Payload*:
++
+image:basic-t-starting-flow.png[basic-t-starting-flow]
++
+. Click each block to set its properties:
++
+.. For the HTTP connector, click the green plus sign to the right of *Connector Configuration*:
++
+image:basic-t-http-cfg.png[basic-t-http-cfg]
++
++ When the menu appears, click *OK* to accept the default settings. This sets the host to `0.0.0.0` and the port to `8081`. When you test the application, you can view its information at `http://0.0.0.0:8081`:
++
+image:basic-t-http-props.png[basic-t-http-props]
++
+. For the Set Payload, in the *Value* field, erase the `#[]` value and add a statement such as `Hello MuleSoft`:
++
+image:basic-t-set-payload
++
+With just a few clicks, you have created (also known as modeled) an  application on the Studio canvas.
 
-After you configure individual elements within it, which occurs in the next section, this flow accomplishes the goals that you set out to achieve with this application. Each building block you select and place on the canvas performs part of the functionality of your application, as shown in the image below.
+=== Verifying That Your Application Works
 
-image:explanation.png[explanation]
+Anypoint Studio makes it easy to test applications:
 
-== Configuring the Flow Elements
+. Click the top project line name in *Package Explorer* and click *Run* > *Run As* > *Mule Application*:
++
+image:basic-t-run-as-mule-app.png[basic-t-run-as-mule-app]
++
+The console lists output and should end with statements similar to:
++
+image:basic-t-mule-is-up-and-kicking.png[basic-t-mule-is-up-and-kicking]
++
+. Open a browser and type the address as 0.0.0.0:8081. The results are:
++
+image:basic-t-browser-results.png[basic-t-browser-results]
+
+Now you know your application works. Let's add more capabilities.
+
+== Adding Logging
+
+Logging is very useful for applications in that you can store messages from your application for errors, information, warnings, tracing, and debugging. Logging is configured with the log4j2.xml file which is in your project's `src/main/resources` path. You can view this path in the *Package Explorer*. You don't need to change anything in this file, but you can view it for more information on how logging works.
+
+To add the Logger component, type "log" in the search and drag the Logger to your canvas:
+
+image:basic-t-logging.png[basic-t-logging]
+
+*Where does the logging output appear?*
+
+The log4j2.xml file provides this definition:
+
+[source,xml,linenums]
+----
+<Appenders>
+  <RollingFile name="file" fileName="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}basic_tutorial.log"
+           filePattern="${sys:mule.home}${sys:file.separator}logs${sys:file.separator}basic_tutorial-%i.log">
+    <PatternLayout pattern="%d [%t] %-5p %c - %m%n" />
+    <SizeBasedTriggeringPolicy size="10 MB" />
+    <DefaultRolloverStrategy max="10"/>
+  </RollingFile>
+</Appenders>
+----
+
+This code contains definitions that Studio plugs in depending on where you locate your Studio workspace and your computer's operating system. The `mule.home` value is the path to where your workspace resides. The `file.separator` value is a backslash (\) in Windows or a forward slash in Mac and Linux. The actual log file name is your project's name with the `.log` file type. The log file appears in your Studio workspace in the `.mule` directory.
+
+For example on a Mac, the path is:
+
+[source,code]
+----
+/Users/me/AnypointStudio/workspace/.mule/logs/basic_tutorial.log
+----
+
+The first few entries are:
+
+[source,code,linenums]
+----
+2015-11-03 11:07:28,951 [main] INFO  org.mule.module.launcher.application.DefaultMuleApplication -
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Initializing app 'basic_tutorial'                        +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+2015-11-03 11:07:29,065 [main] INFO  org.mule.lifecycle.AbstractLifecycleManager - Initialising RegistryBroker
+2015-11-03 11:07:29,184 [main] INFO  org.mule.module.extension.internal.manager.DefaultExtensionManager - Starting discovery of extensions
+2015-11-03 11:07:29,313 [main] INFO  org.mule.module.extension.internal.manager.DefaultExtensionManager - Discovered 1 extensions
+2015-11-03 11:07:29,313 [main] INFO  org.mule.module.extension.internal.manager.DefaultExtensionManager - Registering extension validation (version 3.7)
+----
+
+More information on logging is at link:/mule-user-guide/v/3.7/logging-in-mule[Logging in Mule] and link:/mule-user-guide/v/3.7/logging[Logging].
+
+== Working With Flows
 
 Nearly all Mule elements provide configuration options, which you can set in one of two ways:
 
@@ -118,17 +195,6 @@ Nearly all Mule elements provide configuration options, which you can set in one
 
 The following instructions introduce you to configuring in both editors.
 
-. Click the *HTTP* building block in your flow to open its link:/mule-user-guide/v/3.7/the-properties-editor[Properties Editor]. 
-. Change the *Path* field from the default `/` to `*`. In this way, the connector listens not only to the base path – which is defined elsewhere – but also to every subpath inside it.
-+
-image:basic-studio-tutorial-star-path.png[basic-studio-tutorial-star-pat]
-+
-. Use the *Connector Configuration* link:/mule-fundamentals/v/3.7/global-elements[Global Element] menu to set necessary configuration properties. Click the green plus sign next to the Connector Configuration field.
-. A new window appears. Fill in the two required fields: *Host* and *Port*. Set `localhost` as the host and leave the default value `8081` as the port.
-+
-image:global+element.png[global+element]
-+
-. Click *Ok* to close this dialogue. Notice how the Connector Configuration field now contains a reference to the element you just created. You can edit it further by clicking the `edit` icon. Notice that now, as all required fields are provided, there are no more error notifications.
 . Click *Configuration XML* at the bottom of the canvas to switch to the XML editor view.
 +
 image:canvas_tabs_xml.png[canvas_tabs_xml]
@@ -145,13 +211,13 @@ If  you make any changes in the XML configuration view, for example if you chan
 image:canvas_tabs_flow.png[canvas_tabs_flow]  
 +
 . Click the *Logger* building block to switch the Properties Editor to the Logger component.
-. In the *Message* field, enter:` Current path is #[message.inboundProperties.'http.request.path']`.  Notice how a menu with suggestions pops open as soon as you type `#`, and narrows down its suggestions as you keep typing.
+. In the *Message* field, enter: `Current path is #[message.inboundProperties.'http.request.path']`.  Notice how a menu with suggestions pops open as soon as you type `#`, and narrows down its suggestions as you keep typing.
 +
 image:logger+for+path.png[logger+for+path]
 +
 The String `#[message.inboundProperties.'http.request.path']` is a simple link:/mule-user-guide/v/3.7/mule-expression-language-mel[Mule expression] which evaluates to the requested property of the message as it passes this point in the flow. Including this message here instructs Mule to log this information in the application log files, which can be useful in more complex use cases, when you need to track the payload at different points in your flow.
 . Click the *Set Payload* building block to switch the Properties Editor to the Set Payload transformer.
-. Notice that the Value field contains these characters: **#[]**
+. Notice that the Value field contains these characters: *#[]*
 +
 image:set+payload1.png[set+payload1] +
 +
@@ -188,99 +254,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 </mule>
 ----
 
-== Running the Application
-
-Having built, configured, and saved your new application, you are ready to run it on the embedded Mule server (included as part of the bundled download of Anypoint Studio).
-
-. In the *Package Explorer* pane, right-click project name, then select *Run As* > *Mule Application*. (If you have not already saved, Mule prompts you to save now.)
-+
-image:run.png[run]
-+
-. Mule immediately kicks into gear, starting your application and letting it run. When the startup process is complete, Studio displays a message in the console that reads, `Started app 'basic_tutorial'`.
-+
-image:BasicTutorial_Console_started.png[BasicTutorial_Console_started]
-
-
-== Using the Application
-
-. Open any Web browser, then navigate to` http://localhost:8081/world`
-+
-[NOTE]
-Since you set the HTTP Connector's path to `*`, any requests done to any subpath under `localhost:8081` are picked up by your app.
-+
-. Your browser presents a message that reads,  `Hello, /world. Today is [today's date].`
-. In your browser’s address bar, replace the word `world` with your own name, then press *enter*.
-. Your browser presents the same message, but includes your name instead of "world".
-+
-image:BasicTutorial_Browser.png[BasicTutorial_Browser]
-+
-. Next, check your console in Anypoint Studio to verify that Mule logged the payload before the message reached the expression transformer. 
-. Place your cursor in the console window, press CTRL+F or CMD+F to open a Find dialog, then search for `Current path`. Look for results corresponding to the paths that you entered in your browser. For example:
-+
-`INFO  2014-12-04 09:22:26,446 [[basic_tutorial].connector.http.mule.default.receiver.02] org.mule.api.processor.LoggerMessageProcessor: Current path is /Aaron` +
-You may also see some other results for a payload of "`/favicon.ico`". These results are automatically generated by your browser. You can filter out these results in the <<Editing the Application>> section, below.
-
-
-Congratulations! You've run and tested your application!
-
-* You submitted a request to the inbound endpoint of your application via your Web browser. 
-* The Mule application received your request and logged the payload (whatever you typed after `http://localhost:8081/`) to the console. 
-* The application then sent the message on to the Set Payload transformer, which transformed the payload per its instructions, then returned the results to your HTTP endpoint. 
-
-== Stopping the Application
-
-To stop the application, click the red, square *Terminate* icon above the console panel. 
-
-image:stopbasictutorial.png[stopbasictutorial]
-
-
-== Editing the Application
-
-If you take a look at the console output in Anypoint Studio, you may notice that some of the logged messages aren't for the requests you generated, they have print a value of "`/favicon.ico`" to the console, these are generated by your browser when it requests for an icon to display on the browser tab. You can add a filter element into your flow to exclude the messages with this path. Here's how:
-
-. Drag and drop an *Expression Filter* from the Filters section of the palette onto your canvas, positioning it between the HTTP endpoint and the Logger.
-+
-image:add+filter.png[add+filter]
-+
-. Click the Expression Filter to open its properties tab and enter the following in the *Expression* field:
-+
-`#[message.inboundProperties.'http.request.uri' != '/favicon.ico']`
-+
-image:filter+new.png[filter+new]
-+
-This expression tells Mule to check that the inbound property 'http.request.url' _is not equal to_ the string '/favicon.ico'. If the expression evaluates to true, Mule passes the message on to the next step in the flow. If the expression evaluates to false, Mule stops processing the message.
-. Save your application and run it again. (Right-click the project name in your Package Explorer, then click *Run As* > *Mule Application*.)
-. Wait for the message in the console that reads, `Started app 'basic_tutorial'`.
-. Return to your Web browser and go to `http://localhost:8081/world`
-. Replace `world` with another word of your choice and refresh. Repeat this step several times with different words.
-. Check the logged paths in your console: place your cursor in the console window, press CTRL+F or CMD+F to open a Find dialog, then search for `Current path`.
-. All payloads that you see should correspond to the words you entered in your browser, and `/favicon.ico` should no longer be included. 
-
-Your complete application XML, once edited, should look like the following:
-
-[source,xml, linenums]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-    xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.2"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
-    <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
-    <flow name="basic_tutorialFlow">
-        <http:listener config-ref="HTTP_Listener_Configuration" path="*" doc:name="HTTP"/>
-        <expression-filter expression="#[payload != '/favicon.ico']" doc:name="Expression"/>
-        <logger level="INFO" doc:name="Logger" message="Current path is #[message.inboundProperties.'http.request.path']"/>
-        <set-payload doc:name="Set Payload" value="#['Hello, ' + message.inboundProperties.'http.request.path' + '. Today is ' + server.dateTime.format('dd/MM/yy') + '.' ]"/>
-    </flow>
-</mule>
-----
-
-
-== Extra Credit
+== Extending Your Application
 
 Now that you know your way around Anypoint Studio, try applying your knowledge to an extra task. Revise your application so that, in addition to returning the transformed payload as an HTTP response in your browser as it does now, Mule also:
 
@@ -365,9 +339,13 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 
 Congratulations! You earned your extra credit. You're all set to go on to the link:/mule-fundamentals/v/3.7/content-based-routing-tutorial[Content-Based Routing Tutorial].
 
-== See Also
+== Next
 
-* *NEXT STEP:* Continue the hands-on learning experience with the link:/mule-fundamentals/v/3.7/content-based-routing-tutorial[Content-Based Routing Tutorial].
+The following topics help you augment your knowledge of Studio:
+
+* Making decisions: link:/mule-user-guide/v/3.7/choice-flow-control-reference[Choice Flow Control Reference]
+* Transforming data: link:/mule-user-guide/v/3.7/dataweave-tutorial[DataWeave Tutorial]
+* Learn about routing information: link:/mule-fundamentals/v/3.7/content-based-routing-tutorial[Content-Based Routing Tutorial].
 * Want to learn more about Mule Expression Language (MEL)? Check out the link:/mule-user-guide/v/3.7/mule-expression-language-mel[complete reference].
 * Get a deeper explanation about the Mule message and anatomy of a Mule flow in link:/mule-fundamentals/v/3.7/mule-concepts[Mule Concepts].
 * Want to try a Hello World example using link:/cloudhub[CloudHub] instead? Check out link:/cloudhub/hello-world-on-cloudhub[Hello World on CloudHub].
