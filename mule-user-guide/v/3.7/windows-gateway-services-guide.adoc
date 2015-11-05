@@ -71,9 +71,9 @@ Example:
 
 Windows Gateway Services supports running in a load-balanced configuration to allow for fault tolerance. When running multiple gateway services instances, each member should be configured to perform MSMQ background jobs at a non-overlapping interval.
 
-MSMQ background job processing is by default performed at zero minutes past the hour, but to prevent overlap when multiple service instances are running, a configuration property called background-job-interval-offset should be set on each gateway instance. The recommended value to use for this on each machine is (60 / instanceCount) * (instanceNumber - 1) where instanceNumber is an integer value 1..n.
+MSMQ background job processing is by default performed at zero minutes past the hour, but to prevent overlap when multiple service instances are running, a configuration property called cleanup-delay should be set on each gateway instance. The recommended value to use for this on each machine is (60 / instanceCount) * (instanceNumber - 1) where instanceNumber is an integer value 1..n.
 
-For example, a cluster of 2 machines would use background-job-interval-offset of 0 on machine 1, 30 on machine 2. A cluster of 3 machines would use backgroundJobInterval of 0 on machine 1, 20 on machine 2, and 40 on machine 3.
+For example, a cluster of 2 machines would use cleanup-delay of 0 on machine 1, 30 on machine 2. A cluster of 3 machines would use backgroundJobInterval of 0 on machine 1, 20 on machine 2, and 40 on machine 3.
 
 This setting is found in the Mule.SelfHost.config file:
 
@@ -84,6 +84,8 @@ This setting is found in the Mule.SelfHost.config file:
     <add key="cleanup-delay" value="0"/>
 </appSettings>
 ----
+
+*Note*: When running in LB configuration the gateway services should be configured to run as 'Administrator' when the nodes involved (MSMQ, gateways) are under a WORKGROUP but not joined to a DOMAIN. When joined to the same DOMAIN the permissions for each of the nodes and objects involved (queues) should be correctly set by the domain's administrator.
 
 == Security Considerations
 
