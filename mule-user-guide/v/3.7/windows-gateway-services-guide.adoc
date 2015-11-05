@@ -3,7 +3,7 @@
 
 Windows Gateway Services provides connectivity to proprietary functionality on the Windows platform, and is used by the MSMQ connector, PowerShell Connector, Dynamics CRM Connector, and Dynamics AX Connector.
 
-link:https://repository.mulesoft.org/nexus/content/repositories/releases/org/mule/modules/anypoint-windows-gateway-service/1.7.0/anypoint-windows-gateway-service-1.7.0.zip[Install Windows Gateway Services]
+link:https://repository.mulesoft.org/nexus/content/repositories/releases/org/mule/modules/anypoint-windows-gateway-service/1.8.0/anypoint-windows-gateway-service-1.8.0.zip[Install Windows Gateway Services]
 
 See link:/release-notes/msmq-connector-release-notes[MSMQ Connector Release Notes] for version information.
 
@@ -67,6 +67,24 @@ Example:
 
 `Register-SslCert.ps1 a495cbf8c4af496f1ef81efb224c8097d039f922 everyone 9333`
 
+=== Load-balanced configuration
+
+Windows Gateway Services supports running in a load-balanced configuration to allow for fault tolerance. When running multiple gateway services instances, each member should be configured to perform MSMQ background jobs at a non-overlapping interval.
+
+MSMQ background job processing is by default performed at zero minutes past the hour, but to prevent overlap when multiple service instances are running, a configuration property called background-job-interval-offset should be set on each gateway instance. The recommended value to use for this on each machine is (60 / instanceCount) * (instanceNumber - 1) where instanceNumber is an integer value 1..n.
+
+For example, a cluster of 2 machines would use background-job-interval-offset of 0 on machine 1, 30 on machine 2. A cluster of 3 machines would use backgroundJobInterval of 0 on machine 1, 20 on machine 2, and 40 on machine 3.
+
+This setting is found in the Mule.SelfHost.config file:
+
+[source, xml, linenums]
+----
+<appSettings>
+    <!-- MSMQ: Delay in minutes to launch the cleanup process for sub-queues -->
+    <add key="cleanup-delay" value="0"/>
+</appSettings>
+----
+
 == Security Considerations
 
 For all connectors leveraging the Windows Gateway Services, the service first authenticates the direct caller, which is the connector running in the Mule ESB.
@@ -104,7 +122,7 @@ Configure the token on the connector and also in the Gateway configuration file.
 
 [source, xml, linenums]
 ----
-<appSettings>   
+<appSettings>
     <add key="mule-auth-token" value="test-token"/>
 </appSettings>
 ----
