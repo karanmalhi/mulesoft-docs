@@ -1,5 +1,7 @@
-= XML-only SOAP Web Service Example +
-_Enterprise, CloudHub_
+= XML-only SOAP Web Service Example
+:keywords: xml, soap, web, routing
+
+*_Enterprise, CloudHub_*
 
 This application illustrates how you can use Mule to expose a SOAP Web service. In particular, it illustrates how a Mule application can accept SOAP requests, then orchestrate several Web services to meets the needs of a particular business process. Further, this example performs all of these actions using only XML – no Java. To demonstrate these capabilities, this example is based on the use case of patient admission into a hospital.
 
@@ -9,11 +11,11 @@ image:orchestrate.png[orchestrate]This term applies to the activity of coordinat
 
 ==== Content-Based Routing
 
-image:content_routing.png[content_routing]Mule has the ability to intelligently route a message through different processing pathways according to its content. Using a Choice Router, Mule uses an expression to evaluate a message's properties, or part of its payload, then routes it to a specific pathway (i.e. series of message processors). Content-based routing, as this activity is called, dynamically applies routing criteria to a message at runtime.
+image:content_routing.png[content_routing]Mule has the ability to intelligently route a message through different processing pathways according to its content. Using a Choice Router, Mule uses an expression to evaluate a message's properties, or part of its payload, then routes it to a specific pathway (such as a series of message processors). Content-based routing, as this activity is called, dynamically applies routing criteria to a message at runtime.
 
 == Assumptions
 
-This document assumes that you are familiar with Mule ESB and the link:/mule-fundamentals/v/3.5/anypoint-studio-essentials[Anypoint™ Studio interface]. To increase your familiarity with Studio, consider completing one or more link:/mule-fundamentals/v/3.5/basic-studio-tutorial[Anypoint Studio Tutorials]. Further, this example assumes you are familiar with XML coding and that you have a basic understanding of link:/mule-fundamentals/v/3.5/mule-application-architecture[Mule flows], SOAP as a Web service paradigm, and the practice of WSDL-first Web service development. 
+This document assumes that you are familiar with Mule ESB and the link:/mule-fundamentals/v/3.5/anypoint-studio-essentials[Anypoint Studio interface]. To increase your familiarity with Studio, consider completing one or more link:/mule-fundamentals/v/3.5/basic-studio-tutorial[Anypoint Studio Tutorials]. Further, this example assumes you are familiar with XML coding and that you have a basic understanding of link:/mule-fundamentals/v/3.5/mule-application-architecture[Mule flows], SOAP as a Web service paradigm, and the practice of WSDL-first Web service development. 
 
 This document describes the details of the example within the context of Anypoint Studio, Mule ESB’s graphical user interface (GUI), and includes configuration details for both the visual and XML editors. 
 
@@ -46,7 +48,7 @@ Skip ahead to the next section if you prefer to simply examine this example vi
 image:soapUI_launch.png[soapUI_launch] +
 +
 
-. In soapUI, select *File* > *Import Project*. Browse to the AnypointStudio folder on your local drive to locate the sample request file: *AnypointStudio* > *workspace* > **XML-only SOAP Web Service** > *src* > *test* > *resources* > **Hospital-Admission-Example-soapui-project.xml**. Click *Open*.
+. In soapUI, select *File* > *Import Project*. Browse to the AnypointStudio folder on your local drive to locate the sample request file: *AnypointStudio* > *workspace* > *XML-only SOAP Web Service* > *src* > *test* > *resources* > *Hospital-Admission-Example-soapui-project.xml*. Click *Open*.
 . In the new *Hospital Admission Example* project in soapUI, expand the folders to reveal *Request 3*. Double-click *Request 3* to open the request-response window.
 . Click the submit request icon (green "play" button at upper left) to submit the request to the Mule application (see below, left). soapUI displays the response from the Mule application in the response pane (see below, right). +
  +
@@ -88,7 +90,7 @@ image:calls_to_services2.png[calls_to_services2]
 
 There are several important configurations to take note of in this example application.
 
-* **The XML is in the body.** Because the XML is contained in the body of the SOAP envelope, you can simply execute actions against the SOAP body, rather than having to dissect and detach the actual message payload from the SOAP envelope. To do this, the Proxy Service CXF component in the admitPatientService flow indicates that the message payload is _just_ the body, not the whole SOAP envelope. Refer to the Visual Editor (below, left) and XML Editor (below, right) screenshots of the CXF component's configuration.
+* *The XML is in the body.* Because the XML is contained in the body of the SOAP envelope, you can simply execute actions against the SOAP body, rather than having to dissect and detach the actual message payload from the SOAP envelope. To do this, the Proxy Service CXF component in the admitPatientService flow indicates that the message payload is _just_ the body, not the whole SOAP envelope. Refer to the Visual Editor (below, left) and XML Editor (below, right) screenshots of the CXF component's configuration.
 +
 Similarly, the XML payload is in the body of the request the Proxy Client CXF components send to the PatientService and EHRService Web services. Again, this obviates the need to dissect the SOAP request and extract the relevant payload upon receipt.
 +
@@ -99,7 +101,7 @@ Similarly, the XML payload is in the body of the request the Proxy Client CXF co
 ....
 image:proxyservice.png[proxyservice]
 ....
-[tab,title="Studio XML Editor"]
+[tab,title="XML Editor"]
 ....
 <flow doc:description="AdmssionService SOAP Web service which accepts calls and processes request to perform pre-admissions activities in the hospital's systems." doc:name="admitPatientService" name="admitPatientService">
         <http:inbound-endpoint doc:name="AdmissionService" exchange-pattern="request-response" host="localhost" path="AdmissionService" port="${http.port}"/>
@@ -110,9 +112,9 @@ image:proxyservice.png[proxyservice]
 ....
 ------
 
-* **The application separates tasks into subflows. **Mule leverages the CXF framework to expose, consume and proxy Web services. Because CXF functions best with separate subflows to perform Web services calls, this application separates each Web service call into its own, small subflow.
+* *The application separates tasks into subflows. *Mule leverages the CXF framework to expose, consume and proxy Web services. Because CXF functions best with separate subflows to perform Web services calls, this application separates each Web service call into its own, small subflow.
 
-* **The AdmissionService Web services was built http://en.wikipedia.org/wiki/Web_service#Automated_design_methods[WSDL-first].** The Web service's SOAP component includes four important attributes configured according to the table below.
+* *The AdmissionService Web services was built http://en.wikipedia.org/wiki/Web_service#Automated_design_methods[WSDL-first].* The Web service's SOAP component includes four important attributes configured according to the table below.
 
 *WSDL*
 
@@ -177,7 +179,7 @@ image:proxyservice.png[proxyservice]
 ....
 image:hospitalAdmissions.png[hospitalAdmissions] 
 ....
-[tab,title="Studio XML Editor"]
+[tab,title="XML Editor"]
 ....
 <?xml version="1.0" encoding="UTF-8"?>
 <mule version="EE-3.5.0" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:cxf="http://www.mulesoft.org/schema/mule/cxf" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd  http://www.mulesoft.org/schema/mule/cxf http://www.mulesoft.org/schema/mule/cxf/current/mule-cxf.xsd  http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd  http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd  http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd  http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd  http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd ">
@@ -243,7 +245,7 @@ The Choice Router directs messages according to the first expression that evalua
 ....
 image:Choicehosp.png[Choicehosp]
 ....
-[tab,title="Studio XML Editor"]
+[tab,title="XML Editor"]
 ....
 [source, xml, linenums]
 ----
@@ -276,7 +278,7 @@ Much the same as the PatientService Web service, the EHRService accepts HTTP req
 ....
 image:mocks.png[mocks]
 ....
-[tab,title="Studio XML Editor"]
+[tab,title="XML Editor"]
 ....
 [source, xml, linenums]
 ----
