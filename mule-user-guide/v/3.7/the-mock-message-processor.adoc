@@ -184,6 +184,43 @@ When mocking a message processor, you can define the Mule message that the mocke
 
 |===
 
+==== Returning the original payload
+
+If you don't want to mock the payload of the message processor and want to return
+the original payload, you can use the function `samePayload()`.
+
+[source,xml,linenums]
+----
+<mock:when messageProcessor="mule:set-payload">
+  <mock:with-attributes>
+    <mock:with-attribute whereValue="#['Real Set Payload']" name="doc:name"/>
+  </mock:with-attributes>
+  <mock:then-return payload="#[samePayload()]"/> (1)
+</mock:when>
+----
+<1> Return the same payload
+
+Omitting the `mock:then-return` property also returns the original payload
+but if you want to return the original payload and mock message properties you can use the
+`samePayload` function to achieve this.
+
+[source,xml,linenums]
+----
+<mock:when messageProcessor="mule:set-payload">
+  <mock:with-attributes>
+    <mock:with-attribute whereValue="#['Real Set Payload']" name="doc:name"/>
+  </mock:with-attributes>
+  <mock:then-return payload="#[samePayload()]"> (1)
+    <mock:inbound-properties>
+      <mock:inbound-property key="property" value="#['propertyValue']"/> (2)
+    </mock:inbound-properties>
+  </mock:then-return>
+</mock:when>
+----
+<1> Return the same payload
+<2> Mock message property
+
+
 ==== Loading Payloads From Files and Scripts
 
 Sometimes it's easier to load complex payloads from a file. MUnit offers a set of MEL functions to help you achieve this.
