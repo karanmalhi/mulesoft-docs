@@ -1615,3 +1615,63 @@ classrooms: payload.school.teachers.*teacher groupBy $.subject mapObject ((teach
   }
 }
 ----
+
+
+
+== Rename Some Keys and Replicate the Rest
+
+This example takes in a JSON object that contains several fields. Most of them must be kept identical, except for a couple that should be renamed. Instead of referencing each field individually, this example renames two fields in particular and handles the rest without any changes.
+
+
+*Input*
+
+[source, json, linenums]
+----
+{
+"flight":{
+  "availableSeats":45,
+  "airlineName":"Ryan Air",
+  "aircraftBrand":"Boeing",
+  "aircraftType":"737",
+  "departureDate":"12/14/2015",
+  "origin":"BCN",
+  "destination":"FCO"
+  }
+}
+----
+
+
+*Transform*
+
+[source,DataWeave, linenums]
+----
+%dw 1.0
+%output application/json
+---
+payload map {
+($ mapObject {
+    (emptySeats: $) when $$ as :string == 'availableSeats',
+    (airline: $) when $$ as :string == 'airlineName',
+    (($$):$) when ($$ as :string !='availableSeats') and ($$ as :string != 'airlineName')
+  }  
+) 
+}
+----
+
+
+*Output*
+
+[source, json, linenums]
+----
+[
+  {
+    "emptySeats": 45,
+    "airline": "Ryan Air",
+    "aircraftBrand": "Boeing",
+    "aircraftType": "737",
+    "departureDate": "12/14/2015",
+    "origin": "BCN",
+    "destination": "FCO"
+  }
+]
+----
