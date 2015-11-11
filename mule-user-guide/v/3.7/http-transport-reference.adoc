@@ -5,6 +5,8 @@
 As of Mule 3.6 and later, the HTTP endpoint-based connector and transport has been replaced by an operation-based HTTP connector.
 
 The legacy endpoint-based connector will be removed in a future version. See link:/mule-user-guide/v/3.7/http-connector[HTTP Connector] for more information about the HTTP operation-based connector and how to link:/mule-user-guide/v/3.7/migrating-to-the-new-http-connector[migrate] your projects to it.
+
+*Note*: This guide is for the new HTTP connector. See <<Configuration Reference>> for the most current information.
 ====
 
 == Introduction
@@ -249,7 +251,7 @@ For binary content, encoding is not relevant. `Content-Type` is set as follows:
 
 === Receiving
 
-When receiving HTTP responses, the payload of the MuleMessage will always be the InputStream of the HTTP response.
+When receiving HTTP responses, the payload of the Mule Message is always the InputStream of the HTTP response.
 
 == Including Custom Header Properties
 
@@ -320,14 +322,14 @@ To follow redirects when making an outbound HTTP call, use the `followRedirect` 
 
 == Response Timeout
 
-If no response is received for a set period of time, the connector will cease its attempts. By default, this time period is 1000 milliseconds, but you can set another value through the parameter `responseTimeout`.
+If no response is received for a set period of time, the connector ceases its attempts. By default, this time period is 1000 milliseconds, but you can set another value through the parameter `responseTimeout`.
 
 [source,xml, linenums]
 ----
 <http:outbound-endpoint address="http://com.foo/bar" method="GET" exchange-pattern="request-response" responseTimeout="5000"/>
 ----
 
-If you set `responseTimeout` to 0, you will disable the timeout entirely.
+If you set `responseTimeout` to 0, you disable the timeout entirely.
 
 [source,xml, linenums]
 ----
@@ -404,6 +406,7 @@ When developing a Mule application, locate the `docroot` directory at `<project.
 
 The `static-resource-handler` uses the same MIME type mapping system as the JDK, if you need to add your own MIME type to file extension mappings, add the following file to your application `<project home>/src/main/resources/META-INF/mime.types`:
 
+[source,code]
 ----
 image/png                   pngtext/plain                 txt cgi java
 ----
@@ -664,6 +667,7 @@ Grouping configuration for a set of listener elements.
 |name |Identifies the configuration in the registry, so that it can be referenced by the request message processor. +
 Type: name (no spaces) +
 Required: yes +
+Default: none
 |protocol |Protocol to use for communication. Valid values are HTTP and HTTPS. Default value is HTTP. When using HTTPS the HTTP communication is going to be secured using TLS or SSL. If HTTPS was configured as protocol, then the user needs to configure at least the keystore in the tls:context child element of this listener-config. +
 Type: httpProtocol +
 Required: no +
@@ -675,7 +679,7 @@ Default: none
 |port |Port where the requests are received. If the protocol attribute is HTTP (default) then the default value is 80, if the protocol attribute is HTTPS then the default value is 443. +
 Type: integer +
 Required: no +
-Default: none
+Default: 80 if HTTP, 443 if HTTPS
 |basePath |Base path to use for all requests that reference this config. +
 Type: string +
 Required: no +
@@ -688,7 +692,7 @@ Default: none
 Type: string +
 Required: no +
 Default: none
-|connectionIdleTimeout |The number of milliseconds that a connection can remain idle before it is closed. The value of this attribute is only used when persistent connections are enabled.
+|connectionIdleTimeout |The number of milliseconds that a connection can remain idle before it is closed. The value of this attribute is only used when persistent connections are enabled. +
 Type: integer +
 Required: no +
 Default: 30000
@@ -754,7 +758,7 @@ Default: none
 |port |Port where the requests is sent. If the protocol attribute is HTTP (default) then the default value is 80, if the protocol attribute is HTTPS then the default value is 443. +
 Type: integer +
 Required: no +
-Default: none
+Default: 80 if HTTP, 443 if HTTPS
 |parseResponse |By default, the response is parsed (for example, a multi part response is mapped as a Mule message with null payload and inbound attachments with each part). If this property is set to false, no parsing is done, and the payload always contains the raw contents of the HTTP response. +
 Type: boolean +
 Required: no +
@@ -789,8 +793,9 @@ Default: none
 
 `name`: Identifies the builder so that other elements can reference it.
 
-* Type: name (no spaces)
-* Required: no
+Type: name (no spaces) +
+Required: no +
+Default: none
 
 
 No child elements of request-builder
@@ -806,7 +811,7 @@ Required: no +
 Default: HTTP
 |name |Identifies the configuration in the registry, so that it can be referenced by the request message processor. +
 Type: name (no spaces) +
-Required: yes
+Required: yes +
 Default: none
 |basePath |Base path to use for all requests that reference this config. +
 Type: string +
@@ -847,7 +852,7 @@ Default: none
 |port |Port where the requests are sent. If the protocol attribute is HTTP (default) then the default value is 80, if the protocol attribute is HTTPS then the default value is 443. +
 Type: integer +
 Required: no +
-Default: none
+Default: 80 if HTTP, 443 if HTTPS
 |parseResponse |By default, the response is parsed (for example, a multi part response is mapped as a Mule message with null payload and inbound attachments with each part). If this property is set to false, no parsing is done, and the payload always contain the raw contents of the HTTP response. +
 Type: boolean +
 Required: no +
