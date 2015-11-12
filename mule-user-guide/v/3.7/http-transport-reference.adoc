@@ -11,14 +11,8 @@ The legacy endpoint-based connector will be removed in a future version. See lin
 
 == Introduction
 
-The HTTP transport provides support for exposing applications over HTTP and making HTTP client requests from Mule flows to external services. Mule supports inbound, outbound, and polling HTTP endpoints. These endpoints support all common features of the HTTP spec, such as ETag processing, cookies, and keepAlive. Both HTTP 1.0 and 1.1 are supported.
+The HTTP transport provides support for exposing applications over HTTP and making HTTP client requests from Mule flows to external services. Mule supports *listener connectors*, that receive HTTP requests, and *request connectors* that send requests and receive a response.
 
-HTTP/S endpoints are synchronous by default, so you do not have to set `exchange-pattern="request-response"`. If you set `exchange-pattern="one-way"`, the messages are sent asynchronously.
-
-*Notes*:
-
-* For asynchronous POST, streaming is disabled.
-* In code examples in this guide,  `spring-beans-current.xsd` is a placeholder. To locate the correct version, see http://www.springframework.org/schema/beans/.
 
 == Transport Info
 
@@ -39,22 +33,6 @@ HTTP/S endpoints are synchronous by default, so you do not have to set `exchange
 |Maven Artifact |org.mule.transport:mule-transport-http |The group name a artifact name for this transport in link:http://maven.apache.org/[Maven]
 |===
 
-[width="100%", cols='20a,30a,50a',options="header"]
-|===
-|Item |Value |Description
-|Transport |HTTPS |The name/protocol of the transport
-|JavaDoc |link:http://www.mulesoft.org/docs/site/current3/apidocs/org/mule/transport/http/package-summary.html[org.mule.transport.http] |-
-|Schema |link:http://www.mulesoft.org/schema/mule/https/3.7/mule-https.xsd[mule-httpn.xsd] |New HTTPS XML schema
-|Inbound |image:check.png[check] |Whether the transport can receive inbound events and be used as an inbound endpoint
-|Outbound |image:check.png[check] |Whether the transport can produce outbound events and be used with an outbound endpoint
-|Request |image:check.png[check] |Whether this endpoint can be queried directly with a request call (via Mule Client or the EventContext)
-|Transactions |image:error.png[error] |Whether transactions are supported by the transport. Transports that support transactions can be configured in either local or distributed two-phase commit (XA) transaction.
-|Streaming |image:check.png[check] |Whether this transport can process messages that come in on an input stream. This allows for very efficient processing of large data. For more information, see Streaming.
-|Retries |image:error.png[error] |Whether this transport supports retry policies. Note that all transports can be configured with Retry policies, but only the ones marked here are officially supported by MuleSoft
-|MEPs |`one-way`, `request-response` |Message Exchange Patterns supported by this transport
-|Default MEP |`request-response` |The default MEP for endpoints that use this transport that do not explicitly configure a MEP
-|Maven Artifact |org.mule.transport:mule-transport-http |The group name a artifact name for this transport in link:http://maven.apache.org/[Maven]
-|===
 
 == Namespace and Syntax
 
@@ -96,7 +74,7 @@ http://theUser:secret@theHost:port/path?query
 * Makes HTTP requests to external services
 * Supports for polling an HTTP endpoints including ETag support
 * Provides transfer binary or text files, including forms and attachment
-* Provides security includes SSL, certificates, and authentication
+* Provides security includes TLS, certificates, and authentication
 * Builds flows to different paths on the same port
 * Supports reading and writing cookies
 * Provides streaming for transferring large files
@@ -143,39 +121,14 @@ MuleClient client = muleContext.getClient();
 MuleMessage result = client.send("http://localhost:8080/foo", "");
 ----
 
-Finally, you can reference an endpoint by name from your Mule configuration in the Mule client. Using the previous example, you can create a global HTTP endpoint from the flow or code:
 
-[source,xml, linenums]
-----
-<http:endpoint name="deleteEndpoint" host="localhost" port="8080" path="foo"
-            method="DELETE" exchange-pattern="one-way" />
-<flow name="OutboundDelete">
-    <vm:inbound-endpoint path="doDelete" exchange-pattern="one-way" />
-    <http:outbound-endpoint ref="deleteEndpoint"/>
-</flow>
-<http:request-config name="HTTP_Request_Configuration" host="example.com" port="8081" doc:name="HTTP Request Configuration"/>
-----
-
-[source,xml, linenums]
-----
-MuleClient client = muleContext.getClient();
-MuleMessage result = client.send("deleteEndpoint", "");
-----
-
-Global endpoints allow you to remove actual addresses from your code and flows so that you can move Mule applications between environments.
 
 == Security
 
-You can use the link:/mule-user-guide/v/3.7/https-transport-reference[HTTPS Transport Reference] to create secure connections over HTTP. If you want to secure requests to your HTTP endpoint, the HTTP connector supports HTTP Basic/Digest authentication methods (as well as the Mule generic header authentication). To configure HTTP Basic, you configure a link:/mule-user-guide/v/3.7/configuring-security[Security Endpoint Filter] on an HTTP endpoint.
+You can send your requests through HTTPS protocol by simply setting the protocol attribute to HTTPS . This makes the HTTP Request Connector use the default JVM values for the HTTPS connection, which likely already includes a trust store with certificates for all the major certifying authorities.
 
-[source,xml, linenums]
-----
-<http:inbound-endpoint address="http://localhost:4567">
-  <spring-sec:http-security-filter realm="mule-realm" />
-</http:inbound-endpoint>
-----
+If you want to use a different set of HTTPS certificates, you can customize them by setting the link:/mule-user-guide/v/3.7/tls-configuration[TLS] configuration in the HTTP Request Connector’s global configuration element. You can also create a separate link:/mule-user-guide/v/3.7/tls-configuration[TLS] global element and reference it through your HTTP Connector.
 
-You must configure the security manager on the Mule instance against which this security filter authenticates. For information about security configuration options and examples, see link:/mule-user-guide/v/3.7/configuring-security[Configuring Security]. For general information about endpoint configuration, see link:/mule-user-guide/v/3.7/endpoint-configuration-reference[Endpoint Configuration Reference].
 
 === HTTP Response Header
 
@@ -192,13 +145,6 @@ sessionHandler="org.mule.session.NullSessionHandler"/>
 [NOTE]
 *Note*: If the X_MULE_SESSION header already exists as a property of the message, it is not removed by this sessionHandler attribute – it is passed through. The header may be present due to another connector in the application having added it. If you need to purge this header completely, add the NullSessionHandler to all connectors referenced in the application.
 
-=== Sending Credentials
-
-If you want to make an HTTP request that requires authentication, you can set the credentials on the endpoint:
-
-----
-http://user:password@mycompany.com/secure
-----
 
 === Cookies
 
@@ -253,31 +199,7 @@ For binary content, encoding is not relevant. `Content-Type` is set as follows:
 
 When receiving HTTP responses, the payload of the Mule Message is always the InputStream of the HTTP response.
 
-== Including Custom Header Properties
 
-When making a new HTTP client request, Mule filters out any existing HTTP request headers because they are often from a previous request. For example, if you have an HTTP endpoint that proxies another HTTP endpoint, you wouldn't want to copy the `Content-Type` header property from the first HTTP request to the second request.
-
-If you do want to include HTTP headers, you can specify them as properties on the outbound endpoint as follows:
-
-[source,xml, linenums]
-----
-<http:outbound-endpoint address="http://localhost:9002/events"
-                        connector-ref="HttpConnector" contentType="image/png">
-    <set-property propertyName="Accept" value="*.*"/>
-</http:outbound-endpoint>
-----
-
-or use Message Properties Transformer, as follows:
-
-[source,xml, linenums]
-----
-<message-properties-transformer scope="outbound">
-    <add-message-property key="Accept" value="*.*"/>
-</message-properties-transformer>
-
-<http:outbound-endpoint address="http://localhost:9002/events"
-                        connector-ref="HttpConnector" contentType="image/png"/>
-----
 
 == Building the Target URL from the Request
 
@@ -285,7 +207,7 @@ The HTTP request URL is available in the Mule header. You can access this using 
 
 [source,xml, linenums]
 ----
-<http:outbound-endpoint address="http://localhost:8080#[message.inboundProperties['http.request']" />
+<http:request address="http://localhost:8080#[message.inboundProperties['http.request']" />
 ----
 
 == Handling Redirects
