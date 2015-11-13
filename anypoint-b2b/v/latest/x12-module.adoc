@@ -31,7 +31,7 @@ NOTE: To use the X12 Module connector in a production environment, you must hav
 
 image:x12-module-2.png[x12-module-2]
 
-. In the *Work with* box, select the Anypoint Connectors Update site (that is, http://edi-module-update-site.s3.amazonaws.com/beta-updates)
+. In the *Work with* box, select the Anypoint Connectors Update site
 . In the table below the *type filter text* box, click to expand the *Premium* folder, then select `X12 Module`. 
 . Click *Next*. The *Install Details* page appears.
 . Review the details of the item you selected, then click *Next*.
@@ -343,7 +343,19 @@ Sending acknowledgments is the same as writing any other EDI message, except you
 ----
 <x12-edi:read config-ref="Walmart" doc:name="Read EDI Doc"/>
 ...
-<set-payload value="#[ ['Transactions' : ['997' : payload.FunctionalAcksGenerated] ] ]" doc:name="Create outgoing message"/>
+<dw:transform-message doc:name="Create Outgoing Message">
+            <dw:input-payload doc:sample="InMessage.dwl"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	TransactionSets: {
+		v005010: {
+			'997' : payload.FunctionalAcksGenerated
+		}
+	}
+}]]></dw:set-payload>
+</dw:transform-message>
 <x12-edi:write config-ref="Walmart" doc:name="Send 997"/>
 <file:outbound-endpoint responseTimeout="10000" doc:name="File" path="output" outputPattern="ack.edi"/>
 ----

@@ -402,7 +402,63 @@ MMC includes a script to perform a routine cleanup of the MMC database, which by
 
 ==== New Cleanup Script
 
-// Click for the new cleanup script
+[source, java, linenums]
+----
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import com.mulesoft.mmc.tracking.repository.jpa.entities.*
+
+import java.util.Calendar;
+
+def logger = log
+
+def oneWeekAgo = Calendar.getInstance()
+oneWeekAgo.add(Calendar.DAY_OF_MONTH, -7);
+
+log.info("About to delete all tracking details older than "+oneWeekAgo.getTime());
+
+DriverManagerDataSource ds = applicationContext.getBean("dataSource");
+
+Properties properties = new Properties();
+properties.put("openjpa.jdbc.DBDictionary", "mysql");
+properties.put("javax.persistence.jdbc.url", ds.getUrl());
+properties.put("javax.persistence.jdbc.user", ds.getUsername());
+properties.put("javax.persistence.jdbc.password", ds.getPassword());
+properties.put("openjpa.ConnectionDriverName", "com.mysql.jdbc.Driver");
+
+EntityManagerFactory emf = null;
+EntityManager em = null;
+
+try {
+
+    emf = Persistence.createEntityManagerFactory("tracking-persistence-unit", properties);
+
+    em = emf.createEntityManager();
+
+    em.getTransaction().begin();
+
+    em.createNativeQuery("DELETE p FROM EVENT_PROPERTIES p where p.id in (select e.id from EVENTS e where e.transaction_id in (select t.id from TRANSACTION_SUMMARIES t where t.timestamp < ?1))").setParameter(1, oneWeekAgo).executeUpdate();
+
+    em.createNamedQuery(EventEntity.DELETE_OLDER_THAN_QUERY_NAME).setParameter("timestamp", oneWeekAgo).executeUpdate();
+            em.createNamedQuery(TransactionSummaryEntity.DELETE_OLDER_THAN_QUERY_NAME).setParameter("timestamp", oneWeekAgo).executeUpdate();
+
+    em.getTransaction().commit();
+
+} catch (RuntimeException re)
+    {
+        if (em?.getTransaction()?.isActive()) {
+            em.getTransaction().rollback();
+        }
+        throw re;
+    }
+
+finally {
+    em?.close();
+    emf?.close();
+}
+----
 
 ==== Replacing the Old Script
 

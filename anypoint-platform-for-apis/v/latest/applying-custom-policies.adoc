@@ -15,7 +15,7 @@ This feature is only supported with API Gateway version 1.3 and later.
 
 Go to the API Administration page, click the menu icon on the top-right and then *Custom policies*.
 
-image:custom+policies+1.jpeg[custom+policies+1]
+image:custom_policies_1.png[custom+policies+1]
 
 You are prompted to give your new policy a name and provide the two files that define and implement your policy:
 
@@ -33,8 +33,10 @@ The policy definition is a YAML file, which assigns values to a set of parameter
 |`category` |string |Category of the policy
 |`type` |string (optional) |Custom policies must always have type set to "custom"
 |`standalone` |boolean |Specifies if the policy can work on its own or if it relies on other policies being active.
-|`providedCharacteristics` |array |List of characteristics that are fulfilled by applying this policy. These fulfilled characteristics may unblock the use of other policies that require them. Any string input is valid as a characteristic name, and these are case sensitive.
-|`requiredCharacteristics` |array |List of characteristics that must be fulfilled before this policy can be applied. Required characteristics can be fulfilled by applying other policies that provide these. Any string input is valid as a characteristic name as long as at least one other policy provides this characteristic, these are case sensitive.
+|`providedCharacteristics` |array |List of characteristics that are fulfilled by applying this policy. It should be used to avoid clashes between policies that cannot be applied at the same time. For instance, only one "OAuth 2.0" policy can be applied at a time. To ensure it, the `OAuth 2.0 protected` characteristic is used. 
+
+The list of existing characteristics is: `Client ID required`, `CORS enabled`, `Baseline Rate Limiting`, `SLA Rate Limiting`, `Requires authentication`, `IP filtered`, `JSON threat protected`, `Security manager`, `OAuth 2.0 protected`, `OAuth 2.0 provider`, `XML threat protected`. This list is not limited: any string input is valid as a characteristic name, and these are case sensitive.
+|`requiredCharacteristics` |array |List of characteristics that must be fulfilled before this policy can be applied. Required characteristics can be fulfilled by applying other policies that provide these. This allows dependencies between policies. Any string input is valid as a characteristic name as long as at least one other policy provides this characteristic, these are case sensitive.
 |`configuration` |array |Set of configurable properties associated with your policy, details on the parameters for each property below.
 |===
 
@@ -62,6 +64,7 @@ True if multiple values can be assigned
 
 |`minimumValue` |int |Only for values of type int
 |`maximumValue` |int |Only for values of type int
+|`defaultValue` ||Only for properties of type int, boolean and string
 |===
 
  YAML Syntax examples for each kind of property
@@ -109,6 +112,7 @@ configuration:
    optional: true
    sensitive: false
    allowMultiple: false
+   defaultValue: false
 ----
 
 ==== String
@@ -315,8 +319,8 @@ If you're going to apply your policy to APIs that are deployed through the Anypo
 [source,xml,linenums]
 ----
 <pointcut>
-       <api-platform-gw:api-pointcut apiName="{{ apiName }}" apiVersion="{{ apiVersionName }}"/>
-    </pointcut>
+   <api-platform-gw:api-pointcut apiName="{{ apiName }}" apiVersion="{{ apiVersionName }}"/>
+</pointcut>
 ----
 
 [WARNING]
@@ -442,8 +446,8 @@ Below is a basic skeleton structure that you can use as a starting point when bu
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:api-platform-gw="http://www.mulesoft.org/schema/mule/api-platform-gw"
         xsi:schemaLocation="http://www.mulesoft.org/schema/mule/policy http://www.mulesoft.org/schema/mule/policy/current/mule-policy.xsd
-              http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-              http://www.mulesoft.org/schema/mule/api-platform-gw http://www.mulesoft.org/schema/mule/api-platform-gw/current/mule-api-platform-gw.xsd">
+                            http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+                            http://www.mulesoft.org/schema/mule/api-platform-gw http://www.mulesoft.org/schema/mule/api-platform-gw/current/mule-api-platform-gw.xsd">
  
     <before>
         <mule:set-payload value="PRE" />
@@ -473,8 +477,8 @@ In the API Gateway version 2.0, properties `id` and `policyName` are added to t
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:api-platform-gw="http://www.mulesoft.org/schema/mule/api-platform-gw"
         xsi:schemaLocation="http://www.mulesoft.org/schema/mule/policy http://www.mulesoft.org/schema/mule/policy/current/mule-policy.xsd
-              http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-              http://www.mulesoft.org/schema/mule/api-platform-gw http://www.mulesoft.org/schema/mule/api-platform-gw/current/mule-api-platform-gw.xsd">
+                            http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+                            http://www.mulesoft.org/schema/mule/api-platform-gw http://www.mulesoft.org/schema/mule/api-platform-gw/current/mule-api-platform-gw.xsd">
  
     <before>
         <mule:set-payload value="PRE" />
@@ -512,17 +516,17 @@ The IP whitelist filter policy adds a validation that requires all requests to c
 <policy online="true"
         id="{{policyId}}"
         policyName="IP whitelist"
- xmlns="http://www.mulesoft.org/schema/mule/policy"
+        xmlns="http://www.mulesoft.org/schema/mule/policy"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:spring="http://www.springframework.org/schema/beans"
         xmlns:mule="http://www.mulesoft.org/schema/mule/core"
         xmlns:ip-filter-gw="http://www.mulesoft.org/schema/mule/ip-filter-gw"
         xsi:schemaLocation="http://www.mulesoft.org/schema/mule/policy http://www.mulesoft.org/schema/mule/policy/current/mule-policy.xsd
-        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
-        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-        http://www.mulesoft.org/schema/mule/ip-filter-gw http://www.mulesoft.org/schema/mule/ip-filter-gw/current/mule-ip-filter-gw.xsd">
+                            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+                            http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+                            http://www.mulesoft.org/schema/mule/ip-filter-gw http://www.mulesoft.org/schema/mule/ip-filter-gw/current/mule-ip-filter-gw.xsd">
  
-     <!-- This section is for building response messages when the policy fails. -->
+    <!-- This section is for building response messages when the policy fails. -->
     <mule:processor-chain name="{{policyId}}-build-response">
         <mule:set-property propertyName="http.status" value="403"/> <!-- Set HTTP status code to 403 -->
         <mule:set-property propertyName="Content-Type" value="application/json"/>
@@ -548,7 +552,7 @@ The IP whitelist filter policy adds a validation that requires all requests to c
 ----
 
 [NOTE]
-In the API Gateway version 2.0, properties `id` and `policyName` are added to the `<policy>` element's parameters to allow for analytics to track the policy.
+In API Gateway version 2.0, properties `id` and `policyName` are added to the `<policy>` element's parameters to allow for analytics to track the policy.
 ....
 [tab,title="API Gateway 1.3 and older"]
 ....
@@ -594,7 +598,7 @@ In the API Gateway version 2.0, properties `id` and `policyName` are added to t
 ------
 
 [TIP]
-For more examples, navigate to the directory where you installed the API Gateway, search for the folder `examples>policies` to find a set of example XML files that refer to the default policies available in the platform.
+For more examples, navigate to the directory where you installed the API Gateway, search for the folder `examples -> policies` to find a set of example XML files that refer to the default policies available in the platform.
 
 == Using the New Policy
 
@@ -615,9 +619,7 @@ Once again, notice that everything in this menu is based on what you defined in 
 == Failed Policies
 
 [NOTE]
-As of the API Gateway runtime version 2.1
-
-When an online policy is malformed and it raises a parse exception, it's stored under the `failedPolicies` directory inside `policies` directory, waiting to be reviewed. In the next poll for policies, it won't be parsed and instead a message will be logged saying that the policy is in the failed policies folder. If you unapply that policy, then it will be deleted from that folder too. If the folder has no policies then it will be deleted.
+As of API Gateway runtime version 2.1 when an online policy is malformed and it raises a parse exception, it's stored under `failedPolicies` directory inside `policies` directory, waiting to be reviewed. In the next poll for policies it won't be parsed. If you unapply that policy, then it will be deleted from that folder too. If the folder has no policies then it will be deleted.
 
 
 == See Also

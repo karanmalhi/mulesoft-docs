@@ -76,7 +76,7 @@ This example converts an XML input to a JSON output that is structured different
 
 *Transform*
 
-[source, ruby, linenums]
+[source,DataWeave, linenums]
 ----
 %dw 1.0
 %output application/json
@@ -265,7 +265,7 @@ This example takes an XML list of books and outputs a JSON version of the same. 
 
 *Transform*
 
-[source, ruby, linenums]
+[source,DataWeave, linenums]
 ----
 %dw 1.0
 %input payload application/xml
@@ -418,7 +418,7 @@ This example transforms a JSON array of objects, each representing a book, into 
 
 *Transform*
 
-[source, ruby, linenums]
+[source,DataWeave, linenums]
 ----
 %dw 1.0
 %input payload application/json
@@ -574,7 +574,7 @@ Note that for this example to run in Anypoint Studio, you must rename the inputs
 
 *Transform*
 
-[source, ruby, linenums]
+[source,DataWeave, linenums]
 ----
 %dw 1.0
 %input in0 application/json
@@ -630,7 +630,7 @@ This example does not take any input in, it simply creates an XML output out of 
 
 *Transform*
 
-[source, ruby, linenums]
+[source,DataWeave, linenums]
 ----
 %dw 1.0
 %output application/xml encoding="UTF-8"
@@ -753,7 +753,7 @@ This example does not take any input in, it simply creates an XML output out of 
 
 *Transform*
 
-[source, ruby, linenums]
+[source,DataWeave, linenums]
 ----
 %dw 1.0
 %output application/xml
@@ -1232,7 +1232,7 @@ This example takes an XML input and parses it into a different XML arrangement. 
 
 *Transform*
 
-[source, ruby, linenums]
+[source,DataWeave, linenums]
 ----
 %dw 1.0
 %input payload application/xml
@@ -1331,7 +1331,7 @@ In this example, the input contains sensitive information that should be removed
 
 *Transform*
 
-[source, ruby, linenums]
+[source,DataWeave, linenums]
 ----
 %dw 1.0
 %input payload application/xml
@@ -1412,7 +1412,7 @@ In this example, the input contains the same sensitive information as in the pre
 
 *Transform*
 
-[source, ruby, linenums]
+[source,DataWeave, linenums]
 ----
 %dw 1.0
 %input payload application/xml
@@ -1507,7 +1507,7 @@ This example takes in an XML file that is grouped separating two types of elemen
 
 *Transform*
 
-[source, ruby, linenums]
+[source,DataWeave, linenums]
 ----
 %dw 1.0
 %input payload application/xml
@@ -1614,4 +1614,64 @@ classrooms: payload.school.teachers.*teacher groupBy $.subject mapObject ((teach
     }
   }
 }
+----
+
+
+
+== Rename Some Keys and Replicate the Rest
+
+This example takes in a JSON object that contains several fields. Most of them must be kept identical, except for a couple that should be renamed. Instead of referencing each field individually, this example renames two fields in particular and handles the rest without any changes.
+
+
+*Input*
+
+[source, json, linenums]
+----
+{
+"flight":{
+  "availableSeats":45,
+  "airlineName":"Ryan Air",
+  "aircraftBrand":"Boeing",
+  "aircraftType":"737",
+  "departureDate":"12/14/2015",
+  "origin":"BCN",
+  "destination":"FCO"
+  }
+}
+----
+
+
+*Transform*
+
+[source,DataWeave, linenums]
+----
+%dw 1.0
+%output application/json
+---
+payload map {
+($ mapObject {
+    (emptySeats: $) when $$ as :string == 'availableSeats',
+    (airline: $) when $$ as :string == 'airlineName',
+    (($$):$) when ($$ as :string !='availableSeats') and ($$ as :string != 'airlineName')
+  }  
+) 
+}
+----
+
+
+*Output*
+
+[source, json, linenums]
+----
+[
+  {
+    "emptySeats": 45,
+    "airline": "Ryan Air",
+    "aircraftBrand": "Boeing",
+    "aircraftType": "737",
+    "departureDate": "12/14/2015",
+    "origin": "BCN",
+    "destination": "FCO"
+  }
+]
 ----
