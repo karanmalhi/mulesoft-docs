@@ -11,20 +11,22 @@ image:CloudHub+Networking+Guide-1.jpeg[CloudHub+Networking+Guide-1]
 
 CloudHub provides a load balancing service for all integrations. This service does round robin load distribution across workers, allowing workers to scale linearly as they receive more requests as well as providing transparent switchover when an application is upgraded (see zero downtime upgrades for more information).
 
-Each application deployed on CloudHub has a *CNAME* record that refers to the load balancer -  example: `myapp.cloudhub.io`. Mule applications deployed on CloudHub must listen on `0.0.0.0` and ports assigned by CloudHub for HTTP and HTTPS. The load balancer then forwards requests from port 80 and 443 (SSL) to these ports on the Mule worker. These ports can be referenced via the expressions `${http.port}` and `${https.port}`, respectively. Here is an example of a Mule configuration that utilizes this to expose an HTTPS endpoint:
+Each application deployed on CloudHub has a *CNAME* record that refers to the load balancer - example: `myapp.cloudhub.io`. Mule applications deployed on CloudHub must listen on `0.0.0.0` and ports assigned by CloudHub for HTTP and HTTPS. The load balancer then forwards requests from port 80 and 443 (SSL) to these ports on the Mule worker.
 
-[source,xml, linenums]
+These ports can be referenced via the expressions `${http.port}` and `${https.port}`, respectively. Here is an example of a Mule configuration that utilizes this to expose an HTTPS endpoint:
+
+[source,xml]
 ----
 <https:endpoint address="http://0.0.0.0:${https.port}"/>
 ----
 
-*Note*: Currently  `${http.port}` and `${https.port}` are set to 8081 and 8082. While applications can have hard coded ports, CloudHub might introduce new configuration options in the future which would require that these be set to specific values. It is therefore recommended that you set these correctly to maintain compatibility in the future.
+*Important*: On the Mule worker, the CloudHub load balancer proxies port :80 to :8081 for HTTP and proxies port :443 to :8082 for HTTPS. The `http.port` value must be set to port 8081 for HTTP, and the `https.port` value must be set to port 8082 for HTTPS. No other port numbers are supported. 
 
 == DNS Records
 
 The following DNS records are exposed for your CloudHub applications:
 
-[width="100a",cols="50a,50a",options="header"]
+[width="100a",cols="50a,50a"]
 |===
 |*myapp.cloudhub.io* |Load balancer. Ports 80 and 443 forward to  `${http.port}` and `${https.port}` respectively.
 |*mule-worker-myapp.cloudhub.io* |The external IP address of the Mule workers. HTTP services are exposed on: `${http.port}` and `${https.port}`
@@ -50,14 +52,10 @@ Additional ports can be opened inside the VPC, for example, for JMX based monito
 
 As CloudHub deploys on Amazon EC2, IP addresses are chosen from the Amazon EC2 IP pool. For a list of these ranges,  consult link:http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html[their documentation].
 
-CloudHub supports allocating a static IP for applications so that they can be whitelisted for other services. To enable a static IP for your application, request a static IP via the link:/cloudhub/community-and-support[support portal]. After a static IP has been allocated for your application, it is visible under the application deployment tab.
+CloudHub supports allocating a static IP for applications so that they can be whitelisted for other services. To enable a static IP for your application, go to the *Static IPs* tab in the application settings page on the CloudHub UI, then enable the *Use Static IP* checkbox. By default, you are allocated a number of static IPs equal to twice the number of Production vCores in your subscription. To increase this limit, please contact link:/cloudhub/community-and-support[MuleSoft Support]. After a static IP has been allocated for your application, it is visible in the *Static IPs* tab in the application settings. For more details, see link:/cloudhub/deploying-a-cloudhub-application#static-ips-tab[Deploying a CloudHub Application].
 
 Static IPs are not supported for private IP addresses inside a VPC.
 
-[IMPORTANT]
-If your application is deleted, the static IP is lost and you must request a new one.
-
-See the link:/cloudhub/faq[Cloudhub FAQs] for more things to consider when assigning Static IPs.
 
 == Regional Services
 
