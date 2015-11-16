@@ -13,9 +13,9 @@ This document is for a technical audience possessing basic knowledge of FTPS, X1
 
 === Attachments
 
-* link:_attachments/ftps-doc.zip[ftps-doc.zip]
-* link:_attachments/ftps-po.xml[ftps-po.xml]
-* link:_attachments/ftps-po.xsd[ftps-po.xsd]
+* link:_attachments/ftps-x12-walkthrough.zip[ftps-x12-walkthrough.zip]
+* link:_attachments/ftps-x12-po.xml[ftps-x12-po.xml]
+* link:_attachments/ftps-x12-po.xsd[ftps-x12-po.xsd]
 
 == Run the Example
 
@@ -39,8 +39,6 @@ and sends it to a supplier over FTPS. The supplier returns an X12 997 via a FTPS
 in order to inform the customer whether the 850 was accepted or rejected. Anypoint Partner Manager manages and records
 all B2B exchanges while the actual files exchanged are stored on an Amazon S3 bucket.
 
-image:b2b_ftps_walk_01.png[b2b_ftps_01]
-
 == Partnership Set Up
 
 The first stage of the solution is to create a partnership in Anypoint Partner Manager between your organization and the
@@ -62,51 +60,22 @@ supplier.
 . Sign up for an FTPS cloud service (for example, see https://hostedftp.com/signup).
 . Click the *FTPS* transport settings on the left side of the menu.
 +
-image:b2b_ftps_walk_04.png[b2b_ftps_04]
+image:_images/b2b_ftps_walk_04.png[b2b_ftps_04]
 +
 . Enter the following values in the *FTPS Settings - Inbound* sections:
 .. In the *Server Address* field, the address for the server you procured in Step 1.
-.. In the *Port* field, enter the number of the port for your server.
-.. _demo_ in the *User Name* field
+.. In the *Port* field, enter the number of the port for your server (tipically 21).
+.. In the *User Name* field, the username for the account you created on the FTPS cloud service you procured in Step 1.
 .. In the *Password* field, the password for the account you created on the FTPS cloud service you procured in Step 1.
 .. _Passive_ in the *Transfer Mode* field
-.. _Implicit_ in the *SSL Mode* field
+.. _Explicit_ in the *SSL Mode* field
 . Leave checkbox, *Enable server validation field* unchecked.
 . Reuse those fields values to fill in the *FTPS Settings - Outbound* section.
 . Click Save.
 
-=== Specify FTPS Transactions
+=== Set Up X12
 
-The settings configured in the previous section are meant to be reused by all inbound and outbound transactions within the application. Now we need to create transactions for exchanging files with the supplier.
-
-To send the 850 to the supplier, create an Outbound Transaction:
-
-. Click  *Transactions* in the left side of the menu.
-. Click  *New* in the top right corner.
-. In the *Transaction* section, select _Outbound_ from the *Direction* the drop-down menu.
-. Select _X12_ as *Standard*, _5010_ as *Version* and _850 (Purchase Order)_ as *Message Type* in the *Format* section.
-. In the *Transport* section, select _FTPS_ from the *Type* the drop-down menu.
-. Uncheck *Use default Outbound FTPS for partner* and enter the following details:
-** /demo/supplier-inbox/ as *Path*
-** Leave the *File Name* field empty, the FTPS connector assigns a name for it automatically.
-. Click  *Save*.
-+
-Now the inbound transaction for receiving the 997 file from the supplier needs to be created
-+
-. Click  *Transactions* on the left  side of the menu.
-. Click  *New* on the top right corner.
-. In the *Transaction* section, select _Outbound_ from the *Direction* the drop-down menu.
-. Select _X12_ as *Standard*, _5010_ as *Version* and _997_ as *Message Type* in the *Format* section.
-. In the *Transport* section, select _FTPS_ from the *Type* the drop-down menu.
-. Uncheck *Use default Outbound FTPS for partner* and enter the following details:
-* _/demo/consumer-inbox/_ as *Path*
-* _*.dat_ as *File Name*
-* _2000_ as *Polling Frequency*
-. Click  *Save*.
-
-== Set Up X12
-
-. Return to the home organization settings and open the *X12* settings. Select *ZZ* from the *Interchange ID qualifier*
+. Go to the home organization settings and open the *X12* settings. Select *ZZ* from the *Interchange ID qualifier*
 drop-down list. Enter _MOUNTAINOUT_ in the *Interchange ID* text box.
 . Return to the *Trading Partners* page and select *My Supplier* from your list of partners. Click the *X12* format settings found on the left hand side menu.
 . In the *Inbound* section, fill in the fields as shown in the table below:
@@ -139,6 +108,37 @@ drop-down list. Enter _MOUNTAINOUT_ in the *Interchange ID* text box.
 +
 . Press *Save*.
 
+
+=== Setup FTPS Transactions
+
+The settings configured in the 'Setup FTPS' section are meant to be reused by all inbound and outbound transactions within the application. Now we need to create transactions for exchanging files with the supplier.
+
+To send the 850 to the supplier, create an Outbound Transaction:
+
+. Click  *Transactions* in the left side of the menu.
+. Click  *New* in the top right corner.
+. In the *Transaction* section, select _Outbound_ from the *Direction* the drop-down menu.
+. Select _X12_ as *Standard*, _4010_ as *Version* and _850 (Purchase Order)_ as *Message Type* in the *Format* section.
+. In the *Transport* section, select _FTPS_ from the *Type* the drop-down menu.
+. Uncheck *Use default Outbound FTPS for partner* and enter the following details:
+** /demo/supplier-inbox/ as *Path*
+** Leave the *File Name* field empty, the FTPS connector assigns a name for it automatically.
+. Click  *Save*.
++
+Now the inbound transaction for receiving the 997 file from the supplier needs to be created
++
+. Click  *Transactions* on the left  side of the menu.
+. Click  *New* on the top right corner.
+. In the *Transaction* section, select _Inbound_ from the *Direction* the drop-down menu.
+. Select _X12_ as *Standard*, _4010_ as *Version* and _997_ as *Message Type* in the *Format* section.
+. In the *Transport* section, select _FTPS_ from the *Type* the drop-down menu.
+. Uncheck *Use default Inbound FTPS for partner* and enter the following details:
+* _/demo/consumer-inbox/_ as *Path*
+* _*.dat_ as *File Name*
+* _20000_ as *Polling Frequency*
+. Click  *Save*.
+
+
 == Mule Project Set Up
 
 The next stage of the solution is to develop a Mule application that transforms an XML purchase order read from the filesystem to an X12 850 and sends it to the supplier over FTPS. The supplier returns an X12 997 to an FTPS endpoint the application is listening on in order to inform the customer whether the 850 was accepted or rejected. The application is split into two parts:
@@ -153,7 +153,7 @@ Each part has its own Mule configuration file.
 * Rename the initial Mule configuration file created by Studio to _customer.xml_.
 * Create a new Mule configuration file and name it _mock-supplier_.
 +
-image:b2b_ftps_walk_63.png[b2b_ftps_06]
+image:_images/b2b_ftps_walk_06.png[b2b_ftps_06]
 
 == Customer Connector Configs
 
@@ -168,27 +168,26 @@ Connector and the X12 module in addition to the recording of B2B exchanges.
 have an Amazon S3 bucket available, you should go instead to *Create*  > *Connector Configuration* >
 *B2B: Amazon S3 File Storage*. The latter configuration type allows the B2B Connector to persist X12 documents
 and FTPS message content to Amazon S3.
-. Enter your secret API key which is obtained from your home organization's *Company* settings page in Anypoint Partner
+. Enter your secret API key which is obtained from your home organization’s *Company* settings page in Anypoint Partner
 Manager:
 +
-image:b2b_ftps_walk_07.png[b2b_ftps_07]
+image:_images/B2B_AS2EDI_13.png[B2B_AS2EDI_13]
 +
 Remember, the home organization settings is accessed by clicking on the home organization settings link on the upper
 right corner, next to the home icon:
 +
-image:b2b_ftps_walk_08.png[b2b_ftps_08]
+image:_images/B2B_AS2EDI_11.png[B2B_AS2EDI_11]
 +
-image:B2B_FTPSEDI_12.png[B2B_FTPSEDI_12]
+image:_images/B2B_AS2EDI_12.png[B2B_AS2EDI_12]
 +
-image:b2b_ftps_walk_09.png[b2b_ftps_09]
-+
-. Click *OK*.
+. Press *OK*.
 
 === Create FTPS Connector Configs
 
 . Remain in the *Global Elements* view to create a FTPS Connector config by going to *Create* >
 *Connector Configuration* > *FTPS: Partner Manager Configuration*. Name it _b2b-based-ftps_.
-. Select *EDI_X12* from the *Standard* drop-down list.
+. Enter _My Supplier_ as *Partner Name*.
+. Select _EDI_X12_ from the *Standard* drop-down list.
 
 
 === Create X12 Module Config
@@ -197,7 +196,7 @@ image:b2b_ftps_walk_09.png[b2b_ftps_09]
 . Enable *Use B2B Provider* to allow Anypoint Partner Manager to manage and track X12 exchanges.
 . Check the *Create Object Manually* radio button and open the *Object Builder* to enter the schema path _/x12/005010/850.esl_ in the first entry list.
 +
-image:b2b_ftps_walk_10.png[b2b_ftps_10]
+image:_images/B2B_AS2EDI_14.png[B2B_AS2EDI_14]
 +
 . Set the interchange identifier attributes so that they correspond with the interchange identifiers you configured in Anypoint Partner Manager:
 +
@@ -205,27 +204,25 @@ Self-identification:
 +
 [source,code,linenums]
 ----
-Interchange sender/receiver ID qualifier = _ZZ_
-Interchange sender/receiver ID = _MOUNTAINOUT_
-Application sender/receiver code = _MOUNTAINOUT_
+Interchange sender/receiver ID qualifier = ZZ
+Interchange sender/receiver ID = MOUNTAINOUT
+Application sender/receiver code = MOUNTAINOUT
 ----
 +
 Partner identification:
 +
 [source,code,linenums]
 ----
-Interchange sender/receiver ID qualifier = _ZZ_
-Interchange sender/receiver ID = _MY-SUPPLIER_
-Application sender/receiver code = _MY-SUPPLIER_
+Interchange sender/receiver ID qualifier = ZZ
+Interchange sender/receiver ID = MY-SUPPLIER
+Application sender/receiver code = MY-SUPPLIER
 ----
 +
 The interchange identifiers serve as the lookup key for finding the partnership to use for X12 processing.
-+
-image:b2b_ftps_walk_11.png[b2b_ftps_11]
-+
+
 The following screenshot should match what you have in the *Global Elements* view:
 +
-image:b2b_ftps_walk_12.png[b2b_ftps_12]
+image:_images/b2b_ftps_walk_12.png[b2b_ftps_12]
 
 == Transform and Send 850 over FTPS
 
@@ -234,11 +231,8 @@ With the connector configs out of the way, construct a flow to read an XML purch
 . Remain in the customer Mule config but change to the *Message Flow* view.
 . Drag a *File* message source to the canvas to create a flow. Set the *Path* attribute to _outbox_.
 . Add a *DataMapper* next to the *File* message source.
-. Put an *X12* processor after the DataMapper. Set the *Connector Configuration* to the X12 config that you created in the previous section and select *Write* for the *Operation*.
-. Go back to the DataMapper. Select for input type *XML* and use the schema _po.xsd_ to derive the structure to be mapped. Click the *Create mapping* button. You can link:_attachments/FTPS-x12-po.xsd[download a copy of FTPS-x12-po.xsd] and rename it to be po.xsd.
-+
-image:B2B_FTPSEDI_16.png[B2B_FTPSEDI_16]
-+
+. Put an *X12 EDI* processor after the DataMapper. Set the *Connector Configuration* to the X12 config that you created in the previous section and select *Write* for the *Operation*.
+. Go back to the DataMapper. Select for input type *XML* and use the schema _po.xsd_ to derive the structure to be mapped. Click the *Create mapping* button. You can link:_attachments/ftps-x12-po.xsd[download a copy of ftps-x12-po.xsd] and rename it to be po.xsd.
 . Perform the mapping from XML to X12 850 as follows:
 +
 [cols=",",]
@@ -255,17 +249,12 @@ image:B2B_FTPSEDI_16.png[B2B_FTPSEDI_16]
 |'TT' |Summary -> 100_CTT -> 0200_AMT -> AMT01 - Amount Qualifier Code
 |===========
 +
-. The last message processor in the flow is an FTPS processor that sends the 850. Set the *operation* to *Write*:
-+
-[source,code,linenums]
-----
-FTPS WRITE OP SPECIFICS
-----
+. The last message processor in the flow is an FTPS processor that sends the 850. Set the *operation* to *Write* and leave the other fields as they are.
 +
 Note that these identifiers were set in Anypoint Partner Manager. The Partner Name set in the FTPS configuration serve as lookup key for finding
 the partnership to use for transmitting the message.
 +
-image:b2b_ftps_walk_15.png[b2b_ftps_15]
+image:_images/b2b_ftps_walk_15.png[b2b_ftps_15]
 
 == Receive 997 over FTPS
 
@@ -277,25 +266,28 @@ _customer.xml_ Mule config:
 . Drag a *Byte Array to String* transformer next to the FTPS source.
 . Add an *X12* processor next to the message source and select the *Read* operation. Point the *Connector Configuration* to the X12 Module config that you created in the previous section
 +
-image:b2b_ftps_walk_18.png[b2b_ftps_18]
+image:_images/b2b_ftps_walk_18.png[b2b_ftps_18]
 
 == Develop Mock Supplier
 
 The mock supplier receives the 850 and generates a 997 to send back to the customer over FTPS:
 
 . Open the _mock-supplier.xml_ Mule config.
-. Similar to what you did for the customer, create a pair of HTTP global endpoints, a pair of FTPS Connector configs, and
+. Similar to what you did for the customer, create a pair of FTPS Connector configs and
 an X12 Module config. Ensure that:
 +
 * *Use B2B Provider* remains disabled for all EDI configs.
-* Basic FTPS Connector configs are created: *Create* -> *Connector Configuration* -> *FTPS: Configuration*.
-* Each FTPS endpoint is bound to its respective HTTP global endpoint.
+* Basic FTPS Connector config is created: *Create* -> *Connector Configuration* -> *FTPS: Basic Configuration*.
+* Same FTPS settings as APM are entered; also click on the *Advanced* tab and check _Disable certificate validation_.
+* Click *Test Connection...* and make sure the connection could be established.
 * X12 Module config schema path is set to _/x12/005010/850.esl_.
 * Unique names are given to the configs.
 +
-. Enter _/demo/supplier-inbox/_ as *Path* and _*.dat_ in *Filename*. Note that we're leaving the B2B options unset. The polling setting can be safely ignored by now.
+. Drag a _FTPS Connector_ to the flow.
+. Select the _FTPS Basic Configuration_ created above as *Connector Configuration* and select *Read* as operation.
+. Enter _/demo/supplier-inbox/_ as *Path* and _*.dat_ in *Filename*. The polling setting should be set to 15000 (_this is due to a limitation on the hostedftp server_)
 +
-image:b2b_ftps_walk_20.png[b2b_ftps_20]
+image:_images/b2b_ftps_walk_20.png[b2b_ftps_20]
 +
 . Add a *ByteArray to String* transformer.
 . Add an *X12* processor to the flow. Select the mock supplier s X12 config for *Connector Configuration* and set  its *Operation* to *Read*.
@@ -303,15 +295,15 @@ image:b2b_ftps_walk_20.png[b2b_ftps_20]
 *Set Payload* processor to the processor chain and enter in its *Value* attribute: _#[ ['TransactionSets' : [ 'v005010' : [ '997' : payload.FunctionalAcksGenerated ] ] ] ]_.
 . Add another *X12* processor to serialize the 997. Select the mock supplier's X12 config for *Connector Configuration*. Expand the *Operation* drop-down list and select *Write*.
 +
-. The last step in the flow to send the 997 over FTPS. Append a FTPS processor to the flow; select the same local FTPS global configuration for the FTPS message source of point 3, select the *Write* operation and enter _MOUNTAINOUT_ in *Partner Name*.
+. The last step in the flow to send the 997 over FTPS. Append a FTPS processor to the flow; select the same local FTPS global configuration for the FTPS message source of point 4, select the *Write* operation.
+. Enter _/demo/consumer-inbox/_ in *Path*.
 +
-image:b2b_ftps_walk_22.png[b2b_ftps_22]
+image:_images/b2b_ftps_walk_22.png[b2b_ftps_22]
 
 == Run Application
 
 . Run the application as a *Mule Application*. On startup, the application creates the _outbox_ directory in the project's root directory. If the _outbox_ directory isn't visible, try refreshing the project in the *Package Explorer* view.
 
-. Drop the purchase order file _po.xml_, included with this document, in the _outbox_ directory. The file should disappear from the directory since the *File* inbound endpoint deletes the file after it reads it.
+. Drop the purchase order file link:_attachments/ftps-x12-po.xml[ftps-x12-po.xml], included with this document, in the _outbox_ directory. The file should disappear from the directory since the *File* inbound endpoint deletes the file after it reads it.
 . Access the B2B Transmissions view in Anypoint Partner Manager to confirm that the FTPS and X12 transmissions have taken place.
 +
-image:b2b_ftps_walk_24.png[b2b_ftps_24]
