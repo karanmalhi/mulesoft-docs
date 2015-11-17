@@ -358,34 +358,45 @@ image:queryParamsDataMapper.png[queryParamsDataMapper]
 
 [source, xml, linenums]
 ----
-<mule xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:oracle-ebs="http://www.mulesoft.org/schema/mule/oracle-ebs" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.1"
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
-http://www.mulesoft.org/schema/mule/core
-http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http
-http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/oracle-ebs http://www.mulesoft.org/schema/mule/oracle-ebs/current/mule-oracle-ebs.xsd
-http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
-http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
-http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd">
-    <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
-    <oracle-ebs:config name="OracleEBS__Configuration" username="${username}" password="${password}" host="${host}" port="${port}" dbUser="${db.username}" dbPassword="${db.password}" dbHost="${db.host}" dbPort="${db.port}" dbSid="${db.sid}" responsibilityName="${responsibilityName}" responsibilityApplName="${responsibilityApplName}" doc:name="OracleEBS: Configuration">
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:oracle-ebs="http://www.mulesoft.org/schema/mule/oracle-ebs" xmlns:mulexml="http://www.mulesoft.org/schema/mule/xml" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/current/mule-xml.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/oracle-ebs http://www.mulesoft.org/schema/mule/oracle-ebs/current/mule-oracle-ebs.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <oracle-ebs:config name="OracleEBS__Configuration" username="${username}" password="${password}" host="${host}" port="${port}" dbUser="${dbUser}" dbPassword="${dbPassword}" dbHost="${dbHost}" dbPort="${dbPort}" dbSid="${dbSid}" responsibilityName="${responsibilityName}" responsibilityApplName="${responsibilityApplName}" doc:name="OracleEBS: Configuration">
         <oracle-ebs:custom-pl-sql-name-list>
             <oracle-ebs:custom-pl-sql-name-list>FND_WEB_SEC</oracle-ebs:custom-pl-sql-name-list>
         </oracle-ebs:custom-pl-sql-name-list>
-    </oracle-ebs:config-name>
-    <data-mapper:config name="Map_To_Xml_InputParameters_" transformationGraphPath="map_to_xml_inputparameters_.grf" doc:name="Map_To_Xml_InputParameters_"/>
+    </oracle-ebs:config>
     <flow name="oracle-ebs-exampleFlow">
         <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP"/>
-        <data-mapper:transform config-ref="Map_To_Xml_InputParameters_" input-ref="#[message.inboundProperties["http.query.params"]]" doc:name="Map To Xml<InputParameters>"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:input-inbound-property doc:sample="map_string_string.dwl" propertyName="http.query.params"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/xml
+%namespace ns0
+http://xmlns.oracle.com/apps/fnd/soaprovider/plsql/fnd_web_sec/validate_login/
+---
+{
+	ns0#InputParameters: {
+		ns0#"P_USER": inboundProperties."http.query.params".user,
+		ns0#"P_PWD": inboundProperties."http.query.params".password
+	}
+}]]></dw:set-payload>
+        </dw:transform-message>
         <oracle-ebs:invoke-pl-sql config-ref="OracleEBS__Configuration" type="fnd_web_sec||VALIDATE_LOGIN" doc:name="OracleEBS"/>
         <mulexml:dom-to-xml-transformer doc:name="DOM to XML"/>
         <logger message="### EBS Test #[payload]" level="INFO" doc:name="Logger"/>
     </flow>
     <catch-exception-strategy name="oracle-ebs-exampleCatch_Exception_Strategy">
-        <logger message="#[payload]" level="ERROR" doc:name="Logger"/>
+        <logger message="Error: #[payload]" level="ERROR" doc:name="Logger"/>
     </catch-exception-strategy>
 </mule>
 ----
