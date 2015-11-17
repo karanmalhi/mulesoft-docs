@@ -1248,7 +1248,7 @@ invoice: {
             quantity: $.quantity,
             unit_price: $.unit_price,
             discount: (discount * 100) as :number { format: "##" } ++ "%",
-            subtotal: $.unit_price * $.quantity[0] * (1 - discount[0])
+            subtotal: $.unit_price * $.quantity * (1 - discount)
         }
     }) },
     totals: using (subtotal = payload.invoice.items.*item reduce ((item, sum1 = 0) -> sum1 + (item.unit_price * item.quantity * (1 - discount)))) {
@@ -1511,7 +1511,7 @@ This example takes in an XML file that is grouped separating two types of elemen
 ----
 %dw 1.0
 %input payload application/xml
-%output application/weave
+%output application/dw
 ---
 classrooms: payload.school.teachers.*teacher groupBy $.subject mapObject ((teacherGroup, subject) -> {
     class: {

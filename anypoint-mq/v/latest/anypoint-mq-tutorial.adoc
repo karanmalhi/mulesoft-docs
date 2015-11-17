@@ -1,0 +1,114 @@
+= Anypoint MQ Tutorial
+:keywords: mq, tutorial, queue, exchange, client, studio, postman
+
+This guide walks through the complete process of creating a queue and publishing to and consuming from a Mule message in the queue.
+
+== Prerequisites
+
+* Read link:/anypoint-mq/understanding-anypoint-mq[Understanding Anypoint MQ] to familiarize yourself with the terminology and
+concepts of using MQ.
+* Create an link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform] account to configure user permissions, register applications in MQ, and to create queues and exchanges.
+* link:http://www.mulesoft.com/mule-esb-subscription[Subscribe] to Mule ESB Enterprise - An Enterprise license is required to
+use the MQ server software.
+* Install link:https://www.mulesoft.com/platform/studio[Anypoint Studio]. We use Studio to create each application that talks to
+MQ over HTTP.
+* Install the link:https://www.google.com/chrome/browser/desktop/[Chrome browser]. Chrome provides valuable developer
+tools and supports the use of plugins such as Postman, which sends HTTP commands to the MQ server.
+* Install the open-source link:https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en[Chrome Postman plugin] - We use Postman to send HTTP commands to the MQ server.
+
+== Configure Anypoint Platform
+
+In the sections that follow, we use Anypoint Platform to assign an administrative role, create an application, and create an exchange.
+
+=== Assign User Permissions
+
+Assign user permissions to yourself for use with MQ. These permissions let you create client applications, and destinations by creating queues and exchanges. You can use this same information to assign user permissions for others in your organization.
+
+To assign user permissions:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. Click the gear icon and *Users*:
++
+image:mq-tut-gear-and-users.png[mq-tut-gear-and-users]
++
+. Click your username value:
++
+image:mq-tut-click-username.png[mq-tut-click-username]
++
+. Click *MQ* and click the green box to set an environment and permissions:
++
+image:mq-tut-users-mq.png[mq-tut-users-mq]
++
+. After you click the green box, the field changes to *+ Add an environment by name*. Click the plus sign *+* and in the drop-down menu, click *Production* as shown in this composite illustration:
++
+image:mq-tut-env-permissions.png[mq-tut-env-permissions]
++
+. Click *Select Access* > *Select All*. When you click Select All, Select Access, changes to *Manage destinations, Manage clients, (Total: 5)*:
+. Click the green checkmark to save your settings: image:mq-tut-green-checkmark-icon.png[mq-tut-green-checkmark-icon]
++
+A summary list appears:
++
+image:mq-tut-permissions-summary.png[mq-tut-permissions-summary]
++
+You can use this display to delete permissions if needed. For this tutorial, you can leave all as shown.
+
+=== Assign a Role For Administration
+
+After you create permissions for yourself, you can create a role that you can apply to other users in your organization.
+While you don't need roles to complete this tutorial, when you use MQ as an administrator or developer, you should create
+roles for all those in your organization who use MQ. After the previous section where you assigned permissions to yourself,
+the steps to create a role are very similar and this exercise takes little extra time now and benefits you later.
+
+Creating a role lets you create permissions depending on each user's function in your organization, such as for administrators, developers, or for those who only view information but don't change it.
+
+In this tutorial, we grant all permissions to the `MQ Admin` role. When you create other roles for your organization, you can change the permissions as required.
+
+To assign role permissions:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. Click the gear icon and *Roles*:
++
+image:mq-tut-gear-and-roles.png[mq-tut-gear-and-roles]
++
+. Click *Add role*.
++
+image:mq-tut-add-role-for-admin.png[mq-add-role-for-admin]
++
+. Specify an administrator's role for you to create client apps, queues, and exchanges.
+. Click *Add role*.
+. Click the Role name and click *MQ*.
+. Click the green bar, click the plus sign for *Add an environment by name*, and choose the *Production* environment.
++
+image:mq-tut-set-role-env.png[mq-tut-set-role-env]
++
+. Click *Permission(s)* > *Select Access* > *Select All*. When you click Select All, Select Access, changes to *Manage destinations, Manage clients, (Total: 5)*:
++
+image:mq-tut-permissions.png[mq-tut-permissions]
++
+. Click the green checkmark on the right to save your changes: image:mq-tut-green-checkmark-icon.png[mq-tut-green-checkmark-icon]
+
+=== Register a Client Application
+
+MQ provides the *Client Application* settings so that you can register each application that you want to communicate through MQ.
+For each application you register, MQ creates a client ID and a client secret that you plug into your application.
+These credentials enable MQ to recognize your application when your application publishes a message to a queue or exchange, and when an application consumes a message from a queue.
+
+To register a client application:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. Click *MQ* in the top taskbar:
++
+image:mq-tut-mq-taskbar.png[mq-tut-mq-taskbar]
++
+. Click *Client Apps*:
++
+image:mq-tut-client-apps.png[mq-tut-client-apps]
++
+. Click the blue plus *+* button:
++
+image:mq-tut-blue-create-button.png[mq-tut-blue-create-button]
++
+. Specify an application name such as `DemoClientApp` and click *Save Changes*.
++
+image:mq-tut-create-client-app.png[mq-tut-create-client-app]
++
