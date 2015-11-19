@@ -3,17 +3,17 @@
 
 To better understand how Mule message processors act upon messages, it is useful to examine the state of a message before and after it is processed. When a transformer converts the content of a message payload from one data structure to another, or from one data format to another – for example, JSON to Java Object, Map to CSV, or Java Object to XML – you may wonder exactly how Mule has changed, removed or added to the contents of a message. Reviewing its "before and after" state should help you to be better able to work with the message further in the flow.
 
-This document uses an example application and draws upon the content of the link:/mule-fundamentals/v/3.7/mule-message-structure[Mule Message Structure document] to examine the state of a message as it passes through a DataMapper transformer in a flow. Running the application in debug mode in Anypoint Studio, the screenshots illustrates the state of a message using the link:/mule-user-guide/v/3.7/studio-visual-debugger[Visual Debugger] which facilitates "frozen-in-time" viewing of a message.
+This document uses an example application and draws upon the content of the link:/mule-fundamentals/v/3.7/mule-message-structure[Mule Message Structure document] to examine the state of a message as it passes through a link:/mule-user-guide/v/3.7/dataweave[Transform Message component] in a flow. Running the application in debug mode in Anypoint Studio, the screenshots illustrates the state of a message using the link:/mule-user-guide/v/3.7/studio-visual-debugger[Visual Debugger] which facilitates "frozen-in-time" viewing of a message.
 
 == Assumptions
 
-This document describes the details of the example within the context of  *Anypoint Studio* , Mule ESB’s graphical user interface (GUI). Where appropriate, the XML configuration accompanies the Studio interface screenshots. This document assumes that you are familiar with Mule ESB and the  link:/mule-fundamentals/v/3.7/anypoint-studio-essentials[Anypoint Studio interface] . Further, it assumes you have read the link:/mule-fundamentals/v/3.7/mule-message-structure[Mule Message Structure document] to understand the contents of a Mule message. 
+This document describes the details of the example within the context of *Anypoint Studio* , Mule ESB’s graphical user interface (GUI). Where appropriate, the XML configuration accompanies the Studio interface screenshots. This document assumes that you are familiar with Mule ESB and the  link:/mule-fundamentals/v/3.7/anypoint-studio-essentials[Anypoint Studio interface] . Further, it assumes you have read the link:/mule-fundamentals/v/3.7/mule-message-structure[Mule Message Structure document] to understand the contents of a Mule message. 
 
 == Example
 
 To examine the state of a message, this document uses an example application which converts the contents of a CSV file into contacts in Salesforce. You can view examples in link:/mule-fundamentals/v/3.7/anypoint-exchange[the Library].
 
-Briefly, the File Endpoint** **polls the input folder for new files every ten seconds. When it spots a new file, it reads the content, then passes the data to the DataMapper Transformer. This transformer not only converts the format of the data from CSV to a collection, it automatically maps the input fields from the CSV file – FirstName, LastName, etc. – to output fields that Salesforce uses in a collection. Each mapping earns an arrow which helps you to visualize the activity that occurs within the DataMapper transformer. When it has converted all the contacts in the file to a collection of Salesforce-friendly data, the application uses a Salesforce Connector to push data into your Salesforce account. The connector's configurations specify the *operation* – `Create` – and the *sObject type* – `Contact` – which dictate exactly how the data uploads to Salesforce; in this case, it creates new contacts. 
+Briefly, the File Endpoint** **polls the input folder for new files every ten seconds. When it spots a new file, it reads the content, then passes the data to the Transform Message component, which uses link:/mule-user-guide/v/3.7/dataweave-reference-documentation[DataWeave] code to transform the message payload. This component not only converts the format of the data from CSV to a collection, it maps the input fields from the CSV file – FirstName, LastName, etc. – to output fields that Salesforce uses in a collection. Each mapping earns an arrow which helps you to visualize the activity that occurs within the Transform Message component. When it has converted all the contacts in the file to a collection of Salesforce-friendly data, the application uses a Salesforce Connector to push data into your Salesforce account. The connector's configurations specify the *operation* – `Create` – and the *sObject type* – `Contact` – which dictate exactly how the data uploads to Salesforce; in this case, it creates new contacts. 
 
 [tabs]
 ------
@@ -37,7 +37,15 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
     <data-mapper:config doc:name="DataMapper" name="datamapper_grf" transformationGraphPath="datamapper.grf"/>
     <flow doc:description="Upload a csv file of contact information into Salesforce as new contacts." doc:name="Contacts_to_SFDC" name="Contacts_to_SFDC">
         <file:inbound-endpoint doc:name="File Input" moveToDirectory="src/test/resources/output" path="src/test/resources/input" pollingFrequency="10000" responseTimeout="10000"/>
-        <data-mapper:transform config-ref="datamapper_grf" doc:name="DataMapper"/>
+        <dw:transform-message doc:name="Transform Message">
+          <dw:set-payload><![CDATA[%dw 1.0
+            %output application/java
+            ---
+            {
+            }
+            ]]>
+          </dw:set-payload>
+        </dw:transform-message>
         <sfdc:create config-ref="Salesforce" doc:name="Salesforce" type="Contact">
             <sfdc:objects ref="#[payload]"/>
         </sfdc:create>
@@ -47,14 +55,14 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 ....
 ------
 
-=== Before DataMapper
+=== Before Transforming the Message
 
 As discussed in the link:/mule-fundamentals/v/3.7/mule-message-structure[Message Structure document], a Mule message consists of two main parts:
 
 * a *message header*, in which properties reside
 * a *message payload* which contains the data that Mule processes
 
-The  **Mule message object, **which contains the Mule message, may also contain *variables* .  The following sections examine the message header, payload and variables before the message encounters the DataMapper transformer in the above example. 
+The  **Mule message object, **which contains the Mule message, may also contain *variables* .  The following sections examine the message header, payload and variables before the message encounters the Transform Message component in the above example. 
 
 [TIP]
 ====
