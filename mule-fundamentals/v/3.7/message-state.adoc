@@ -26,7 +26,6 @@ image:message+state.png[message+state]
 [source, xml, linenums]
 ----
 <mule version="EE-3.6.0" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:data-mapper="http://www.mulesoft.org/schema/mule/ee/data-mapper" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
-http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schema/mule/ee/data-mapper/current/mule-data-mapper.xsd
 http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
@@ -42,6 +41,10 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
             %output application/java
             ---
             {
+              Phone: payload.Phone,
+              FirstName: payload.FirstName,
+              LastName: payload.LastName,
+            	Email: payload.Email
             }
             ]]>
           </dw:set-payload>
@@ -75,19 +78,19 @@ Learn more about how to examine the state of your messages using the link:/mule-
 
 The *Message* (see image below) contains data from the header of the message (i.e. metadata). In this example, you can see the message's identifiers and determine if there are attachments, which would be arrays if they existed.   
 
-Note that the *Message Processor* name indicates a *Value* of DataMapper; the Message Processor item indicates the next message processor in the flow that the message will encounter.
+Note that the *Message Processor* name indicates a *Value* of Transform Message; the Message Processor item indicates the next message processor in the flow that the message will encounter.
 
 image:message.png[message]
 
 ==== Message Payload
 
-The *payload* (see image below), not surprisingly, contains the payload of the message, or rather, the data that the Mule application processes. Before it encounters the DataMapper, the payload contains a CSV file – `currentFile` – with type `java.io.File`. 
+The *payload* (see image below), not surprisingly, contains the payload of the message, or rather, the data that the Mule application processes. Before it encounters the Transform Message component, the payload contains a CSV file – `currentFile` – with type `java.io.File`. 
 
 image:payload.png[payload]
 
 ==== Properties
 
-The Visual Debugger also displays any inbound and outbound properties on the message as it enters the DataMapper. The *Inbound Properties* on the message include metadata about the payload, including its filename, timstamp and the endpoint through which it entered the application, MULE_ORIGINATING_ENDPOINT. Inbound properties are _read-only_ and cannot be added, removed or copied by message processors in the application.
+The Visual Debugger also displays any inbound and outbound properties on the message as it enters the Transform Message component. The *Inbound Properties* on the message include metadata about the payload, including its filename, timstamp and the endpoint through which it entered the application, MULE_ORIGINATING_ENDPOINT. Inbound properties are _read-only_ and cannot be added, removed or copied by message processors in the application.
 
 image:inbound.png[inbound] +
 
@@ -97,27 +100,27 @@ image:outbound.png[outbound] +
 
 ==== Variables
 
-The Visual Debugger displays any variables or session variables included in the message object as it encounters the DataMapper. The File endpoint in this flow set two *Variables* on the message to indicate where DataMapper should move the file after processing, and the frequency with which the endpoint polls the input folder for new data.
+The Visual Debugger displays any variables or session variables included in the message object as it encounters the Transform Message component. The File endpoint in this flow set two *Variables* on the message to indicate where the Transform Message component should move the file after processing, and the frequency with which the endpoint polls the input folder for new data.
 
 image:variables.png[variables] +
 
-There are no *Session Variables* on this message before it encounters the DataMapper.
+There are no *Session Variables* on this message at this point.
 
 image:session.png[session] +
 
-=== After DataMapper
+=== After Transforming the Message
 
-The task of the DataMapper in this application is to convert the contents of the CSV file into a Java object that Salesforce can process. Further, it maps the contents so that the value in the First Name column in the CSV file converts to the First Name field in the Salesforce contact, and so on for each field. The following displays the message state as it emerges from the DataMapper.
+The task of the Transform Message component in this application is to convert the contents of the CSV file into a Java object that Salesforce can process. Further, it maps the contents so that the value in the Name column in the CSV file converts to the Name field in the Salesforce contact, and so on for each field. The following displays the message state as it emerges from this component.
 
 ==== Message Header
 
-DataMapper made no changes to the *message* header contents.
+The Transform Message component has made no changes to the *message* header contents.
 
 image:message2.png[message2]
 
 ==== Message Payload
 
-DataMapper has dramatically changed the *payload*! Now an array list of maps (image below, top), the contacts from the CSV file appear as values of each hashmap. Expanding the contents further, each hashmap contains a key-value pair (below, bottom).
+The Transform Message component has dramatically changed the *payload*! Now an array list of maps (image below, top), the contacts from the CSV file appear as values of each hashmap. Expanding the contents further, each hashmap contains a key-value pair (below, bottom).
 
 image:payload2.png[payload2]
 
@@ -129,13 +132,13 @@ As Mule message processors cannot add, remove or act upon *inbound properties*, 
 
 image:inbound2.png[inbound2]
 
-DataMapper did not set, remove or copy any *outbound properties* on the message.
+The Transform Message component did not set, remove or copy any *outbound properties* on the message.
 
 image:outbound2.png[outbound2]
 
 ==== Variables
 
-DataMapper did not add or remove any *Variables* or *Session Variables*.
+The Transform Message component did not add or remove any *Variables* or *Session Variables*.
 
 image:variables2.png[variables2]
 
