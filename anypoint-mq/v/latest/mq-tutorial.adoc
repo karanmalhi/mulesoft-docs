@@ -5,20 +5,25 @@ This guide walks through the complete process of creating a queue and publishing
 
 == Prerequisites
 
-* Read link:/anypoint-mq/mq-understanding[Understanding Anypoint MQ] to familiarize yourself with the terminology and
-concepts of using MQ.
+* Read link:/anypoint-mq/mq-understanding[Understanding Anypoint MQ] to familiarize yourself with the terminology and concepts of using MQ.
 * Create an link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform] account to configure user permissions, register applications in MQ, and to create queues and exchanges.
 * link:http://www.mulesoft.com/mule-esb-subscription[Subscribe] to Mule ESB Enterprise - An Enterprise license is required to
 use the MQ server software.
 * Install link:https://www.mulesoft.com/platform/studio[Anypoint Studio]. We use Studio to create each application that talks to
 MQ over HTTP.
+* Install link:https://www.mulesoft.com/platform/soa/mule-esb-enterprise[Mule Runtime]. After doing so, locate the `bin` directory. We start Mule from this directory.
 * Install the link:https://www.google.com/chrome/browser/desktop/[Chrome browser]. Chrome provides valuable developer
 tools and supports the use of plugins such as Postman, which sends HTTP commands to the MQ server.
-* Install the open-source link:https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en[Chrome Postman plugin] - We use Postman to send HTTP commands to the MQ server.
+* Install the open-source link:https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en[Chrome Postman 3.0] - We use Postman to send HTTP commands to the MQ server.
++
+To start Postman:
++
+** Windows: Press the Windows key and type: `postman`
+** Mac: Press `Command` + `Space`, and type: `postman`
 
 == Tutorial Workflow
 
-[width="100%", cols="10a,20a,70a",options="header"]
+[width="100%", cols="5a,20a,75a",options="header"]
 |===
 |# |Task |Description
 |1 |<<Configure Anypoint Platform>>
@@ -29,7 +34,7 @@ tools and supports the use of plugins such as Postman, which sends HTTP commands
 .. <<Create a Queue>> - Create a queue where MQ messages are published and consumed by applications.
 .. <<Register a Client Application>> - Register an application at the MQ server so that the application can publish messages
 and consume messages. The MQ server provides a client ID and client secret that you use with Anypoint Studio.
-|2 |<<Configuring Anypoint Studio for MQ>> |Obtain the MQ connector and create a flow for publishing or consuming messages.
+|2 |<<Configure Anypoint Studio for MQ>> |Obtain the MQ connector and create a flow for publishing or consuming messages.
 |3 |<<Send HTTP Requests>> |Use the Chrome open-source Postman plugin to send messages to the MQ server.
 |===
 
@@ -148,17 +153,21 @@ image:mq-tut-blue-create-button.png[mq-tut-blue-create-button]
 . Specify an application name such as `DemoClientApp` and click *Save Changes*.
 +
 image:mq-tut-create-client-app.png[mq-tut-create-client-app]
-+
-We use this information in the next section on configuring Anypoint Studio.
 
-== Configuring Anypoint Studio for MQ
+*Note*: Leave the Client Apps window open. We need to copy and paste the Client ID and Client Secret
+into the configuration for Anypoint Studio in the next step.
+
+== Configure Anypoint Studio for MQ
 
 In this section, we use Anypoint Studio to create a simple application that you can use
-to send a message to a queue, or to consume the message, and to ack.
+to publish a message to a queue, or to consume the message, and to ack and nack the message.
 
 For this section, you need to have the client ID and secret you created
-in <<Register a Client Application>>, so have Anypoint Platform > *MQ* > *Client App* 
+in <<Register a Client Application>>, so have
+link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform] > *MQ* > *Client App*
 open to copy the information to your Studio application.
+
+=== Configure Studio for the Anypoint MQ Connector Plugin
 
 To configure Studio:
 
@@ -173,27 +182,112 @@ To configure Studio:
 image:mq-connector-install.png[Type URL and click Anypoint Messaging Connector]
 +
 . Follow the prompts to install the software.
+
+=== Use Studio to Create an Application
+
+To create an application:
+
 . Create a new Mule Project. Click *File* > *New* > *Mule Project*.
-. Search for "transform" and drag the *Transform Message* icon to the canvas. You can rename  Transform Message to a new value by right-clicking the icon and selecting *Rename*. For the example flow, rename the icon to "Create Customer".
-. Use the DataWeave syntax to specify firstname, lastname, and company values:
-+
-image:mq-dataweave.png[mq-dataweave]
-+
-. Search for "mq" and drag the Anypoint MQ connector icon to the canvas.
+. Search for "http" and drag the *HTTP Connector* to the Studio Canvas.
+Here's how the Canvas appears after pulling all the building blocks to
+the Canvas:
 +
 image:mq-connector-visual-flow.png[mq-connector-visual-flow]
 +
-. Click the green plus sign to the right of *Connector Configuration*.
-. In the Global Element Properties window plug in the information from Anypoint Platform:
+.. Search for "set" and drag *Set Payload* to the Canvas.
+.. Search for "mq" and drag the *Anypoint MQ* connector icon to the canvas.
+.. Search for "logger" and drag *Logger* to the Canvas.
+. Click the HTTP Connector and click the green plus sign to the right of *Connector Configuration*.
+. In the HTTP Connector's Global Element Properties, set the host to *localhost* and the port to *8081*. Click *OK*.
+. Set the *Path* to `/mq/{messageId}`.
+. Click *Set Payload* in the Canvas and set the *Value* to:
++
+[source,code]
+----
+#[message.inboundProperties.'http.uri.params'.messageId]
+----
++
+. Click the *MQ Connector* and click the green plus sign to the right of *Connector Configuration*.
+. In the MQ Connector's Global Element Properties window, add the information from Anypoint Platform:
 .. Copy the *Client App* > *Client App ID* value to Studio's *Client ID* field.
 .. Copy the *Client App* > *Client Secret* value to Studio's *Client Secret* field.
 .. Click OK.
-. Click the *Operation* field and specify an operation such as Publish or Consume.
+. Click the *Operation* field and specify an operation such as `publish` or `consume`.
 . Specify the *Destination* as the name of the Queue or Exchange that you set in Anypoint Platform.
+. Click the Logger and set the Message field to: `MQ Message: #[payload]`
+. Save your project.
 +
 image:mq-connector-properties.png[mq-connector-properties]
 
-== Send HTTP Requests
+=== Run the Application
+
+Click the project name in Package Explorer, and click *Run* > *Run As* > *Mule Application*.
+
+The output should end with these statements:
+
+[source,code]
+----
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Started app 'mqdemo'                                     +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+INFO  <date_and_time> [main] org.mule.module.launcher.DeploymentDirectoryWatcher:
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Mule is up and kicking (every 5000ms)                    +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+INFO  <date_and_time> [main] org.mule.module.launcher.StartupSummaryDeploymentListener:
+**********************************************************************
+*              - - + DOMAIN + - -               * - - + STATUS + - - *
+**********************************************************************
+* default                                       * DEPLOYED           *
+**********************************************************************
+
+*******************************************************************************************************
+*            - - + APPLICATION + - -            *       - - + DOMAIN + - -       * - - + STATUS + - - *
+*******************************************************************************************************
+* mqdemo                                        * default                        * DEPLOYED           *
+*******************************************************************************************************
+----
+
+== Start Mule Runtime
+
+To start the Mule Runtime:
+
+. Open a command line:
+** *Windows* - Press the Windows key and type R. Type *cmd*.
+** *Mac* - From Finder, click *Go* > *Utilties* > *Terminal*.
+** *Linux* - Click *Terminal* in the Dashboard.
+. Locate the link:https://www.mulesoft.com/platform/soa/mule-esb-enterprise[Mule Runtime software] installation directory. The current version is the
+`mule-enterprise-standalone-`_<version>_ directory.
+. Change directory to the `bin` directory.
+. Start Mule Runtime:
+** *Windows* - Type *mule.bat*
+** *Mac* and *Linux* - Type *./mule*
++
+A successful startup ends with these messages:
++
+[source,code,linenums]
+----
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Started app 'default'                                    +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+INFO  <date> <time> [WrapperListener_start_runner] org.mule.module.launcher.DeploymentDirectoryWatcher:
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Mule is up and kicking (every 5000ms)                    +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+INFO  <date> <time> [WrapperListener_start_runner] org.mule.module.launcher.StartupSummaryDeploymentListener:
+**********************************************************************
+*              - - + DOMAIN + - -               * - - + STATUS + - - *
+**********************************************************************
+* default                                       * DEPLOYED           *
+**********************************************************************
+
+*******************************************************************************************************
+*            - - + APPLICATION + - -            *       - - + DOMAIN + - -       * - - + STATUS + - - *
+*******************************************************************************************************
+* default                                       * default                        * DEPLOYED           *
+*******************************************************************************************************
+----
+
 
 == See Also
 
