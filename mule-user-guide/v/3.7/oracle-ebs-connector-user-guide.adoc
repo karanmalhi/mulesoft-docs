@@ -141,20 +141,25 @@ image:oracle_ebs_global_element.png[oracle_ebs_global_element.png]
 |*Responsibility Appl. Name* |Enter the application short name that is needed to execute the operation.
 |*Security Group Name* |Enter the security group key of the Oracle EBS instance (optional). Default value is *STANDARD*.
 |*NLS language* |Enter the NLS language of the Oracle EBS instance (optional). Default value is *AMERICAN*.
-|*Org. ID* |Enter the organization ID of the Oracle EBS instance (optional). Default value is *204.*
+|*Org. ID* |Enter the organization ID of the Oracle EBS instance (optional). Default value is *204*.
 |===
 +
 . Configure your custom web services list according to the steps below:
-.. Select *Create Object manually* and then click the button next to it.
+.. Select *Create Object manually* and then click the `...` button next to it.
 +
-image:createobject1.png[createobject1]
+image:create-object-1.png[create-object-1]
 +
-.. On the pop-up window, select the plus sign (*+*) to add more entries.
+.. In the pop-up window, select the plus sign (*+*) to add more entries, as needed.
 .. Right-click a metadata item and click *Edit the selected metadata field* to enter the values.
 +
 image:oracle_ebs_enter_metadata.png[oracle_ebs_enter_metadata]
 +
 .. Click *OK* to save the list.
++
+. Load the required external dependency JARs:
+.. Click on the *Modify* button next to *Oracle AQ API*, and select the JAR file corresponding to this library. You can retrieve this file from your EBS instance, at `$ORACLE_HOME/rdbms/jlib/aqapi.jar`.
+.. Do the same for the *Oracle Database JDBC Driver*. This file can also be found in your instance, at the following path: `$ORACLE_HOME/jdbc/lib/ojdbc6.jar`.
++
 . Click *Test Connection* and confirm receipt of the _Connection Successful_ message.
 . Click *OK* to save the global connector configurations.
 +
@@ -314,7 +319,7 @@ image:connectorconfig.png[connectorconfig]
 |*NLS language* |Enter the NLS language of the Oracle EBS instance (optional).
 |*Org. ID* |Enter the organization ID of the Oracle EBS instance (optional).
 |*Custom PL/SQL web services* |Select *Create Object manually*, click the button on the right and add all custom PL/SQL web services you want to execute. In the example we use FND_WEB_SEC.
-|*Required dependencies* |Select the location in your local file system for the Oracle AQ API and Oracle JDBC Driver. Both are used in the Test Connection process and subscription to queues and topics.
+|*Required dependencies* |Select the location in your local file system for the Oracle AQ API and Oracle JDBC Driver JAR files. Both are used in the Test Connection process and subscription to queues and topics.
 |=======
 +
 .. Click *Test Connection* to confirm that Mule can connect with the Oracle EBS instance. If the connection is successful, click *OK* to save the configurations. If unsuccessful, revise or correct any incorrect parameters, then test again.
@@ -365,10 +370,10 @@ http://xmlns.oracle.com/apps/fnd/soaprovider/plsql/fnd_web_sec/validate_login/
 }
 ----
 +
-image:queryParamsDataMapper.png[queryParamsDataMapper]
+image:queryParamsDataWeave.png[queryParamsDataWeave]
 +
 . Add a *DOM to XML* transformer after the Oracle EBS Connector.
-. Add a *Logger* scope right after the DOM to XML Transformer, to print the data that is being received from the Oracle EBS connector in the Mule Console. Configure the Logger according to the table below:
+. Add a *Logger* scope right after the *DOM to XML* transformer to print the data that is being received from the Oracle EBS connector in the Mule Console. Configure the Logger according to the table below:
 +
 [width="100%",cols="50a,50a",options="header"]
 |===
@@ -389,6 +394,9 @@ image:queryParamsDataMapper.png[queryParamsDataMapper]
 |===
 +
 . Save and run the project as a Mule Application.
+.. Open a browser and load the following URL: `http://localhost:8081/?user=<username>&password=<password>`, replacing the _<username>_ and _<password>_ placeholders with a set of credentials.
+.. You will see the response of the FND_WEB_SEC PL/SQL operation, informing you if the provided credentials are valid or invalid.
+
 ....
 [tab,title="XML Editor"]
 ....
@@ -487,7 +495,7 @@ image:connectorconfig_source.png[connectorconfig_source]
 |*NLS language* |Enter the NLS language of the Oracle EBS instance (optional).
 |*Org. ID* |Enter the organization ID of the Oracle EBS instance (optional).
 |*Custom PL/SQL web services* |Select *None*.
-|*Required dependencies* |Select the location in your local file system for the Oracle AQ API and Oracle JDBC Driver. Both are used in the Test Connection process and subscription to queues and topics.
+|*Required dependencies* |Select the location in your local file system for the Oracle AQ API and Oracle JDBC Driver JAR files. Both are used in the Test Connection process and subscription to queues and topics.
 |=======
 +
 .. Click *Test Connection* to confirm that Mule can connect with the Oracle EBS instance. If the connection is successful, click *OK* to save the configurations. If unsuccessful, revise or correct any incorrect parameters, then test again.
@@ -512,6 +520,7 @@ image:connectorconfig_source.png[connectorconfig_source]
 |===
 +
 . Save and run the project as a Mule Application.
+.. For every Business Event that is fired, you will see the corresponding message taken from the queue in the console log.
 ....
 [tab,title="XML Editor"]
 ....
