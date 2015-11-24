@@ -1,0 +1,97 @@
+= Configuring MQ in Anypoint Studio
+:keywords: mq, studio, logger, set payload, install
+
+== Anypoint Studio MQ Connector
+
+This section describes how to install the Anypoint MQ connector in Anypoint Studio and how to configure Studio to handle applications.
+
+=== Add MQ Connector to Studio
+
+To add the Anypoint MQ connector to Studio:
+
+. In Studio, click *Help* > *Install New Software*.
+. Paste this URL into the *Work with* field and press Enter:
++
+`http://studio.mulesoft.org/r4/addons/beta`
++
+. Click the checkbox for *Anypoint Messaging Connector* and click *Next*:
++
+image:mq-connector-install.png[Type URL and click Anypoint Messaging Connector]
++
+. Follow the prompts to install the software.
+
+== Add a Client App to Studio
+
+To add a client app to Studio:
+
+. In Anypoint Platform, click *MQ* > *Client Apps*.
+. Create a client app.
+. In Anypoint Studio, create a new Mule Project.
+. In Anypoint Studio, search for "transform" and drag the *Transform Message* icon to the canvas. You can rename  Transform Message to a new value by right-clicking the icon and selecting *Rename*. For the example flow, rename the icon to "Create Customer".
+. Use the DataWeave syntax to specify firstname, lastname, and company values:
++
+image:mq-dataweave.png[mq-dataweave]
++
+. Search for "mq" and drag the Anypoint MQ connector icon to the canvas.
++
+image:mq-connector-visual-flow.png[mq-connector-visual-flow]
++
+. Click the green plus sign to the right of *Connector Configuration*.
+. In the Global Element Properties window:
+.. Copy the *Anypoint Platform* > *MQ* > *Client App* > *Client App ID* value to Studio's *Client ID* field.
+.. Copy the *Client App* > *Client Secret* value to Studio's *Client Secret* field.
+.. Click OK.
+. Click the *Operation* field and specify an operation such as Publish or Consume.
+. Specify the *Destination* as the name of the Queue or Exchange that you set in Anypoint Platform.
++
+image:mq-connector-properties.png[mq-connector-properties]
+
+=== Example Studio Flow
+
+The flow for the previous Anypoint Studio example is as follows:
+
+[source,xml,linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw"
+	xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd">
+  <anypoint-mq:config name="Anypoint_MQ_Configuration" doc:name="Anypoint MQ Configuration">
+      <anypoint-mq:provider url="https://mq-us-east-1.anypoint.mulesoft.com/api/v1" clientId="<id>" clientSecret="<secret>"/>
+  </anypoint-mq:config>
+<flow name="producerFlow">
+  <poll doc:name="Poll">
+    <dw:transform-message doc:name="Create Customer">
+    <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+{
+    "firstName" : "Joe",
+    "lastName" : "Schmoe",
+    "company" : "Acme, Inc"
+}]]></dw:set-payload>
+    </dw:transform-message>
+  </poll>
+        <anypoint-mq:publish config-ref="Anypoint_MQ_Configuration" destination="MyExchange" doc:name="Anypoint MQ">
+            <anypoint-mq:message-builder messageId="mq42"/>
+        </anypoint-mq:publish>
+</flow>
+</mule>
+----
+
+== See Also
+
+* link:/anypoint-mq[Anypoint MQ]
+* link:/anypoint-mq/mq-tutorial[Tutorial]
+* link:/anypoint-mq/mq-access-management[Set user or role MQ access permission]
+* link:/anypoint-mq/mq-queues-and-exchanges[Create destinations or register client apps]
+* link:/anypoint-mq/mq-understanding[Understand MQ concepts]
+* link:/anypoint-mq/mq-rest-api-guide[REST API Guide]
+* link:/anypoint-mq/mq-release-notes[Release Notes]

@@ -1,0 +1,301 @@
+= Anypoint MQ Tutorial
+:keywords: mq, tutorial, queue, exchange, client, studio, postman
+
+This guide walks through the complete process of creating a queue and publishing to and consuming from a Mule message in the queue.
+
+== Prerequisites
+
+* Read link:/anypoint-mq/mq-understanding[Understanding Anypoint MQ] to familiarize yourself with the terminology and concepts of using MQ.
+* Create an link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform] account to configure user permissions, register applications in MQ, and to create queues and exchanges.
+* link:http://www.mulesoft.com/mule-esb-subscription[Subscribe] to Mule ESB Enterprise - An Enterprise license is required to
+use the MQ server software.
+* Install link:https://www.mulesoft.com/platform/studio[Anypoint Studio]. We use Studio to create each application that talks to
+MQ over HTTP.
+* Install link:https://www.mulesoft.com/platform/soa/mule-esb-enterprise[Mule Runtime]. After doing so, locate the `bin` directory. We start Mule from this directory.
+* Install the link:https://www.google.com/chrome/browser/desktop/[Chrome browser]. Chrome provides valuable developer
+tools and supports the use of plugins such as Postman, which sends HTTP commands to the MQ server.
+* Install the open-source link:https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en[Chrome Postman 3.0] - We use Postman to send HTTP commands to the MQ server.
++
+To start Postman:
++
+** Windows: Press the Windows key and type: `postman`
+** Mac: Press `Command` + `Space`, and type: `postman`
+
+== Tutorial Workflow
+
+[width="100%", cols="5a,20a,75a",options="header"]
+|===
+|# |Task |Description
+|1 |<<Configure Anypoint Platform>>
+|Use link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform] to:
+
+.. <<Assign User Permissions>> - Give yourself permission to view the user interface - Good model for when you add users in your organization to MQ.
+.. <<Create an Admin Role>> - Create an admin's role for all permissions - Helps you define who in your organization should administer MQ versus have lesser permissions.
+.. <<Create a Queue>> - Create a queue where MQ messages are published and consumed by applications.
+.. <<Register a Client Application>> - Register an application at the MQ server so that the application can publish messages
+and consume messages. The MQ server provides a client ID and client secret that you use with Anypoint Studio.
+|2 |<<Configure Anypoint Studio for MQ>> |Obtain the MQ connector and create a flow for publishing or consuming messages, and run the Mule Application to ensure your application works and to serve HTTP requests on your localhost.
+|3 |<<Start Mule Runtime>> |Start the Mule Runtime to handle requests between the MQ server and your application.
+|4 |[coming] Use the Chrome open-source Postman plugin to send messages to the MQ server.
+|===
+
+== Configure Anypoint Platform
+
+In the sections that follow, we use Anypoint Platform to assign an administrative role, create an application, and create an exchange.
+
+=== Assign User Permissions
+
+Assign user permissions to yourself for use with MQ. These permissions let you create client applications, and destinations by creating queues and exchanges. You can use this same information to assign user permissions for others in your organization.
+
+To assign user permissions:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. Click the gear icon and *Users*:
++
+image:mq-tut-gear-and-users.png[mq-tut-gear-and-users]
++
+. Click your username value:
++
+image:mq-tut-click-username.png[mq-tut-click-username]
++
+. Click *MQ* and click the green box to set an environment and permissions:
++
+image:mq-tut-users-mq.png[mq-tut-users-mq]
++
+. After you click the green box, the field changes to *+ Add an environment by name*. Click the plus sign *+* and in the drop-down menu, click *Production* as shown in this composite illustration:
++
+image:mq-tut-env-permissions.png[mq-tut-env-permissions]
++
+. Under *Permission(s)*, click *Select Access* > *Select All*. When you click *Select All*, `Select Access` changes to *Manage destinations, Manage clients, (Total: 5)* to show which which permissions you chose.
++
+image:mq-tut-manager-dests.png[mq-tut-manager-dests]
++
+. Click the green checkmark to save your settings: image:mq-tut-green-checkmark-icon.png[mq-tut-green-checkmark-icon]
++
+A summary list appears:
++
+image:mq-tut-permissions-summary.png[mq-tut-permissions-summary]
++
+You can use this display to delete permissions if needed. For this tutorial, you can leave all as shown.
+
+=== Create an Admin Role
+
+After you create permissions for yourself, you can create a role that you can apply to other users in your organization.
+While you don't need roles to complete this tutorial, when you use MQ as an administrator or developer, you should create
+roles for all those in your organization who use MQ. After the previous section where you assigned permissions to yourself,
+the steps to create a role are very similar and this exercise takes little extra time now and benefits you later.
+
+Creating a role lets you create permissions depending on each user's function in your organization, such as for administrators, developers, or for those who only view information but don't change it.
+
+In this tutorial, we grant all permissions to the `MQ Admin` role. When you create other roles for your organization, you can change the permissions as required.
+
+To assign role permissions:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. Click the gear icon and *Roles*:
++
+image:mq-tut-gear-and-roles.png[mq-tut-gear-and-roles]
++
+. Click *Add role*.
++
+image:mq-tut-add-role-for-admin.png[mq-add-role-for-admin]
++
+. Specify an administrator's role for those who create client apps, queues, and exchanges.
+. Click *Add role*.
+. Click the Role name and click *MQ*.
+. Click the green bar, click the plus sign for *Add an environment by name*, and choose the *Production* environment.
++
+image:mq-tut-set-role-env.png[mq-tut-set-role-env]
++
+. Click *Permission(s)* > *Select Access* > *Select All*. When you click Select All, Select Access, changes to *Manage destinations, Manage clients, (Total: 5)*:
++
+image:mq-tut-permissions.png[mq-tut-permissions]
++
+. Click the green checkmark on the right to save your changes: image:mq-tut-green-checkmark-icon.png[mq-tut-green-checkmark-icon]
+
+=== Create a Queue
+
+A queue provides a temporary stack for holding messages. Applications push messages to the queue and other applications consume
+the messages. An application that intends to consume messages either acks (acknowledges) the message acquires the message contents, or nacks (negative acknowledgement) the message to indicate that the application does not want to consume that message.
+When an application acks a message, MQ locks the message for a limited duration so only the application can consume it, and then removes the message after the application consumes the message.
+
+To create a queue:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top taskbar, click *MQ*.
+. Click *Destinations*.
+. Click the blue plus circle.
+. Specify the queue name `MyDemoQueue`. For this tutorial, you can leave the time-to-live (TTL) durations as shown, and leave the queue unencrypted.
+. Click the queue name to list its details. After we create applications in Anypoint Studio, we return to the queue detail screen
+to see which messages are available and which are in flight.
+
+
+=== Register a Client Application
+
+MQ provides the *Client Application* settings so that you can register each application that you want to communicate through MQ.
+For each application you register, MQ creates a client ID and a client secret that you plug into your application.
+These credentials enable MQ to recognize your application when your application publishes a message to a queue or exchange, and when an application consumes a message from a queue.
+
+To register a client application:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. Click *MQ* in the top taskbar:
++
+image:mq-tut-mq-taskbar.png[mq-tut-mq-taskbar]
++
+. Click *Client Apps*:
++
+image:mq-tut-client-apps.png[mq-tut-client-apps]
++
+. Click the blue plus *+* button:
++
+image:mq-tut-blue-create-button.png[mq-tut-blue-create-button]
++
+. Specify an application name such as `DemoClientApp` and click *Save Changes*.
++
+image:mq-tut-create-client-app.png[mq-tut-create-client-app]
+
+*Note*: Leave the Client Apps window open. We need to copy and paste the Client ID and Client Secret
+into the configuration for Anypoint Studio in the next step.
+
+== Configure Anypoint Studio for MQ
+
+In this section, we use Anypoint Studio to create a simple application that you can use
+to publish a message to a queue, or to consume the message, and to ack and nack the message.
+
+For this section, you need to have the client ID and secret you created
+in <<Register a Client Application>>, so have
+link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform] > *MQ* > *Client App*
+open to copy the information to your Studio application.
+
+=== Configure Studio for the Anypoint MQ Connector Plugin
+
+To configure Studio:
+
+. Download and install the latest link:https://www.mulesoft.com/platform/studio[Studio] version.
+. In Studio, click *Help* > *Install New Software*.
+. Paste this URL into the *Work with* field and press `Enter`:
++
+`http://studio.mulesoft.org/r4/addons/beta`
++
+. Click the checkbox for *Anypoint Messaging Connector* and click *Next*:
++
+image:mq-connector-install.png[Type URL and click Anypoint Messaging Connector]
++
+. Follow the prompts to install the software.
+
+=== Use Studio to Create an Application
+
+To create an application:
+
+. Create a new Mule Project. Click *File* > *New* > *Mule Project*.
+. Search for "http" and drag the *HTTP Connector* to the Studio Canvas.
+Here's how the Canvas appears after pulling all the building blocks to
+the Canvas:
++
+image:mq-connector-visual-flow.png[mq-connector-visual-flow]
++
+.. Search for "set" and drag *Set Payload* to the Canvas.
+.. Search for "mq" and drag the *Anypoint MQ* connector icon to the canvas.
+.. Search for "logger" and drag *Logger* to the Canvas.
+. Click the HTTP Connector and click the green plus sign to the right of *Connector Configuration*.
+. In the HTTP Connector's Global Element Properties, set the host to *localhost* and the port to *8081*. Click *OK*.
+. Set the *Path* to `/mq/{messageId}`.
+. Click *Set Payload* in the Canvas and set the *Value* to:
++
+[source,code]
+----
+#[message.inboundProperties.'http.uri.params'.messageId]
+----
++
+. Click the *MQ Connector* and click the green plus sign to the right of *Connector Configuration*.
+. In the MQ Connector's Global Element Properties window, add the information from Anypoint Platform:
+.. Copy the *Client App* > *Client App ID* value to Studio's *Client ID* field.
+.. Copy the *Client App* > *Client Secret* value to Studio's *Client Secret* field.
+.. Click OK.
+. Click the *Operation* field and specify an operation such as `publish` or `consume`.
+. Specify the *Destination* as the name of the Queue or Exchange that you set in Anypoint Platform.
+. Click the Logger and set the Message field to: `MQ Message: #[payload]`
+. Save your project.
++
+image:mq-connector-properties.png[mq-connector-properties]
+
+=== Run the Application
+
+Click the project name in Package Explorer, and click *Run* > *Run As* > *Mule Application*.
+
+The output should end with these statements:
+
+[source,code,linenums]
+----
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Started app 'mqdemo'                                     +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+INFO  <date_and_time> [main] org.mule.module.launcher.DeploymentDirectoryWatcher:
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Mule is up and kicking (every 5000ms)                    +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+INFO  <date_and_time> [main] org.mule.module.launcher.StartupSummaryDeploymentListener:
+**********************************************************************
+*              - - + DOMAIN + - -               * - - + STATUS + - - *
+**********************************************************************
+* default                                       * DEPLOYED           *
+**********************************************************************
+
+*******************************************************************************************************
+*            - - + APPLICATION + - -            *       - - + DOMAIN + - -       * - - + STATUS + - - *
+*******************************************************************************************************
+* mqdemo                                        * default                        * DEPLOYED           *
+*******************************************************************************************************
+----
+
+== Start Mule Runtime
+
+To start the Mule Runtime:
+
+. Open a command line:
+** *Windows* - Press the Windows key and type R. Type *cmd*.
+** *Mac* - From Finder, click *Go* > *Utilties* > *Terminal*.
+** *Linux* - Click *Terminal* in the Dashboard.
+. Locate the link:https://www.mulesoft.com/platform/soa/mule-esb-enterprise[Mule Runtime software] installation directory. The current version is the
+`mule-enterprise-standalone-`_<version>_ directory.
+. Change directory to the `bin` directory.
+. Start Mule Runtime:
+** *Windows* - Type *mule.bat*
+** *Mac* and *Linux* - Type *./mule*
++
+A successful startup ends with these messages:
++
+[source,code,linenums]
+----
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Started app 'default'                                    +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+INFO  <date> <time> [WrapperListener_start_runner] org.mule.module.launcher.DeploymentDirectoryWatcher:
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Mule is up and kicking (every 5000ms)                    +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+INFO  <date> <time> [WrapperListener_start_runner] org.mule.module.launcher.StartupSummaryDeploymentListener:
+**********************************************************************
+*              - - + DOMAIN + - -               * - - + STATUS + - - *
+**********************************************************************
+* default                                       * DEPLOYED           *
+**********************************************************************
+
+*******************************************************************************************************
+*            - - + APPLICATION + - -            *       - - + DOMAIN + - -       * - - + STATUS + - - *
+*******************************************************************************************************
+* default                                       * default                        * DEPLOYED           *
+*******************************************************************************************************
+----
+
+
+== See Also
+
+* link:/anypoint-mq[Anypoint MQ]
+* link:/anypoint-mq/mq-access-management[Set user or role MQ access permission]
+* link:/anypoint-mq/mq-studio[Create app in Studio]
+* link:/anypoint-mq/mq-queues-and-exchanges[Create destinations or register client apps]
+* link:/anypoint-mq/mq-understanding[Understand MQ concepts]
+* link:/anypoint-mq/mq-rest-api-guide[REST API Guide]
+* link:/anypoint-mq/mq-release-notes[Release Notes]
