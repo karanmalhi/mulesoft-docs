@@ -3,17 +3,42 @@
 
 The Anypoint Platform can be integrated with your organization's external federated identity system. Opting to use federated identity management for the Anypoint Platform gives your users single sign-on access and facilitates OAuth security for APIs using the same identity management system.
 
-MuleSoft currently supports link:https://www.pingidentity.com/en/products/pingfederate.html[PingFederate] and link:https://forgerock.org/openam/[OpenAM] for external identity management.
+The following identity providers are supported:
 
-For further information about setup steps, please file a ticket in the support portal by clicking *Support* on the top navigation bar of the Anypoint Platform.
+* link:https://www.pingidentity.com/en/products/pingfederate.html[Ping Federate]
+* link:https://forgerock.org/openam/[OpenAM]
+* link:https://www.okta.com/[Okta]
+* link:https://shibboleth.net/[Shibboleth]
+* link:https://msdn.microsoft.com/en-us/library/bb897402.aspx?f=255&MSPPError=-2147217396[ADFS]
 
-== Instructions for Configuration of PingFederate
 
-The instructions in this document allow you to configure your Anypoint Platform organization with PingFederate so as to federate identity (using SAML 2.0) and use PingFederate as an OAuth 2.0 provider. There are two steps to follow:
+== Instructions for SAML Configuration
 
-. Configure your PingFederate environment to set up your Anypoint Platform organization as a Service Provider.
-. Submit the appropriate information about your PingFederate environment and the Service Provider you configured (in the first step) to MuleSoft by completing link:https://docs.google.com/a/mulesoft.com/forms/d/16ZQjXcLmuXO8140svkjUxywzkZjv01GTgbf_3kfEebQ/viewform[the following form] (for further details, see below).
+The instructions in this document allow you to configure your Anypoint Platform organization with any of the supported SAML 2.0 providers, so as to federate identity. There are two steps to follow:
+
+. Configure your SAML provider to set up your Anypoint Platform organization as your audience.
+. Set the 'Assertion Consumer Service' to send an HTTP POST request to the following address: `https://anypoint.mulesoft.com/accounts/login/receive-id`
+. Log in with an administrator account into your Anypoint organization, enter the settings section, and select 'External Identity'. If you haven't set anything yet, you should see a screen like this:
++
+image:new-saml.png[new saml]
+
+. Click the link on 'If you would like to configure single sign on with a SAML 2.0 provider you can get started *here*' and then provide the necessary data to set up your account
 . When your organization is converted to use external identity management, any existing applications that were previously created through the Developer Portal will need to be recreated to work with the PingFederate Access Token Enforcement policy.
+
+
+=== Providing MuleSoft the Information Required to Configure Your Anypoint Platform Organization
+
+[NOTE]
+====
+If all you want to use is 'user management', you can register your identity manager manually. If you wish to implement 'client management' then you must provide Mulesoft with more information as explained in this section.
+If you are using Anypoint Platform on premises, you do not need to provide this information to MuleSoft.
+====
+
+If you want to use 'client management' and if you're not using Anypoint Platform on premises, you need to work with your MuleSoft account representative to ensure that we are aware of your needs for configuring your organization with PingFederate. Complete link:https://docs.google.com/a/mulesoft.com/forms/d/16ZQjXcLmuXO8140svkjUxywzkZjv01GTgbf_3kfEebQ/viewform[the following form]. Once you have completed this form, we will get back to you within 48 hours with either the completion of the configuration or follow-up questions to complete the configuration.
+
+[NOTE]
+Having a single audience (an Anypoint Platform organization) served by multiple issuers (multiple SAML provider instances) is currently not supported.
+
 
 === Configuring your PingFederate Environment
 
@@ -40,19 +65,6 @@ Follow the instructions within the link:http://documentation.pingidentity.com/di
 ... Export the certificate for use when submitting your information to MuleSoft through the PingFederate configuration form. (This is not necessary if your are using Anypoint Platform on premises.)
 .. Select “RSA SHA1” as the signing algorithm.
 
-=== Providing MuleSoft the Information Required to Configure Your Anypoint Platform Organization
-
-NOTE: If you are using Anypoint Platform on premises, you do not need to provide this information to MuleSoft.
-
-Unless you are using Anypoint Platform on premises, you need to work with your MuleSoft account representative to ensure that we are aware of your needs for configuring your organization with PingFederate. Complete link:https://docs.google.com/a/mulesoft.com/forms/d/16ZQjXcLmuXO8140svkjUxywzkZjv01GTgbf_3kfEebQ/viewform[the following form]. Once you have completed this form, we will get back to you within 48 hours with either the completion of the configuration or follow-up questions to complete the configuration.
-
-== Instructions for Configuration of OpenAM
-
-As with PingFederate, configuring your Anypoint Platform organization for use with OpenAM entails two steps:
-
-. Configure your OpenAM environment to set up your Anypoint Platform organization as a Service Provider.
-. Submit the appropriate information about your OpenAM environment and the Service Provider you configured (in the first step) to MuleSoft by completing link:https://docs.google.com/a/mulesoft.com/forms/d/1ZvNUWU3u0lzLk6H5R3lKcEN2Dcyg1zekc1HYtYIcZP0/viewform?edit_requested=true[the following form] (for further details, see below). (*Note*: If you are using Anypoint Platform on premises, you do not need to complete this step.)
-. When your organization is converted to use external identity management, any existing applications that were previously created through the Developer Portal will need to be recreated to work with the OpenAM Access Token Enforcement policy.
 
 === Configuring your OpenAM Environment
 
@@ -93,11 +105,19 @@ urn:oasis:names:tc:SAML:2.0:unspecified=uid
 
 . Export the certificate used in your identity provider, which you will provide to MuleSoft through the OpenAM configuration form.
 
-=== Providing MuleSoft the Information Required to Configure Your Anypoint Platform Organization
+== Role Mapping
 
-NOTE: If you are using Anypoint Platform on premises, you do not need to provide this information to MuleSoft.
+You can set up your Anypoint Platform organization so that when a SAML user belongs to certain groups, it will automatically grant certain equivalent roles in the your Anypoint Platform organization.
 
-Unless you are using Anypoint Platform on premises, you need to work with your MuleSoft account representative to ensure that we are aware of your needs for configuring your organization with OpenAM. Complete link:https://docs.google.com/a/mulesoft.com/forms/d/1ZvNUWU3u0lzLk6H5R3lKcEN2Dcyg1zekc1HYtYIcZP0/viewform?edit_requested=true[the following form]. Once you have completed this form, we will get back to you within 48 hours with either the completion of the configuration or follow-up questions to complete the configuration.
+To set this up:
+. Log into your Anypoint Platform organization with an administrator user
+. Go to the settings section and then select the 'Roles' tab
+. Select a role to edit it and then click the 'Set external group mapping'
++
+image:external-group-mapping.png[external group mapping]
+. Provide the group names that will be associated with this role
+
+
 
 == See Also
 
