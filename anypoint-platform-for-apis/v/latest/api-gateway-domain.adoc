@@ -1,0 +1,117 @@
+= API Gateway Domain
+:keywords: api, gateway, domain
+
+API Gateway 2.0.n has a new domain named *api-gateway*.
+The goal of having an api-gateway domain is to enable out of the box port sharing for proxies, which is useful when auto-deploying multiple proxies that have to use the same host and port and only vary their path.
+
+== What is a domain?
+
+Domains are a useful abstraction for sharing resources between apps. All API Gateway proxies, both those deployed to CloudHub and those deployed to the standalone API Gateway, rely on a domain that includes common configuration parameters.
+
+== Internal Configuration
+
+The domain defines two listener configurations named
+*http-lc-0.0.0.0-8081* and *https-lc-0.0.0.0-8082*.
+
+* *http-lc-0.0.0.0-8081*, as its name indicates, binds to all interfaces and uses port 8081, which is the default port for HTTP in Cloudhub.
++
+Example:
++
+[source,xml]
+----
+<http:listener-config name="http-lc-0.0.0.0-8081" host="0.0.0.0" port="8081" protocol="HTTP"/>
+----
++
+[CAUTION]
+This means that the API Gateway runtime reserves that port when is started. If you are already using that port, you  receive a message saying that the port is already in use, and all auto-generated proxies fail.
++
+* *https-lc-0.0.0.0-8082*, which is commented out, is the listener configuration for HTTPS. To use this, follow the different steps depending on the runtime you are running. Check the following sections for more details.
+
+== Implications of Auto Generated proxies
+
+All auto-generated proxies already have a reference to the domain.
+With this configuration, if you are using HTTP, you can use the auto-deploy feature to run your proxies in any runtime (Standalone, Hybrid, Cloudhub) without modifications. If you are using HTTPS, go to the following section for more details.
+
+[[cloudhubsection]]
+=== Cloudhub
+
+If you want to create a new app and deploy it to Cloudhub, take into account that:
+
+* To create an app which uses an HTTP configuration, you need to reference the listener-config named *http-lc-0.0.0.0-8081*.
+* Otherwise, if your app uses HTTPS, the listener-config configuration must be placed inside of your configuration. This means that you should include the following piece of code in your proxy/app xml file and provide your credentials when necessary:
+
+[source,xml,linenums]
+----
+<http:listener-config name="https-lc-0.0.0.0-8082" host="0.0.0.0" port="8082" protocol="HTTPS">
+  <tls:context name="tls-context-config">
+    <tls:key-store path="[replace_with_path_to_keystore_file]" password="[replace_with_store_password]"
+        keyPassword="[replace_with_key_password]"/>
+  </tls:context>
+</http:listener-config>
+----
+
+After including this `listener-config`, add a reference to it in your listener.
+
+=== Standalone and Hybrid
+
+If you want to create a new app and deploy it in a standalone version, you can take advantage of the api-gateway domain by referencing the HTTP or HTTPS listener-configs in your listeners and sharing the port configuration.
+
+[TIP]
+If your proxy/app uses HTTPS, reference the `listener-config` named *https-lc-0.0.0.0-8082*, uncomment it from the domain (located in './domains/api-gateway/mule-domain-config.xml'), and add the necessary credentials.
+
+== Anypoint Studio Support
+
+Anypoint Studio from version 5.3 and newer provides support for the Gateway domain:
+
+. Click *Help* > *Add New Software*.
+. In *Work with*, click *API Gateway Site*, click *API Gateway Tooling Runtimes*, and check *API Gateway Runtime 2.0.3* or newer.
+. Follow the prompts to install the software.
+. For a new project, click the API Gateway version:
++
+image:api-gateway-new-project.png[api-gateway-new-project]
+
+When creating or importing a project,
+if the runtime is a Gateway distribution with version 2.0.2 or newer,
+the `api-gateway` domain is created. This domain appears in the Package Explorer view as a regular application.
+If the domain is not created, Studio provides the option to do so by right-clicking the application in the Package Explorer
+and selecting *Domains* > *Associate with API Gateway domain*:
+
+image:api-gateway-associate-domain.png[api-gateway-associate-domain]
+
+Domains:
+
+* *add_gateway_domain* - You can check that this domain is associated to your project by
+viewing the mule-project.xml file of your project.
++
+image:api-gateway-mule-project.png[api-gateway-mule-project]
++
+* *gateway_domain_associated* - This domain project is identical to the domain that exists in Cloudhub and in your API Gateway On Premise by default. It’s necessary for being able to deploy your app to the Anypoint Studio server under the same conditions as when deployed to production.
+
+[CAUTION]
+If you modify your domain on your API Gateway on-prem installation, you should also replicate those changes in the domain that exists in Studio so that you can deploy it under the same conditions in both places. The Domain project contains the `<http:listener-config` statement that the Mule flow requires. If you make any changes to your domain, these modifications are not reflected in Cloudhub.
+
+== Q & A
+
+*Can I use my own listener-config in my app/proxy?*
+
+If you are using the standalone, hybrid, or Studio: Yes, as long as you are not using the port 8081.
+In that case, we recommend that you reference the `listener-config` provided in the domain,
+or you will receive the error message `Address already in use`.
+If you are using Cloudhub: see the xref:cloudhubsection[Cloudhub] section.
+
+*When I test my app I see the "Address already in use" error. How can I get rid of that issue?*
+
+This error message displays for several reasons:
+
+ - If your app is already using listener-config references.
+
+ - If you are using a hybrid/standalone version and you have multiple apps, check that their paths are not duplicated.
+
+ - Check if the port 8081 is not bound to another application/program. In that case you can locally modify the port of the listener-config by changing the domain config in `./domains/api-gateway/mule-domain-config.xml`
+
+== See Also
+
+* link:https://www.mulesoft.com/platform/studio[Anypoint Studio]
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]
