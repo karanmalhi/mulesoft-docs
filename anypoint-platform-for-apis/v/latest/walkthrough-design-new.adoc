@@ -5,22 +5,32 @@
 
 [NOTE]
 ====
-This page is part of the Anypoint Platform for APIs walkthrough. If you landed here by mistake and you're not sure where to start, go to the link:/anypoint-platform-for-apis/anypoint-platform-for-apis-walkthrough[walkthough introduction] to learn more.
+This page is part of the Anypoint Platform for APIs walkthrough. If you landed here by mistake and you're not sure where to start, go to the link:/anypoint-platform-for-apis/anypoint-platform-for-apis-walkthrough[walkthrough introduction] to learn more.
 
 Looking for a user guide for building APIs in the Anypoint Platform? See link:/anypoint-platform-for-apis/designing-your-api[Designing Your API].
 ====
 
 == Before You Begin
 
-This walkthrough assumes that you have already created an API version details page for the T-Shirt Service API, which we covered with link:/anypoint-platform-for-apis/walkthrough-intro-create[Create an API]. You have clicked *Define API* and landed in the API Designer, which looks like this:
+This walkthrough assumes that you have already created an API version details page for the T-Shirt Service API, which we covered in link:/anypoint-platform-for-apis/walkthrough-intro-create[Create an API]. After logging into link:https://anypoint.mulesoft.com[Anypoint Platform], you clicked your project, and have clicked *Define API in API designer*:
 
-image:Screenshot+2014-07-02+15.09.57.png[Screenshot+2014-07-02+15.09.57]
+image:api-gw-define-api-link.png[api-gw-define-api-link]
+
+The API Designer looks like this:
+
+image:api-gw-api-designer.png[api-gw-api-designer]
 
 == About RAML
 
-http://raml.org/index.html[RAML] (RESTful API Modeling Language) is a simple and very practical language for describing APIs. RAML encourages reuse, enables discovery and pattern-sharing, and aims for merit-based emergence of best practices. RAML is built on broadly-used standards such as YAML and JSON and is a non-proprietary, vendor-neutral open spec.
+link:http://raml.org/[RAML] (RESTful API Modeling Language) is a simple and very practical language for describing APIs. RAML encourages reuse, enables discovery and pattern-sharing, and aims for merit-based emergence of best practices. RAML is built on broadly-used standards such as YAML and JSON and is a non-proprietary, vendor-neutral open specification.
 
-In short, RAML makes it easier for you to write your API, and enables a series of online tools that make it easier for developers to engage with your API.
+For more information, see:
+
+* link:http://raml.org/developers/document-your-api[Documentation] and
+link:http://raml.org/developers/raml-100-tutorial[Tutorials]
+* link:http://raml.org/projects/projects[RAML Projects]
+
+RAML makes it easier for you to write your API, and provides a series of online tools that make it easier for developers to engage with your API.
 
 A RAML file includes the following elements:
 
@@ -29,8 +39,6 @@ A RAML file includes the following elements:
 * Resources
 * Methods
 * Pattern-based, reusable elements
-
-For more information on defining a RAML API definition, please visit link:http://www.raml.org[RAML.org]
 
 [TIP]
 One of the key strengths of the RAML specification is the ability to reuse elements, which makes your API more succinct and more readable. However, the reusable elements in RAML are outside the scope of this walkthrough; for more information, visit the link:http://raml.org/docs.html[RAML tutorials].
@@ -46,7 +54,7 @@ In this walkthrough, we design a RESTful, RAML-based API from scratch. We create
 . If you haven't already done so, click *Define API* on your API Version Details page to access the API Designer.
 +
 image:raml+create.jpeg[raml+create]
-
++
 . In your new RAML file, the first thing you notice is that the information you provided when registering the new API (the name and version number) have been entered for you in the root.
 +
 [source, yaml, linenums]
@@ -66,21 +74,23 @@ version: 1.0.development
 baseUri: http://www.tshirt.com/api
 ----
 +
-Next, look at the Shelf at the bottom of the Designer. The Shelf is context aware: it always displays a list of the components you can enter at that point in the hierarchy of your API. These components are arranged into categories that appear when relevant: Root, Docs, Parameters, Security, Resources, Methods,  Traits and Types, Schemas, Body, and Responses.
+. Look at the Shelf at the bottom of the Designer. The Shelf is context aware: it always displays a list of the components you can enter at that point in the hierarchy of your API. These components are arranged into categories that appear when relevant: Root, Docs, Parameters, Security, Resources, Methods, Traits and Types, Schemas, Body, and Responses.
 +
-image:api-designer-shelf.png[shelf] +
-
-Instead of typing each of these components in, you can click what you want to add and it will be placed into your RAML definition. As you enter a component, it disappears from the Shelf. For example, if you select a `GET` method from the list of Methods, it disappears from the Shelf because you cannot have two `GET` methods on the same resource. This API consists of a series of operations that users of your API can call. Each operation maps to a resource. All the operations in this API relate to one of the following resources:
+image:api_designer_shelf.png[API Designer Shelf]
 +
-* *`/products`* (mostly t-shirts)
-* *`/orders`* (t-shirt orders, of course)
-* orders each have a nested **`{orderId}/status`**, which is considered a sub-resource of `orders`.
+. Instead of typing in each of these components, you can click what you want to add and it's placed in your RAML definition. As you enter a component, it disappears from the Shelf. For example, if you select a `GET` method from the list of Methods, it disappears from the Shelf because you cannot have two `GET` methods on the same resource. This API consists of a series of operations that users of your API can call.
++
+Each operation maps to a resource. All the operations in this API relate to one of the following resources:
++
+** `/products` (mostly t-shirts)
+** `/orders` (t-shirt orders, of course)
+** orders each have a nested `{orderId}/status`, which is considered a sub-resource of `orders`.
 +
 You can do things the classic way and type these resources into the RAML definition, but the API Designer offers you an easier way: place the cursor on a new line and click the `New Resource` component on the Shelf. This automatically adds lines of skeleton code at your cursor position, saving you from the pain of stressing over syntax considerations. 
 +
 image:new+resource.png[new+resource]
 +
-Then, just replace the text in the resource title and in its child element's `displayName`.
+. Then, just replace the text in the resource title and in its child element's `displayName`.
 +
 [WARNING]
 Keep in mind that the elements that API Designer suggests in the shelf depend contextually upon where you place the cursor: the shelf only offers you the option of placing elements that make sense in that particular position within the RAML tree structure.
@@ -101,17 +111,17 @@ baseUri: http://www.tshirt.com/api
     displayName: Status
 ----
 +
-Notice that the API Console, displayed to the right of the editor, now actually contains something. Awesome! Developers who want to engage with your API can view this same console and immediately know what resources are available on your API, and how to access them.
+. Notice that the API Console, displayed to the right of the editor, now actually contains something. Awesome! Developers who want to engage with your API can view this same console and immediately know what resources are available on your API, and how to access them.
 +
 image:basic+console.png[basic+console]
-
++
 . A resource isn't of any use until it has an associated method. Time to brainstorm what would be appropriate:
-
++
 ** Users of the API should be able to read information about products, but of course not post new products (that wouldn't really make any sense) so for the `products` resource, only add a `GET` method.
 ** Users should be able to place orders, so give the /`orders` resource a `POST` method.
 ** Users should be able to check an order's status, so give the `status` resource a `GET` method.
 +
-Instead of typing these in, you can place the cursor in a new line right beneath the `displayName` of a resource and use the corresponding method element from the shelf (below the editor) to automatically obtain a skeleton structure to fill in. Then add a valid description for each of the methods you add:
+. Instead of typing these in, you can place the cursor in a new line right beneath the `displayName` of a resource and use the corresponding method element from the shelf (below the editor) to automatically obtain a skeleton structure to fill in. Then add a valid description for each of the methods you add:
 +
 image:methods.png[methods]
 +
@@ -135,12 +145,14 @@ baseUri: http://www.tshirt.com/api
       description: Get the status of an existing order
 ----
 +
-Notice that on the API Console, which displays on the right of the editor, you can now see that the resources each have a corresponding set of methods (actually only one method each, in our case). You can now click these methods to read the descriptions you just added.
+. Notice that on the API Console (on the right of the editor), you can now see that the resources each have a corresponding set of methods (actually only one method each, in our case). You can now click these methods to read the descriptions you just added.
 +
 image:full+console.png[full+console]
-
-. Next, it's time to decide what possible `responses` are valid for each of these methods. All of them should have a `200` (OK) response, that's a no brainer. In the `POST order` method let's also include a `500` (server error) response in case something fails on the server side, and in the `GET status` resource let's also include a `400` (client error) response, in case the user requests a nonexistent order. +
-Don't forget, you can either use the `responses` component on the Shelf or just type in the necessary lines. +
++
+. Next, it's time to decide what possible `responses` are valid for each of these methods. All of them should have a `200` (OK) response, that's a no brainer. In the `POST order` method let's also include a `500` (server error) response in case something fails on the server side, and in the `GET status` resource let's also include a `400` (client error) response, in case the user requests a nonexistent order.
++
+Don't forget, you can either use the `responses` component on the Shelf or just type in the necessary lines.
++
 In the case of this API, the service behind the API constructs the actual response that a user receives.  Nevertheless, it's a good practice to provide a response example in the API RAML. With these examples in place, developers can then use the API Console to preview the structure of the response and build their consuming application accordingly.
 +
 [source, yaml, linenums]
@@ -214,8 +226,8 @@ baseUri: http://www.tshirt.com/api
                   "message": "The orderId doesn't match the specified e-mail"
                 }
 ----
-
-. To ensure that `POST` requests sent to the *`/order`* resource are valid, you can enforce that they all follow a given structure. You can provide a schema to match for incoming requests to ensure their validity. To help developers that are trying to understand what input your API requires, you can also add an example message, which will not only be readable in the RAML code, but that will be visibly exposed if the API is looked at in the API Console. Add both these elements into the `post` method of the `/orders` resource, placing them within `body – application/json`.
++
+. To ensure that `POST` requests sent to the *`/order`* resource are valid, you can enforce that they all follow a given structure. You can provide a schema to match for incoming requests to ensure their validity. To help developers that are trying to understand what input your API requires, you can also add an example message, which is not only readable in the RAML code, but that is visible if the API is looked at in the API Console. Add both these elements into the `post` method of the `/orders` resource, placing them within `body – application/json`.
 +
 [source, yaml, linenums]
 ----
@@ -227,8 +239,8 @@ baseUri: http://www.tshirt.com/api
         example: |
           {
             "size": "M",
-            "email": "robin@mail.com",
-            "name": "Robin Pille",
+            "email": "polly@mail.com",
+            "name": "Polly Hedra",
             "address1": "77 Geary St.",
             "address2": "Apt 7",
             "city": "San Francisco",
@@ -293,7 +305,7 @@ baseUri: http://www.tshirt.com/api
             }
           }
 ----
-
++
 . We want the `status` resource to be queryable using the requester's email. To allow that, we can add *queryParameters* to the `GET` operation. At the same level on the tree structure as the operation's `response` label, add a `queryParameters` element with the following attributes:
 +
 [source, yaml, linenums]
@@ -305,7 +317,6 @@ queryParameters:
           required: true
 ----
 
-
 == Testing your RAML API in the Console
 
 Now that you've designed your API, it's time to test a user's experience by actually calling the API in the API console. 
@@ -314,19 +325,16 @@ Now that you've designed your API, it's time to test a user's experience by actu
 +
 image:mocking+service.png[mocking+service]
 +
-
 . Notice the change to your RAML definition. Where previously your `baseUri` was a placeholder for the duration of the design phase (the service isn't actually tied to anything at the moment: calling http://www.tshirt.com/api doesn't return a response), now you've got something that looks like so:
 +
 image:mock+URL.png[mock+URL]
 +
 Whoa. What happened here? The `baseUri` that you provided when declaring your basic information at the root has been commented out and supplanted by a new URI.  With this one simple action, you've effectively published your API and it is now ready to receive live calls. You've provided example responses, right? You can make live calls in the API Console OR your browser, and it returns data that you've provided in your RAML API definition. You can see what your API consumers see when they make calls to the API, and fully test APX. 
 +
-Let's test that theory in the API console by making a **`GET`** request on the status of a particular order. +
-
+Let's test that theory in the API console by making a `GET` request on the status of a particular order.
 +
 image:Screenshot+2014-07-03+14.49.46.png[Screenshot+2014-07-03+14.49.46]
 +
-
 As you can see, by providing a valid email address, the request URL reflects the resource path appended to the `baseUri` (just as it would with any functioning API). The call was performed live, and in response the user received a status 200: success! The response body is the example provided in the RAML file. In this case, the information isn't important – it's knowing how the response looks and that it's successful that's important.
 
 == Next
