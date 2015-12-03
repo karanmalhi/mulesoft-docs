@@ -12,6 +12,10 @@ use the MQ server software.
 * Install link:https://www.mulesoft.com/platform/studio[Anypoint Studio]. We use Studio to create each application that talks to
 MQ over HTTP.
 * Install link:https://www.mulesoft.com/platform/soa/mule-esb-enterprise[Mule Runtime]. After doing so, locate the `bin` directory. We start Mule from this directory.
+
+[[chromeandpostman]]
+*Install Chrome and Postman*
+
 * Install the link:https://www.google.com/chrome/browser/desktop/[Chrome browser]. Chrome provides valuable developer
 tools and supports the use of plugins such as Postman, which sends HTTP commands to the MQ server.
 * Install the open-source link:https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en[Chrome Postman 3.0] - We use Postman to send HTTP commands to the MQ server.
@@ -198,8 +202,14 @@ image:mq-connector-visual-flow.png[mq-connector-visual-flow]
 .. Search for "set" and drag *Set Payload* to the Canvas.
 .. Search for "mq" and drag the *Anypoint MQ* connector icon to the canvas.
 .. Search for "logger" and drag *Logger* to the Canvas.
-. Click the HTTP Connector and click the green plus sign to the right of *Connector Configuration*.
+. Click the HTTP Connector and click the green plus sign to the right of *Connector Configuration*:
++
+image:mq-http-connector.png[mq-http-connector]
++
 . In the HTTP Connector's Global Element Properties, set the host to *localhost* and the port to *8081*. Click *OK*.
++
+image:mq-http-connector-globals.png[mq-http-connector-globals]
++
 . Set the *Path* to `/mq/{messageId}`.
 . Click *Set Payload* in the Canvas and set the *Value* to:
 +
@@ -208,21 +218,34 @@ image:mq-connector-visual-flow.png[mq-connector-visual-flow]
 #[message.inboundProperties.'http.uri.params'.messageId]
 ----
 +
-. Click the *MQ Connector* and click the green plus sign to the right of *Connector Configuration*.
+. Click the *MQ Connector* and click the green plus sign to the right of *Connector Configuration*:
 . In the MQ Connector's Global Element Properties window, add the information from Anypoint Platform:
-.. Copy the *Client App* > *Client App ID* value to Studio's *Client ID* field.
-.. Copy the *Client App* > *Client Secret* value to Studio's *Client Secret* field.
-.. Click OK.
-. Click the *Operation* field and specify an operation such as `publish` or `consume`.
-. Specify the *Destination* as the name of the Queue or Exchange that you set in Anypoint Platform.
-. Click the Logger and set the Message field to: `MQ Message: #[payload]`
-. Save your project.
 +
 image:mq-connector-properties.png[mq-connector-properties]
++
+.. Copy the *Client App* > *Client App ID* value to Studio's *Client ID* field.
+.. Copy the *Client App* > *Client Secret* value to Studio's *Client Secret* field.
++
+You can ignore the remaining fields.
++
+.. Click *OK*.
+. Click the *Operation* field and specify an operation such as `publish` or `consume`.
+. Specify the *Destination* as the name of the Queue or Exchange that you set in Anypoint Platform:
++
+image:mq-destination-queue.png[mq-destination-queue]
++
+. Click the *Logger* and set the Message field to:
++
+*MQ Message: #[payload]*
++
+image:mq-logger-properties.png[mq-logger-properties]
++
+. Save your project.
 
-=== Run the Application
 
-Click the project name in Package Explorer, and click *Run* > *Run As* > *Mule Application*.
+=== Run the Studio Application
+
+In Anypoint Studio, click the project name in Package Explorer, and click *Run* > *Run As* > *Mule Application*.
 
 The output should end with these statements:
 
@@ -289,6 +312,31 @@ INFO  <date> <time> [WrapperListener_start_runner] org.mule.module.launcher.Star
 *******************************************************************************************************
 ----
 
+== Use Postman to Send a Message
+
+Assuming Postman is installed in the Chrome browser as described in
+xref:chromeandpostman[Install Chrome and Postman] and that Mule is
+running, start Postman to send a message to the MQ queue.
+
+To start Postman:
+
+. Click the Chrome browser's Settings menu and *Settings*:
++
+image:mq-chrome-settings.png[mq-chrome-extensions]
++
+. Click *Extensions*, find Postman, and click *Details*:
++
+image:mq-chrome-extensions.png[mq-chrome-extensions]
++
+. Click *Launch App*:
++
+image:mq-launch-postman.png[mq-launch-postman]
++
+. In Postman, set the message type to *Post* and the URL to:
++
+`http://localhost:8081/publish/TestMessage`
++
+. Click *Send*. The message should appear in the Studio Console.
 
 == See Also
 
