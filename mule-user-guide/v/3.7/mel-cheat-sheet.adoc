@@ -39,24 +39,26 @@ Create a directory named `target` in the system's temporary directory and set it
 </expression-component>
 ----
 
-Set the username and password for an HTTP endpoint at runtime based on inbound message properties:
+// Set the username and password for an HTTP connector at runtime based on inbound message properties:
+//
+// [source, xml, linenums]
+// ----
+// <https:outbound-endpoint address="https://#[message.inboundProperties.username]: #[message.inboundProperties.password]@api.acme.com/v1/users" />
+// ----
 
-[source, xml, linenums]
-----
-<https:outbound-endpoint address="https://#[message.inboundProperties.username]:     #[message.inboundProperties.password]@api.acme.com/v1/users" />
-----
+== Flow Variables
 
-== Flow and Session Variables
+Flow variables are available in the flowVars context or directly as top level variables (unless autoResolveVariables is false or their name violates the MVEL naming conventions).
 
-Flow variables are available in the flowVars context or directly as top level variables (unless autoResolveVariables is false or their name violates the MVEL naming conventions). Session variables are available in the sessionVars context.
+// Session variables are available in the sessionVars context.
 
-To create a session variable named sessionId whose value is the concatenation of the current message ID, "@" and the Mule instance node ID, use either set-session-variable or MEL code, both shown hereafter:
+// To create a session variable named sessionId whose value is the concatenation of the current message ID, "@" and the Mule instance node ID, use either set-session-variable or MEL code, both shown hereafter:
 
-[source, xml, linenums]
-----
-<set-session-variable variableName="sessionId" value="#[message.id+'@'+mule.nodeId]" />
-<expression-component>sessionVars.sessionId = message.id+'@'+mule.nodeId;</expression-component>
-----
+// [source, xml, linenums]
+// ----
+// <set-session-variable variableName="sessionId" value="#[message.id+'@'+mule.nodeId]" />
+// <expression-component>sessionVars.sessionId = message.id+'@'+mule.nodeId;</expression-component>
+// ----
 
 The following shows how a bean can be dynamically retrieved from the registry, based on a name created by taking a value from a bean payload with a getTargetService() accessor:
 
@@ -73,7 +75,7 @@ Copy the current payload in a flow variable named `originalPayload` then restore
 [source, xml, linenums]
 ----
 <set-variable variableName="originalPayload" value="#[message.payload]" />
-<set-payload value="#[originalPayload]" />
+<set-payload value="#[flowVars['originalPayload']]" />
 ----
 
 To retrieve the message payload in a particular format, using Mule's auto-transformation capability, use `payloadAs`:
@@ -113,21 +115,21 @@ For example to select all the lines of the payload that begin with `To:`, `From:
 regex('^(To|From|Cc):')
 ----
 
-== XPath Support
+== XPath3 Support
 
-XPath helper functions return DOM4J nodes. By default the XPath expression is evaluated on message.payload unless an xmlElement is specified:
+XPath3 helper functions return DOM4J nodes. By default the XPath3 expression is evaluated on message.payload unless an xmlElement is specified:
 
 [source, code]
 ----
-xpath(xPathExpression [, xmlElement])
+xpath3(xPathExpression [, xmlElement])
 ----
 
 To get the text content of an element or an attribute:
 
 [source, code, linenums]
 ----
-#[xpath('//title').text]
-#[xpath('//title/@id').value]
+#[xpath3('//title').text]
+#[xpath3('//title/@id').value]
 ----
 
 == JSON Processing
@@ -143,7 +145,8 @@ MEL has no direct support for JSON. The `json-to-object-transformer` can turn a 
 
 == More MVEL Goodness
 
-Quick access to the MVEL 2.0 Documentation: http://goo.gl/AjceB
+Quick access to the MVEL 2.0 Documentation: link:https://github.com/mvel/mvel[MVEL in Git] and
+link:https://en.wikisource.org/wiki/MVEL_Language_Guide[MVEL Wikisource].
 
 _Java interoperability_, for example to create a random UUID and use it as an XSL-T parameter:
 
