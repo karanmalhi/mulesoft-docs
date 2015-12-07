@@ -39,26 +39,9 @@ Create a directory named `target` in the system's temporary directory and set it
 </expression-component>
 ----
 
-// Set the username and password for an HTTP connector at runtime based on inbound message properties:
-//
-// [source, xml, linenums]
-// ----
-// <https:outbound-endpoint address="https://#[message.inboundProperties.username]: #[message.inboundProperties.password]@api.acme.com/v1/users" />
-// ----
-
 == Flow Variables
 
 Flow variables are available in the flowVars context or directly as top level variables (unless autoResolveVariables is false or their name violates the MVEL naming conventions).
-
-// Session variables are available in the sessionVars context.
-
-// To create a session variable named sessionId whose value is the concatenation of the current message ID, "@" and the Mule instance node ID, use either set-session-variable or MEL code, both shown hereafter:
-
-// [source, xml, linenums]
-// ----
-// <set-session-variable variableName="sessionId" value="#[message.id+'@'+mule.nodeId]" />
-// <expression-component>sessionVars.sessionId = message.id+'@'+mule.nodeId;</expression-component>
-// ----
 
 The following shows how a bean can be dynamically retrieved from the registry, based on a name created by taking a value from a bean payload with a getTargetService() accessor:
 
@@ -101,7 +84,7 @@ To ask for a null payload:
 
 == Regex Support
 
-Regular expression helper functions retrieve `null`, a single value or an array of values, depending on matches. The forms that take a melExpression argument apply the regex to the result of its evaluation instead of `message.payload`.
+Regular expression helper functions retrieve `null`, a single value or an array of values, depending on matches. The forms that take a melExpression argument apply the regex to the result of its evaluation instead of `message.payload`. For more information, see link:/mule-user-guide/v/3.7/mule-expression-language-reference#regex[MEL Regex].
 
 [source, code]
 ----
@@ -117,7 +100,9 @@ regex('^(To|From|Cc):')
 
 == XPath3 Support
 
-XPath3 helper functions return DOM4J nodes. By default the XPath3 expression is evaluated on message.payload unless an xmlElement is specified:
+XPath3 helper functions can return a DOM Node, or collection of DOM Nodes, or text.
+For more information, see link:/mule-user-guide/v/3.7/xpath[XPath] and mule-expression-language-reference#xpath[MEL XPath]
+By default the XPath3 expression is evaluated on message.payload unless an xmlElement is specified:
 
 [source, code]
 ----
@@ -180,7 +165,7 @@ _"Elvis" operator,_ to return the first non-null value of a list of values:
 
 == Global Configuration
 
-Define global imports, aliases and global functions in the global configuration element. Global functions can be loaded from the file system, a URL, or a classpath resource (see extraFunctions.mvel below). Flow variables auto-binding can be turned off via the autoResolveVariables attribute.
+Define global imports, aliases and global functions in the global configuration element. Global functions can be loaded from the file system, a URL, or a classpath resource (see extraFunctions.mvel in line 6 below). Flow variables auto-binding can be turned off via the autoResolveVariables attribute in line 2.
 
 [source, xml, linenums]
 ----
