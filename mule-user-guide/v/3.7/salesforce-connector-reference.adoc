@@ -1,443 +1,3590 @@
-= Salesforce Connector Reference
-:keywords: anypoint studio, esb, connector, endpoint, salesforce
 
-The Salesforce Connector enacts API calls targeting Salesforce's SOAP API, REST API, Bulk API, or Streaming API, depending on the operation that you configure. The connector's API calls to Salesforce use an XML request/response over an HTTPS connection. All required request headers, error handling, and HTTPS connection configuration are abstracted from the user and built into the connector. 
+:toc:               left
+:toc-title:         Connector Summary
+:toclevels:         2
+:last-update-label!:
+:docinfo:
+:source-highlighter: coderay
+:icons: font
 
-This page summarizes the essential configuration parameters for the current version of the Salesforce connector:
 
-* Creating a global connector configuration using username/password/securityToken or via OAuth
-* Selecting the appropriate <<Operations>> for your use case.
+= Salesforce Connector API Reference
 
-This page _does not_ list the attributes of each operation. Full documentation of all attributes can be found in the link:http://mulesoft.github.io/salesforce-connector/6.1.0/mule/modules.html[reference index on github]. For introductory information, access the link:/mule-user-guide/v/3.7/salesforce-connector[Salesforce Connector] documentation.
++++
+The Salesforce Connector will allow you to connect to the Salesforce application using regular username and password via the SOAP API. Almost every operation that can be done via
+the Salesforce's API can be done through this connector. This connector will also work if your Salesforce objects are customized with additional fields or even you are working with
+custom objects.
+<p/>
+Integrating with Salesforce consists of web service calls utilizing XML request/response setup over an HTTPS connection. The technical details of this connection such as request
+headers, error handling, HTTPS connection, etc. are all abstracted from the user to make implementation quick and easy.
+<p/>
++++
 
-*Note*: Additional versions of the Salesforce connector reference information are available at the link:http://mulesoft.github.io/salesforce-connector/[GitHub Salesforce Connector site].
+*Additional Info*
+[width="50", cols=".<60%,^40%" ]
+|======================
+| Requires Mule Enterprise License |  Yes icon:star[]  {nbsp}
+| Requires Entitlement |  No icon:remove[]  {nbsp}
+| Mule Version | 3.5.0 or higher
+|======================
 
-== Global Salesforce Connector Configuration
 
-Depending on whether you are using OAuth to connect to your Salesforce account, configure your connector with one of these global configurations.
+== Configs
+---
+=== Basic Authentication
+`<sfdc:config>`
 
-* `sfdc:config`
-* `sfdc:config-with-oauth`
 
-Note that if you select `sfdc:config-with-oauth`, you must also configure an <<Configuring the Authorization Flow>> to acquire an access token. This access token is referenced via an `accessTokenId` attribute in all Salesforce operations configured to use an OAuth connection.
+`Connection Management`
 
-For non-OAuth configurations, Mule performs the authentication with Salesforce within the same flow as the Salesforce operation itself – no separate authorization flow is required.
++++
+Salesforce connector configuration that uses basic authentication for establishing connection with
+Salesforce system.
++++
 
-=== Global Configuration 
 
-[width="90a",cols="10a,90a",options="header"]
-|===
-|Element |Description
-|*sfdc:config* |Use to configure a connection to your Salesforce account.
-|===
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+| Name | Java Type | Description | Default Value | Required
+|name | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | The name of this configuration. With this name can be later referenced. | | *x*{nbsp}
+| username | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Username used to initialize the session+++ |   | *x*{nbsp}
+| password | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Password used to authenticate the user+++ |   | *x*{nbsp}
+| securityToken | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++User's security token. It can be omitted if your IP has been whitelisted on Salesforce+++ |   | {nbsp}
+| url | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Web service URL responsible for user authentication. This is the URL for the endpoint able to handle SOAP authentication requests.+++ |  https://login.salesforce.com/services/Soap/u/34.0 | {nbsp}
+| sessionId | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++This value could be used for specifying an active Salesforce session+++ |   | {nbsp}
+| serviceEndpoint | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Specifies the service endpoint. This value will only be used in case of using sessionId configuration property.+++ |   | {nbsp}
+| disableSessionInvalidation | +++boolean+++ | +++If true then the session will not get invalidated when connection pool decides that the connection is no longer needed.
+This could be useful when you use the same username from more applications and get the same session from Salesforce.
+Default value is false.+++ |  false | {nbsp}
+| clientId | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Client ID for partners+++ |   | {nbsp}
+| assignmentRuleId | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The ID of a specific assignment rule to run for the Case or Lead. The assignment rule can be active or inactive. The ID can be retrieved by querying the AssignmentRule
+object. If specified, do not specify useDefaultRule. This element is ignored for accounts, because all territory assignment rules are applied.
+<p/>
+If the value is not in correct ID format (15-character or 18-character Salesforce ID), the call fails and a MALFORMED_ID exception is returned. Default value is false.+++ |   | {nbsp}
+| useDefaultRule | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Boolean.html">Boolean</a>+++ | +++If true for a Case or Lead, uses the default (active) assignment rule for a Case or Lead. If specified, do not specify an assignmentRuleId. If true for an Account, all
+territory assignment rules are applied, and if false, no territory assignment rules are applied. Default value is false.+++ |  false | {nbsp}
+| allowFieldTruncationSupport | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Boolean.html">Boolean</a>+++ | +++If true, truncate field values that are too long, which is the behavior in API versions 14.0 and earlier.
+<p/>
+Default is false: no change in behavior. If a string or textarea value is too large, the operation fails and the fault code STRING_TOO_LONG is returned.+++ |  false | {nbsp}
+| fetchAllApexSoapMetadata | +++boolean+++ | +++If checked then Datasense will be performed for all Apex classes in the organization else it will be performed only for the classes in Apex Class Names If the organization
+contains a lot of Apex Classes this might cause ConnectionTimeout during Datasense. Default value is false.+++ |  false | {nbsp}
+| fetchAllApexRestMetadata | +++boolean+++ | +++If checked then Datasense will be performed for all Apex classes in the organization else it will be performed only for the classes in Apex Class Names If the organization
+contains a lot of Apex Classes this might cause ConnectionTimeout during Datasense. Default value is false.+++ |  false | {nbsp}
+| apexClassNames | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++List of APEX class names involved in metadata retrieving through DataSense.+++ |   | {nbsp}
+| readTimeout | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Integer.html">Integer</a>+++ | +++Specifies the amount of time, in milliseconds, that the consumer will wait for a response before it times out. Default value is 0 which means infinite.+++ |  0 | {nbsp}
+| connectionTimeout | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Integer.html">Integer</a>+++ | +++Specifies the amount of time, in milliseconds, that the consumer will attempt to establish a connection before it times out. Default value is 0 which means infinite.+++ |  0 | {nbsp}
+| proxyHost | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Hostname of the proxy. If this property is not set then no proxy is used, otherwise proxy is going to be used but host can not be empty.+++ |   | {nbsp}
+| proxyPort | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Port of the proxy. If host is set then this property has to be set and can not be a negative number.+++ |   | {nbsp}
+| proxyUsername | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Username used to authenticate against the proxy. If this property is not set then no authentication is going to be used against proxy, otherwise this value can not be empty.+++ |   | {nbsp}
+| proxyPassword | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Password used to authenticate against the proxy.+++ |   | {nbsp}
+| timeObjectStore | +++ObjectStore<Serializable>+++ | +++An ObjectStore instance to use in <a href="#_get_updated_objects">SalesforceConnector#getUpdatedObjects</a>+++ |   | {nbsp}
+| batchSobjectMaxDepth | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Integer.html">Integer</a>+++ | +++Creating a batch will create SObjects using this value for the MAX_DEPTH check.+++ |  5 | {nbsp}
+|======================
+---
+=== OAuth 2.0 JWT Bearer
+`<sfdc:config-oauth-jwt-bearer>`
 
-[width="99a",cols="25a,25a,25a,25a",options="header"]
-|===
-|Attribute |Description |Required? |Default Value
-|*name* |Defines unique identifier for global element |X |
-|*username* |Username used to initialize the session |X |
-|*password* |Password used to authenticate the user |X |
-|*securityToken* |User's security token |X |
-|*url* |Salesforce endpoint URL | + |https://login.salesforce.com/services/Soap/u/30.0
-|*proxyHost* |Hostname of the proxy |  |
-|*proxyPort* |Port of the proxy |  |
-|*proxyUsername* |Username used to authenticate against the proxy |  |
-|*proxyPassword* |Password used to authenticate against the proxy |  |
-|*sessionId* |This value could be used for specifying an active Salesforce session. Required connection parameters will be used in case of reconnection. |  |
-|*serviceEndpoint* |Specifies the service endpoint. This value is only used if you configure the sessionId attribute. Otherwise, the service endpoint is retrieved from the login results. |  |
-|===
 
-If you wish, you can customize the automatic connection management by explicitly configuring a connection pool to specify the parameters. For more information, see link:/mule-user-guide/v/3.7/tuning-performance[Tuning Performance].
+`Connection Management`
 
-You can also optionally configure a reconnection strategy using the reconnection child element. For more information, see link:/mule-user-guide/v/3.7/configuring-reconnection-strategies[Configuring Reconnection Strategies].
++++
+Salesforce configuration object that uses OAuth 2.0 JWT bearer in order to establish connection with Salesforce system.
++++
 
-=== Global Configuration with OAuth
 
-[width="90a",cols="10a,90a",options="header"]
-|===
-|Element |Description
-|*sfdc:config-with-oauth* |Use to configure a connection to your Salesforce account via OAuth.
-|===
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+| Name | Java Type | Description | Default Value | Required
+|name | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | The name of this configuration. With this name can be later referenced. | | *x*{nbsp}
+| consumerKey | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++- consumer key for Salesforce connected app+++ |   | *x*{nbsp}
+| keyStore | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++- path to key store used to sign data during authentication+++ |   | *x*{nbsp}
+| storePassword | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++- password of key store+++ |   | *x*{nbsp}
+| principal | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Username of desired Salesforce user to take action on behalf of.+++ |   | *x*{nbsp}
+| tokenEndpoint | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++URL pointing the server responsible of providing authentication token. According to Salesforce it should be
+https://login.salesforce.com/services/oauth2/token, or, if implementing for a community,
+https://acme.force.com/customers/services/oauth2/token (where acme.force.com/customers is your community URL).+++ |  https://login.salesforce.com/services/oauth2/token | {nbsp}
+| disableSessionInvalidation | +++boolean+++ | +++If true then the session will not get invalidated when connection pool decides that the connection is no longer needed.
+This could be useful when you use the same username from more applications and get the same session from Salesforce.
+Default value is false.+++ |  false | {nbsp}
+| apiVersion | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Double.html">Double</a>+++ | +++Salesforce API version. The default value is the latest version supported by the connector: 34.0+++ |  34.0 | {nbsp}
+| clientId | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Client ID for partners+++ |   | {nbsp}
+| assignmentRuleId | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The ID of a specific assignment rule to run for the Case or Lead. The assignment rule can be active or inactive. The ID can be retrieved by querying the AssignmentRule
+object. If specified, do not specify useDefaultRule. This element is ignored for accounts, because all territory assignment rules are applied.
+<p/>
+If the value is not in correct ID format (15-character or 18-character Salesforce ID), the call fails and a MALFORMED_ID exception is returned. Default value is false.+++ |   | {nbsp}
+| useDefaultRule | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Boolean.html">Boolean</a>+++ | +++If true for a Case or Lead, uses the default (active) assignment rule for a Case or Lead. If specified, do not specify an assignmentRuleId. If true for an Account, all
+territory assignment rules are applied, and if false, no territory assignment rules are applied. Default value is false.+++ |  false | {nbsp}
+| allowFieldTruncationSupport | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Boolean.html">Boolean</a>+++ | +++If true, truncate field values that are too long, which is the behavior in API versions 14.0 and earlier.
+<p/>
+Default is false: no change in behavior. If a string or textarea value is too large, the operation fails and the fault code STRING_TOO_LONG is returned.+++ |  false | {nbsp}
+| fetchAllApexSoapMetadata | +++boolean+++ | +++If checked then Datasense will be performed for all Apex classes in the organization else it will be performed only for the classes in Apex Class Names If the organization
+contains a lot of Apex Classes this might cause ConnectionTimeout during Datasense. Default value is false.+++ |  false | {nbsp}
+| fetchAllApexRestMetadata | +++boolean+++ | +++If checked then Datasense will be performed for all Apex classes in the organization else it will be performed only for the classes in Apex Class Names If the organization
+contains a lot of Apex Classes this might cause ConnectionTimeout during Datasense. Default value is false.+++ |  false | {nbsp}
+| apexClassNames | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++List of APEX class names involved in metadata retrieving through DataSense.+++ |   | {nbsp}
+| readTimeout | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Integer.html">Integer</a>+++ | +++Specifies the amount of time, in milliseconds, that the consumer will wait for a response before it times out. Default value is 0 which means infinite.+++ |  0 | {nbsp}
+| connectionTimeout | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Integer.html">Integer</a>+++ | +++Specifies the amount of time, in milliseconds, that the consumer will attempt to establish a connection before it times out. Default value is 0 which means infinite.+++ |  0 | {nbsp}
+| proxyHost | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Hostname of the proxy. If this property is not set then no proxy is used, otherwise proxy is going to be used but host can not be empty.+++ |   | {nbsp}
+| proxyPort | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Port of the proxy. If host is set then this property has to be set and can not be a negative number.+++ |   | {nbsp}
+| proxyUsername | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Username used to authenticate against the proxy. If this property is not set then no authentication is going to be used against proxy, otherwise this value can not be empty.+++ |   | {nbsp}
+| proxyPassword | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Password used to authenticate against the proxy.+++ |   | {nbsp}
+| timeObjectStore | +++ObjectStore<Serializable>+++ | +++An ObjectStore instance to use in <a href="#_get_updated_objects">SalesforceConnector#getUpdatedObjects</a>+++ |   | {nbsp}
+| batchSobjectMaxDepth | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Integer.html">Integer</a>+++ | +++Creating a batch will create SObjects using this value for the MAX_DEPTH check.+++ |  5 | {nbsp}
+|======================
+---
+=== OAuth 2.0 SAML Bearer
+`<sfdc:config-oauth-saml-bearer>`
 
-[width="100a",cols="25a,25a,25a,25a",options="header"]
-|===
-|Attribute |Description |Required? |Default Value
-|*name* |Define a name to this configuration so it can later be referenced. |X |
-|*onNoToken* |Defines the behavior of a connector when a user with no OAuth token attempts to utilize the service. Possible values are EXCEPTION and STOP_FLOW.   |X |EXCEPTION
-|*assignmentRuleId* |The ID of a specific assignment rule to run for the Case or Lead. The assignment rule can be active or inactive. The ID can be retrieved by querying the AssignmentRule object. If specified, do not specify useDefaultRule. This element is ignored for accounts, because all territory assignment rules are applied. If the value is not in the correct ID format (15-character or 18-character Salesforce ID), the call fails and a MALFORMED_ID exception is returned. |  |
-|*consumerKey* |Your application's client identifier (consumer key in Remote Access Detail). |X |
-|*consumerSecret* |Your application's client secret (consumer secret in Remote Access Detail). |X |
-|*timeObjectStore-ref* |The object store instance that should be used by the getUpdatedObjects() operation. If undefined, the connector will use the Mule default user object store. |  |
-|*clientId* |Client ID for partners. |  |
-|*batchSobjectMaxDepth* |Creating a batch creates sObjects using this value for the MAX_DEPTH check. |  |
-|*useDefaultRule* |
-If true for a Case or a Lead, the connector uses the default (active) assignment rule. If true for an Account, all territory assignment rules are applied; if false for an Account, no territory rules are assigned.If you set this attribute to true, do not specify an assignmentRuleId.|  |false
-|*allowFieldTruncationSupport* |
-If true, the connector truncates field values that are too long, which is the behavior in API versions 14.0 and earlier. If false (default), no change in behavior. If a string or textarea value is too large, the operation fails with the fault code STRING_TOO_LONG.|  |false
-|===
 
-==== Customizing the Callback URL
+`Connection Management`
 
-OAuth requires a callback configuration. Salesforce automatically calls the callback endpoint once the user is authenticated and he or she grants authorization to the connector to access his or her private information.
++++
+Salesforce configuration object that uses OAuth 2.0 JWT bearer in order to establish connection with Salesforce system.
++++
 
-[width="90a",cols="10a,90a",options="header"]
-|===
-|Child Element |Description
-|*sfdc:oauth-callback-config* |Use to configure the callback URL.
-|===
 
-[width="99a",cols="25a,25a,25a,25a",options="header"]
-|===
-|Attribute |Description |Required? |Default Value
-|*domain* |The domain of the endpoint on which your OAuth callback is hosted.  When in production, this is the domain on which your application is hosted. |X |
-|*localPort* |The port on which your authorization flow is hosted. This is the port on which your HTTP endpoint is hosted. |X |
-|*remotePort* |The port of the endpoint at which your OAuth callback is hosted. |  |
-|*path* |The path of the endpoint at which your OAuth callback is hosted. |  |
-|*connector-ref* |References a global HTTP connector from which the sfdc:oauth-callback-config element borrows configuration details. If specified, then the sfdc:oauth-callback-config uses the referenced connector. |  |
-|*defaultAccessTokenId* |Mule uses this value to name an object store variable in which to store the Token ID. You can set this attribute to an expression to avoid overwriting the Token ID if multiple users access the same account. |  |
-|*async* |Determines whether the callback executes synchronously (default) or asynchronously. |  |false
-|===
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+| Name | Java Type | Description | Default Value | Required
+|name | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | The name of this configuration. With this name can be later referenced. | | *x*{nbsp}
+| consumerKey | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++- consumer key for Salesforce connected app+++ |   | *x*{nbsp}
+| keyStore | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++- path to key store used to sign data during authentication+++ |   | *x*{nbsp}
+| storePassword | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++- password of key store+++ |   | *x*{nbsp}
+| principal | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Username of desired Salesforce user to take action on behalf of.+++ |   | *x*{nbsp}
+| tokenEndpoint | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++URL pointing the server responsible of providing authentication token. According to Salesforce it should be
+https://login.salesforce.com/services/oauth2/token, or, if implementing for a community,
+https://acme.force.com/customers/services/oauth2/token (where acme.force.com/customers is your community URL).+++ |  https://login.salesforce.com/services/oauth2/token | {nbsp}
+| disableSessionInvalidation | +++boolean+++ | +++If true then the session will not get invalidated when connection pool decides that the connection is no longer needed.
+This could be useful when you use the same username from more applications and get the same session from Salesforce.
+Default value is false.+++ |  false | {nbsp}
+| apiVersion | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Double.html">Double</a>+++ | +++Salesforce API version. The default value is the latest version supported by the connector: 34.0+++ |  34.0 | {nbsp}
+| clientId | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Client ID for partners+++ |   | {nbsp}
+| assignmentRuleId | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The ID of a specific assignment rule to run for the Case or Lead. The assignment rule can be active or inactive. The ID can be retrieved by querying the AssignmentRule
+object. If specified, do not specify useDefaultRule. This element is ignored for accounts, because all territory assignment rules are applied.
+<p/>
+If the value is not in correct ID format (15-character or 18-character Salesforce ID), the call fails and a MALFORMED_ID exception is returned. Default value is false.+++ |   | {nbsp}
+| useDefaultRule | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Boolean.html">Boolean</a>+++ | +++If true for a Case or Lead, uses the default (active) assignment rule for a Case or Lead. If specified, do not specify an assignmentRuleId. If true for an Account, all
+territory assignment rules are applied, and if false, no territory assignment rules are applied. Default value is false.+++ |  false | {nbsp}
+| allowFieldTruncationSupport | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Boolean.html">Boolean</a>+++ | +++If true, truncate field values that are too long, which is the behavior in API versions 14.0 and earlier.
+<p/>
+Default is false: no change in behavior. If a string or textarea value is too large, the operation fails and the fault code STRING_TOO_LONG is returned.+++ |  false | {nbsp}
+| fetchAllApexSoapMetadata | +++boolean+++ | +++If checked then Datasense will be performed for all Apex classes in the organization else it will be performed only for the classes in Apex Class Names If the organization
+contains a lot of Apex Classes this might cause ConnectionTimeout during Datasense. Default value is false.+++ |  false | {nbsp}
+| fetchAllApexRestMetadata | +++boolean+++ | +++If checked then Datasense will be performed for all Apex classes in the organization else it will be performed only for the classes in Apex Class Names If the organization
+contains a lot of Apex Classes this might cause ConnectionTimeout during Datasense. Default value is false.+++ |  false | {nbsp}
+| apexClassNames | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++List of APEX class names involved in metadata retrieving through DataSense.+++ |   | {nbsp}
+| readTimeout | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Integer.html">Integer</a>+++ | +++Specifies the amount of time, in milliseconds, that the consumer will wait for a response before it times out. Default value is 0 which means infinite.+++ |  0 | {nbsp}
+| connectionTimeout | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Integer.html">Integer</a>+++ | +++Specifies the amount of time, in milliseconds, that the consumer will attempt to establish a connection before it times out. Default value is 0 which means infinite.+++ |  0 | {nbsp}
+| proxyHost | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Hostname of the proxy. If this property is not set then no proxy is used, otherwise proxy is going to be used but host can not be empty.+++ |   | {nbsp}
+| proxyPort | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Port of the proxy. If host is set then this property has to be set and can not be a negative number.+++ |   | {nbsp}
+| proxyUsername | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Username used to authenticate against the proxy. If this property is not set then no authentication is going to be used against proxy, otherwise this value can not be empty.+++ |   | {nbsp}
+| proxyPassword | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Password used to authenticate against the proxy.+++ |   | {nbsp}
+| timeObjectStore | +++ObjectStore<Serializable>+++ | +++An ObjectStore instance to use in <a href="#_get_updated_objects">SalesforceConnector#getUpdatedObjects</a>+++ |   | {nbsp}
+| batchSobjectMaxDepth | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Integer.html">Integer</a>+++ | +++Creating a batch will create SObjects using this value for the MAX_DEPTH check.+++ |  5 | {nbsp}
+|======================
+---
+=== OAuth v2.0
+`<sfdc:config-with-oauth>`
 
-Example:
+`OAuth2`
+Using OAuth2 as authentication method will add the *authorize* and *unauthorize* operations. You must authorize before using any operation with OAuth2.
 
-[source, xml, linenums]
+
+
++++
+Salesforce connector configuration that uses OAuth2 dance for establishing connection with
+Salesforce system.
++++
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+| Name | Java Type | Description | Default Value | Required
+|name | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | The name of this configuration. With this name can be later referenced. | | *x*{nbsp}
+| consumerKey | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Your application's client identifier (consumer key in Remote Access Detail).+++ |   | *x*{nbsp}
+| consumerSecret | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Your application's client secret (consumer secret in Remote Access Detail).+++ |   | *x*{nbsp}
+| apiVersion | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Double.html">Double</a>+++ | +++Salesforce API version. The default value is the latest version supported by the connector: 34.0+++ |  34.0 | {nbsp}
+| clientId | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Client ID for partners+++ |   | {nbsp}
+| assignmentRuleId | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The ID of a specific assignment rule to run for the Case or Lead. The assignment rule can be active or inactive. The ID can be retrieved by querying the AssignmentRule
+object. If specified, do not specify useDefaultRule. This element is ignored for accounts, because all territory assignment rules are applied.
+<p/>
+If the value is not in correct ID format (15-character or 18-character Salesforce ID), the call fails and a MALFORMED_ID exception is returned. Default value is false.+++ |   | {nbsp}
+| useDefaultRule | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Boolean.html">Boolean</a>+++ | +++If true for a Case or Lead, uses the default (active) assignment rule for a Case or Lead. If specified, do not specify an assignmentRuleId. If true for an Account, all
+territory assignment rules are applied, and if false, no territory assignment rules are applied. Default value is false.+++ |  false | {nbsp}
+| allowFieldTruncationSupport | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Boolean.html">Boolean</a>+++ | +++If true, truncate field values that are too long, which is the behavior in API versions 14.0 and earlier.
+<p/>
+Default is false: no change in behavior. If a string or textarea value is too large, the operation fails and the fault code STRING_TOO_LONG is returned.+++ |  false | {nbsp}
+| fetchAllApexSoapMetadata | +++boolean+++ | +++If checked then Datasense will be performed for all Apex classes in the organization else it will be performed only for the classes in Apex Class Names If the organization
+contains a lot of Apex Classes this might cause ConnectionTimeout during Datasense. Default value is false.+++ |  false | {nbsp}
+| fetchAllApexRestMetadata | +++boolean+++ | +++If checked then Datasense will be performed for all Apex classes in the organization else it will be performed only for the classes in Apex Class Names If the organization
+contains a lot of Apex Classes this might cause ConnectionTimeout during Datasense. Default value is false.+++ |  false | {nbsp}
+| apexClassNames | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++List of APEX class names involved in metadata retrieving through DataSense.+++ |   | {nbsp}
+| readTimeout | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Integer.html">Integer</a>+++ | +++Specifies the amount of time, in milliseconds, that the consumer will wait for a response before it times out. Default value is 0 which means infinite.+++ |  0 | {nbsp}
+| connectionTimeout | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Integer.html">Integer</a>+++ | +++Specifies the amount of time, in milliseconds, that the consumer will attempt to establish a connection before it times out. Default value is 0 which means infinite.+++ |  0 | {nbsp}
+| proxyHost | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Hostname of the proxy. If this property is not set then no proxy is used, otherwise proxy is going to be used but host can not be empty.+++ |   | {nbsp}
+| proxyPort | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Port of the proxy. If host is set then this property has to be set and can not be a negative number.+++ |   | {nbsp}
+| proxyUsername | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Username used to authenticate against the proxy. If this property is not set then no authentication is going to be used against proxy, otherwise this value can not be empty.+++ |   | {nbsp}
+| proxyPassword | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Password used to authenticate against the proxy.+++ |   | {nbsp}
+| timeObjectStore | +++ObjectStore<Serializable>+++ | +++An ObjectStore instance to use in <a href="#_get_updated_objects">SalesforceConnector#getUpdatedObjects</a>+++ |   | {nbsp}
+| batchSobjectMaxDepth | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Integer.html">Integer</a>+++ | +++Creating a batch will create SObjects using this value for the MAX_DEPTH check.+++ |  5 | {nbsp}
+|======================
+
+
+
+== Processors
+
+---
+
+=== Create
+`<sfdc:create>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Adds one or more new records to your organization's data.
+<p/>
+<p class="caution">
+IMPORTANT: When you map your objects to the input of this message processor keep in mind that they need to match the expected type of the object at Salesforce.
+<p/>
+Take the CloseDate of an Opportunity as an example, if you set that field to a string of value "2011-12-13" it will be sent to Salesforce as a string and operation will be
+rejected on the basis that CloseDate is not of the expected type.
+<p/>
+The proper way to actually map it is to generate a Java Date object, you can do so using Groovy expression evaluator as <i>#[groovy:Date.parse("yyyy-MM-dd",
+"2011-12-13")]</i>.
+</p>
+<p/>
++++
+
+==== XML Sample
+[source,xml]
 ----
-<sfdc:oauth-callback-config domain="localhost" localPort="8081" remotePort="8081" path="oauthcallback"/>
+<sfdc:create config-ref="Salesforce3" type="Account">
+    <sfdc:objects>
+        <sfdc:object>
+             <sfdc:inner-object key="BillingStreet">30 Maiden Lane</sfdc:inner-object>
+             <sfdc:inner-object key="BillingCity">San Francisco</sfdc:inner-object>
+             <sfdc:inner-object key="BillingCountry">US</sfdc:inner-object>
+             <sfdc:inner-object key="BillingState">CA</sfdc:inner-object>
+             <sfdc:inner-object key="Name">MuleSoft</sfdc:inner-object>
+             <sfdc:inner-object key="BillingPostalCode">94108</sfdc:inner-object>
+        </sfdc:object>
+    </sfdc:objects>
+</sfdc:create>
 ----
 
-==== Customizing the Object Store
 
-The Salesforce connector can automatically save and restore access tokens. The connector stores the acquired access tokens, refresh tokens, and any other pertinent information in either the default user object store or a user-defined object store using the access token identifier as the key.
 
-To configure an existing user-defined object store, include an *sfdc:object-store-config* in your application and configure an *objectStore-ref* attribute to reference the name of your existing object store. Use this configuration if you already have an object store configured that you would prefer to use for the persistence of your access and refresh tokens.
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
 
-[width="90a",cols="10a,90a",options="header"]
-|====
-|Optional Child Element |Description
-|*sfdc:oauth-store-config* |Use to define a custom object store to persist access and refresh tokens.
-|====
 
-[width="99a",cols="25a,25a,25a,25a",options="header"]
-|====
-|Attribute |Description |Required? |Default Value
-|*objectStore-ref* |The name of the object store to which you wish to persist access and refresh tokens. |X | 
-|====
 
-==== Configuring the Authorization Flow
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Type of object to create+++ |  | *x*{nbsp}
 
-Every Salesforce connector configured to use OAuth has an extra attribute called *accessTokenId*, which is an identification of the user authorizing the connector. In order to obtain an access token identification, you need to first call the *authorize* operation in a separate authorization flow. This flow must consist of an HTTP inbound endpoint and the *sfdc:authorize* element, as shown.
 
-[source, xml, linenums]
+
+
+|
+objects icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++An array of one or more sObjects objects.+++ | #[payload] | {nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><SaveResult>+++ | +++An array of SaveResult if async is false+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_create.htm">create()</a>+++
+
+
+---
+
+=== Create job
+`<sfdc:create-job>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Creates a Job in order to perform one or more batches through Bulk API Operations.
+<p/>
++++
+
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+operation  | +++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/OperationEnum.html">OperationEnum</a>+++ | +++The com.sforce.async.OperationEnum that will be executed by the job.+++ |  | *x*{nbsp}
+
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The type of Salesforce object that the job will process.+++ |  | *x*{nbsp}
+
+
+
+
+|
+externalIdFieldName  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Contains the name of the field on this object with the external ID field attribute for custom objects or the idLookup field property for standard objects (only required for Upsert Operations).+++ |  | {nbsp}
+
+
+
+
+|
+contentType  | +++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/ContentType.html">ContentType</a>+++ | +++The Content Type for this Job results. When specifying a content type different from XML for a query type use BatchInfo) batchResultStream} method to retrieve results.+++ |  | {nbsp}
+
+
+
+
+|
+concurrencyMode  | +++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/ConcurrencyMode.html">ConcurrencyMode</a>+++ | +++The concurrency mode of the job, either Parallel or Serial.+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/JobInfo.html">JobInfo</a>+++ | +++A <a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/JobInfo.html">JobInfo</a> that identifies the created Job.+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_jobs_create.htm">createJob()</a>+++
+
+
+---
+
+=== Close job
+`<sfdc:close-job>`
+
+
+
+
++++
+Closes an open Job given its ID.
++++
+
+==== XML Sample
+[source,xml]
 ----
-<flow name="authorizationAndAuthenticationFlow">
-  <http:listener config-ref="HTTP_Listener_Configuration" path="oauth-authorize"/>
-  <sfdc:authorize/>
-</flow>
+<sfdc:close-job config-ref="mySalesforceConfig" jobId="ID" />
 ----
 
-The sfdc:authorize element supports the following attributes.
 
-[width="100a",cols="25a,25a,25a,25a",options="header"]
-|===
-|Attribute |Description |Required? |Default Value
-|*display* |
-Use to tailor the login page to the user's device type. Valid values are:
 
-* page—Full-page authorization screen. This is the default value if none is specified.
-* popup—Compact dialog optimized for modern Web browser popup windows.
-* touch—Mobile-optimized dialog.
-* mobile—Mobile-optimized dialog for smartphones that don’t support touch screens.
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
 
- |X |page
-|*immediate* |
-Determines whether the user should be prompted for login and approval.
 
-* If set to true, and if the user is currently logged in and has previously approved the application, the approval step is skipped.
-* If set to true and the user is not logged in or has not previously approved the application, the session is immediately terminated with the immediate_unsuccessful error code.
 
- |  |false
-|*prompt* |Specifies how the authorization server prompts the user for reauthentication and reapproval. |  |
-|*authorizationUrl* |The URL to which the resource owner redirects to grant authorization to the connector. |  |https://test.salesforce.com/services/oauth2/authorize
-|*accessTokenUrl* |The URL at which the user can obtain an access token. | |https://test.salesforce.com/services/oauth2/token
-|===
+|
+jobId  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The Job ID identifying the Job to be closed.+++ |  | *x*{nbsp}
 
-Calling this inbound endpoint via a browser initiates the OAuth dance, redirecting the user to the Salesforce authorization page and creating a callback endpoint so Salesforce can call back once the user has authenticated and properly authorized the connector.  Once the callback gets called, the connector automatically issues an access token identifier that Mule saves with the key *OAuthAccessTokenId*. The connector automatically sets the OAuthAccessTokenId as a flow variable that is available to all message processors after the authorize call has completed. All Salesforce connector operations after the authorize flow require an *accessTokenId* as a parameter of the operation. Specify the expression  `#[flowVars.OAuthAccessTokenId]` , as shown in the following example, to supply this parameter. 
 
-[source, code]
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/JobInfo.html">JobInfo</a>+++ | +++A JobInfo that identifies the closed Job. <a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_reference_jobinfo.htm"> asynch_api_reference_jobinfo </a>+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_jobs_close.htm">closeJob()</a>+++
+
+
+---
+
+=== Abort job
+`<sfdc:abort-job>`
+
+
+
+
++++
+Aborts an open Job given its ID.
++++
+
+==== XML Sample
+[source,xml]
 ----
-...
-<sfdc:query config-ref="mySalesforceConfig" query="SELECT Id FROM Account" accessTokenId="#[flowVars.OAuthAccessTokenId]"/>
-...
+<sfdc:abort-job config-ref="mySalesforceConfig" jobId="ID" />
 ----
 
-== Operations
 
-The following operations define the interaction you wish to perform via the Salesforce SOAP API, REST API, Bulk API, or Streaming API. Note that the Salesforce connector does not expose all possible operations of these Salesforce APIs. The selected operations below also have, in some cases, been modified from the bare minimum of the corresponding API call to change the return type. Refer to the Return Type Description column for more information.
 
-[TIP]
-Click the column headings to sort the operations alphabetically by your preferred column.
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
 
-[width="100a",cols="20a,20a,20a,20a,20a",options="header"]
-|===
-|Operation |XML Element with Link to Full Reference |Description |Salesforce API Documentation |Return Type Description
-|*Authorize* |`sfdc:authorize` |Relevant for OAuth-configured connectors only. If the connector is not authorized yet, the authorize operation will redirect to the service provider so the user can authorize the connector. See <<Configuring the Authorization Flow>> above. |
-REST API
 
-http://www.salesforce.com/us/developer/docs/api_rest/Content/intro_understanding_web_server_oauth_flow.htm[Understanding the Web Server OAuth Flow]
 
- |N/A
-|*Unauthorize* |`sfdc:unauthorize` |Relevant for OAuth-configured connectors only. Resets the state of the connector back to a non-authorized state.  |
-REST API
+|
+jobId  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The Job ID identifying the Job to be aborted.+++ |  | *x*{nbsp}
 
-http://www.salesforce.com/us/developer/docs/api_rest/Content/intro_understanding_web_server_oauth_flow.htm[Understanding the Web Server OAuth Flow]    
 
- |N/A
-|*Abort job* |`sfdc:abort-job` |Aborts an open Job given its ID. |
-Bulk API
+|======================
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_jobs_abort.htm[Aborting a Job]
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/JobInfo.html">JobInfo</a>+++ | +++A JobInfo that identifies the aborted Job. <a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_reference_jobinfo.htm"> asynch_api_reference_jobinfo </a>+++
+|======================
 
- |A JobInfo that identifies the aborted Job.
-|*Batch info* |`sfdc:batch-info` |Access latest BatchInfo of a submitted BatchInfo. |
-Bulk API
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_get_info.htm[Getting Information for a Batch]
+==== APIDoc Reference
++++<a href="www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_jobs_abort.htm">abortJob()</a>+++
 
- |Latest BatchInfo representing status of the batch job result.
-|*Batch result* |`sfdc:batch-result` |Access com.sforce.async.BatchResult of a submitted BatchInfo. |
-Bulk API
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_get_results.htm[Getting Batch Results]
+---
 
- |com.sforce.async. BatchResult representing result of the batch job result.
-|*Batch result stream* |`sfdc:batch-result-stream` |Access com.sforce.async.BatchResult of a submitted BatchInfo. |
-Bulk API
+=== Job info
+`<sfdc:job-info>`
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_get_results.htm[Getting Batch Results]
 
- |java.io.InputStream representing result of the batch job result.
-|*Close job* |`sfdc:close-job` |Closes an open Job given its ID. |
-Bulk API
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_jobs_close.htm[Closing a Job]
 
- |A JobInfo that identifies the closed Job. 
-|*Convert lead* |`sfdc:convert-lead` |Converts a Lead into an Account, Contact, or (optionally) an Opportunity. |
-SOAP API
++++
+Access latest JobInfo of a submitted JobInfo. Allows to track execution status.
+<p/>
++++
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_convertlead.htm[convertLead()]
+==== XML Sample
+[source,xml]
+----
+<sfdc:job-info config-ref="mySalesforceConfig" jobId="ID" />
+----
 
- |A `LeadConvertResult` object.
-|*Create* |`sfdc:create` |Adds one or more new records to your organization's data. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_create.htm[create()]
 
- |An array of `SaveResult` if async is false.
-|*Create batch* |`sfdc:create-batch` |Creates a Batch using the given objects within the specified Job. The Job can be of XML or CSV type. |
-Bulk API
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm[Adding a Batch to a Job]
 
- |A com.sforce.async. BatchInfo that identifies the batch job.
-|*Create batch for query* |`sfdc:create-batch-for-query` |Creates a Batch using the given query. |
-Bulk API
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm[Adding a Batch to a Job]
+|
+jobId  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++the Job ID of the Job being monitored+++ |  | *x*{nbsp}
 
- |A BatchInfo that identifies the batch job. 
-|*Create batch stream* |`sfdc:create-batch-stream` |Creates a Batch using the given stream within the specified Job. The stream can have a CSV,XML, ZIP_CSV, or a ZIP_XML format. |
-Bulk API
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm[Adding a Batch to a Job]
+|======================
 
- |A com.sforce.async. BatchInfo that identifies the batch job.
-|*Create bulk* |`sfdc:create-bulk` |Adds one or more new records to your organization's data. |
-Bulk API
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/JobInfo.html">JobInfo</a>+++ | +++Latest JobInfo representing status of the job result.+++
+|======================
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm[Adding a Batch to a Job]
 
- |A BatchInfo that identifies the batch job. 
-|*Create job* |`sfdc:create-job` |Creates a Job in order to perform one or more batches through Bulk API Operations. |
-Bulk API
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_jobs_get_details.htm">getJobInfo()</a>+++
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_jobs_create.htm[Creating a New Job]
 
- |A com.sforce.async. JobInfo that identifies the created Job. 
-|*Create single* |`sfdc:create-single` |Adds one new record to your organization's data. |
-SOAP API
+---
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_create.htm[create()]
+=== Create batch
+`<sfdc:create-batch>`
 
- |An array of SaveResult
-|*Delete* |`sfdc:delete` |Deletes one or more records from your organization's data. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_delete.htm[delete()]
 
- |An array of `DeleteResult`
-|*Describe global* |`sfdc:describe-global` |Retrieves a list of available objects for your organization's data. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_describeglobal.htm[describeGlobal()]
++++
+Creates a Batch using the given objects within the specified Job. The Job can be of XML or CSV type.
+<p/>
+This call uses the Bulk API. The operation will be done in asynchronous fashion.
+<p/>
++++
 
- |A `DescribeGlobalResult`
-|*Describe sObject* |`sfdc:describe-sobject` |Describes metadata (field list and object properties) for the specified object. |
-SOAP API
+==== XML Sample
+[source,xml]
+----
+<sfdc:create-batch config-ref="mySalesforceConfig">
+    <sfdc:job-info id="#[flowVars['jobInfo']"/>
+    <sfdc:objects>
+        <sfdc:object ref="#[payload]" />
+    </sfdc:objects>
+</sfdc:create-batch>
+----
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_describesobject.htm[describeSObject()]
 
- |`DescribeSObjectResult`
-|*Empty recycle bin* |`sfdc:empty-recycle-bin` |The recycle bin lets you view and restore recently deleted records for 30 days before they are permanently deleted. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_emptyrecyclebin.htm[emptyRecycleBin()]
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
 
- |A list of `EmptyRecycleBinResult`
-|*Get deleted* |`sfdc:get-deleted` |Retrieves the list of individual records that have been deleted between the range of now to the duration before now. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getdeleted.htm[getDeleted()]
 
- |`GetDeletedResult`
-|*Get deleted range* |`sfdc:get-deleted-range` |Retrieves the list of individual records that have been deleted within the given timespan for the specified object. |
-SOAP API
+|
+jobInfo  | +++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/JobInfo.html">JobInfo</a>+++ | +++The com.sforce.async.JobInfo in which the batch will be created. The Job can be of XML or CSV type.+++ |  | *x*{nbsp}
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getdeletedrange.htm[getDeletedRange()]
 
- |`GetDeletedResult`
-|*Get server timestamp* |`sfdc:get-server-timestamp` |Retrieves the current system timestamp (Coordinated Universal Time (UTC) time zone) from the API. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getservertimestamp.htm[getServerTimestamp()]
 
- |Calendar with the current timestamp.
-|*Get updated* |`sfdc:get-updated` |Retrieves the list of individual records that have been updated between the range of now to the duration before now. |
-SOAP API
+|
+objects icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++A list of one or more sObjects objects. This parameter defaults to payload content.+++ | #[payload] | {nbsp}
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getupdated.htm[getUpdated()]
 
- |GetUpdatedResult object containing an array of GetUpdatedResult objects containing the ID of each created or updated object and the date/time (Coordinated Universal Time (UTC) time zone) on which it was created or updated, respectively.
-|*Get updated objects* |`sfdc:get-updated-objects` |Checks the timestamp of the last time this method was called, then retrieves the list of records that have been updated between then and now. When called for the first time, the method calls the API with the configuration `getUpdatedObjects from [currentTime-window] to [ currentTime ]`  and then stores `[ currentTime ]` in the object store as a timestamp. All subsequent calls using this method use this configuration: `getUpdatedObjects from [storedValue] to [currentTime]`. In order to reset the last updated time, call resetUpdatedObjectsTimestamp, described below. |
-SOAP API
+|======================
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getupdated.htm[getUpdated()]
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a>+++ | +++A <a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a> that identifies the batch job.+++
+|======================
 
- |List with the updated objects in the calculated time range.
-|*Get updated range* |`sfdc:get-updated-range` |Retrieves the list of individual records that have been created/updated within the given timespan for the specified object. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getupdatedrange.htm[getUpdatedRange()]
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm">createBatch()</a>+++
 
- |`GetUpdatedResult`
-|*Get user info* |`sfdc:get-user-info` |Retrieves personal information for the user associated with the current session. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getuserinfo.htm[getUserInfo()]
+---
 
- |`GetUserInfoResult`
-|*Hard delete bulk* |`sfdc:hard-delete-bulk` |Deletes one or more records from your organization's data. |
-Bulk API
+=== Create batch stream
+`<sfdc:create-batch-stream>`
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm[Adding a Batch to a Job]
 
- |A BatchInfo that identifies the batch job. 
-| *Paginated query* |`sfdc:paginated-query` |DEPRECATED. Executes a paginated query against the specified object and returns data that matches the specified criteria. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_query.htm[query()]
 
- |`QueryResultObject ` with the results of the query or null.
-|*Publish topic* |`sfdc:publish-topic` |Creates a topic which represents a query that is the basis for notifying listeners of changes to records in an organization. |
-Streaming
++++
+Creates a Batch using the given stream within the specified Job. The stream can have a CSV,XML, ZIP_CSV or ZIP_XML format.
+<p/>
+This call uses the Bulk API. The operation will be done in asynchronous fashion.
+<p/>
++++
 
-http://www.salesforce.com/us/developer/docs/api_streaming/Content/pushtopic.htm[Push Topic]
+==== XML Sample
+[source,xml]
+----
+<sfdc:create-batch-stream config-ref="mySalesforceConfig" stream-ref="#[flowVars['stream']]">
+    <sfdc:job-info id="#[flowVars['jobInfo']]"/>
+</sfdc:create-batch-stream>
+----
 
- |N/A
-|*Query* |`sfdc:query` |Executes a paginated query against the specified object and returns data that matches the specified criteria. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_query.htm[query()]
 
- |An array of SObjects
-|*Query all* |`sfdc:query-all` |Retrieves data from specified objects, whether or not they have been deleted or archived. |
-SOAP API
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_queryall.htm[queryAll()]
 
- |An array of SObjects.
-|*Query result stream* |`sfdc:query-result-stream` |Returns an InputStream with the query results of a submitted BatchInfo. Internally the InputStreams contained in the sequence will be requested on-demand (lazy-loading).   |
-Bulk API
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_get_results.htm[Getting Batch Results]
+|
+jobInfo icon:envelope[] | +++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/JobInfo.html">JobInfo</a>+++ | +++The com.sforce.async.JobInfo in which the batch will be created. This parameter defaults to payload content.+++ | #[payload] | {nbsp}
 
- |InputStream with the results of the Batch.
-|*Query single* |`sfdc:query-single` |Executes a query against the specified object and returns the first record that matches the specified criteria. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_query.htm[query()]
 
- |A single SObject.
-|*Reset updated objects timestamp* |`sfdc:reset-updated-objects-timestamp` |Resets the timestamp of the last updated object. After you call this method, the initial timestamp that was set (if it was set) on the getUpdatedObjects method is cleared. |N/A | 
-|*Retrieve* |`sfdc:retrieve` |Retrieves one or more records based on the specified IDs. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_retrieve.htm[retrieve()]
+|
+stream  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/io/InputStream.html">InputStream</a>+++ | +++A stream containing the data. The stream can have a CSV,XML, ZIP_CSV or ZIP_XML format.+++ |  | *x*{nbsp}
 
- |An array of SObjects.
-|*Search* |`sfdc:search` |Search for objects using Salesforce Object Search Language. Mimics using the search box inside the Salesforce UI.  |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_search.htm[search()]
+|======================
 
- |An array of SObjects.
-|*Set password* |`sfdc:set-password` |Change the password of a User or SelfServiceUser to a value that you specify. |
-SOAP API
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a>+++ | +++A <a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a> that identifies the batch job.+++
+|======================
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_setpassword.htm[setPassword()]
 
- |N/A
-|*Subscribe topic* |`sfdc:subscribe-topic` |Subscribe to a topic. To use this operation, place the connector as the first item in a flow. |
-Streaming
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm">createBatch()</a>+++
 
-http://www.salesforce.com/us/developer/docs/api_streaming/index_Left.htm[Streaming API]
 
- |org.mule.api.callback. StopSourceCallback
-|*Update* |`sfdc:update` |Updates one or more existing records in your organization's data. |
-SOAP API
+---
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_update.htm[update()]
+=== Create batch for query
+`<sfdc:create-batch-for-query>`
 
- |An array of SaveResult.
-|*Update bulk* |`sfdc:update-bulk` |Updates one or more existing records in your organization's data. |
-Bulk API
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm[Adding a Batch to a Job]
 
- |A BatchInfo that identifies the batch job. 
-|*Update single* |`sfdc:update-single` |Updates one record in your organization's data. |
-SOAP API
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_update.htm[update()]
++++
+Creates a Batch using the given query.
+<p/>
+This call uses the Bulk API. The operation will be done in asynchronous fashion.
+<p/>
++++
 
- |A SaveResult.
-|*Upsert* |`sfdc:upsert` |Upserts a homogeneous list of objects: creates new records and updates existing records, using a custom field to determine the presence of existing records. |
-SOAP API
+==== XML Sample
+[source,xml]
+----
+<sfdc:create-batch-for-query config-ref="mySalesforceConfig" query="select AccountNumber, Name from Account">
+    <sfdc:job-info ref="#[payload]"/>
+</sfdc:create-batch-for-query>
+----
 
-http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_upsert.htm[upsert()]
 
- |A list of `UpsertResult`, one for each passed object.
-|*Upsert bulk* |`sfdc:upsert-bulk` |Upserts a homogeneous list of objects: creates new records and updates existing records, using a custom field to determine the presence of existing records. In most cases, prefer `upsert(String, String, List, Map)` over `create(String, List, Map)`, to avoid creating unwanted duplicate records.   |
-Bulk API
 
-http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm[Adding a Batch to a Job]
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
 
- |A BatchInfo that identifies the batch job. 
-|===
 
-== See Also
 
-* Full documentation of all attributes can be found in the link:http://mulesoft.github.io/salesforce-connector/[reference index on github].
-* Refer to a table of standard link:http://www.salesforce.com/us/developer/docs/officetoolkit/Content/sforce_api_objects_list.htm[Salesforce objects] on which your operations act. 
-* Access Salesforce.com documentation for their link:http://www.salesforce.com/us/developer/docs/api/[SOAP API], link:http://www.salesforce.com/us/developer/docs/api_asynch/[Bulk API], and link:http://www.salesforce.com/us/developer/docs/api_streaming/[Streaming API]. 
-* Access explanatory documentation at link:/mule-user-guide/v/3.7/salesforce-connector[Salesforce Connector].
+|
+jobInfo icon:envelope[] | +++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/JobInfo.html">JobInfo</a>+++ | +++The com.sforce.async.JobInfo in which the batch will be created.+++ | #[payload] | {nbsp}
+
+
+
+
+|
+query  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The query to be executed.+++ |  | *x*{nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a>+++ | +++A com.sforce.asyncBatchInfo that identifies the batch job. <a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_reference_batchinfo.htm"> asynch_api_reference_batchinfo </a>+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm">createBatch()</a>+++
+
+
+---
+
+=== Create bulk
+`<sfdc:create-bulk>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Adds one or more new records to your organization's data.
+<p/>
+This call uses the Bulk API. The creation will be done in asynchronous fashion.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:create-bulk config-ref="mySalesforceConfig" type="Account">
+    <sfdc:objects>
+        <sfdc:object>
+            <Name>MuleSoft</Name>
+            <BillingStreet>30 Maiden Lane</BillingStreet>
+            <BillingCity>San Francisco</BillingCity>
+            <BillingState>CA</BillingState>
+            <BillingPostalCode>94108</BillingPostalCode>
+            <BillingCountry>US</BillingCountry>
+        </sfdc:object>
+    </sfdc:objects>
+</sfdc:create-bulk>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Type of object to create+++ |  | *x*{nbsp}
+
+
+
+
+|
+objects icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++An array of one or more sObjects objects.+++ | #[payload] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a>+++ | +++A BatchInfo that identifies the batch job. <a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_reference_batchinfo.htm"> asynch_api_reference_batchinfo </a>+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm">createBatch()</a>+++
+
+
+---
+
+=== Create single
+`<sfdc:create-single>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Adds one new records to your organization's data.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:create-single config-ref="mySalesforceConfig" type="Account">
+    <sfdc:object>
+        <Name>MuleSoft</Name>
+        <BillingStreet>30 Maiden Lane</BillingStreet>
+        <BillingCity>San Francisco</BillingCity>
+        <BillingState>CA</BillingState>
+        <BillingPostalCode>94108</BillingPostalCode>
+        <BillingCountry>US</BillingCountry>
+    </sfdc:object>
+</sfdc:create-single>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Type of object to create+++ |  | *x*{nbsp}
+
+
+
+
+|
+object icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++SObject to create+++ | #[payload] | {nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++SaveResult+++ | +++An array of SaveResult+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_create.htm">create()</a>+++
+
+
+---
+
+=== Update
+`<sfdc:update>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Updates one or more existing records in your organization's data.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:update config-ref="mySalesforceConfig" type="Account">
+    <sfdc:objects>
+        <sfdc:object ref="#[payload]"/>
+    </sfdc:objects>
+</sfdc:update>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Type of object to update+++ |  | *x*{nbsp}
+
+
+
+
+|
+objects icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++An array of one or more sObjects objects.+++ | #[payload] | {nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><SaveResult>+++ | +++An array of SaveResult+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_update.htm">update()</a>+++
+
+
+---
+
+=== Update single
+`<sfdc:update-single>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Updates one record in your organization's data.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:update-single config-ref="mySalesforceConfig" type="Account">
+    <sfdc:object ref="#[payload]"/>
+</sfdc:update-single>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Type of object to update+++ |  | *x*{nbsp}
+
+
+
+
+|
+object icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++The object to be updated.+++ | #[payload] | {nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++SaveResult+++ | +++A SaveResult+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_update.htm">update()</a>+++
+
+
+---
+
+=== Update bulk
+`<sfdc:update-bulk>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Updates one or more existing records in your organization's data.
+<p/>
+This call uses the Bulk API. The creation will be done in asynchronous fashion.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:update-bulk config-ref="mySalesforceConfig" type="Account">
+    <sfdc:objects>
+        <sfdc:object ref="#[payload]"/>
+    </sfdc:objects>
+</sfdc:update-bulk>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Type of object to update+++ |  | *x*{nbsp}
+
+
+
+
+|
+objects icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++An array of one or more sObjects objects.+++ | #[payload] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a>+++ | +++A BatchInfo that identifies the batch job. <a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_reference_batchinfo.htm"> asynch_api_reference_batchinfo </a>+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm">createBatch()</a>+++
+
+
+---
+
+=== Merge
+`<sfdc:merge>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Merge up to three records into one.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:merge config-ref="Salesforce__Basic_Authentication" type="Account">
+            <sfdc:object>
+                <Name>MuleSoft</Name>
+                <BillingStreet>30 Maiden Lane</BillingStreet>
+                <BillingCity>San Francisco</BillingCity>
+                <BillingState>CA</BillingState>
+                <BillingPostalCode>94108</BillingPostalCode>
+                <BillingCountry>US</BillingCountry>
+                <Id>001j000000FVBSHAA5</Id>
+            </sfdc:object>
+            <sfdc:ids>
+                <sfdc:id>001j000000ZVBGAAA5</sfdc:id>
+                <sfdc:id>001j000000ZVBUbAAP</sfdc:id>
+            </sfdc:ids>
+        </sfdc:merge>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Type of object to merge+++ |  | *x*{nbsp}
+
+
+
+
+|
+object icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++The Master object used for the merge+++ | #[payload] | {nbsp}
+
+
+
+
+|
+ids  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++A list of ids of the objects to be merged+++ |  | {nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++MergeResult+++ | +++instance of MergeResult containing the result of the Merge+++
+|======================
+
+
+
+
+---
+
+=== Upsert
+`<sfdc:upsert>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_upsert.htm">Upserts</a> an homogeneous list of objects: creates new records and updates
+existing records, using a custom field to determine the presence of existing records. In most cases, prefer #upsert(String, String, List, Map) over
+#create(String, List, Map), to avoid creating unwanted duplicate records.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:upsert config-ref="mySalesforceConfig" type="Account" externalIdFieldName="InternalAccountCode">
+    <sfdc:objects>
+        <sfdc:object>
+            <InternalAccountCode>A01596</InternalAccountCode>
+            <Name>MuleSoft</Name>
+            <BillingStreet>30 Maiden Lane</BillingStreet>
+            <BillingCity>San Francisco</BillingCity>
+            <BillingState>CA</BillingState>
+            <BillingPostalCode>94108</BillingPostalCode>
+            <BillingCountry>US</BillingCountry>
+        </sfdc:object>
+    </sfdc:objects>
+</sfdc:upsert>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+externalIdFieldName  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Contains the name of the field on this object with the external ID field attribute for custom objects or the idLookup field property for standard objects.+++ |  | *x*{nbsp}
+
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++the type of the given objects. The list of objects to upsert must be homogeneous+++ |  | *x*{nbsp}
+
+
+
+
+|
+objects icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++the objects to upsert+++ | #[payload] | {nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><UpsertResult>+++ | +++a list of UpsertResult, one for each passed object+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_upsert.htm">upsert()</a>+++
+
+
+---
+
+=== Upsert bulk
+`<sfdc:upsert-bulk>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_upsert.htm">Upserts</a> an homogeneous list of objects: creates new records and updates
+existing records, using a custom field to determine the presence of existing records. In most cases, prefer #upsert(String, String, List, Map) over
+#create(String, List, Map), to avoid creating unwanted duplicate records.
+<p/>
+This call uses the Bulk API. The creation will be done in asynchronous fashion.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:upsert-bulk config-ref="mySalesforceConfig" type="Account" externalIdFieldName="InternalAccountCode">
+    <sfdc:objects>
+        <sfdc:object>
+            <InternalAccountCode>A01596</InternalAccountCode>
+            <Name>MuleSoft</Name>
+            <BillingStreet>30 Maiden Lane</BillingStreet>
+            <BillingCity>San Francisco</BillingCity>
+            <BillingState>CA</BillingState>
+            <BillingPostalCode>94108</BillingPostalCode>
+            <BillingCountry>US</BillingCountry>
+        </sfdc:object>
+    </sfdc:objects>
+</sfdc:upsert-bulk>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++the type of the given objects. The list of objects to upsert must be homogeneous+++ |  | *x*{nbsp}
+
+
+
+
+|
+externalIdFieldName  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Contains the name of the field on this object with the external ID field attribute for custom objects or the idLookup field property for standard objects.+++ |  | *x*{nbsp}
+
+
+
+
+|
+objects icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++the objects to upsert+++ | #[payload] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a>+++ | +++A BatchInfo that identifies the batch job. <a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_reference_batchinfo.htm"> asynch_api_reference_batchinfo </a>+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm">createBatch()</a>+++
+
+
+---
+
+=== Batch info
+`<sfdc:batch-info>`
+
+
+
+
++++
+Access latest BatchInfo of a submitted BatchInfo. Allows to track execution status.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:batch-info config-ref="mySalesforceConfig">
+    <sfdc:batch-info ref="#[payload]"/>
+</sfdc:batch-info>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+batchInfo  | +++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a>+++ | +++The com.sforce.async.BatchInfo being monitored+++ | #[payload:] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a>+++ | +++Latest BatchInfo representing status of the batch job result.+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_get_info.htm">getBatchInfo()</a>+++
+
+
+---
+
+=== Batch result
+`<sfdc:batch-result>`
+
+
+
+
++++
+Access <a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchResult.html">BatchResult</a> of a submitted BatchInfo.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:batch-result config-ref="mySalesforceConfig">
+    <sfdc:batch-info ref="#[payload]"/>
+</sfdc:batch-result>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+batchInfo  | +++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a>+++ | +++The com.sforce.async.BatchInfo being monitored+++ | #[payload:] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchResult.html">BatchResult</a>+++ | +++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchResult.html">BatchResult</a> representing result of the batch job result.+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_get_results.htm">getBatchResult()</a><a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_interpret_status.htm">BatchInfo status</a>+++
+
+
+---
+
+=== Batch result stream
+`<sfdc:batch-result-stream>`
+
+
+
+
++++
+Access <a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchResult.html">BatchResult</a> of a submitted BatchInfo.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:batch-result-stream config-ref="mySalesforceConfig">
+    <sfdc:batch-info ref="#[payload]"/>
+</sfdc:batch-result-stream>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+batchInfo  | +++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a>+++ | +++The com.sforce.async.BatchInfo being monitored+++ | #[payload:] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/io/InputStream.html">InputStream</a>+++ | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/io/InputStream.html">InputStream</a> representing result of the batch job result.+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_get_results.htm">getBatchResult()</a><a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_interpret_status.htm">BatchInfo status</a>+++
+
+
+---
+
+=== Query result stream
+`<sfdc:query-result-stream>`
+
+
+
+
++++
+Returns an InputStream with the query results of a submitted BatchInfo
+<p/>
+Internally the InputStreams contained in the sequence will be requested on-demand (lazy-loading) Shoud be used only with query jobs!
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:query-result-stream config-ref="mySalesforceConfig">
+    <sfdc:batch-info ref="#[payload]"/>
+</sfdc:query-result-stream>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+batchInfo  | +++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a>+++ | +++The com.sforce.async.BatchInfo being monitored+++ | #[payload:] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/io/InputStream.html">InputStream</a>+++ | +++InputStream with the results of the Batch.+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_get_results.htm">getBatchResult()</a><a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_interpret_status.htm">BatchInfo status</a>+++
+
+
+---
+
+=== Describe global
+`<sfdc:describe-global>`
+
+
+
+
++++
+Retrieves a list of available objects for your organization's data.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:describe-global config-ref="mySalesforceConfig"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++DescribeGlobalResult+++ | +++A DescribeGlobalResult+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_describeglobal.htm">describeGlobal()</a>+++
+
+
+---
+
+=== Retrieve
+`<sfdc:retrieve>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Retrieves one or more records based on the specified IDs.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:retrieve config-ref="mySalesforceConfig" type="Account">
+     <sfdc:ids>
+         <sfdc:id>4323</sfdc:id>
+         <sfdc:id>4676</sfdc:id>
+     </sfdc:ids>
+     <sfdc:fields>
+         <sfdc:field>Id</sfdc:field>
+         <sfdc:field>Name</sfdc:field>
+     </sfdc:fields>
+</sfdc:retrieve>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Object type. The specified value must be a valid object for your organization.+++ |  | *x*{nbsp}
+
+
+
+
+|
+ids icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++The ids of the objects to retrieve+++ | #[payload] | {nbsp}
+
+
+
+
+|
+fields  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++The fields to return for the matching objects+++ |  | *x*{nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++An array of SObjects+++
+|======================
+
+
+
+
+---
+
+=== Query
+`<sfdc:query>`
+
+
+icon:file-text[] {nbsp} Paged Operation
+
+
++++
+Executes a query against the specified object and returns data that matches the specified criteria.
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:query config-ref="mySalesforceConfig" query="SELECT Id FROM Account"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+query  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Query string that specifies the object to query, the fields to return, and any conditions for including a specific object in the query. For more information, see Salesforce Object Query Language (SOQL).+++ |  | *x*{nbsp}
+
+
+
+
+|
+pagingConfiguration  | +++PagingConfiguration+++ | +++the paging configuration+++ |  | *x*{nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++ProviderAwarePagingDelegate<<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>,<a href="javadocs/org/mule/modules/salesforce/SalesforceConnector.html">SalesforceConnector</a>>+++ | +++An array of SObjects+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_query.htm">query()</a>+++
+
+
+---
+
+=== Non paginated query
+`<sfdc:non-paginated-query>`
+
+
+
+
++++
+Executes a query against the specified object and returns data that matches the specified criteria.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:non-paginated-query config-ref="mySalesforceConfig" query="SELECT Id FROM Account"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+query  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Query string that specifies the object to query, the fields to return, and any conditions for including a specific object in the query. For more information, see Salesforce Object Query Language (SOQL).+++ |  | *x*{nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++An array of SObjects+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_query.htm">query()</a>+++
+
+
+---
+
+=== Query all
+`<sfdc:query-all>`
+
+
+icon:file-text[] {nbsp} Paged Operation
+
+
++++
+Retrieves data from specified objects, whether or not they have been deleted.
+<p/>
++++
+
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+query  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Query string that specifies the object to query, the fields to return, and any conditions for including a specific object in the query. For more information, see Salesforce Object Query Language (SOQL).+++ |  | *x*{nbsp}
+
+
+
+
+|
+pagingConfiguration  | +++PagingConfiguration+++ | +++the paging configuration+++ |  | *x*{nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++ProviderAwarePagingDelegate<<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>,<a href="javadocs/org/mule/modules/salesforce/SalesforceConnector.html">SalesforceConnector</a>>+++ | +++An array of SObjects+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_query.htm">query()</a>+++
+
+
+---
+
+=== Search
+`<sfdc:search>`
+
+
+
+
++++
+Search for objects using Salesforce Object Search Language. Mimics using the search box inside the Salesforce UI.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:search config-ref="mySalesforceConfig" query="Find {salesforce} RETURNING Solution(id, SolutionName, SolutionNumber, Mule_Version__c, Product__c)" />
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+query  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Query string that specifies the object to query, the fields to return, and any conditions for including a specific object in the query. For more information, see Salesforce Object Search Language (SOSL).+++ |  | *x*{nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++An array of SObjects+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_search.htm">search()</a>+++
+
+
+---
+
+=== Query single
+`<sfdc:query-single>`
+
+
+
+
++++
+Executes a query against the specified object and returns the first record that matches the specified criteria.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:query-single config-ref="mySalesforceConfig" query="SELECT Id FROM Account"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+query  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Query string that specifies the object to query, the fields to return, and any conditions for including a specific object in the query. For more information, see Salesforce Object Query Language (SOQL).+++ |  | *x*{nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++A single SObject+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_query.htm">query()</a>+++
+
+
+---
+
+=== Convert lead
+`<sfdc:convert-lead>`
+
+
+
+
++++
+Converts a Lead into an Account, Contact, or (optionally) an Opportunity.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:convert-lead config-ref="mySalesforceConfig"
+                   leadId="001..." contactId="#[variable:contactId]" overWriteLeadSource="false" doNotCreateOpportunity="true"
+                   convertedStatus="Qualified" sendEmailToOwner="true"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+leadId  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++ID of the Lead to convert. Required. For information on IDs, see ID Field Type.+++ |  | *x*{nbsp}
+
+
+
+
+|
+contactId  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++ID of the Contact into which the lead will be merged (this contact must be associated with the specified accountId, and an accountId must be specified). Required only when updating an existing contact.IMPORTANT if you are converting a lead into a person account, do not specify the contactId or an error will result. Specify only the accountId of the person account. If no contactID is specified, then the API creates a new contact that is implicitly associated with the Account. To create a new contact, the client application must be logged in with sufficient access rights. To merge a lead into an existing contact, the client application must be logged in with read/write access to the specified contact. The contact name and other existing data are not overwritten (unless overwriteLeadSource is set to true, in which case only the LeadSource field is overwritten). For information on IDs, see ID Field Type.+++ |  | {nbsp}
+
+
+
+
+|
+accountId  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++ID of the Account into which the lead will be merged. Required only when updating an existing account, including person accounts. If no accountID is specified, then the API creates a new account. To create a new account, the client application must be logged in with sufficient access rights. To merge a lead into an existing account, the client application must be logged in with read/write access to the specified account. The account name and other existing data are not overwritten. For information on IDs, see ID Field Type.+++ |  | {nbsp}
+
+
+
+
+|
+overWriteLeadSource  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Boolean.html">Boolean</a>+++ | +++Specifies whether to overwrite the LeadSource field on the target Contact object with the contents of the LeadSource field in the source Lead object (true), or not (false, the default). To set this field to true, the client application must specify a contactId for the target contact.+++ | false | {nbsp}
+
+
+
+
+|
+doNotCreateOpportunity  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Boolean.html">Boolean</a>+++ | +++Specifies whether to create an Opportunity during lead conversion (false, the default) or not (true). Set this flag to true only if you do not want to create an opportunity from the lead. An opportunity is created by default.+++ | false | {nbsp}
+
+
+
+
+|
+opportunityName  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Name of the opportunity to create. If no name is specified, then this value defaults to the company name of the lead. The maximum length of this field is 80 characters. If doNotCreateOpportunity argument is true, then no Opportunity is created and this field must be left blank; otherwise, an error is returned.+++ |  | {nbsp}
+
+
+
+
+|
+convertedStatus  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Valid LeadStatus value for a converted lead. Required. To obtain the list of possible values, the client application queries the LeadStatus object, as in: Select Id, MasterLabel from LeadStatus where IsConverted=true+++ |  | *x*{nbsp}
+
+
+
+
+|
+sendEmailToOwner  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Boolean.html">Boolean</a>+++ | +++Specifies whether to send a notification email to the owner specified in the ownerId (true) or not (false, the default).+++ | false | {nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++LeadConvertResult+++ | +++A LeadConvertResult object+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_convertlead.htm">convertLead()</a>+++
+
+
+---
+
+=== Empty recycle bin
+`<sfdc:empty-recycle-bin>`
+
+
+
+
++++
+The recycle bin lets you view and restore recently deleted records for 30 days before they are permanently deleted. Your organization can have up to 5000 records per license
+in the Recycle Bin at any one time. For example, if your organization has five user licenses, 25,000 records can be stored in the Recycle Bin. If your organization reaches
+its Recycle Bin limit, Salesforce.com automatically removes the oldest records, as long as they have been in the recycle bin for at least two hours.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:empty-recycle-bin config-ref="mySalesforceConfig">
+    <sfdc:ids>
+        <sfdc:id>001...</sfdc:id>
+    </sfdc:ids>
+</sfdc:empty-recycle-bin>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+ids icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++Array of one or more IDs associated with the records to delete from the recycle bin. Maximum number of records is 200.+++ | #[payload] | {nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><EmptyRecycleBinResult>+++ | +++A list of EmptyRecycleBinResult+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_emptyrecyclebin.htm">emptyRecycleBin()</a>+++
+
+
+---
+
+=== Get server timestamp
+`<sfdc:get-server-timestamp>`
+
+
+
+
++++
+Retrieves the current system timestamp (Coordinated Universal Time (UTC) time zone) from the API.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:get-server-timestamp config-ref="mySalesforceConfig"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Calendar.html">Calendar</a>+++ | +++Calendar with the current timestamp+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getservertimestamp.htm">getServerTimestamp()</a>+++
+
+
+---
+
+=== Delete
+`<sfdc:delete>`
+
+
+
+
++++
+Deletes one or more records from your organization's data.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:delete config-ref="mySalesforceConfig">
+    <sfdc:ids>
+        <sfdc:id>001...</sfdc:id>
+    </sfdc:ids>
+</sfdc:delete>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+ids icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++Array of one or more IDs associated with the objects to delete.+++ | #[payload] | {nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><DeleteResult>+++ | +++An array of DeleteResult+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_delete.htm">delete()</a>+++
+
+
+---
+
+=== Hard delete bulk
+`<sfdc:hard-delete-bulk>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Deletes one or more records from your organization's data. The deleted records are not stored in the Recycle Bin. Instead, they become immediately eligible for deletion.
+<p/>
+This call uses the Bulk API. The creation will be done in asynchronous fashion.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<!-- Hard Delete Accounts -->
+<sfdc:hard-delete-bulk config-ref="mySalesforceConfig" type="Account">
+    <sfdc:objects>
+        <sfdc:object ref="#[payload]"/>
+    </sfdc:objects>
+</sfdc:hard-delete-bulk>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Type of object to update+++ |  | *x*{nbsp}
+
+
+
+
+|
+objects icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++An array of one or more sObjects objects.+++ | #[payload] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://javadox.com/com.force.api/force-wsc/35.1.0/com/sforce/async/BatchInfo.html">BatchInfo</a>+++ | +++A BatchInfo that identifies the batch job. <a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_reference_batchinfo.htm"> asynch_api_reference_batchinfo </a>+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_asynch/Content/asynch_api_batches_create.htm">createBatch()</a>+++
+
+
+---
+
+=== Get updated range
+`<sfdc:get-updated-range>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Retrieves the list of individual records that have been created/updated within the given timespan for the specified object.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:get-updated-range config-ref="mySalesforceConfig" type="Account" startTime="#[variable:startTime]" endTime="#[variable:endTime]"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Object type. The specified value must be a valid object for your organization.+++ |  | *x*{nbsp}
+
+
+
+
+|
+startTime  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Calendar.html">Calendar</a>+++ | +++Starting date/time (Coordinated Universal Time (UTC)not local timezone) of the timespan for which to retrieve the data. The API ignores the seconds portion of the specified dateTime value ' (for example, 12:30:15 is interpreted as 12:30:00 UTC).+++ |  | *x*{nbsp}
+
+
+
+
+|
+endTime  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Calendar.html">Calendar</a>+++ | +++Ending date/time (Coordinated Universal Time (UTC)not local timezone) of the timespan for which to retrieve the data. The API ignores the seconds portion of the specified dateTime value (for example, 12:35:15 is interpreted as 12:35:00 UTC). If it is not provided, the current server time will be used.+++ |  | {nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++GetUpdatedResult+++ | +++GetUpdatedResult+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getupdatedrange.htm">getUpdatedRange()</a>+++
+
+
+---
+
+=== Get deleted range
+`<sfdc:get-deleted-range>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Retrieves the list of individual records that have been deleted within the given timespan for the specified object.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:get-deleted-range config-ref="mySalesforceConfig" type="Account" startTime="#[variable:startTime]" endTime="#[variable:endTime]"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Object type. The specified value must be a valid object for your organization.+++ |  | *x*{nbsp}
+
+
+
+
+|
+startTime  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Calendar.html">Calendar</a>+++ | +++Starting date/time (Coordinated Universal Time (UTC)not local timezone) of the timespan for which to retrieve the data. The API ignores the seconds portion of the specified dateTime value ' (for example, 12:30:15 is interpreted as 12:30:00 UTC).+++ |  | *x*{nbsp}
+
+
+
+
+|
+endTime  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Calendar.html">Calendar</a>+++ | +++Ending date/time (Coordinated Universal Time (UTC)not local timezone) of the timespan for which to retrieve the data. The API ignores the seconds portion of the specified dateTime value (for example, 12:35:15 is interpreted as 12:35:00 UTC). If not specific, the current server time will be used.+++ |  | {nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++GetDeletedResult+++ | +++GetDeletedResult+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getdeletedrange.htm">getDeletedRange()</a>+++
+
+
+---
+
+=== Describe sObject
+`<sfdc:describe-sobject>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Describes metadata (field list and object properties) for the specified object.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:describe-sobject config-ref="mySalesforceConfig" type="Account"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Object. The specified value must be a valid object for your organization. For a complete list of objects, see Standard Objects+++ |  | *x*{nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++DescribeSObjectResult+++ | +++DescribeSObjectResult+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_describesobject.htm">describeSObject()</a>+++
+
+
+---
+
+=== Get deleted
+`<sfdc:get-deleted>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Retrieves the list of individual records that have been deleted between the range of now to the duration before now.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:get-deleted config-ref="mySalesforceConfig" type="#[map-payload:type]" duration="#[map-payload:duration]" />
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Object type. The specified value must be a valid object for your organization.+++ |  | *x*{nbsp}
+
+
+
+
+|
+duration  | +++int+++ | +++The amount of time in minutes before now for which to return records from.+++ |  | *x*{nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++GetDeletedResult+++ | +++GetDeletedResult+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getdeleted.htm">getDeleted()</a>+++
+
+
+---
+
+=== Get updated
+`<sfdc:get-updated>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Retrieves the list of individual records that have been updated between the range of now to the duration before now.
+<p/>
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:get-updated config-ref="mySalesforceConfig" type="#[map-payload:type]" duration="#[map-payload:duration]" />
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Object type. The specified value must be a valid object for your organization.+++ |  | *x*{nbsp}
+
+
+
+
+|
+duration  | +++int+++ | +++The amount of time in minutes before now for which to return records from.+++ |  | *x*{nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++GetUpdatedResult+++ | +++GetUpdatedResult object containing an array of GetUpdatedResult objects containing the ID of each created or updated object and the date/time (Coordinated+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getupdated.htm">getUpdated()</a>+++
+
+
+---
+
+=== Get updated objects
+`<sfdc:get-updated-objects>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Retrieves the list of records that have been updated between the last time this method was called and now. This method will save the timestamp of the latest date covered by
+Salesforce represented by <b>GetUpdatedResult#latestDateCovered</b>. IMPORTANT: In order to use this method in a reliable way user must ensure that right after this method
+returns the result is stored in a persistent way since the timestamp of the latest . In order to reset the latest update time use
+<b>resetUpdatedObjectsTimestamp(String)</b>
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:spring="http://www.springframework.org/schema/beans"
+            xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
+            xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+            xsi:schemaLocation="
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+            http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+            http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd">
+
+    <flow name="getSalesforceUpdatedAccountObjects">
+        <poll frequency="600000" >
+            <sfdc:get-updated-objects config-ref="mySalesforceConfig" type="Account" initialTimeWindow="120">
+                <sfdc:fields>
+                    <sfdc:field>Id</sfdc:field>
+                    <sfdc:field>Name</sfdc:field>
+                </sfdc:fields>
+            </sfdc:get-updated-objects>
+        </poll>
+        <vm:outbound-endpoint path="persistentQueue" exchange-pattern="one-way" connector-ref="persistentVmConnector" />
+    </flow>
+</mule>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Object type. The specified value must be a valid object for your organization.+++ |  | *x*{nbsp}
+
+
+
+
+|
+initialTimeWindow  | +++int+++ | +++Time window (in minutes) used to calculate the start time (in time range) the first time this operation is called. E.g: if initialTimeWindow equals 2, the start time will be the current time (now) minus 2 minutes, then the range to retrieve the updated object will be (now - 2 minutes; now). After first call the start time will be calculated from the object store getting the last time this operation was exec+++ |  | *x*{nbsp}
+
+
+
+
+|
+fields icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++The fields to retrieve for the updated objects+++ | #[payload] | {nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++List with the updated objects in the calculated time range+++
+|======================
+
+
+==== APIDoc Reference
++++This operation extends <a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getupdated.htm">getUpdated()</a>+++
+
+
+---
+
+=== Reset updated objects timestamp
+`<sfdc:reset-updated-objects-timestamp>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Resets the timestamp of the last updated object. After resetting this, a call to <b>getUpdatedObjects</b> will use the initialTimeWindow to get the updated objects. If
+no timeObjectStore has been explicitly specified and <b>getUpdatedObjects</b> has not been called then calling this method has no effect.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:reset-updated-objects-timestamp config-ref="mySalesforceConfig" type="Account"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The object type for which the timestamp should be reset.+++ |  | *x*{nbsp}
+
+
+|======================
+
+
+
+
+
+---
+
+=== Set password
+`<sfdc:set-password>`
+
+
+
+
++++
+Change the password of a User or SelfServiceUser to a value that you specify.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:set-password userId="#[payload['Id']]" config-ref="pepe" newPassword="#[newPassword]"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+userId  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The user to set the password for.+++ |  | *x*{nbsp}
+
+
+
+
+|
+newPassword  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The new password for the user.+++ |  | *x*{nbsp}
+
+
+
+
+|
+headers  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="javadocs/org/mule/modules/salesforce/api/SalesforceHeader.html">SalesforceHeader</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++Salesforce Headers <a href="http://www.salesforce.com/us/developer/docs/api/Content/soap_headers.htm">More Info</a>+++ |  | {nbsp}
+
+
+|======================
+
+
+
+
+
+---
+
+=== Publish topic
+`<sfdc:publish-topic>`
+
+
+
+
++++
+Creates a topic which represents a query that is the basis for notifying listeners of changes to records in an organization.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:publish-topic config-ref="mySalesforceConfig" topicName="AccountTopic" query="SELECT Id FROM Account"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+topicName  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Descriptive name of the push topic, such as MyNewCases or TeamUpdatedContacts. The maximum length is 25 characters. This value identifies the channel.+++ |  | *x*{nbsp}
+
+
+
+
+|
+query  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The SOQL query statement that determines which records' changes trigger events to be sent to the channel. Maximum length: 1200 characters+++ |  | *x*{nbsp}
+
+
+
+
+|
+description  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++Description of what kinds of records are returned by the query. Limit: 400 characters+++ |  | {nbsp}
+
+
+|======================
+
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_streaming/Content/pushtopic.htm">Push Topic</a>+++
+
+
+---
+
+=== Get user info
+`<sfdc:get-user-info>`
+
+
+
+
++++
+Retrieves personal information for the user associated with the current session.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:get-user-info config-ref="mySalesforceConfig"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++GetUserInfoResult+++ | +++GetUserInfoResult+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api/Content/sforce_api_calls_getuserinfo.htm">getUserInfo()</a>+++
+
+
+---
+
+=== Create metadata
+`<sfdc:create-metadata>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Create metadata: Adds one or more new metadata components to your organization
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:create-metadata config-ref="mySalesforceConfig" type="Account">
+	    <sfdc:objects>
+        	<sfdc:object ref="#[payload]" />
+    	</sfdc:objects>
+    </sfdc:create-metadata>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The Metadata Type to be created+++ |  | *x*{nbsp}
+
+
+
+
+|
+objects icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++a List of Map<String, Object> representing the metadatas to be created+++ | #[payload] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><SaveResult>+++ | +++An array of SaveResult: contains information about whether the operation was successful, the name of the component created, and any+++
+|======================
+
+
+
+
+---
+
+=== Update metadata
+`<sfdc:update-metadata>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Updates one or more metadata components in your organization.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:update-metadata config-ref="mySalesforceConfig" type="Account">
+	    <sfdc:objects>
+        	<sfdc:object ref="#[payload]" />
+    	</sfdc:objects>
+    </sfdc:update-metadata>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The metadata type of the components updated+++ |  | *x*{nbsp}
+
+
+
+
+|
+objects icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++a List of Map<String, Object> representing the metadatas to be update+++ | #[payload] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><SaveResult>+++ | +++An array of SaveResult: contains information about whether the operation was successful, the name of the component created, and any+++
+|======================
+
+
+
+
+---
+
+=== Upsert metadata
+`<sfdc:upsert-metadata>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Creates or updates one or more metadata components in your organization
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:upsert-metadata config-ref="mySalesforceConfig" type="Account">
+	    <sfdc:objects>
+        	<sfdc:object ref="#[payload]" />
+    	</sfdc:objects>
+    </sfdc:upsert-metadata>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The metadata type of the components to create/update+++ |  | *x*{nbsp}
+
+
+
+
+|
+objects icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++a List of Map<String, Object> representing the metadatas to be upserted+++ | #[payload] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><UpsertResult>+++ | +++An array of UpsertResult: Each returned UpsertResult corresponds to a component that you upserted and contains information about the+++
+|======================
+
+
+
+
+---
+
+=== Delete metadata
+`<sfdc:delete-metadata>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Deletes one or more metadata components from your organization, given the object(s) API Name(s)
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:delete-metadata config-ref="mySalesforceConfig" type="Account">
+	    <sfdc:full-names>
+        	<sfdc:full-name>Full Name</sfdc:full-name>
+    	</sfdc:full-names>
+    </sfdc:delete-metadata>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The metadata type of the components to delete+++ |  | *x*{nbsp}
+
+
+
+
+|
+fullNames icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++full names of the components to delete+++ | #[payload] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><DeleteResult>+++ | +++An array of DeleteResult: Each DeleteResult contains information about whether the operation was successful, the name of the deleted+++
+|======================
+
+
+
+
+---
+
+=== Rename metadata
+`<sfdc:rename-metadata>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Renames a metadata component in your organization, given its old API Name and the new name
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:rename-metadata config-ref="mySalesforceConfig" type="Account" oldFullName="oldAccount" newFullName="newAccount"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The metadata type of the components to rename+++ |  | *x*{nbsp}
+
+
+
+
+|
+oldFullName icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The current component full name+++ | #[payload] | {nbsp}
+
+
+
+
+|
+newFullName  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The new component full name+++ |  | *x*{nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++SaveResult+++ | +++SaveResult: A SaveResult object is returned that contains information about whether the operation was successful, the name of the+++
+|======================
+
+
+
+
+---
+
+=== Read metadata
+`<sfdc:read-metadata>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Returns one or more metadata components from your organization, given the object(s) API Name(s)
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:read-metadata config-ref="mySalesforceConfig" type="Account">
+	    <sfdc:full-names>
+        	<sfdc:full-name>Full Name</sfdc:full-name>
+    	</sfdc:full-names>
+    </sfdc:read-metadata>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The metadata type of the components to read+++ |  | *x*{nbsp}
+
+
+
+
+|
+fullNames icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++List of full names of the components to read+++ | #[payload] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>>+++ | +++ReadResult: A ReadResult is returned that contains an array of Metadata components.+++
+|======================
+
+
+
+
+---
+
+=== List metadata
+`<sfdc:list-metadata>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Retrieves property information about metadata components in your organization
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:list-metadata config-ref="mySalesforceConfig" type="Account"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+type icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The Metadata Type used as criteria when querying for information+++ |  | *x*{nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><FileProperties>+++ | +++An array of FileProperties: This component contains information about the properties of each component in the .zip file, and the+++
+|======================
+
+
+
+
+---
+
+=== Describe metadata
+`<sfdc:describe-metadata>`
+
+
+
+
++++
+Describe metadata: This call retrieves the metadata which describes your organization. This information includes Apex classes and triggers, custom objects, custom fields on
+standard objects, tab sets that define an app, and many other components
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:describe-metadata config-ref="mySalesforceConfig"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++DescribeMetadataResult+++ | +++DescribeMetadataResult: Contains information about the organization that is useful for developers working with declarative metadata+++
+|======================
+
+
+
+
+---
+
+=== Deploy metadata
+`<sfdc:deploy-metadata>`
+
+
+
+
++++
+Deploy. File-based call to deploy XML components. Use this call to take file representations of components and deploy them into an organization by creating, updating, or
+deleting the components they represent.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:deploy-metadata config-ref="mySalesforceConfig"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+stream icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/io/InputStream.html">InputStream</a>+++ | +++A stream containing the data. This parameter defaults to payload content.+++ | #[payload] | {nbsp}
+
+
+
+
+|
+ignoreWarnings  | +++boolean+++ | +++Indicates whether a warning should allow a deployment to complete successfully (true) or not (false).+++ | false | {nbsp}
+
+
+
+
+|
+purgeOnDelete  | +++boolean+++ | +++If true, the deleted components in the destructiveChanges.xml manifest file aren't stored in the Recycle Bin. This option only works in Developer Edition or sandbox organizations; it doesn't work in production organizations.+++ | false | {nbsp}
+
+
+
+
+|
+rollbackOnError  | +++boolean+++ | +++Indicates whether any failure causes a complete rollback (true) or not (false).+++ | true | {nbsp}
+
+
+|======================
+
+
+
+
+
+---
+
+=== Retrieve metadata
+`<sfdc:retrieve-metadata>`
+
+
+
+
++++
+Retrieve. This call retrieves XML file representations of components in an organization.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:retrieve-metadata config-ref="mySalesforceConfig"/>
+----
+[source,xml]
+----
+<sfdc:retrieve-metadata config-ref="mySalesforceConfig"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+packageNames  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++A list of package names to be retrieved. If you are retrieving only unpackaged components, do not specify a name here. You can retrieve packaged and unpackaged components in the same retrieve.+++ |  | {nbsp}
+
+
+
+
+|
+specificFiles  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/List.html">List</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++A list of file names to be retrieved. If a value is specified for this property, packageNames must be set to null.+++ |  | {nbsp}
+
+
+
+
+|
+unpackaged  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/io/InputStream.html">InputStream</a>+++ | +++A stream containing a list of components to retrieve that are not in a package.+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/io/InputStream.html">InputStream</a>+++ | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/io/InputStream.html">InputStream</a> representing result of the retrieve job.+++
+|======================
+
+
+
+
+---
+
+=== Get session id
+`<sfdc:get-session-id>`
+
+
+
+
++++
+Retrieves the Session Id of the current session.
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:get-session-id config-ref="mySalesforceConfig"/>
+----
+[source,xml]
+----
+<sfdc:get-session-id config-ref="mySalesforceConfig"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+validateSession  | +++boolean+++ | +++The session will ve validated; if it is invalid reconnection will be triggerd (if the strategy is enabled) and the new session id will be returned+++ | false | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++the Salesforce current session Id+++
+|======================
+
+
+
+
+---
+
+=== Get server url
+`<sfdc:get-server-url>`
+
+
+
+
++++
+Retrieves the Partner Server Url of the Salesforce instance.
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:get-server-url config-ref="mySalesforceConfig"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++the Salesforce Server Url+++
+|======================
+
+
+
+
+---
+
+=== Invoke apex soap method
+`<sfdc:invoke-apex-soap-method>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Invokes any operation from an Apex Class that is exposed as SOAP web service
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:invoke-apex-soap-method config-ref="mySalesforceConfig" input-ref="input.xml" soapMethodName="methodName"/>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+soapMethodName icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++the Apex Class Method Name that will be invoked using SOAP+++ |  | *x*{nbsp}
+
+
+
+
+|
+input icon:envelope[] | +++XMLStreamReader+++ | +++an xml containing information about the method to be invoked and it's parameters. The xml must respect the WSDL standards+++ | #[payload] | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++XMLStreamReader+++ | +++an xml containing the result of invoking the Apex method '<NullPayload/>'+++
+|======================
+
+
+
+
+---
+
+=== Invoke apex rest method
+`<sfdc:invoke-apex-rest-method>`
+
+
+
+icon:cloud[] {nbsp} DataSense enabled
+
++++
+Invokes any operation from an Apex Class that is exposed as REST web service
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<sfdc:invoke-apex-rest-method config-ref="mySalesforceConfig" restMethodName="ApexRestClassName-methodName" requestHeaders-ref="#[message.requestHeaders]">
+    <sfdc:query-parameters>
+        <sfdc:query-parameter key="queryParam1">queryParam1Value</sfdc:query-parameter>
+        <sfdc:query-parameter key="queryParam2">queryParam2Value</sfdc:query-parameter>
+    </sfdc:query-parameters>
+</sfdc:invoke-apex-rest-method>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+
+
+|
+restMethodName icon:key[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The Apex Class Method Name that will be invoked using REST+++ |  | *x*{nbsp}
+
+
+
+
+|
+input icon:envelope[] | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>+++ | +++A Map containing the URLParameters if necessary and the request body information (if the httpmethod allows input)+++ | #[payload] | {nbsp}
+
+
+
+
+|
+requestHeaders  | +++<a href="javadocs/org/mule/modules/salesforce/apex/rest/ApexRequestHeaders.html">ApexRequestHeaders</a>+++ | +++The reference to an ApexRequestHeaders object containing Request Headers and Cookies+++ |  | {nbsp}
+
+
+
+
+|
+queryParameters  | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>>+++ | +++The query parameters that will be added to the request URL+++ |  | {nbsp}
+
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++<a href="http://docs.oracle.com/javase/7/docs/api/java/util/Map.html">Map</a><<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>,<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Object.html">Object</a>>+++ | +++A Map containing the result returned by the method invoked+++
+|======================
+
+
+
+
+---
+
+=== Reset password
+`<sfdc:reset-password>`
+
+
+
+
++++
+Resets the password of the user linked to the connector's configuration.
++++
+
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++ResetPasswordResult+++ | +++instance of ResetPasswordResult containing generated password+++
+|======================
+
+
+
+
+
+
+
+== Sources
+
+---
+
+=== Subscribe topic
+`<sfdc:subscribe-topic>`
+
+
+
+
++++
+Subscribe to a topic. First the topic must be published and after that a subscription to that topic created. Attention: Salesforce lets you subscribe to an inexistent topic
+but won't send you notifications after the topic is created.
+<p/>
++++
+
+==== XML Sample
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:spring="http://www.springframework.org/schema/beans"
+            xmlns:sfdc="http://www.mulesoft.org/schema/mule/sfdc"
+            xsi:schemaLocation="
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+            http://www.mulesoft.org/schema/mule/sfdc http://www.mulesoft.org/schema/mule/sfdc/current/mule-sfdc.xsd">
+
+    <flow name="sendSmsNotifications">
+        <sfdc:subscribe-topic config-ref="mySalesforceConfig"
+                              topic="/NewsFeedStream"/>
+        <logger level="INFO" message="Message received!"/>
+    </flow>
+</mule>
+----
+
+
+
+==== Attributes
+[cols=".^20%,.^20%,.^35%,.^20%,^.^5%", options="header"]
+|======================
+|Name |Java Type | Description | Default Value | Required
+| config-ref | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | Specify which config to use | |*x*{nbsp}
+| topic | +++<a href="http://docs.oracle.com/javase/7/docs/api/java/lang/String.html">String</a>+++ | +++The name of the topic to subscribe to+++ |  | *x*{nbsp}
+| callback | +++SourceCallback+++ | +++The callback to be called when a message is received+++ |  | *x*{nbsp}
+|======================
+
+==== Returns
+[cols=".^40%,.^60%", options="header"]
+|======================
+|Return Java Type | Description
+|+++StopSourceCallback+++ | +++returns StopSourceCallback+++
+|======================
+
+
+==== APIDoc Reference
++++<a href="http://www.salesforce.com/us/developer/docs/api_streaming/index_Left.htm">Streaming API</a>+++
