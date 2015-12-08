@@ -1,4 +1,4 @@
-= MSMQ Connector User Guide
+﻿= MSMQ Connector User Guide
 :keywords: anypoint studio, esb, connector, endpoint, msmq, microsoft, message queuing
 
 The Microsoft Message Queuing (MSMQ) connector uses a typical client-server architecture with two tiers, the connector or client running in the Mule ESB, and the Windows Gateway running on the server side. The latter exposes an HTTP Web API for sending or receiving messages from MSMQ.
@@ -129,7 +129,7 @@ The MSMQ connector uses a two-phase protocol to ensure zero-message-loss communi
 
 In a traditional scenario, after a message is read in the gateway, it is deleted from the queue. If there is a connection failure or another issue in the ESB that prevents the message from being read, that message is lost.
 
-In a scenario with a two-phase commit protocol, the messages read from the main queue are kept in a sub-queue as backup. After the connector receives a copy of the message, it sends an additional request to the gateway to remove the message from the sub-queue. When this commit action is not completed, the message remains in the sub-queue. After a period of time, messages in the subqueue, considered as orphans, are moved back to their parent queue where they are retried. To be clear, this mechanism should not be affected by external exceptions happening in the flow unless the flow is interrupted before the commit phase is completed. 
+In a scenario with a two-phase commit protocol, the messages read from the main queue are kept in a sub-queue as backup. After the connector receives a copy of the message, it sends an additional request to the gateway to remove the message from the sub-queue. When this commit action is not completed, the message remains in the sub-queue. After a period of time, messages in the subqueue, considered as orphans, are moved back to their parent queue where they are retried. To be clear, this mechanism should not be affected by external exceptions happening in the flow unless the flow is interrupted before the commit phase is completed.
 
 == Message Timeouts
 
@@ -538,3 +538,10 @@ image:MSMQCHsuccess.png[MSMQCHsuccess] 
 . The resulting messages are logged:
 +
 image:MSMQinfo.png[MSMQinfo] 
+
+=== Support for load balancer scenarios
+
+Multiple instances of the gateway can be configured under an HTTP load balancer to scale up horizontally.Since the MSMQ connector uses HTTP to communicate with the gateway, no additional configuration is required from a networking perspective. However, this slightly changes the behavior of a background process in the gateway for supporting the two-phase commit protocol.
+This process is responsible for making sure a batch a messages stored in a subqueue has been confirmed so it can be deleted or moved back to the parent queue. When multiple instances of a gateway are hitting the same queue in a load balancer, there are chances of having this process scanning and updating the queue at the same time, which could affect the MSMQ service performance considerably. To avoid this concurrency issue, a new setting "cleanup-offset" was added in the gateway configuration.
+The idea of this setting is to introduce a delay in minutes for the kick off of the background process. The default value for this setting is "0", which means no delay.
+Every gateway instance in a load balancer should be set with a different offset value to avoid hitting the same queues concurrently by this background process. As a rule of thumb, the unit for incrementing this value in each gateway should be the result of diving 10 by the number of gateway instances, e.g. : 2 for a farm of 5 gateways or 3 for a farm of 3 gateways.
