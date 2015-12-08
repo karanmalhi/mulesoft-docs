@@ -45,7 +45,7 @@ One of the key strengths of the RAML specification is the ability to reuse eleme
 
 == The API Designer
 
-While you _may_ write your RAML file in any text editor, we recommend you check out the API Designer. The web-based API Designer allows you to design your API quickly, efficiently, and consistently. API Designer consists of a RAML editor with an embedded RAML API console, and proactively provides suggestions, error feedback, and a built in live testing environment. +
+While you _may_ write your RAML file in any text editor, we recommend you check out the API Designer. The web-based API Designer allows you to design your API quickly, efficiently, and consistently. API Designer consists of a RAML editor with an embedded RAML API console, and proactively provides suggestions, error feedback, and a built in live testing environment. 
 
 == Design a New API in RAML
 
@@ -64,7 +64,7 @@ title: T-Shirt Ordering Service
 version: 1.0.development
 ----
 +
-At this time, also add a placeholder for a baseUri.  The placeholder helps you visualize what your final URL looks like with resources appended to it. The placeholder is useful when you test your newly-designed API. 
+. At this time, also add a placeholder for a `baseUri`.  This placeholder helps you visualize what your final URL looks like with resources appended to it. This placeholder is useful when you test your newly-designed API. Specify `baseUri` as: `http://www.tshirt.com/api`
 +
 [source, yaml, linenums]
 ----
@@ -90,7 +90,18 @@ You can do things the classic way and type these resources into the RAML definit
 +
 image:new+resource.png[new+resource]
 +
-. Then, just replace the text in the resource title and in its child element's `displayName`.
+The lines you need to add using the Shelf's > *Resources* > *New Resource* are:
++
+[source, yaml, linenums]
+----
+/products:
+  displayName: Products
+/orders:
+  displayName: Orders
+  /{orderId}/status:
+    displayName: Status
+----
+. Just replace the text in the resource title and in its child element's `displayName`.
 +
 [WARNING]
 Keep in mind that the elements that API Designer suggests in the shelf depend contextually upon where you place the cursor: the shelf only offers you the option of placing elements that make sense in that particular position within the RAML tree structure.
@@ -118,10 +129,12 @@ image:basic+console.png[basic+console]
 . A resource isn't of any use until it has an associated method. Time to brainstorm what would be appropriate:
 +
 ** Users of the API should be able to read information about products, but of course not post new products (that wouldn't really make any sense) so for the `products` resource, only add a `GET` method.
-** Users should be able to place orders, so give the /`orders` resource a `POST` method.
+** Users should be able to place orders, so give the `/orders` resource a `POST` method.
 ** Users should be able to check an order's status, so give the `status` resource a `GET` method.
 +
-. Instead of typing these in, you can place the cursor in a new line right beneath the `displayName` of a resource and use the corresponding method element from the shelf (below the editor) to automatically obtain a skeleton structure to fill in. Then add a valid description for each of the methods you add:
+. Instead of typing these in, you can place the cursor in a new line right beneath the `displayName` of a resource and use the corresponding method element from the shelf (below the editor) to automatically obtain a skeleton structure to fill in. Then add a valid description for each of the methods you add.
++
+*Note*: You can copy and paste from this document to the API Designer to save time.
 +
 image:methods.png[methods]
 +
@@ -147,11 +160,11 @@ baseUri: http://www.tshirt.com/api
 +
 . Notice that on the API Console (on the right of the editor), you can now see that the resources each have a corresponding set of methods (actually only one method each, in our case). You can now click these methods to read the descriptions you just added.
 +
-image:full+console.png[full+console]
+image:api-designer-resources.png[api-designer-resources]
 +
 . Next, it's time to decide what possible `responses` are valid for each of these methods. All of them should have a `200` (OK) response, that's a no brainer. In the `POST order` method let's also include a `500` (server error) response in case something fails on the server side, and in the `GET status` resource let's also include a `400` (client error) response, in case the user requests a nonexistent order.
 +
-Don't forget, you can either use the `responses` component on the Shelf or just type in the necessary lines.
+Don't forget, you can either use the `responses` component on the Shelf or just type in the necessary lines. (Or copy and paste from these examples directly into API Designer.)
 +
 In the case of this API, the service behind the API constructs the actual response that a user receives.  Nevertheless, it's a good practice to provide a response example in the API RAML. With these examples in place, developers can then use the API Console to preview the structure of the response and build their consuming application accordingly.
 +
