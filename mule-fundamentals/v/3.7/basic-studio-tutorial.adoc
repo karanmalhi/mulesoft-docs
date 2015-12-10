@@ -115,7 +115,7 @@ image:basic-t-http-props.png[basic-t-http-props]
 +
 . For the Set Payload, in the *Value* field, erase the `#[]` value and add a statement such as `Hello MuleSoft`:
 +
-image:basic-t-set-payload
+image:basic-t-set-payload.png[set payload]
 +
 With just a few clicks, you have created (also known as modeled) an  application on the Studio canvas.
 
@@ -211,18 +211,17 @@ If  you make any changes in the XML configuration view, for example if you chan
 image:canvas_tabs_flow.png[canvas_tabs_flow]  
 +
 . Click the *Logger* building block to switch the Properties Editor to the Logger component.
-. In the *Message* field, enter: `Current path is #[message.inboundProperties.'http.request.path']`.  Notice how a menu with suggestions pops open as soon as you type `#`, and narrows down its suggestions as you keep typing.
+. In the *Message* field, enter: `Current path is #[message.inboundProperties.'http.request.path']`. Notice how a menu with suggestions pops open as soon as you type `#`, and narrows down its suggestions as you keep typing.
 +
 image:logger+for+path.png[logger+for+path]
 +
 The String `#[message.inboundProperties.'http.request.path']` is a simple link:/mule-user-guide/v/3.7/mule-expression-language-mel[Mule expression] which evaluates to the requested property of the message as it passes this point in the flow. Including this message here instructs Mule to log this information in the application log files, which can be useful in more complex use cases, when you need to track the payload at different points in your flow.
 . Click the *Set Payload* building block to switch the Properties Editor to the Set Payload transformer.
-. Notice that the Value field contains these characters: *#[]*
 +
 image:set+payload1.png[set+payload1] +
 +
-This field supports link:/mule-user-guide/v/3.7/mule-expression-language-mel[Mule expressions], which take the form of a string enclosed with `#[]`. If you enter a Mule expression here, Mule evaluates it at runtime and returns or uses the results for further processing. Note that this field also accepts literals, so you can enter any string here to instruct Mule to set that string as your new payload. In this tutorial, however, you use an expression to create a dynamic message.
-. In the *Value* field, enter the following: +
+Previously, you set this field to a simple literal by simply entering a string, this instructs Mule to set that string as your new payload. This field also supports link:/mule-user-guide/v/3.7/mule-expression-language-mel[Mule expressions], which take the form of a string enclosed with `#[]`. If you enter a Mule expression here, Mule evaluates it at runtime and returns or uses the results for further processing.
+. In the *Value* field, enter the following dynamic expression: +
 +
 `#['Hello, ' + message.inboundProperties.'http.request.path' + '. Today is ' + server.dateTime.format('dd/MM/yy') + '.' ]`
 +
@@ -276,7 +275,7 @@ Try adding a link:/mule-user-guide/v/3.7/file-connector[File Connector] after th
 
 *How do I name a text file using the message ID?*
 
-Fill in the *Output Pattern* field in the File Endpoint to tell Mule how to name the file and what file type to use. Note that you can use the same Mule expression here that you used to log the message ID.
+Fill in the *File Name/Pattern* field in the File Endpoint to tell Mule how to name the file and what file type to use. Note that you can use the same Mule expression here that you used to log the message ID.
 
 image:icon-checkmark-blue-big.png[icon-checkmark-blue-big, width="50"] *Answer*
 
@@ -297,8 +296,8 @@ Current path is #[message.inboundProperties.'http.request.path']
 image:add+file.png[add+file]
 +
 . Click the *File Endpoint* to open the Properties editor.
-. Enter a *Path* where you want Mule to create a file. For example: `/Applications/anypointStudio/examples/BasicTutorial`
-. Enter an File Name/Pattern that defines the file name and type, as follows:
+. Enter a *Path* where you want Mule to create a file. For example: `/Users/mulesoft/Downloads`
+. Enter a *File Name/Pattern* that defines the file name and type, as follows:
 +
 `#[message.id].txt`
 +
@@ -322,7 +321,7 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
         <expression-filter expression="#[payload != '/favicon.ico']" doc:name="Expression"/>
         <logger level="INFO" doc:name="Logger" message="Current path is #[message.inboundProperties.'http.request.path']"/>
         <set-payload doc:name="Set Payload" value="#['Hello, ' + message.inboundProperties.'http.request.path' + '. Today is ' + server.dateTime.format('dd/MM/yy') + '.' ]"/>
-        <file:outbound-endpoint path="/Applications/anypointStudio/examples/BasicTutorial" outputPattern="#[message.id].txt" responseTimeout="10000" doc:name="File"/>
+        <file:outbound-endpoint path="/Users/mulesoft/Downloads" outputPattern="#[message.id].txt" responseTimeout="10000" doc:name="File"/>
     </flow>
 </mule>
 ----

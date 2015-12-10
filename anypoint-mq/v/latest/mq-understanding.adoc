@@ -1,0 +1,89 @@
+= Understanding Anypoint MQ
+:keywords: mq, destinations, queues, exchanges
+
+Anypoint MQ is a multi-tenant, cloud messaging service designed to enable customers to perform advanced asynchronous messaging scenarios between their applications. Anypoint MQ is fully integrated with Anypoint Platform, offering role based access control, client application management, and connectors.
+
+Anypoint MQ includes the follow features:
+
+* *Queues and Exchanges*: Send messages to queues, pull messages from queues, create a message exchange to perform pub/sub scenarios and send a message to multiple queues.
+Management console: monitor queue statistics, purge queues, and see how many messages are in flight via the management console.
+* *Anypoint MQ connector*: Send/receive messages from any Mule application, whether it’s deployed in CloudHub or used in a hybrid scenario and deployed on-premises.
+* *REST API*: Use the REST API to easily communicate with non-Mule applications.
+Environments and role based access control: Anypoint MQ is fully integrated with Anypoint Access Management, allowing you to specify different environments for your queues, who can access each environment, and what they can do within each environment.
+* *Client management*: Create client applications tokens
+* *Large payloads*: Anypoint MQ supports payloads up to 10 MB in size.
+* *Disaster recovery and multi-data center availability*: Anypoint MQ provides persistent data storage across multiple data centers, ensuring that it can handle data center outages and have full disaster recovery.
+* *Encrypted queues*: queue data can optionally be encrypted, ensuring that companies can be compliant with their data at rest policies.
+
+== Conceptual Overview
+
+=== Queues
+
+Message queues provide temporary storage that allow applications to communicate in a scalable and reliable way. Publishers can publish messages onto queues, and subscribers can receive messages off from a queue.
+
+image:mq-pub-q-sub.png[MQ Publisher-Queue-Subscriber]
+
+Queues provide a number of benefits:
+
+* Horizontal scalability: By putting a message on a queue, the work to process that message can be distributed across a number of different subscribers.
+* Reliability: Queues ensure that messages are always processed, even in the case of failure.
+* Decoupling: A queue can be used as a communication mechanism between different applications and devices, allowing them to have different development lifecycles or maintenance windows, without affecting other applications
+* Aggregation: When there are many message producers, they can all publish to a single queue, allowing easy consumption by consumers.
+
+In Anypoint MQ, reliability is provided via queues through a lock and acknowledge mechanism. This ensures that a message is always processed, even in the case of failure.
+
+* A consumer retrieves messages from a queue. This locks the messages, and makes the messages invisible to all other consumers.
+* When retrieving, the consumer specifies a lock timeout. If the message is not processed within that time window, the message is made visible to other consumers to be processed. This ensures that if there was a failure of some sort, such as the consumer node crashed, a message can be processed by another node.
+* If a consumer processes a message successfully, the client acknowledges the message, and MQ removes the message from the queue.
+* If a consumer is not able to process a message, the message proceeds with a negative acknowledgement, and becomes visible on the queue again.
+* Each queue has a Message time-to-live (TTL). This specifies how long the message is on the queue before MQ expires the message and removes it from the queue.
+* Messages in a queue are limited to 10 MB per message. However, there is no limit on the number of messages that can appear in a queue.
+
+=== Clients
+
+In Anypoint MQ, each consumer needs to be registered as a client. Clients have a name, ID, and a secret. The client uses the ID and secret to authenticate and get access to publish and subscribe to queues.
+
+Client applications give access to a set of queues and exchanges within an environment. They cannot be used across multiple environments or business groups.
+
+=== Exchanges
+
+Exchanges provide a way to distribute a single message to many consumers.
+
+image:mq-pub-ex-sub.png[MQ Exchange = publisher>exchange>queues>consumers]
+
+For example, if you have a publisher that publishes changes in the weather, and you have multiple applications that all want to receive that data, then you can use an exchange to publish a single message to multiple queues for each application. A binding is a relationship between the queue and an exchange, which tells the exchange where to send messages to.
+
+== Example
+
+An example of Anypoint MQ would be where an application running Salesforce customer relationship manager (CRM) wants to communicate with two applications that handle different databases.
+
+image:mq-crm-to-dbs.png[CRM sends msg to MQ that apps receive]
+
+Using Anypoint MQ, the Salesforce application sends a pub/sub message to the Anypoint MQ message exchange, and the two applications receive the message from the message exchange and convey the message to their respective databases.
+
+== Glossary
+
+* *Ack/Nack*: *Ack* - An application receives a message and MQ deletes the message.
+*Nack* - An application does not receive a message and MQ does not delete the message.
+* *Binding* - Lets pub/sub applications bridge the simple pub/sub structure and utilize point-to-point features such as sending a message to specific applications. Bindings identify which queues comprise an exchange. In Anypoint Platform, by specifying which message queues are in an exchange, Anypoint MQ creates and manages the bindings for you.
+* *Destination* - An exchange or queue. Applications register to a destination and publish messages to the destination. Applications subscribe to a destination to receive a message. Anypoint Platform's MQ feature lets you configure Destinations by creating or maintaining queues or exchanges. Anypoint Studio lets you configure destinations using the Anypoint MQ connector.
+* *Durable message* - A message that persists until its indicated client receives it.
+* *In Flight* -
+* *Lock ID* - A lock that lets an application read a queue exclusively. Anypoint MQ provides the lock when an application acks a message from a queue.
+* *Message* - Serializable link:/mule-fundamentals/v/3.7/mule-message-structure[Mule Message] content that applications send and receive, so that the applications can communicate with each other.
+* *Message Exchange* - A pub/sub message source with multiple outputs. Applications register to subscribe to messages that the exchange publishes.
+* *On premises* - Mule runtime that runs on a computer in your organization.
+* *Point-to-point* - A pattern that allows an application to send a message that only a single application can receive.
+* *Pub/sub* (publish/subscribe) - A ​pattern that allows messages to be distributed to multiple consumers.
+* *Publisher* - Applications that send messages to Anypoint MQ.
+* *Queue* - A point-to-point message storage area that holds a message that a client receives.
+* *Subscriber* - Applications that receive messages from Anypoint MQ.
+
+== See Also
+
+* link:/anypoint-mq[Anypoint MQ]
+* link:/anypoint-mq/mq-tutorial[Tutorial]
+* link:/anypoint-mq/mq-access-management[Set user or role MQ access permission]
+* link:/anypoint-mq/mq-studio[Create app in Studio]
+* link:/anypoint-mq/mq-queues-and-exchanges[Create destinations or register client apps]
+* link:/anypoint-mq/mq-release-notes[Release Notes]

@@ -2,45 +2,52 @@
 :keywords: localhost, api, gateway, proxy, connector
 
 [WARNING]
-Only required for API Gateways version 1.2 or older. API Gateway version 1.3 comes configured by default with a shared port configuration.
+====
+The following is only required for *API Gateways version 1.2 or older*. API Gateway version 1.3 and newer comes configured by default with a shared port configuration.
 
 If you are responsible for setting API URLs in the Anypoint Platform or deploying APIs or proxies to the API Gateway, you should be aware of the following default behaviors that may require manual adjustments.
 
-== Avoiding Port Conflicts
+*Avoiding Port Conflicts*
 
 To successfully register an API on the Anypoint Platform for APIs, you must deploy the API (or its proxy) to the API Gateway using a unique endpoint URL. This means that no other APIs that your organization deploys to the gateway can have the same endpoint, which can become a problem if you need to deploy more than one automatically generated proxy to the same server. Automatically generated proxies use the the path `http://0.0.0.0:8081`, and thus deploying more than one of them without modification to an API Gateway (whether the same instance or multiple) on the same machine causes a port conflict.
 
-[WARNING]
-====
 Servers try to expose every interface, privileging the most declarative ones. For example `local_ip` is privileged against `localhost`.
 
 If you are using the link:/anypoint-platform-for-apis/api-auto-discovery[API auto-discovery] feature, your endpoint auto registers using the local IP address. Note that if your IP changes, update your endpoint accordingly.
-====
+
 
 To avoid port conflicts, ensure that whenever automatically generated proxies need to be deployed to the same machine, they use different ports. In the case of automatically generated proxies, this means that you need to link:/anypoint-platform-for-apis/proxying-your-api[manually modify the proxy files] to change the proxy endpoint to use a different port.
+====
+
 
 == Deploying with Shared Resources
 
-Some organizations may wish to consistently use standard ports for exposing their APIs. To achieve this, implement the link:/mule-user-guide/v/3.7/shared-resources[shared resources] feature. Configuring shared resources allows your APIs to deploy side by side on the same API Gateway, sharing a common port. The domain configuration only needs to specify the shared HTTP(S) connector to which the multiple inbound endpoints should reference. You can also configure this in the same way on automatically generated proxies by modifying the inbound endpoint accordingly. For example, you can configure your domain as follows:
+Some organizations may wish to consistently use standard ports for exposing their APIs. To achieve this, implement the link:/mule-user-guide/v/3.7/shared-resources[shared resources] feature. Configuring shared resources allows your APIs to deploy side by side on the same API Gateway, sharing a common port. The domain configuration only needs to specify the shared HTTP(S) connector to which the multiple HTTP listener endpoints should reference. You can also configure this in the same way on automatically generated proxies by modifying the HTTP Listener accordingly. For example, you can configure your domain as follows:
 
 [source,xml,linenums]
 ----
-<mule-domain xmlns="http://www.mulesoft.org/schema/mule/domain"
+<?xml version="1.0" encoding="UTF-8"?>
+<mule-domain xmlns="http://www.mulesoft.org/schema/mule/ee/domain"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xmlns:http="http://www.mulesoft.org/schema/mule/http"
-             xsi:schemaLocation="http://www.mulesoft.org/schema/mule/domain http://www.mulesoft.org/schema/mule/domain/current/mule-domain.xsd
-               http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
-    <http:connector name="SharedHttp"/>
+             xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+             xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/domain http://www.mulesoft.org/schema/mule/ee/domain/current/mule-domain-ee.xsd
+                                 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+                                 http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+
+
+    <http:listener-config name="http-lc-0.0.0.0-8081" host="0.0.0.0" port="8081" protocol="HTTP"/>
+
+
 </mule-domain>
 ----
 
-The inbound endpoint of each proxy might then look like this:
+
+The HTTP Listener endpoint of each proxy might then look like this:
 
 [source,xml,linenums]
 ----
-<http:inbound-endpoint connector-ref="SharedHttp" exchange-pattern="request-response" address="http://0.0.0.0:![p['http.port']]/![p['api.id']]/![p['api.version']]" responseTimeout="60000">
-    <api-platform-gw:register-as api-ref="![p['api.id']]" />
-</http:inbound-endpoint>
+       <http:listener config-ref="http-lc-0.0.0.0-8081" path="gateway/rest/basicauth/path1/*" doc:name="HTTP"/>
 ----
 
 The domain configuration should be saved as `mule-domain-config.xml` in `/domains/default`.

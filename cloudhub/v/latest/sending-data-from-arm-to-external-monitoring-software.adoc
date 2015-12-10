@@ -156,6 +156,119 @@ With link:http://www.splunk.com/[Splunk] you can capture and index Mule event no
 
 image:amc_onprem_diagram_detail_splunk.jpg[image]
 
+===== Configuring your Splunk Account
+
+In order to achieve this you must configure a new source type on your Splunk instance that will have the correct configuration to parse the HTTP Events sent from the Mule API Gateway.
+To do this, you have to append the following source type to the $SPLUNK_HOME/opt/splunk/etc/system/local/props.conf
+file.
+
+....
+[mule]
+TRUNCATE = 0
+LINE_BREAKER = ([\r\n]+)
+SHOULD_LINEMERGE = false
+INDEXED_EXTRACTIONS = JSON
+KV_MODE = JSON
+category = Mule Splunk Integration
+description = Mule Agent event information
+....
+
+[NOTE]
+If this file doesn't exist yet, create it.
+
+After making these changes, you must restart your Splunk instance for them to take effect.
+
+
+*Configurable fields:*
+
+|===
+|Field|Data Type|Description|Type|Default Value
+
+|user
+|String
+|Username to connect to Splunk.
+|Required
+|
+
+|pass
+|String
+|The password of the Splunk user.
+|Required
+|
+
+|host
+|String
+|IP or hostname of the server where Splunk is running.
+|Required
+|
+
+|port
+|int
+|Splunk management port.
+|Optional
+|8089
+
+|scheme
+|String
+|Scheme of connection to the Splunk management port. Possible values: http, https.
+|Optional
+|https
+
+|sslSecurityProtocol
+|String
+|SSL Security Protocol to use in the https connection. Possible values: TLSv1_2, TLSv1_1, TLSv1, SSLv3.
+|Optional
+|TLSv1_2
+
+|splunkIndexName
+|String
+|Splunk index name where all the events must be sent. If the user has the rights,
+and the index doesn't exist, then the internal handler will create it.
+|Optional
+|main
+
+|splunkSource
+|String
+|The source used on the events sent to Splunk.
+|Optional
+|mule
+
+|splunkSourceType
+|String
+|The sourcetype used on the events sent to Splunk.
+|Optional
+|mule
+
+|dateFormatPattern
+|String
+|Date format used to format the timestamp.
+|Optional
+|yyyy-MM-dd'T'HH:mm:ssSZ
+
+|pattern
+|String
+| A log4j2 PatternLayout (https://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout).
+You can print the properties of the object using the %map{key} notation, for example: %map{timestamp}
+|Optional
+|null +
+_[small]#so all the properties are used as a JSON object#_
+
+|===
+
+====== Configuration Example
+
+[source,yaml]
+.Splunk Internal Handler minimum Configuration
+....
+---
+  mule.agent.gw.http.handler.splunk:
+    host: 192.168.61.131
+    user: admin
+    pass: test
+....
+
+===== Configuring your Runtime Manager Account
+
 To direct information to your Splunk account, you must do the following:
 
 . Select the server who's information you want to send out

@@ -80,7 +80,7 @@ contacts: payload.users.*user map using (parts =  words($.name)){
   firstName: parts[0],
   (secondName: parts[1]) when (sizeOf parts) > 2,
   lastName: parts[-1],
-  email: "$((lower $.name) replace " " with ".")@acme.com.ar",
+  email:((lower $.name) replace " " with ".") ++ "@acme.com",
   address: $.street
 }
 ----
@@ -192,7 +192,7 @@ DataWeave files are divided into two main sections:
 . The Header, which defines directives (optional)
 . The Body, which describes the output structure
 
-Both sections are delimited by a separator, which is not required if no header is present. The separator consists of three dashes: "---"
+The two sections are delimited by a separator, which is not required if no header is present. The separator consists of three dashes: "---"
 
 Below is a taste of what a .dwl file looks like. This code describes a conversion from a JSON input to an XML output:
 
@@ -478,7 +478,7 @@ Likewise, whenever you transform from XML to JSON, make sure the resulting outpu
 
 == DataWeave Canonical Model
 
-As covered above, DataWeave uses three basic data types: Objects, Arrays and Simple Types, the execution of a DataWeave transformation always produces one of these three types of data. In essence, the body of every DataWeave transformation is a single Expression that defines the structure and contents of one such object. This expression can be built using any of the following elements:
+As covered above, DataWeave uses three basic data types: Objects, Arrays and Simple Types, the execution of a DataWeave transformation always produces one of these three types of data. In essence, the body of every DataWeave transformation is a single Expression that defines the structure and contents of one such element (which can be an Object, Array or Simple Literal). This expression can be built using any of the following elements:
 
 * Objects
 * Arrays
@@ -695,7 +695,7 @@ entry: using (firstName = "Annie", lastName = "Point") {
 }
 ----
 <1> The reference *lastName* is valid because it is within scope.
-<2> The reference *$gender* is invalid because gender was declared in the *person* object, and this reference exists outside the scope of that object.
+<2> The reference *gender* is invalid because gender was declared in the *person* object, and this reference exists outside the scope of that object.
 
 
 == Selectors
@@ -704,7 +704,7 @@ entry: using (firstName = "Annie", lastName = "Point") {
 
 The complex structure of Objects and Arrays can be navigated using Selector Expressions. Each selector expression returns either an object, an array or a simple type.
 A selector always operates within a given context, which can be a reference to a variable, an object literal, an array literal or the invocation of a function. As DataWeave processes a selector, a new context is set for further selectors, and so you can navigate through the complex structures of arrays and objects by using chains of selectors, who's depth is limited only by the depth of the current context.
-There are 3 types of selector expression:
+There are 4 types of selector expression:
 
 * *Single Value selector* .<key-name>
 * *Multi Value selector* .*<key-name>
@@ -1797,7 +1797,7 @@ myObject: {aa: "a", bb: "b"} - "aa"
 </myObject>
 -------------------------------------------------------
 
-The above example removes the key 'aa' from {aa: "a", bb: "b"} => {bb: "b"}
+The above example removes the key value pair that contains the key 'aa' from {aa: "a", bb: "b"} => {bb: "b"}
 
 ==== Using Remove on an Array
 
@@ -2056,6 +2056,7 @@ Coerce the given value to the specified type
 ==== Coerce to string
 
 Any simple types can be coerced to string. If formatting is required (i.e number or date) the format schema property can be used
+
 .Transform
 [source,DataWeave, linenums]
 ----------------------------------------------------------------------
@@ -2105,7 +2106,7 @@ A string can be coerced to number. If the given number has a specific format the
 }
 ----------------------------------------------------------------------
 
-==== Coerce to dates
+==== Coerce to date
 
 Date types can be coerced from string or number
 
@@ -2950,7 +2951,7 @@ Returns the lowest number in an array or object.
 
 ==== Now
 
-Returns a time stap
+Returns a time stamp
 
 .Transform
 
@@ -2971,12 +2972,14 @@ Returns a time stap
 [source,json,linenums]
 -----------------------------------------------------------------
 {
-  "a": |2015-05-22|,
-  "b": 22,
-  "c": 57
+  "a": "2015-12-04T18:15:04.091Z",
+  "b": 4,
+  "c": 15
 }
 -----------------------------------------------------------------
 
+[TIP]
+See <<Acessors, Accessors>> for a list of possible selectors to use here.
 
 ==== Append Time Zone
 
@@ -3637,33 +3640,7 @@ books: payload.items.*item map
 }
 -----------------------------------------------------------------------
 
-==== Separator
-
-
-The metadata 'separator' key is used for splitting and joining arrays into strings and viceversa.
-
-
-.Transform
-[source,DataWeave, linenums]
------------------------------------------------------------------------
-%dw 1.0
-%output application/json
-%type myList = :array {separator: ","}
----
-books: "name,last name,address" as :array
------------------------------------------------------------------------
-
-.Output
-[source,json,linenums]
------------------------------------------------------------------------
-{
-  "books": [
-    "name",
-    "last name",
-    "address"
-  ]
-}
------------------------------------------------------------------------
+In Anypoint Studio, you can define several more values, like separators, quote caracters and escape characters. See link:/mule-user-guide/v/3.7/using-dataweave-in-studio#configuring-the-csv-reader[Using DataWeave in Studio]
 
 == Functions and Lambdas
 
