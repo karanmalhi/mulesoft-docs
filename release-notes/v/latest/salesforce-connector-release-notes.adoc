@@ -23,25 +23,7 @@ The Version 7.0.0 Salesforce connector is compatible with:
 |===
 
 This is a *major version* change, hence the connector *might break backward compatibility* for some existing flows.
-It uses DevKit 3.7 and its new features (like multi-level Datasense for invokeApexSoapMethod and invokeApexRestMethod) and dates are no longer passed as String, but as Dates and Calendars.
-
-=== Migrating From Older Versions of the Connector to Version 7.0.0
-
-If you’re using an older version of the connector, a small popup appears in the bottom right corner of Anypoint Studio that says "Updates Available".
-
-. Click that popup and check for available updates.
-. Click the Salesforce Connector version 7.0.0 checkbox, click *Next* and follow the instructions provided by the user interface.
-. Restart Studio.
-. After the restart, when creating a flow and using the Salesforce Connector, if you have several versions of the connector installed, you might be asked which version you would like to use. Choose the version you would like to use.
-. Keep Mule and Studio updated.
-
-If updating the connector causes issues then simply uninstall the old version and install the new one:
-
-. Anypoint Studio: *Help* > *Installation Details* > *Installed Software*:
-.. Find the Salesforce connector, select it and then click the *Uninstall* button
-. Anypoint Studio: *Help* > *Install New Software*:
-.. Select "Anypoint Connectors Update Site" from the dropdown .. Type "Salesforce" in the bar above the dropdown
-.. Under "Select" you will find version 7.0.0 of the connector .. Select its checkbox and then click *Next* to begin the installation process.
+It uses DevKit 3.7 and its new features (like multi-level Datasense for invokeApexSoapMethod and invokeApexRestMethod) and dates are no longer passed as String, but as Dates and Calendars. To see how the new metadata key ids are formed for invokeApexSoapMethod and invokeApexRestMethod please read below.
 
 === Version 7.0.0 Features
 
@@ -52,9 +34,24 @@ If updating the connector causes issues then simply uninstall the old version an
 ** Added an extra optional parameter to these operations in order to add Salesforce SOAP headers on the requests.
 * *invoke-apex-rest-method*
 ** Added support for Custom Types and Apex Custom Types
-** Added multilevel Datasense
+** Added multilevel Datasense (the user has to choose the Apex Class first and then in a following parameter, the user must choose a Method Name from the ones available for that class)
+** The resulting metadata key id will have the following format:
+'apexClassName||apexMethodName\^resourceUrl^httpMethod\^outputType^inputParameters'
+where 
+*** apexClassName is the value chosen by the user for the "Apex Class" parameter under the General Category;
+*** apexMethodName is the value chosen by the user for the "Method Name" parameter under the General Category;
+*** resourceUrl is the value of urlMapping attribute from the '@RestResource' annotation of the apex class;
+*** httpMethod is the http method annotation of the Apex Rest resource (e.g. @HttpGet, @HttpPost) without the '@' symbol;
+*** outputType is the method output type (e.g. 'List<Account>');
+*** inputParameters is a comma separated list of input parameters (their name and their type - e.g. 'account=Account, someParameter=String');
+*** '||' is a separator used between the class name and the method name;
+*** '^' is a separator for the method details.
 * *invoke-apex-soap-method*
-** Added multilevel Datasense
+** Added multilevel Datasense (the user has to choose the Apex Class first and then in a following parameter, the user must choose a Method Name from the ones available for that class)
+** The resulting metadata key id will have the following format: 'apexClassName||apexMethodName' where:
+*** apexClassName is the value chosen by the user for the "Apex Class" parameter under the General Category;
+*** apexMethodName is the value chosen by the user for the "Method Name" parameter under the General Category;
+*** '||' is a separator used between the class name and the method name.
 * Changed *Test Connection* to *Validate Configuration* and added a validation for Apex Classes and Proxy configurations if these are set in the connector configuration.
 * *merge*
 ** This is a new operation to support merging of accounts.
@@ -79,15 +76,9 @@ If updating the connector causes issues then simply uninstall the old version an
 === Version 7.0.0 Known Issues
 
 * This version of the connector breaks backward compatibility:
-** the way some metadata key ids are created was changed when the multi-level Datasense was introduced (invokeApexSoapMethod and invokeApexRestMethod are affected by this).
+** the way some metadata key ids are created was changed due to some performance enhancements (invokeApexSoapMethod and invokeApexRestMethod are affected by this).
 ** the way the connector works with Dates has been changed: dates are no longer expected/returned as Strings; they are used as Dates or Calendars, for easier use (comparison and calculations), depending on their types.
 * Salesforce has a know issue with creating correct WSDLs for the Apex SOAP classes created under version 34.0 and 35.0 of the API. As a workaround Salesforce suggested that the Apex SOAP classes should be created under version 32.0 to be able to use them.
-* Connector v7.0.0 does not work with versions v28.0, v29.0, v30.0 and v31.0 of the Salesforce API.
-* Connector v7.0.0 does not support for Apex Rest the following data types:
-** Lists of Lists or Maps
-** Maps of Lists or Maps
-** Object (not able to perform DataSense on it)
-** Blob (not supported by Salesforce Rest methods as input/output)
 * For versions v28.0, v29.0 of the Salesforce API use version v5.4.12 of the connector.
 
 
