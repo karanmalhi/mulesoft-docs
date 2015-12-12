@@ -1,0 +1,54 @@
+= Shading Libraries
+:keywords: devkit, shading, library, jar, plugin, artifacts
+
+DevKit version 3.5.3 and later supports the use of shading (renaming) JAR files using the link:http://maven.apache.org/plugins/maven-shade-plugin/examples/includes-excludes.html[Apache Maven Shade Plugin] from your project's `pom.xml` file.
+
+If needed, you can add a dependency in your `pom.xml` files so that your JAR file names do not collide with those in Mule. For those scenarios, we strongly recommend that you use the same version of the library as Mule does, and if is not possible, then change your library to another one. If you still need a custom library that collides with Mule, then shading can work for you.
+
+To add the shading plugin to your connector’s `pom.xml` file:
+
+. Add the custom JAR to the connector using the `pom.xml` file dependencies.
+. Rename the packages of the library to the new JAR to avoid collisions.
+
+The following example shows the dependencies for a `groupId` of  `org.some.library` and an `artifactId` of  `custom-artifact-id`:
+
+[source,xml, linenums]
+----
+<dependencies>
+   <dependency>
+       <groupId>org.some.library</groupId>
+       <artifactId>custom-artifact-id</artifactId>
+       <version>2.0</version> <!-- version is in connector's JAR -->
+   </dependency>
+</dependencies>
+----
+
+The following example shows the use of the plugin for shading artifacts:
+
+[source,xml, linenums]
+----
+<build>
+ <plugins>
+   <plugin>
+     <groupId>org.apache.maven.plugins</groupId>
+     <artifactId>maven-shade-plugin</artifactId>
+     <version>2.3</version>
+     <configuration>
+       <!-- custom shade configuration -->
+       <artifactSet>
+         <includes>
+            <include>org.some.library:custom-artifact-id</include>
+         </includes>
+       </artifactSet>
+       <relocations>
+         <relocation>
+            <pattern>org.some.library</pattern>
+            <shadedPattern>org.some.library.new.pakage.name.shade</shadedPattern>
+         </relocation>
+       </relocations>
+      </configuration>
+   </plugin>
+  <!-- Other plugins -->
+ </plugins>
+</build>
+----

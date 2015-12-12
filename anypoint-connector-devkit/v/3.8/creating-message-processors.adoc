@@ -1,0 +1,142 @@
+= Creating Message Processors
+
+One of the key concepts in Mule is the Message Processor. You can add @ annotations to your code that Mule uses to designate Java methods. The Message Processor interprets the attributes.  See link:http://en.wikipedia.org/wiki/Java_annotation[Java annotations] for how annotations work. 
+
+For example, the `@Processor` annotation works with the Annotation Processor to indicate the method to consume as a Message Processor.
+
+Quick example:
+
+[source,java, linenums]
+----
+@Connector(name = "myextension", friendlyName="MyExtension Class")
+public class MyExtension {
+
+  @Processor
+  public void myMethod(String taskToComplete, String startDate, int taskIdNumber) {
+     // code here
+  }
+----
+
+In this example, the @Processor attribute indicates myMethod in the MyExtension class declared by the @Connector attribute.
+
+Mule invokes the myMethod method as follows. The DevKit translates MyMethod() to my-method:
+
+[source,xml, linenums]
+----
+<myextension:my-Method />
+----
+
+== The @Processor Annotation
+
+Designates a public instance method that Mule invokes. These methods can receive any number and type of arguments, and have any return type.
+
+[width="100%",cols="20a,80a",options="header"]
+|===
+|Parameter |Description
+|*name* |*Optional*. The XML name of the element that invokes this processor. If not specified, the name derives from the name of the method.
+|*friendlyName* |*Required*. The name that displays in Studio in the drop down of the connector operations, just under the global element drop down.
+|*intercepting* a|
+*Optional.* Set this value to true triggers the generation of an intercepting message processor, which is expressed as:
+
+`{@link org.mule.api.processor.InterceptingMessageProcessor}`
+
+An intercepting message processor must receive the following to trigger the next portion of the chain:
+
+`{@link org.mule.api.callback.SourceCallback}`
+
+If intercepting is set to false, this value generates a message processor, which is expressed as:
+
+`{@link org.mule.api.processor.MessageProcessor}`
+
+|===
+
+=== @Optional
+
+Designates that a method parameter's value is not required when invoking the method from Mule.
+
+Example:
+
+[source,java, linenums]
+----
+@Connector(name = "optional", friendlyName="OptionalConnector Class")
+public class OptionalConnector {
+  @Processor
+  public double division(int sum1, int sum2, @Optional int divisor) {
+      return (sum1 + sum2) / divisor;
+  }
+----
+
+Specify a divisor parameter, which returns 25 ((40+10) / 2):
+
+[source,xml, linenums]
+----
+<optional:division sum1="40" sum2="10" divisor="2"/>
+----
+
+Because the `divisor` parameter is not mandatory, executing the following results in a exception because it attempts to divide by zero (zero is default value for an int data type):
+
+[source,xml, linenums]
+----
+<optional:division sum1="40" sum2="10"/>
+----
+
+=== @Default
+
+Designates the default value for a parameter if a value is not explicitly set. For example:
+
+[source,java, linenums]
+----
+@Connector(name="optional", friendlyName="OptionalConnector Class")
+public class OptionalConnector {
+    @Processor
+    public double division(int sum1, int sum2, @Optional @Default("1") int divisor) {
+        return (sum1 + sum2) / divisor;
+    }
+----
+
+Because the divisor parameter has a default value of 1, the following executes normally and sets the payload to 50:
+
+[source,xml, linenums]
+----
+<optional:division sum1="40" sum2="10"/>
+----
+
+The best practice is to specify a divisor value, which makes code more readable and maintainable, for example:
+
+[source,xml, linenums]
+----
+<optional:division sum1="40" sum2="10" divisor="1"/>
+----
+
+Both formats set the payload to 50.
+
+== Intercepting Message Processors
+
+An intercepting message processor handles Mule events intercepting another listener Message Processor. It is the intercepting message processor's responsibility to decide whether the processing should continue or not, that is, if Mule should invoke the next message processor in a chain.
+
+When setting the `intercepting` parameter to true, the method must have a parameter of type `org.mule.api.callback.SourceCallback`.
+
+Example:
+
+[source,java, linenums]
+----
+Processor(intercepting = true)
+  public Object shouldContinue(SourceCallback afterChain, ...) throws Exception {
+    if (...) {
+        return afterChain.process();
+    }
+
+    ...
+  }
+----
+
+== Restrictions
+
+Methods that you annotate with `@Processor`:
+
+* Cannot be static
+* Cannot be non-public
+* Cannot have parameters named with the word `name`
+* Cannot be overloaded
+
+*Note*: Mule has reserved names that cannot be used which cause errors when building a connector. Among them is "name". The DevKit can also have different reserved names depending on the scenario, for example, @Processor statements cannot be named using any of the Mule LifeCycle interfaces (`initialise, start, stop`, and `dispose`). The DevKit lets you know which name is an error, and how should you can change it.
