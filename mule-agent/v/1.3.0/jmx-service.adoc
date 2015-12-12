@@ -1,0 +1,179 @@
+= JMX Service
+:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
+
+The Mule agent JMX Service allows you to track specific JMX metrics and publish them to external services. The service can be configured to track specific beans and to change the frequency with which it publishes their value.
+
+Additionally, MuleSoft provides several open source monitoring publishers as separate agent modules. These are provided as is, and receive no support for MuleSoft. For details, see <<Open Source Agent Modules>> below. +
+
+
+
+== JMX Publishers
+
+The JMX service sends all the gathered metrics to publishers, which in turn publish the metrics to external monitoring tools. The service itself provides some example publishers for commonly-used tools; furthermore, you can create your own publisher to suit your specific needs.
+
+== Configuring the JMX Service
+
+=== Operation: Retrieve Configuration
+
+Retrieves the JMX service configuration.
+
+*Request:*
+
+----
+GET <Mule agent URL>/mule/agent/mule.agent.jmx.publisher.service HTTP/1.1
+----
+
+*Example:*
+
+----
+GET http://localhost:9999/mule/agent/mule.agent.jmx.publisher.service HTTP/1.1
+----
+
+*Response:*
+
+[source, json, linenums]
+----
+{
+    "serviceHandlerTypes": [
+        "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
+    ],
+    "injectedHandlers": [
+        {
+            "name": "com.mulesoft.agent.monitoring.publisher.CloudwatchMonitorPublisher",
+            "path": "/mule/agent/cloudwatch.agent.monitor.publisher/configuration",
+            "type": "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
+        },
+        {
+            "name": "com.mulesoft.agent.monitoring.publisher.GraphiteMonitorPublisher",
+            "path": "/mule/agent/mule.agent.graphite.jmx.internal.handler/configuration",
+            "type": "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
+        },
+        {
+            "name": "com.mulesoft.agent.monitoring.publisher.NagiosMonitorPublisher",
+            "path": "/mule/agent/mule.agent.nagios.jmx.internal.handler/configuration",
+            "type": "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
+        },
+        {
+            "name": "com.mulesoft.agent.monitoring.publisher.ZabbixMonitorPublisher",
+            "path": "/mule/agent/mule.agent.zabbix.jmx.internal.handler/configuration",
+            "type": "java.util.List<com.mulesoft.agent.domain.monitoring.Metric>"
+        }
+    ],
+    "configurableFields": [
+        {
+            "name": "frequency",
+            "valueType": "java.lang.Integer",
+            "value": 15,
+            "configurableType": "DYNAMIC"
+        },
+        {
+            "name": "frequencyTimeUnit",
+            "valueType": "java.util.concurrent.TimeUnit",
+            "value": "MINUTES",
+            "configurableType": "DYNAMIC"
+        },
+        {
+            "name": "beans",
+            "valueType": "[Lcom.mulesoft.agent.services.monitoring.JMXBean;",
+            "value": [],
+            "configurableType": "DYNAMIC"
+        }
+    ]
+}
+----
+
+The response contains a list of the publishers currently loaded, as well as the configurable fields of the service and their values (for more information on service configuration, see Administration Service).
+
+=== Operation: Modify Configuration
+
+This operation modifies the current configuration of the service.
+
+*Request:*
+[source, json, linenums]
+----
+PATCH <Mule agent URL>/mule/agent/mule.agent.jmx.publisher.service HTTP/1.1
+
+{
+  "<parameter>": "<value>",
+}
+----
+
+*Example:*
+[source, json, linenums]
+----
+PATCH http://localhost:9999/mule/agent/myservice HTTP/1.1
+
+{
+  "frequencyTimeUnit": "SECONDS",
+  "frequency": "150"
+}
+----
+
+*Response (if successful):*
+
+----
+HTTP 200
+----
+
+=== Adding a New JMX Publisher
+
+To add a new JMX publisher, you need to implement the Mule agent's `InternalMessageHandler` interface.
+
+Your custom JMX publisher should meet the following requirements:
+
+* It must be thread-safe
+* It must implement all publishing logic in the handle method defined in `InternalMessageHandler`.
+
+==== Writing Your JMX Publisher
+[source, java, linenums]
+----
+@Named("my.company.jmx.publisher")
+@Singleton
+public class MyJMXPublisher<T> extends InternalMessageHandler<List<Metric>>{
+
+    boolean handle(List<Metric> metrics){
+          // TODO handle message
+    }
+
+    @Override
+    public void enable(boolean state) throws AgentEnableOperationException {
+        // TODO: enable the Handler
+    }
+
+    @Override
+    public boolean isEnabled() {
+        // TODO: return Handler status
+    }
+}
+----
+
+The Metric class is a POJO that contains the following fields:
+
+[source, java, linenums]
+----
+/**
+ * Time stamp when the metric was taken
+ */
+long timestamp;
+
+/**
+ * Name of the metric. In the case of a JXM metric it is the bean that was tracked + message
+ */
+String name;
+
+/**
+ * The numeric value of the metric
+ */
+Number value;
+----
+
+To add your new JMX publisher, just drop the jar containing your classes under the `lib` folder within the Mule agent plugin.
+
+== Open Source Agent Modules
+
+MuleSoft provides several modules for the Mule agent, including JMX publishers for Nagios, Zappix and others. These modules are an open source project, and are not supported by MuleSoft.
+
+To access the Mule agent modules, check the GitHub repositories:
+
+* link:https://github.com/mulesoft/mule-agent-modules[Agent modules (general)]
+* link:https://github.com/mulesoft/mule-agent-modules/tree/master/mule-agent-monitoring-publishers[JMX publisher modules]
