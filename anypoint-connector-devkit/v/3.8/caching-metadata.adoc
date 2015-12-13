@@ -1,0 +1,123 @@
+== Caching Metadata
+:keywords: metadata, cache, caching, datasense, key
+
+This feature allows the DevKit developer to enable a connector to retrieve metadata from a cache to decrease retrieval wait times overall, enhancing the connector user experience.
+
+=== Required Annotations @MetaDataCategory and @MetaDataCache
+
+To ensure an initialized cache is injected every time the metadata methods are invoked, the DevKit developer has to place `@MetaDataCategory` on your cache management/resolution class and declare the `@MetaDataCache` inside this class. After the `@MetaDataCache` cache is declared, the cache is persisted by DevKit.
+
+[source, java, linenums]
+----
+@MetaDataCategory
+public class CachedResolver {
+
+    @MetaDataCache
+    private MetaDataCache cache;
+
+    public void setCache(MetaDataCache cache) {
+        this.cache = cache;
+    }
+
+    //...
+}
+----
+
+The developer should make use of this cache internally when fetching metadata, and to handle some level of consistency between the cache and the service.
+
+[IMPORTANT]
+The provided cache is evicted only when the developer of the Mule application executes *Clear DataSense MetaData* on the connector configuration. After clearing DataSense, a new cache is created.
+
+image:clear-datasense-metadata.png[clear datasense metadata]
+
+=== Example Implementation
+
+This is an example implementation of cache population and cache management with `@MetaDataKeyRetriever` (with helper method `populateKeysCache`) and `@MetaDataRetriever` (which invokes either of two helper methods `populateObjectsCache` and `buildMetaData`). With these the cache can be populated.
+
+[source,java,linenums]
+----
+@MetaDataCategory
+public class CachedResolver {
+
+    @MetaDataCache
+    private ConnectorMetaDataCache cache;
+
+    // An initialized Cache will be injected by DevKit automatically using this setter
+    public void setCache(ConnectorMetaDataCache cache) {
+        this.cache = cache;
+    }
+
+    @MetaDataKeyRetriever
+    public List<MetaDataKey> getMetaDataKeys() throws Exception {
+
+        // Cache will be initialized by this point.
+        // Usage will resemble that of a Map, storing and retrieving elements based on
+        // Serializable keys
+        if (!cache.get(STORED_KEYS_ID).isPresent()){
+            // If MetaDataKeys were not fetched before and persisted with the cache,
+            // then add all the keys to the cache
+            populateKeysCache();
+        }
+
+        Optional<Map<String, String>> stored_keys = cache.get(STORED_KEYS_ID);
+
+        // Based on the stored keys description, build the actual object
+        List<MetaDataKey> keys = new ArrayList<MetaDataKey>();
+        for (Map.Entry<String, String> entry : stored_keys.get().entrySet()) {
+            keys.add(new DefaultMetaDataKey(entry.getKey(), entry.getValue()));
+        }
+        return keys;
+    }
+
+    @MetaDataRetriever
+    public MetaData getMetaData(MetaDataKey key) throws Exception {
+        // Cache will be initialized by this point.
+        // If an object with this key was not stored previously in the cache
+        // then we'll do a best-effort load all the metadata information to the cache
+        // so it's present upon next invocation.
+        if (!cache.get(key.getId()).isPresent()){
+            populateObjectsCache();
+        }
+
+        Optional<Map<String, DataType>> dataFields = cache.get(key.getId());
+        // Based on the stored metadata description, build the actual object
+        return dataFields.isPresent() ? buildMetaData(dataFields.get(), key) : null;
+    }
+
+
+    private MetaData buildMetaData(Map<String, DataType> fields, MetaDataKey key) {
+        DefaultMetaDataBuilder builder = new DefaultMetaDataBuilder();
+        DynamicObjectBuilder<?> dynamicObject = builder.createDynamicObject(key.getId());
+
+        for (Map.Entry<String, DataType> simpleField : fields.entrySet()) {
+            dynamicObject.addSimpleField(simpleField.getKey(), simpleField.getValue());
+        }
+
+        return new DefaultMetaData(builder.build());
+    }
+
+    private void populateKeysCache() throws InterruptedException {
+        Map<String, String> keyStore = new HashMap<String, String>();
+        keyStore.put("ENTITY_TYPE_1", "Cached House Door");
+        keyStore.put("ENTITY_TYPE_2", "Cached House Window");
+
+        // All the keys are presisted in a Map under a general key in the cache
+        // allowing for a bulk retrieval later.
+        cache.put(STORED_KEYS_ID, (Serializable) keyStore);
+    }
+
+    private void populateObjectsCache() throws Exception {
+        Map<String, DataType> door = new HashMap<String, DataType>();
+        door.put("Color", DataType.STRING);
+        door.put("Altura", DataType.INTEGER);
+
+        Map<String, DataType> window = new HashMap<String, DataType>();
+        window.put("Rejas", DataType.BOOLEAN);
+        window.put("Marco", DataType.ENUM);
+
+        cache.put("ENTITY_TYPE_1", (Serializable) door);
+        cache.put("ENTITY_TYPE_2", (Serializable) window);
+    }
+
+}
+----

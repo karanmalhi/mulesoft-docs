@@ -1,0 +1,265 @@
+= Connection Management
+:keywords: devkit, connection, authentication, annotations, test connectivity, pooling, disconnect, validate, identify, reconnect on
+
+The Connection Management framework provides multi-tenancy capabilities for a connector (managing multiple simultaneous connections with different credentials for each connector within your application), as well as connection pooling and instance pooling. These benefits are available for most authentication schemes other than OAuth, and for APIs that do not require authentication. Basic Authentication is designated in a connector with the `@ConnectionManagement` attribute.
+
+This document describes the Connection Management framework, the Java annotations through which it is exposed, and how to implement Basic Authentication support in your connector to authenticate with your service. Examples in this discussion show the use of Basic Authentication with basic username and password authentication (most common), but they can easily be generalized to other non-OAuth protocols such as SAML, Kerberos, LDAP, NTLM, or to create a custom connection.
+
+For OAuth-based authentication DevKit provides functionality using OAuth-related annotations. See link:/anypoint-connector-devkit/v/3.8/oauth-v1[OAuth V1] and link:/anypoint-connector-devkit/v/3.8/oauth-v2[OAuth V2] for details.
+
+== Prerequisites
+
+This document assumes you are familiar with the link:/anypoint-connector-devkit/v/3.8[Anypoint Connector DevKit], have already link:/anypoint-connector-devkit/v/3.8/creating-an-anypoint-connector-project[created a connector project], and are ready to implement authentication on your connector. Further, it assumes you are familiar with the various link:/anypoint-connector-devkit/v/3.8/authentication-methods[authentication methods], have compared the different link:/anypoint-connector-devkit/v/3.8/authentication[authentication support options in Devkit], and chosen Basic Authentication to connect to your API.
+
+== About Connection Management
+
+The Connection Management framework provides the following benefits with minimal effort on the part of the connector developer:
+
+* *Transparent multi-tenancy* – A Mule application can open many connections to a single target using different credentials to connect on behalf of many users simultaneously.
+* *Connection pooling* – Automated management of a pool of instances of the connector class to manage connection resources effectively.
+* *Exceptions* - The ability to automatically invalidate connections on exceptions and to reconnect as needed.
+
+=== Connection Management Framework and Authentication Protocols
+
+You can use the Connection Management framework in conjunction with most authentication protocols, such as username and password authentication (most common), SAML, Kerberos, LDAP, and NTLM.
+
+For OAuth-based authentication DevKit provides functionality using OAuth-related annotations. See link:/anypoint-connector-devkit/v/3.8/oauth-v1[OAuth V1]  and link:/anypoint-connector-devkit/v/3.8/oauth-v2[OAuth V2] for details.
+
+== Connection Management Annotation
+
+Anypoint DevKit makes it easy to add Connection Management functionality to connectors by creating a new `@ConnectionStrategy`, just create a new class and annotate it with `@ConnectionManagement`.
+
+The following table describes the parameters for the `@ConnectionManagement` annotation.
+
+[width="100%",cols="25%,25%,25%,25%",options="header"]
+|===
+|Parameter |Description |Required? |Default Value
+a|
+*friendlyName*
+
+ |Defines the name that is going to be displayed in the connector configuration pop up. | ✓ | 
+a|
+*configElementName*
+
+ |Defines the name for the configuration that is going to be used in the Mule app. |  | config
+|===
+
+== Connection Management DevKit Annotations
+
+To use Connection Management in a connector, define and annotate the following methods in the `@ConnectionManagement` annotated class:
+
+* `@Connect` method - Creates a connection
+* `@Disconnect` method - Explicitly closes a connection
+* `@ValidateConnection` method - Returns true if a connection is still valid, false otherwise
+* `@ConnectionIdentifier` method - Returns a prefix used in generating unique identifiers for connector instances in the connection pool
+
+The specific implementation of these methods depends on the target. For more information on annotations, see the link:http://mulesoft.github.io/mule-devkit/[Anypoint DevKit API Reference].
+
+[source,java, linenums]
+----
+@ConnectionManagement(friendlyName="Connector Connection")
+public class ConnectionManagementStrategy{
+   @Connect
+   @TestConnectivity
+   public void connect(@ConnectionKey String username, @Password String password){
+      ...
+   }
+
+   @Disconnect
+   public void disconnect() {
+       client = null;
+   }
+
+   @ValidateConnection
+   public boolean isConnected() {
+       return client != null;
+   }
+
+   @ConnectionIdentifier
+   public String connectionId() {
+       return client.toString();
+   }
+}
+----
+
+The methods are called automatically as needed by the DevKit framework; you never call them directly from your code.
+
+
+=== Adding @ConnectionManagement Annotation to the @Connector Class
+
+Given the `@ConnectionManagement` class, this is the way to add it in the `@Connector` Class.
+
+[source,java, linenums]
+----
+@Connector(name = "connector")
+public class MyConnectorWithConnectionManagement
+{
+    @ConnectionStrategy
+    private ConnectionManagementStrategy strategy;
+
+    /**
+    * Processors
+    */
+}
+----
+
+Ensure that strategy has a public getter and setter (not shown).
+
+=== @Connect Method
+
+This method is responsible for creating a connection to the target. The `@Connect` method is called automatically by Mule when the connector starts up, or if the connection to the API has been lost and must be reestablished. When this method finishes, if authentication is successful, the connector instance is ready to make operations.
+
+A method annotated with `@Connect` must:
+
+* Be public
+* Throw `org.mule.api.ConnectionException` (and no other exceptions)
+* Have a `void` return type
+* Annotate only one method with `@Connect`
+* Annotate `@Connect` method with `@TestConnectivity`
+* Annotate at least one parameter with `@ConnectionKey`
+
+The specific code that implements the actual connection depends on the API. Here is an example implementation of a `@Connect` method:
+
+[source,java, linenums]
+----
+@Connect
+@TestConnectivity
+   public void connect(@ConnectionKey String username, @Password String password)
+     throws ConnectionException {
+        try{
+           setClient(new SendGrid(username, password));
+        }catch(Exception e){
+           throw new ConnectionException(INCORRECT_CREDENTIALS,”” , e.getMessage());
+        }
+      }
+----
+
+The parameters required by this method are the credentials needed for authentication, in this case username and password. Since this method is annotated with `@Connect`, Anypoint DevKit makes these parameters available both in the configuration element for this connector (as occurs with `@Configurable` fields), as well as in the message processor whenever it is dragged into a flow. Specified credentials override those that are set in the configuration element.
+
+=== @TestConnectivity
+
+`@TestConnectivity` annotation displays a button in Anypoint Studio when configuring the Connector, this button allows the user to test if the connection is successful with his configuration.
+
+`@TestConnectivity` runs the `@Connect` method and expects an `org.mule.api.ConnectionException`, if this exception occurs, then the test fails, if not the connection is assumed successful.
+
+`@TestConnectivity` can be easily disabled by setting:
+
+[source,java, linenums]
+----
+@TestConnectivity(active = false)
+----
+
+=== @ConnectionKey and Connection Pooling
+
+In the Example above, the username parameter in the `@Connect` method is annotated with `@ConnectionKey`. If pools are enabled, Mule keeps a pool of simultaneous connections which are used as needed to make calls.
+
+The `@ConnectionKey` annotation marks that this field is used as the key for this particular connection within the connection pool, so once a connection for this username has been created and added to the pool, it is reused rather than recreated for each request.  
+
+==== Choosing a Connection Key
+
+For username and password authentication, the username is the obvious choice for `@ConnectionKey`. For other protocols, identify the value that is most obviously associated with different users and access privileges that connect to your service, and use this value as your `@ConnectionKey`.
+
+=== @Disconnect Method
+
+This annotation indicates the method inside a `@ConnectionManagement` class that is responsible for disposal of a connection. This method is called when the connector is shut down or the connection is explicitly terminated.
+
+A method annotated with `@Disconnect` must:
+
+* Be public
+* Take no input parameters
+* Have a `void` return type
+* The class must have exactly one annotated `@Disconnect` method
+
+[source,java, linenums]
+----
+@Disconnect
+public void disconnect()
+{
+   if (connection != null)
+   {
+     try
+         {
+         connection.logout();
+         }
+     catch (ConnectionException e)
+         {
+         e.printStackTrace();
+         }
+     finally
+         {
+         connection = null;
+         }
+   }
+}
+----
+
+If the connector currently has a connection open, this code calls `connection.logout()`,  a client method that explicitly de-authenticates and closes the connection. The final block ensures that, if the logout fails for any reason, the connection is still set to null, so the connector does not again try to reference that connector instance.
+
+=== @ValidateConnection Method
+
+This method is called by Mule to check whether the connection is actually open or not.
+
+A method annotated with `@ValidateConnection` must:
+
+* Be public
+* Take no input parameters
+* Return `boolean` or `java.lang.Boolean`
+* Only one method on the class can be annotated with `@ValidateConnection`
+
+[source,java, linenums]
+----
+@ValidateConnection
+public boolean isConnected()
+{
+    return connection != null;
+}
+----
+
+In this example, to determine whether the connection is active the code simply checks if the connection parameter is null. A different implementation may be required for other connectors, depending on the protocol.
+
+=== @ConnectionIdentifier Method
+
+This annotation identifies a method inside the `@ConnectionManagement` class that returns a unique identifier for the connection, used for logging and debugging.
+
+A method annotated with `@ConnectionIdentifier` must:
+
+* Be public
+* Not be static
+* Not take arguments
+* Return `java.lang.String`
+* Annotate only one method with `@ConnectionIdentifier`
+
+This code returns the connection SessionId as an identifier (if available). The SessionHeader object in this case contains header information about the current connection to the API, including the session ID.
+
+[source,java, linenums]
+----
+@ConnectionIdentifier
+public String connectionId() {
+if (connection != null){
+    return connection.getSessionHeader().getSessionId();
+    } else {
+        return  null;
+    }
+}
+----
+
+=== @ReconnectOn Annotation
+
+This annotation deprecates `@InvalidateConnectionOn` annotation. It now receives a list of exceptions instead of just a single exception, and can be used at both the class and processor levels.
+
+This annotation is used for exception handling related to connections. It can be used at class level or at a method level. If the Connector or Processor throws an exception of this class, `@ReconnectOn` automatically invalidates the connection. `@ReconnectOn` receives a list containing the classes of the exceptions to be caught (see below for an example). When an exception occurs, the `@ReconnectOn` behavior is based on the configured reconnection strategy. See
+link:/mule-user-guide/v/3.7/configuring-reconnection-strategies[Configuring Reconnection Strategies]
+for more details.
+
+[source,java, linenums]
+----
+@Processor
+@ReconnectOn(exceptions = {InvalidSessionFault.class, PasswordChangedException.class})
+public void myOperation(@Optional String source,
+                        @Optional Object destination) throws InvalidSessionFault, PasswordChangedException, InvalidParameterException
+{
+    /**
+    * CODE FOR MY OPERATION
+    */
+}
+----

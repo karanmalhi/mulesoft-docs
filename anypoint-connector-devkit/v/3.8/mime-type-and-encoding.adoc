@@ -1,0 +1,43 @@
+= MIME Type and Encoding
+:keywords: devkit, mime, processor
+
+In Mule 3.7 and newer, you can define the MIME type and encoding of a given return object from @Processor. See the link:http://mulesoft.github.io/mule-devkit/[Anypoint DevKit API Reference] for more information on annotations.
+
+While DevKit has the @Mime annotation, that element fetches that information at compile time, it's not useful when the connector implements proxy or wrapping to a filesystem type of API.
+
+== Runtime Support
+
+This feature lets you customize a return type. The following example shows how to trigger this feature:
+
+[source, code, linenums]
+----
+@Processor
+@UserDefinedMetaData
+----
+
+== Anypoint Studio Support
+
+If the @Processor is annotated with @UserDefinedMetaData (which is not mandatory when using TransformingValue). That attribute helps Studio users change the metadata of the given processor in later usages if needed.
+
+When enabled, an end user of Studio sees the *Metadata* tab in Studio that enables the user to change information for Metadata propagation as shown below.
+
+Code example:
+
+[source, java, linenums]
+----
+...
+import org.mule.api.annotations.display.UserDefinedMetaData;
+...
+@Connector(name = "file-chooser", friendlyName="File Chooser")
+public class FileChooserConnector {
+    @Config
+    ConnectorConnectionStrategy connectionStrategy;
+    @Processor(friendlyName="Open File as InputStream")
+    @UserDefinedMetaData
+    public TransformingValue<InputStream,DataType<InputStream>> openFileAsIS(
+    ...
+----
+
+Metadata tab:
+
+image:MetadataTab.png[MetadataTab]

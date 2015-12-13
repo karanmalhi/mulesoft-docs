@@ -1,0 +1,327 @@
+= Adding DataSense Query Language
+:keywords: devkit, datasense, dsql
+
+Many SaaS applications either implement a proper query language, such as SOQL or Salesforce Object Query Language, or support for selecting resources through their API in a way that corresponds to querying. DataSense Query Language (DSQL) provides a uniform query language so you can query data in any application with a compatible Anypoint™ Connector.
+
+image:6-package.png[6-package]
+
+*https://github.com/mulesoft/example-connector/tree/basic-dsql[Source Code]*
+
+== Prerequisites
+
+* Familiarity with Anypoint Connectors, link:/mule-user-guide/v/3.7/datasense[DataSense], link:/mule-user-guide/v/3.7/datasense-query-editor[DataSense Query Editor], and link:/anypoint-connector-devkit/v/3.8/adding-datasense-query-language[Adding DataSense Query Language] from a user level.
+* Understand Java "@" annotations. See link:http://mulesoft.github.io/mule-devkit/[Anypoint DevKit API Reference].
+* Experience with implementing a basic connector with link:/anypoint-connector-devkit/v/3.8[Anypoint DevKit].
+* Understand the visitor pattern, which is fundamental to the workings of DSQL-to-native query language translation.
+See:
+** link:http://java.dzone.com/articles/design-patterns-visitor[Design Patterns Uncovered: the Visitor Pattern]
+** link:http://en.wikipedia.org/wiki/Visitor_pattern[Visitor pattern] Wikipedia article
+
+== Enabling DSQL on Your Connector
+
+To enable DSQL in your connector:
+
+* link:/anypoint-connector-devkit/v/3.8/adding-datasense[Enable DataSense] (including `@MetaDataKeyRetriever` and `@MetaDataRetriever` annotated methods).
+* Create a new method, annotated with `@QueryTranslator`, responsible for doing the translation. This method must receive an `org.mule.common.query.DsqlQuery` object as its input.
+* Annotate a parameter with `@Query`, where users can input their DSQL statements.
+
+The last two items in this list are explained later in this document.
+
+== Familiarizing Yourself With DSQL Structure
+
+Out of the standard SQL operations (Select, Delete, Update, Insert) the only one supported in DSQL is SELECT. 
+
+Every DSQL statement must follow this structure:
+
+[source, sql, linenums]
+----
+SELECT [selectedFieldName, ]
+FROM [Type]
+WHERE ( [ fieldName OPERATION value, AND ] )
+{ ORDER BY [fieldName, ] { DESC | ASC } }
+{ OFFSET [offset_number] }
+{ LIMIT [max_number_total_of_items_in_query] }
+----
+
+Key:
+
+* {} Optional value
+* [] Dynamic value
+* [, ] Dynamic list of values
+
+Consider the DSQL query example from the link:/anypoint-connector-devkit/v/3.8/adding-datasense-query-language[Adding DataSense Query Language] documentation:
+
+Mule uses an internal query model to represent the different semantic elements that make up a query:
+
+[cols="3*a", options="header"]
+|===
+
+|Object
+|Example
+|Comments
+
+|Selected fields
+|`SELECT AccountID, FirstName, LastName`
+|A list of Fields. Each Field represents metadata – field name and datatype.
+
+|Type
+|`FROM Contact`
+|An object exposed by the application. This is always a List of exactly one Type.
+
+|Filter expression
+|[source,sql, linenums]
+----
+WHERE 
+
+(AccountID > '500'
+
+AND IsDeleted = false)
+
+OR
+
+Employee_Current
+
+= false
+----
+|A Boolean condition defined over the fields of an object type.
+
+|List of sort order fields
+|`ORDER BY LastName`
+|
+
+|Offset
+|`OFFSET 250`
+|The number of items to skip from the beginning of the result set. Used for paging.
+
+|Limit
+|`LIMIT 1000`
+|The number of items to include in the result set. Used for paging.
+
+|===
+
+Similarly, the filter expression is represented internally by a set of field names, data literals, delimiters, operators for comparison and grouping, etc. 
+
+More details about the query model and accessing it from your code emerge as you build out your new native query language translator that transforms the query model into a query language.
+
+== Translating From a DSQL Structure
+
+The first step is to create a new method on your `@Connector`, annotated with `@QueryTranslator`. This method receives a DSQL query (an `org.mule.common.query.DsqlQuery` object) as its input.
+
+To easily do this translation, there are a set of visitor classes you can take great advantage of.
+
+=== Visitor Classes and Query Languages
+
+A set of visitor classes implements the mapping between query model elements and specific query language syntax – classes that implement the link:http://java.dzone.com/articles/design-patterns-visitor[Visitor design pattern], traverse the query model, and generate corresponding statements in the needed native query language.
+
+Package `org.mule.common.query` defines Visitor interfaces that represent different parts of the DSQL query language, then provides default implementations of those Visitors that implement DSQL syntax. 
+
+[cols="3*a", options="header"]]
+|===
+
+|Visitor Interface
+|Implementation Classes
+|Syntax implemented
+
+|`QueryVisitor`
+|https://github.com/mulesoft/mule-common/blob/master/src/main/java/org/mule/common/query/DefaultQueryVisitor.java[DefaultQueryVisitor]
+
+https://github.com/mulesoft/mule-common/blob/c66595981f02fbed7b357d93010c84a0cacf704e/src/main/java/org/mule/common/query/DsqlQueryVisitor.java[DSQLQueryVisitor]
+|* "Beginning of an expression"
+(such as, the word "WHERE" before a filter expression)
+* Field lists
+* Types
+* Limit and Offset clauses
+* Precedence operators
+* Order By fields
+* Comparisons
+* Boolean operators
+
+|`OperatorVisitor`
+|https://github.com/mulesoft/mule-common/blob/c66595981f02fbed7b357d93010c84a0cacf704e/src/main/java/org/mule/common/query/DefaultOperatorVisitor.java[DefaultOperatorVisitor]
+|* Specific comparison operators +
+ (equals, not-equals, greater/less than, LIKE, etc.)
+|===
+
+To implement support for a new query language, define classes that extend `DefaultQueryVisitor` and `DefaultOperatorVisitor` and use them to construct native query language statements from the query model. You can name your new classes `MyAppQueryVisitor` and `MyAppOperatorVisitor`. The following sections describe how to construct them. 
+
+=== Implementing Your Operator Visitor Class
+
+Creating a new operator visitor class lets you define the comparison operator syntax (including LIKE) for your native query language. 
+
+Define a new class in your connector that extends link:https://github.com/mulesoft/mule-common/blob/c66595981f02fbed7b357d93010c84a0cacf704e/src/main/java/org/mule/common/query/DefaultOperatorVisitor.java[DefaultOperatorVisitor], which implements all the DSQL comparison operators:
+
+*Example DefaultOperatorVisitor Class:*
+
+[source, java, linenums]
+----
+public class DefaultOperatorVisitor implements OperatorVisitor {
+    public static final String LIKE = " like ";
+    public static final String GREATER_OR_EQUALS = " >= ";
+    public static final String NOT_EQUALS = " <> ";
+    public static final String EQUALS = " = ";
+    public static final String LESS_OR_EQUALS = " <= ";
+    public static final String GREATER = " > ";
+    public static final String LESS = " < ";
+    @Override public String lessOperator() {
+        return LESS;
+    }
+    @Override public String greaterOperator() {
+        return GREATER;
+    }
+    @Override public String lessOrEqualsOperator() {
+        return LESS_OR_EQUALS;
+    }
+    @Override public String equalsOperator() {
+        return EQUALS;
+    }
+    @Override public String notEqualsOperator() {
+        return NOT_EQUALS;
+    }
+    @Override public String greaterOrEqualsOperator() {
+        return GREATER_OR_EQUALS;
+    }
+    @Override public String likeOperator() {
+        return LIKE;
+    }
+}
+----
+
+Most languages mostly use similar operators. To implement operations in your own language, the shortest path is to create a new class that extends `DefaultOperatorVisitor`, and then override the methods that return those operators where your language differs from DSQL. 
+
+For example, in the Salesforce.com connector, class `SfdcOperatorVisitor` overrides `notEqualsOperator():`
+
+[source, java, linenums]
+----
+import org.mule.common.query.DefaultOperatorVisitor;
+
+
+public class SfdcOperatorVisitor extends DefaultOperatorVisitor {
+ @Override public java.lang.String notEqualsOperator() {
+        return " != ";
+    }
+}
+----
+
+Because the rest of the operators are the same in SOQL and DSQL, no other changes are needed.
+
+=== Implementing Your Query Visitor Class
+
+Creating a new query visitor class lets you define the query syntax for expressing the core query model constructs in your native query language. 
+
+Create a new class in your connector project that extends link:https://github.com/mulesoft/mule-common/blob/c66595981f02fbed7b357d93010c84a0cacf704e/src/main/java/org/mule/common/query/DefaultQueryVisitor.java[DefaultQueryVisitor] class.
+
+Suppose that your service uses the following syntax:
+
+[source, code, linenums]
+----
+S [selectedFieldName, ]
+F [Type]
+W ( [ fieldName OPERATION value, & ] )
+----
+
+The following example shows a visitor that translates DSQL into the syntax:
+
+[source,java, linenums]
+----
+public class SimpleSyntaxVisitor extends DefaultQueryVisitor {
+
+    private StringBuilder stringBuilder;
+
+    public SimpleSyntaxVisitor()
+    {
+        stringBuilder = new StringBuilder();
+    }
+
+    @Override
+    public void visitFields(java.util.List<org.mule.common.query.Field> fields) {
+        StringBuilder select = new StringBuilder();
+        select.append("S ");
+        Iterator<Field> fieldIterable = fields.iterator();
+        while (fieldIterable.hasNext())
+        {
+            String fieldName = addQuotesIfNeeded(fieldIterable.next().getName());
+            select.append(fieldName);
+            if (fieldIterable.hasNext())
+            {
+                select.append(",");
+            }
+        }
+
+        stringBuilder.insert(0, select);
+    }
+
+    @Override
+    public void visitTypes(List<Type> types)
+    {
+        stringBuilder.append(" F ");
+        Iterator<Type> typeIterator = types.iterator();
+        while (typeIterator.hasNext())
+        {
+            String typeName = addQuotesIfNeeded(typeIterator.next().getName());
+            stringBuilder.append(typeName);
+            if (typeIterator.hasNext())
+            {
+                stringBuilder.append(",");
+            }
+        }
+    }
+
+    //(...)
+
+    @Override
+    public void visitBeginExpression()
+    {
+        stringBuilder.append(" W ");
+    }
+
+    public String toSimpleQuery()
+    {
+        return stringBuilder.toString();
+    }
+}
+----
+
+[NOTE]
+For a complete connector that includes this functionality, view the link:https://github.com/mulesoft/example-connector/tree/basic-dsql[GitHub Repo].
+
+== Adding Query Visitor to @QueryTranslator
+
+In your `@Connector` class, implement a method annotated with `@QueryTranslator` that provides an instance of the visitor class and calls the method that returns your query.
+
+[source,java, linenums]
+----
+@QueryTranslator
+public String toNativeQuery(DsqlQuery query){
+    SimpleSyntaxVisitor visitor = new SimpleSyntaxVisitor();
+    query.accept(visitor);
+    return visitor.dsqlQuery();
+}
+----
+
+=== How Connector Users See DSQL
+
+After you build your connector and install it in Anypoint Studio, the connector is available for use in Mule projects. Add it to a flow, and open its property editor:
+
+image:qb2.png[qb2]
+
+You can select a language for your query, in this case, you can choose between the service's Native Query Language or DSQL. When having DSQL selected, you can use the Query Builder tool to automatically generate a query by simply selecting amongst the existing fields.
+
+image:query+builder.png[query+builder]
+
+The query you build populates the connector's *Query Text* field. You can also edit the text in this field.
+
+After you create a Query in DSQL, you can change the query language to the service's Native Query Language to verify that the translation is being correctly executed:
+
+image:qb3.png[qb3]
+
+Thanks to DataSense, if you include a DataMapper element after your connector, DataMapper interprets your query and only presents the fields that are returned by it:
+
+image:dm.png[dm]
+
+In this case, DataMapper handles a list of Authors that only have a firstName field.
+
+== See Also
+
+* **NEXT**: Add support for link:/anypoint-connector-devkit/v/3.8/adding-query-pagination-support[pagination] to your query operation.
+* Learn how to add link:/anypoint-connector-devkit/v/3.8/developing-devkit-connector-tests[tests] to your Connector.
+* Generate the link:/anypoint-connector-devkit/v/3.8/connector-reference-documentation[Reference Documentation].

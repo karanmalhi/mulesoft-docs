@@ -1,0 +1,123 @@
+= Adding Query Pagination Support
+:keywords: devkit, pagination, @Paged, @Processor
+
+Query Pagination comes as a need when dealing with a high quantity of records. The main advantage is performance as Mule runtime partially processes chunks of records at a time instead of trying to process all the records in memory at the same time. 
+
+[NOTE]
+To implement pagination in your connector, ensure that the *service's API* to which you want to connect *provides pagination* functionality.
+
+[NOTE]
+Be aware that enabling pagination on your connector may break backward compatibility with older Mule versions (prior to Mule Runtime 3.5.x) as it might change the returned type of a processor.
+
+== Enabling Pagination
+
+Enabling pagination in your connector is fairly straightforward. There are only three required conditions that your `@Processor` method must meet:
+
+. Annotate the method with `@Paged`
+. Must receive a parameter with type `org.mule.api.streaming.PagingConfiguration` 
+. The return type must be a `ProviderAwarePagingDelegate`
+
+[source,java, linenums]
+----
+@Paged
+@Processor
+    public ProviderAwarePagingDelegate query(String query, final PagingConfiguration pagingConfiguration) throws Exception
+{
+    return new CustomPagingDelegate(query,pagingConfiguration);
+}
+
+public QueryResult executeQuery(String query, String nextItem) throws Exception {
+        myServiceClient.query(query,nextItem);
+}
+----
+
+*Note*: The difference between the `@Processor` method and the operation `executeQuery`. The processor returns a `PagingDelegate` that later on (when retrieving a page) receives a connector instance already connected and executes `executeQuery` accordingly. 
+
+== Creating a CustomPagingDelegate
+
+The `ProviderAwarePagingDelegate` is where the pagination happens. Take a look at the `ProviderAwarePagingDelegate` abstract class, which requires two type arguments (T and P in this case). In the class definition below, T represents the data to be returned and P represents the provider of the data, your Anypoint Connector.
+
+[source,java, linenums]
+----
+public abstract class ProviderAwarePagingDelegate<T, P> implements Closeable
+
+{
+    /**
+     * Returns the next page of items. If the return value is
+     * <code>null</code> or an empty list, then it means
+     * no more items are available
+     *
+     * @param provider The provider to be used to do the query.
+     * You can assume this provider is already properly initialised
+     * @return a populated list of elements. <code>null</code>
+     * or an empty list, then it means no more items are available
+     * @throws Exception
+     */
+    public abstract List<T> getPage(P provider) throws Exception;
+
+    /**
+     * Returns the total amount of items in the non-paged result set.
+     * In some scenarios, it might not be possible or
+     * convenient to actually retrieve this value. -1 is
+     * returned in such a case.
+     *
+     * @param provider The provider to be used to do the query.
+     * You can assume this provider is already properly initialised.
+     */
+    public abstract int getTotalResults(P provider) throws Exception;
+
+    /**
+     * Close whatever external resource you might use
+     */
+    @Override
+    public void close() throws MuleException;
+
+}
+----
+
+Note again that when executing the methods `getPage(P provider)` and `getTotalResults(P provider)`, Anypoint Connector DevKit  picks the correct instance of your connector out of the connection pool.
+
+[source,java, linenums]
+----
+/**
+ * Example of Paging Delegate implementation
+ */
+public class CustomPagingDelegate extends ProviderAwarePagingDelegate<Item,CustomConnector> {
+    List<Item> cachedPage;
+    String query;
+    String nextItem;
+    int totalItems = -1;
+
+    public CustomPagingDelegate(String query, PagingConfiguration pagingConfiguration) {
+        this.query = query;
+    }
+
+    @Override
+    public List<Item> getPage(CustomConnector provider) throws Exception {
+        if (cachedPage != null) return cachedPage;
+        QueryResult queryResult = provider.executeQuery(query,nextItem);
+        nextItem = queryResult.nextItem();
+        return queryResult.items();
+    }
+    @Override
+    public int getTotalResults(CustomConnector provider) throws Exception {
+        if (totalItems != -1) return totalItems;
+        QueryResult queryResult = provider.executeQuery(query,nextItem);
+        nextItem = queryResult.nextItem();
+        totalItems = queryResult.totalItemsCount();
+        cachedPage = queryResult.items();
+        return totalItems;
+    }
+    @Override
+    public void close() throws MuleException {
+        //Close whatever external resource you might use
+    }
+}
+----
+
+To create your own version of `ProviderAwarePagingDelegate`, you must extend it. Below is an example of a simple extension of this class:
+
+== See Also
+
+* *NEXT*: Learn how to add link:/anypoint-connector-devkit/v/3.8/developing-devkit-connector-tests[tests] to your connector.
+* Generate the link:/anypoint-connector-devkit/v/3.8/connector-reference-documentation[Reference Documentation].
