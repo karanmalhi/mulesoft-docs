@@ -5,7 +5,188 @@ _Select_
 
 *Guide*: link:/mule-user-guide/v/3.7/netsuite-connector[NetSuite Connector]
 
-The Anypoint Connector for NetSuite synchronizes data and automates business processes between NetSuite and third party applications, either on-premise or in the cloud.
+The Anypoint Connector for NetSuite synchronizes data and automates business processes between NetSuite and third-party applications, either on-premise or in the cloud.
+
+== Version 7.0.0 - December 11, 2015
+
+=== Version 7.0.0 Compatibility
+
+The NetSuite connector 7.0.0 is compatible with:
+
+[width="100%",cols="50a,50a",options="header"]
+|===
+|Application/Service|Version
+|Mule Runtime|3.5 and later
+|API|SuiteTalk 2015.2
+|===
+
+=== Version 7.0.0 Features
+
+* Upgraded the connector to use SuiteTalk API version 2015.2
+* Added pagination support to `search` (removed other search processors, see Migration below)
+
+=== Version 7.0.0 Fixes
+
+* DataSense for `getRecord` and `getCustomRecord` has been introduced
+* Metadata for the custom fields has been further improved. Also, support for `OtherCustomFields` has been added. Record types with noticeable changes to custom field placement are:
+** ACCOUNT
+** BIN
+** CASH_SALE
+** CLASSIFICATION
+** CUSTOMER
+** DEPOSIT
+** ESTIMATE
+** EXPENSE_CATEGORY
+** EXPENSE_REPORT
+** INVOICE
+** ITEM_DEMAND_PLAN
+** ITEM_FULFILLMENT
+** ITEM_RECEIPT
+** ITEM_SUPPLY_PLAN
+** JOURNAL_ENTRY
+** LOCATION
+** MANUFACTURING_COST_TEMPLATE
+** MANUFACTURING_ROUTING
+** NOTE
+** PROMOTION_CODE
+** PURCHASE_REQUISITION
+** SUBSIDIARY
+** VENDOR_BILL
+** VENDOR_CREDIT
+** VENDOR_PAYMENT
+** VENDOR_RETURN_AUTHORIZATION
+
+=== Version 7.0.0 Known Issues
+
+None.
+
+=== Migrating From an Older Version to Version 7.0.0
+
+More changes have been made to metadata, thus when you upgrade to NetSuite Connector 7.0.0, reload metadata during design time.
+
+In this release we now use SuiteTalk API version 2015.2 for our web services. In this version NetSuite introduced a new concept called an "Integration Record". This requires the use of an application Id. Hence all three connection strategy configurations now have a new parameter called `applicationId`.
+The Integration Record containing an application Id can be set up from within your NetSuite environment by navigating to *Setup* > *Integration* > *Manage Integrations*. The global elements will now look as follows:
+
+New Global Configurations (from version 7.0.0):
+
+[source,xml,linenums]
+----
+<netsuite:config-login-authentication name="NetSuite" email="${email}" password="${password}" account="${account}" roleId="${roleId}" applicationId="${applicationId}" />
+
+<netsuite:config-request-level-authentication name="NetSuite" email="${email}" password="${password}" account="${account}" roleId="${roleId}" applicationId="${applicationId}" />
+
+<netsuite:config-sso-login-authentication name="NetSuite" email="${email}" password="${password}" account="${account}" roleId="${roleId}" applicationId="${applicationId}" />
+----
+
+Configuration for `getRecord` and `getCustomRecord` has slightly changed due to the DataSense introduction. Also, the `@Default` is now set on the `internalId` with a default value of `#[payload]`.
+
+Configuration prior to 7.0.0:
+
+[source,xml,linenums]
+----
+<netsuite:get-record config-ref="">
+	<netsuite:record-ref internalId="" externalId="" type="" />
+</netsuite:get-record>
+----
+
+New configuration (from version 7.0.0):
+
+[source,xml,linenums]
+----
+<netsuite:get-record config-ref="" internalId="" externalId="" type="" />
+----
+
+Due to the addition of pagination to search we have removed the now redundant processors `searchNext`, `searchMore` and `searchMoreWithId`.
+
+Furthermore, we would like to unify search functionality under just one processor and we feel that with the improvements made so far and the growing use of DataWeave, *`search`* should be the go-to operation. Moreover, `searchWithExpression` and `query` operations are limited when it comes to certain complexities. Hence we have decided to remove the processors `searchWithExpression`, `queryAsNativeResult` and `queryRecords`.
+
+*`search`* will now always return the whole set of results rather than just the first page. This is will be retrieved in the form of a List of Maps that represent all the records found that match your criteria. A new parameter fetchSize can be set to control the page size used by pagination support.
+
+Here is an example of how the configuration for `search` will look:
+
+[source,xml,linenums]
+----
+<netsuite:search config-ref="NetSuite__Login_Authentication" searchRecord="EMPLOYEE_BASIC" criteria-ref="#[payload]" fetchSize="5" />
+----
+
+Here are some examples if you are switching from `searchWithExpression` or `query`. The criteria for search can easily be constructed using DataWeave, generating the script for you and requiring you only to fill in the values (you can also use a Java component or DataMapper should you prefer).
+
+* `searchWithExpression` to `search`:
++
+[source,xml,linenums]
+----
+<netsuite:search-with-expression config-ref="NetSuite__Login_Authentication" searchRecord="EMPLOYEE_BASIC" expression="is(email, '#[map-payload:email]'), contains(address, '#[map-payload:address]')"/>
+----
++
+[source,xml,linenums]
+----
+<dw:transform-message doc:name="Transform Message">
+	<dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	email: {
+		operator: "IS",
+		searchValue: payload.email
+	} as :object {
+		class : "com.netsuite.webservices.platform.core.SearchStringField"
+	}
+	address: {
+		operator: "CONTAINS",
+		searchValue: payload.address
+	} as :object {
+		class : "com.netsuite.webservices.platform.core.SearchStringField"
+	}
+} as :object {
+	class : "com.netsuite.webservices.platform.common.EmployeeSearchBasic"
+}]]></dw:set-payload>
+</dw:transform-message>
+<netsuite:search config-ref="NetSuite__Login_Authentication" searchRecord="EMPLOYEE_BASIC" fetchSize="50" doc:name="NetSuite"/>
+----
+
+* `query` to `search`:
++
+[source,xml,linenums]
+----
+<netsuite:query-records config-ref="NetSuite__Login_Authentication" query="dsql:SELECT * FROM EMPLOYEE WHERE firstName=#[message.inboundProperties.'http.query.params'.firstName]" fetchSize="50" doc:name="Query EMPLOYEE record"/>
+----
++
+[source,xml,linenums]
+----
+<dw:transform-message doc:name="Transform Message">
+	<dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+	firstName: {
+		operator: "IS",
+		searchValue: inboundProperties.'http.query.params'.firstName
+	} as :object {
+		class : "com.netsuite.webservices.platform.core.SearchStringField"
+	}
+} as :object {
+	class : "com.netsuite.webservices.platform.common.EmployeeSearchBasic"
+}]]></dw:set-payload>
+</dw:transform-message>
+<netsuite:search config-ref="NetSuite__Login_Authentication" searchRecord="EMPLOYEE_BASIC" fetchSize="50" doc:name="NetSuite"/>
+----
+
+Finally, `getDeletedRecords` has also been reworked. This operation will now expect a `SearchDateField` on the payload as its `@Default` value, together with a pageIndex and type as before. The `SearchDateField` can also be manually defined. Here are some examples:
+
+[source,xml,linenums]
+----
+<netsuite:get-deleted-records config-ref="NetSuite__Login_Authentication" type="ACCOUNT">
+    <netsuite:deleted-date ref="#[payload]"/>
+</netsuite:get-deleted-records>
+
+<netsuite:get-deleted-records config-ref="NetSuite__Login_Authentication" type="EMPLOYEE">
+    <netsuite:deleted-date operator="ON" searchValue="#[java.util.Calendar calendar = new GregorianCalendar(); calendar.set(2015, 10, 01); return calendar;]"/>
+</netsuite:get-deleted-records>
+
+<netsuite:get-deleted-records config-ref="NetSuite__Login_Authentication" type="CUSTOMER" doc:name="NetSuite">
+    <netsuite:deleted-date operator="BEFORE" predefinedSearchValue="THIS_MONTH"/>
+</netsuite:get-deleted-records>
+----
 
 == Version 6.0.1 - July 30, 2015
 
@@ -17,7 +198,7 @@ The NetSuite connector 6.0.1 is compatible with:
 |===
 |Application/Service|Version
 |Mule Runtime|3.5 and later
-|API|SuiteTalks 2015_1
+|API|SuiteTalk 2015_1
 |===
 
 === Version 6.0.1 Features
@@ -67,8 +248,7 @@ The NetSuite connector v6.0.0 is compatible with:
 |===
 |Application/Service|Version
 |Mule Runtime|3.5 and later
-|API|SuiteTalks 2015_1
-| |SuiteTalks 2015_2
+|API|SuiteTalk 2015_1
 |===
 
 === Version 6.0.0 Features
@@ -90,7 +270,7 @@ The NetSuite connector v6.0.0 is compatible with:
 ** ITEM_FULFILLMENT
 ** ITEM_RECEIPT
 ** JOURNAL_ENTRY
-** LES_ORDER
+** SALES_ORDER
 ** OPPORTUNITY
 ** PURCHASE_ORDER
 ** TRANSFER_ORDER
@@ -136,12 +316,12 @@ The NetSuite connector v5.0.0 is compatible with:
 |===
 |Application/Service |Version
 |Mule Runtime |3.5 and later
-|API |SuiteTalks 2015_1
+|API |SuiteTalk 2015_1
 |===
 
 === Version 5.0.0 Features
 
-* Upgraded the connector to SuiteTalks API version 2015_1. 
+* Upgraded the connector to SuiteTalk API version 2015_1. 
 * The `get-deleted-records` operation no longer has any limit on the number of records to retrieve. This operation now makes use of a page index as per the new changes to the SuiteTalks API.
 
 === Version 5.0.0 Fixes
@@ -189,5 +369,5 @@ None.
 == See Also
 
 * Learn how to link:/mule-fundamentals/v/3.7/anypoint-exchange[Install Anypoint Connectors] using Anypoint Exchange.
-* Access MuleSoft’s http://forum.mulesoft.org/mulesoft[Forum] to pose questions and get help from Mule’s broad community of users.
-* To access MuleSoft’s expert support team, http://www.mulesoft.com/mule-esb-subscription[subscribe] to Mule ESB Enterprise and log into MuleSoft’s http://www.mulesoft.com/support-login[Customer Portal].
+* Access MuleSoft’s link:http://forum.mulesoft.org/mulesoft[Forum] to pose questions and get help from Mule’s broad community of users.
+* To access MuleSoft’s expert support team, link:http://www.mulesoft.com/mule-esb-subscription[subscribe] to Mule ESB Enterprise and log into MuleSoft’s link:http://www.mulesoft.com/support-login[Customer Portal].
