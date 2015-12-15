@@ -1,15 +1,15 @@
 = SOAP Session Management
 :keywords: soap connect, session management, wsdl, web service, soap
 
-To support SOAP-based connector development, DevKit 3.8.0 comes equipped with the option for the connector developer to define a session token for managing SOAP service connections, SOAP sessions and service operations requiring a token.
+To support SOAP-based connector development, *DevKit 3.8.0* comes equipped with the option for the connector developer to define a *session token* for managing SOAP service connections, SOAP sessions or any service operations requiring a token.
 
 == Introduction
 
-Session management for SOAP Connect offers you as the developer to create a session token from your connector code within the `@Connect` method, and utilize it according to any operations the SOAP service requires.
+Create a session token from your connector code within the `@Connect` method, and utilize it according to any operations the SOAP service requires.
 
-Use the session token as a means to manage user access to the service through the connector. For more information on session token placement inside the body see link:/anypoint-connector-devkit/v/3.7/soap-connect-session-management#enriching -soap-body-with-session-token[SOAP message body enrichment].
+This is a means to managing user access to the service through the connector. For more information on session token placement inside the body see link:/anypoint-connector-devkit/v/3.8/soap-connect-session-management#enriching-soap-body-with-session-token[Enriching SOAP Body with Session Token].
 
-Session management allows you, the developer to:
+Session management allows you to:
 
 * Inject the session token into:
 ** HTTP cookies, and headers
@@ -23,7 +23,7 @@ Session management allows you, the developer to:
 
 To enable session management for your connector, the `Config` class must be annotated with `@WsdlProvider` and `@ConnectionManagement`, which require implementation of the following methods, respectively:
 
-For WSDL management:
+For WSDL Management:
 
 * @WsdlServiceRetriever
 * @WsdlServiceEndpoint
@@ -34,13 +34,13 @@ For Connection Management:
 * @Disconnect
 * @ValidateConnection
 
-See the stub for the session management-enabled Config class in the <<@WsdlProvider with Session Management,@WsdlProvider with Session Management>> section.
+See the stub for the session management-enabled Config class in the link:/anypoint-connector-devkit/v/3.8/soap-connect-session-management#wsdlprovider-with-session-management[@WsdlProvider with Session Management] section below.
 
 == Connector Lifecycle with Session Management
 
 The lifecycle of the connector will be modified by "session control", during both fetching of metadata and operation invocation. Before fetching metadata and invoking operations, a connector instance is retrieved from or created in the pool, and then the `@Connect` method would be invoked to initialize the connection.
 
-Connection pooling works like the current `@ConnectionManagement` mechanism; by using the same kind of pool configuration for the connector instances available via a connector configuration tab. The configuration of existing connector instances or creation of new ones is handled by the user from there.
+Connection pooling works like the current link:/anypoint-connector-devkit/v/3.8/connection-management#about-connection-management[Connection Management] mechanism; by using the same kind of pool configuration for the connector instances available via a connector configuration tab. Configuration of existing connector instances or creation of new ones is handled by the user from there.
 
 Since the `@Connect` method is invoked before any of the common `@WsdlProvider` methods, all the required parameters for connection must be provided via a `@Configurable` field or `@Connect` parameter. Initialization may take place inside the `@Connect` method in order to save results like session tokens.
 
@@ -103,13 +103,13 @@ public class Config {
 }
 ----
 
-== Enriching SOAP Body With Session Token
+== Enriching the SOAP Body With Session Token
 
 With the release of DevKit 3.8.0 the `@WsdlBodyEnricher` can be used to inject the session token into the SOAP body.
 
 === @WsdlBodyEnricher
 
-The method marked as `@WsdlBodyEnricher` should receive an object representing the message payload, and return it modified with the session token.
+The method marked `@WsdlBodyEnricher` should receive an object representing the message payload, and return it modified with the session token.
 
 [source,java,linenums]
 ----

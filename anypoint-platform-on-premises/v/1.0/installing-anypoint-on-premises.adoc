@@ -94,8 +94,6 @@ Other resources:
 
 Please follow the instructions listed on link:https://docs.docker.com/compose/install/[Docker Compose install]
 
-
-
 ==== Copy platform config files to `/opt/config`
 
 The Anypoint platform configuration files must be in a predictable location on each host machine because Rancher dynamically launches services on any available host.  This means that it won’t have the benefit of finding config files from a current working directory the same way docker-compose would.  `/opt/config` has been chosen as the default directory to store platform configuration files, so what you need to do is download the link:[I STILL NEED THE FILE TO PUT HERE] and copy the config directory into the `/opt` folder.  Repeat this procedure on every host you register to Rancher.
@@ -332,6 +330,7 @@ Congratulations! You have now installed the Anypoint Platform running on top of 
 === Extending to more than 1 host
 
 Rancher allows you to distribute containers between multiple hosts and make it absolutely transparent for clients. Scaling is quite simple:
+
 . Make sure that you have more than 1 host for your infrastructure - you can see an example below. You can view this by accessing *Infrastructure* -> *Hosts*
 
 +
@@ -421,6 +420,415 @@ image:rancher-add-load-balancer2.png[load balancer]
 Add a server by placing the `agent-setup-onPrem.jar` into the bin folder of mule and running the following command. Make sure to replace the token with the one from the console and also substitute the IP/DNS addresses with where your docker is running
 
 [source]
+----
+> java -jar agent-setup.jar -A http://$DOCKER_IP_ADDRESS:8080/hybrid/api/v1 -W "wss://$DOCKER_IP_ADDRESS:8443/mule" -C https://$DOCKER_IP_ADDRESS/accounts -H  11111111-1111-1111-1111-111111111111---1 DESIRED_MULE_SERVER_NAME
+----
+
+==== Copy platform config files to `/opt/config`
+
+The Anypoint platform configuration files must be in a predictable location on each host machine because Rancher dynamically launches services on any available host.  This means that it won’t have the benefit of finding config files from a current working directory the same way docker-compose would.  `/opt/config` has been chosen as the default directory to store platform configuration files, so what you need to do is download the link:[I STILL NEED THE FILE TO PUT HERE] and copy the config directory into the `/opt` folder.  Repeat this procedure on every host you register to Rancher.
+
+[source]
+----
+> cd anypoint-platform
+> sudo cp -r config /opt/.
+----
+
+==== Rancher Server Installation:
+
+Run the rancher server on the machine you designate to host it.  It occupies a single docker container.
+
+[source]
+----
+> sudo docker run -v /opt/anypoint-platform/config/logos/:/usr/share/cattle/war/assets/images/logos -d --restart=always -p 9999:8080 rancher/server
+----
+
+After a few minutes, the server will be running and will allow you to access the UI on your browser of choice vía HTTP:  `http://$SERVER_IP:9999`
+
+image:rancher-welcome.png[rancher welcome]
+
+You now have the server up and running with the Rancher UI. From here onwards, this tutorial will make use of the Rancher UI instead of the terminal to manage the installation.
+
+==== Register a host with the rancher server:
+
+
+== Identity Management Configuration
+
+=== OpenAM Configuration (Version 12)
+
+Below is an OpenAM configuration for running docker-compose locally (on https://anypoint.mulesoft.local)
+
+*Identity Federation Service Provider*
+[width="100%",cols="50a,50a",options="header"]
+|===
+|sign on url | https://ec2-52-10-207-37.us-west-2.compute.amazonaws.com:8443/openam/saml2/jsp/idpSSOInit.jsp?spEntityID=anypoint.mulesoft.local&metaAlias=/idp
+|sign out url | https://ec2-52-10-207-37.us-west-2.compute.amazonaws.com:8443/openam/saml2/jsp/spSingleLogoutInit.jsp?binding=urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect&idpEntityID=anypoint.mulesoft.local&metaAlias=/idp&RelayState=http://mulesoft.com
+|===
+
+*Admin Token Provider*
+[width="100%",cols="50a,50a",options="header"]
+|===
+|create url | https://ec2-52-10-207-37.us-west-2.compute.amazonaws.com:8443/openam/json/authenticate
+|username | admin
+|password | 11111
+|===
+
+*OAuth2 Authorization Provider*
+[width="100%",cols="50a,50a",options="header"]
+|===
+|Authorize URL | https://ec2-52-10-207-37.us-west-2.compute.amazonaws.com:8443/openam/oauth2/authorize
+|===
+
+*OAuth2 Token Provider*
+[width="100%",cols="50a,50a",options="header"]
+|===
+|Create URL |https://ec2-52-10-207-37.us-west-2.compute.amazonaws.com:8443/openam/oauth2/access_token
+|===
+
+*OAuth2 Token Validation Provider*
+[width="100%",cols="50a,50a",options="header"]
+|===
+|Validate URL | https://ec2-52-10-207-37.us-west-2.compute.amazonaws.com:8443/openam/oauth2/tokeninfo
+|Username Token Mapping |
+|===
+
+*OAuth2 Client Provider*
+[width="100%",cols="50a,50a",options="header"]
+|===
+|Create Url | https://ec2-52-10-207-37.us-west-2.compute.amazonaws.com:8443/openam/frrest/oauth2/client/?_action=create
+|Delete Url | https://ec2-52-10-207-37.us-west-2.compute.amazonaws.com:8443/openam/frrest/oauth2/client/{{client_id}}
+|Scopes |cn, sn, mail, uid, givenName
+|Default Scopes |cn, sn, mail, uid, givenName
+|===
+
+*SAML 2.0*
+[width="100%",cols="50a,50a",options="header"]
+|===
+|Issuer |test.openam
+|Public key |asdfasdfasdfasdfasdfasdfasfasdfasdfasdfsfas
+|Audience | anypoint.mulesoft.local
+|Bypass Expiration | unchecked
+|Group Attribute |
+|===
+
+*SSO with an example user*
+
+Go to `https://anypoint.mulesoft.local/accounts/login/<domain>`` (you can find the domain by clicking the ‘gear’ icon, then the *Organization* tab, and then clicking on the master organization).
+Then sign in to OpenAM with your username and password.
+
+
+Follow the Docker instructions above on a separate machine. This machine will be used as a host to run MuleSoft software. Open a terminal on this machine.
+
+Back on the first machine, where you installed Rancher, from the UI top nav bar click on *INFRASTRUCTURE* and then *HOSTS*.  You will see a screen that shows all registered host machines. At this point, you won’t see any registered machines.
+
+image:add-host.png[add host]
+
+Click on the ADD HOST button to add a host. On the next page, the Rancher UI will require that you provide a base URL that the hosts should use to connect to the server.  By default it will use the URL that your browser is currently at, which should be fine, so hit *Save* to move on to the next page.
+
+image:add-host2.png[add host2]
+
+There are several ways to auto-provision hosts from different cloud providers.  We will not use any of these since you have already provisioned your own server. Click on the CUSTOM icon which will give you a command to run on the host machine. Copy and paste this into your terminal to register the host with the server (this will run the Rancher agent Docker image on the host machine).  Click on *close*. Wait for a minute and go back to the host's screen and you will see that the host has been registered with the server and that it’s ready to receive commands.
+
+image:add-host3.png[add host 3]
+
+image:add-host4.png[add host 4]
+
+One of the hosts you are adding to your cluster needs to be designated as the “database” host, which will ensure correct container placement for failover scenarios. Pick your designated host and open its dropdown menu by clicking on the down arrow, select “Edit” and add the following label:
+
+[source]
+----
+“database” = “true”
+----
+
+image:rancher-assign-db1.png[assign db]
+
+image:rancher-assign-db2.png[assign db2]
+
+You can verify that the host now displays this label when viewed on the Hosts screen.
+
+[NOTE]
+Make sure that exactly *one* single host has this label attached.
+
+image:rancher-assign-db-confirm.png[confirm active]
+
+=== Docker Registry Setup
+
+
+Although docker registries can be manually added on every host which is managed by Rancher, it’s better to add “docker.mulesoft.com” to the platform to make sure this registry exists on all nodes under Rancher control.  This way Rancher will be able to pull MuleSoft images by itself on any host without user intervention.
+
+. In the Rancher UI, click on the icon at the top right corner of the UI and then select *Registries*
+
+image:add-registry1.png[Select Registries]
+
+image:add-registry2.png[Select Registries]
+
+. Create a new “custom” registry.  You should enter Anypoint credentials that have proper permissions to pull images.
+
+image:add-registry3.png[Custom]
+
+
+. Verify that the new registry you created is now active
+
++
+image:add-registry3.png[Verify]
+
+
+To add docker registries on every host, login in each host and pull the MuleSoft images using the command line. The script `pull-docker-images.sh` included in the distribution helps to pull all images.
+
+[NOTE]
+====
+We use our own internal docker registry. To download these images you will need to have the appropriate permissions added to your Anypoint account.  If you do not already have these, please contact salesops@mulesoft.com.  You will be notified when you have been given access.
+====
+
+==== OPTIONAL: Regenerate certificates, keys and keystores in the platform config
+
+Included with both zip files available for download in this document, there's a default sent of encryption keys, self-signed certificates, and keystores that are used by the platform for security purposes such as signing certificates during mule/gateway runtime registration with the runtime manager.  Out of the box, the platform works fine using these default files, but if you wish to replace them with newly generated ones for increased security we have included a script to automate this process.
+
+[source]
+----
+> cd anypoint-platform
+> keystore-generation.sh
+----
+
+Follow the on-screen prompts.  Notice that once executed a new file will be generated from this process named `truststore.jks)`.  This file is required by link:/mule-agent/v/1.1.1/index[the Mule Agent] for all runtimes you wish to register to the console because the agent uses 2-way SSL validation.  Before registering a runtime, you must copy this file to the `conf/` folder of that runtime.
+
+
+==== Copy platform config files to `/opt/config`
+
+The Anypoint platform configuration files must be in a predictable location on each host machine because Rancher dynamically launches services on any available host.  This means that it won’t have the benefit of finding config files from a current working directory the same way docker-compose would.  `/opt/config` has been chosen as the default directory to store platform configuration files, so what you need to do is download the link:[I STILL NEED THE FILE TO PUT HERE] and copy the config directory into the `/opt` folder.  Repeat this procedure on every host you register to Rancher.
+
+[source]
+----
+> cd anypoint-platform
+> sudo cp -r config /opt/.
+----
+
+////
+=== Create directories for databases
+
+To recover Postgres databases in case of crash or failure, 2 things are necessary
+* a logical dump of a database
+* all WAL segments between the time of the dump and the crash moment
+
+To simplify backup and restore process we suggest using an external storage mounted to /opt/dbs on all hosts where DB container can run. Please use the following command to create directories for all DB instances:
+
+[source]
+----
+for i in /opt/dbs/objectstore /opt/dbs/auth /opt/dbs/apiplatform /opt/dbs/hybrid /opt/dbs/exchange /opt/dbs/ramlmocking /opt/dbs/backups ; do mkdir -p $i ; done
+----
+////
+
+=== Upload SSL certificate
+
+The Anypoint platform creates a load balancer which makes SSL termination. By default, the Rancher  configuration files rely on an existing SSL certificate named “mulesoft-demo”. To upload its key and certificate, on Rancher open INFRASTRUCTURE -> CERTIFICATES and click the *Add Certificate* button. Then upload or insert the key and certificates.
+
+image:rancher-add-certificate.png[add certificate]
+
+[NOTE]
+====
+If the name of your certificate is not “mulesoft-demo”, you need to modify the following line in rancher-compose.yml file:
+
+[source, yaml]
+----
+nginx-ssl-lb:
+  scale: 1
+  default_cert: mulesoft-demo
+----
+
+====
+
+image:rancher-add-certificate2.png[add certificate]
+
+=== Run the platform via the Rancher UI
+
+There are two ways of running the platform using Rancher. One of them is to use a command-line utility called `rancher-compose` (that is very similar to `docker-compose`, in case you have used it before).  This method works, but requires more steps and is more error-prone than the alternative. We recommend the second way of launching the platform, which relies entirely on the Rancher UI.  To start, click on the *Applications* link on the top nav bar and then click the *Add Stack* button.
+
+image:rancher-add-stack.png[add stack]
+
+Give the newly created stack a name (as a suggestion, name it `anypoint-platform`) and load the `docker-compose.yml` and `rancher-compose.yml` files available as part of either of the two .zip bundles attached at the start of this document.  It’s the equivalent of “rancher-compose create” command.
+
+image:rancher-add-stack2.png[add stack 2]
+
+After you do this, you can go back to the Stacks screen and you’ll be able to see all the images of the Anypoint Platform created under the stack name that you used.  These images are not running yet, but the stack has been created with the information you provided.  To run the platform, click on the *Options* icon for the stack and then select *Start Services*.
+
+image:rancher-start-services.png[start services]
+
+It will take several minutes for the services to come online.  The icons will slowly turn green as the services start and become ready.
+
+image:rancher-start-services2.png[start services 2]
+
+Once the images are all active, your Stacks screen will look like in the image below:
+
+image:rancher-start-services3.png[start services 3]
+
+=== Migrate and Seed databases
+
+Now that all the services are up and running, you can run the migration and seed the authentication, object-store, and api-platform DBs.  There are two ways to do this:
+
+. The easiest way is running the `seed-database.sh` script, available in both of the two bundle .zip files that you can download. This script runs all 3 migrations in sequence.
++
+[NOTE]
+This script will only work if all the services are running on 1 host.
+
+. If the services are running on different hosts, then you should use the manual method described below.
+
+==== Using seed-database.sh
+
+In both .zip bundle files, there is a file named `seed-database.sh`.  Copy this file to the host machine running all the services and run it from the terminal.  It performs all necessary migrations in sequence.
+
+==== Manual database migration and seeding
+
+Rancher makes it easy to open a terminal window to any container via the UI, you can do that to execute the migration commands manually.
+
+. Among your active services, find the *authentication* service.  Mouse over the running container and click the icon for the drop down menu.  Then click on *Execute Shell* to open a terminal inside the container.
+
++
+image:rancher-execute-shell.png[execute shell]
+
+. In the terminal window, run the following command to migrate and seed the database.  It will notify you when it’s done and report any errors.
++
+[source]
+----
+> npm run grunt -- seedprem
+----
++
+image:rancher-shell1.png[shell1]
+
++
+image:rancher-shell2.png[shell2]
+
+. Repeat these steps with the *objectstore* service, but this time run the following command instead:
+
++
+[source]
+----
+> npm run knex -- migrate:latest
+----
+
++
+image:rancher-shell3.png[shell3]
+
++
+. Repeat the same steps with the *api-platform* service and run the same command as you did with the objectstore service:
+
++
+[source]
+----
+> npm run knex -- migrate:latest
+----
+
+. Repeat the same steps with the *exchange* service and run the same command as you did with the objectstore service:
+
++
+[source]
+----
+> npm run gulp -- migrate-latest
+----
+
+. Repeat the same steps with the *hybrid-rest* service to open a terminal and run this command below to seed it's database.  Do not be alarmed if the service is marked as *degraded* since that just means the database the service uses is not yet ready.
+
++
+[source]
+----
+> /usr/local/bin/migrate.sh
+----
+
+. The last step is to restart the hybrid-rest service after migration so that it can validate the schema on startup and properly initialize itself.  To accomplish this, navigate the rancher ui back to the *hybridrest* service and click the *stop* button at the top to stop this service.  Once the service stops the button will change into a *start* button that you can use to restart the service.  It should come up as green and running.
+
+Congratulations! You have now installed the Anypoint Platform running on top of Docker. You can open the service using your browser (make sure to use HTTPS) and create an organization by going to https://$HOST-IP/accounts/#/setup
+
+=== Extending to more than 1 host
+
+Rancher allows you to distribute containers between multiple hosts and make it absolutely transparent for clients. Scaling is quite simple:
+. Make sure that you have more than 1 host for your infrastructure - you can see an example below. You can view this by accessing *Infrastructure* -> *Hosts*
+
++
+image:rancher-multi-host.png[multi host]
+
++
+[NOTE]
+If you have only one host, scaling is still technically possible, but not very practical.
+
+. Make sure that all configuration files for the platform exist on all hosts. You can either copy them, or preferably put on NAS and mount the share into the `/opt` folder on all hosts.
+. Go to *Applications* -> *Stacks* and choose the service you want to scale.
+
++
+[NOTE]
+====
+Currently not all services can be scaled. Below is a list of services you can easily multiply:
+
+* apiplatform
+* authentication
+* nginx
+====
+
+. If  you need to scale the “authentication” service, as an example, you can either
+
++
+* click on its “Scale Up” button:
+
++
+image:rancher-scal-service.png[scale service]
+
+* Or access its `Edit` menu:
+
++
+image:rancher-scal-service2.png[scale service 2]
+
+. Then use the slider to specify how many instances of the service you need:
+
++
+image:rancher-scal-service3.png[scale service 3]
+
+. From the remaining list of eligible hosts, the container will be scheduled on to the one with the least number of containers on it.
+
+=== SSL termination on an external device:
+
+If you want to make SSL encryption for Anypoint Platform traffic on an external device and don’t need an HTTPS entry point (`nginx-ssl-lb` - a default SSL load balancer) you can create an additional load balancer without SSL encryption.
+
+. On Rancher open *APPLICATION* -> *STACK* and click the `Add Stack` button
+
++
+image:rancher-applications-add-stack.png[add stack]
+
+. Type name for this stack, for instance “ExternalSSL” and click *Create*
+
++
+image:rancher-application-add-stack2.png[add stack]
+
+. Click on the right part of *Add Service* menu and select *Add Load Balancer*
+
++
+image:rancher-application-add-stack3.png[add stack3]
+
+. Configure it for plain HTTP load balancing, like in the following example:
++
+[width="100%",cols="50a,50a",options="header"]
+|===
+|*Scale* | Always run one instance of this container on every host (* recommended option)
+|*Name* | http-lb
+|*Description* | plain http load balancer for Anypoint Platform (* optional)
+|*Source Port* | 80
+|*Protocol* | tcp
+|*Default Target Port* | 80
+|*Access* | Public
+|*Target Service* | nginx
+|===
+
+. then click *Save*
++
+image:rancher-add-load-balancer.png[load balancer]
+
+. Verify that the service is active (it may take a few minutes)
+
++
+image:rancher-add-load-balancer2.png[load balancer]
+
+== Hybrid Server Registration
+
+Add a server by placing the `agent-setup-onPrem.jar` into the bin folder of mule and running the following command. Make sure to replace the token with the one from the console and also substitute the IP/DNS addresses with where your docker is running
+
+[source, code]
 ----
 > java -jar agent-setup.jar -A http://$DOCKER_IP_ADDRESS:8080/hybrid/api/v1 -W "wss://$DOCKER_IP_ADDRESS:8443/mule" -C https://$DOCKER_IP_ADDRESS/accounts -H  11111111-1111-1111-1111-111111111111---1 DESIRED_MULE_SERVER_NAME
 ----
@@ -680,6 +1088,7 @@ Insecure properties/configuration in `authentication-server` that should be cust
 
 . Enter a new password by navigating to the following link. Please change the host to the hostname you’re using for your installation. Change admin to the username of the admin user that you created in the setup steps. `https://anypoint.mulesoft.local/accounts/#/new-password?code=admin`
 
+
 === Creating a Backup and Restoring
 
 You can backup the Postgres databases used by the Anypoint Platform. Database directories are automatically created, using an external storage mounted on `/opt/dbs` on all hosts where the database container can run.
@@ -716,6 +1125,7 @@ To open the contents of one of these databases, you can use the following comman
 ----
 cat $DIR/DATABASE.dump | psql -U username -d DATABASE
 ----
+
 
 === API Keys
 
