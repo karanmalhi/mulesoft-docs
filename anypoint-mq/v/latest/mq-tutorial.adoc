@@ -23,10 +23,12 @@ MQ over HTTP.
 
 .. <<Assign User Permissions>> - Give yourself permission to view the user interface - Good model for when you add users in your organization to MQ.
 .. <<Create an Admin Role>> - Create an admin's role for all permissions - Helps you define who in your organization should administer MQ versus have lesser permissions.
-.. <<Create a Queue>> - Create a queue where MQ messages are published and consumed by applications.
-.. <<Register a Client Application>> - Register an application at the MQ server so that the application can publish messages
-and consume messages. The MQ server provides a client ID and client secret that you use with Anypoint Studio.
-|2 |<<Configure Anypoint Studio for MQ>> |Obtain the MQ connector and create a flow for publishing or consuming messages, and run the Mule Application to ensure your application works and to serve HTTP requests on your localhost.
+.. <<Create a Queue and an Exchange>> - Create a queue where MQ messages are published and consumed by applications.
+.. <<Send and Receive a Message for a Queue>> - Send the demo
+queue a message and then get the message.
+.. <<Send a Message to an Exchange>> - Send the demo
+exchange a message and then get the message from the demo queue.
+|2 |<<Configure Anypoint Studio for MQ>> |Use Anypoint Platform to register a client application and get values for the Client ID and Client Secret. Then in Anypoint Studio, get the MQ connector and create a flow for publishing or consuming messages, and run the Mule Application to ensure your application works and to serve HTTP requests at your localhost.
 |3 |<<Send and Receive Messages>> |Use the MQ > Messages feature in Anypoint Platform to send and receive messages.
 |===
 
@@ -104,11 +106,19 @@ image:mq-tut-permissions.png[mq-tut-permissions]
 +
 . Click the green checkmark on the right to save your changes: image:mq-tut-green-checkmark-icon.png[mq-tut-green-checkmark-icon]
 
-=== Create a Queue
+=== Create a Queue and an Exchange
 
 A queue provides a temporary stack for holding messages. Applications push messages to the queue and other applications consume
 the messages. An application that intends to consume messages either acks (acknowledges) the message acquires the message contents, or nacks (negative acknowledgement) the message to indicate that the application does not want to consume that message.
 When an application acks a message, MQ locks the message for a limited duration so only the application can consume it, and then removes the message after the application consumes the message.
+
+An exchange is a collection of one or more queues.
+An exchange lets you send one message that can appear on
+multiple queues. Exchanges let you organize queues within
+your organization, or to use exchanges to send specific
+types of messages.
+
+==== Create a Queue
 
 To create a queue:
 
@@ -116,16 +126,83 @@ To create a queue:
 . In the top taskbar, click *MQ*.
 . Click *Destinations*.
 . Click the blue plus circle.
-. Specify the queue name `MyDemoQueue`. For this tutorial, you can leave the time-to-live (TTL) durations as shown, and leave the queue unencrypted.
-. Click the queue name to list its details. After we create applications in Anypoint Studio, we return to the queue detail screen
-to see which messages are available and which are in flight.
+. Click *Queue*.
++
+image:mq-create-demo-queue.png[mq-create-demo-queue, width="400"]
++
+. Specify the name `MyDemoQueue`. For this tutorial, you can leave the time-to-live (TTL) durations as shown, and leave the queue unencrypted.
+. Click *Save Changes*.
+. In the Destinations screen. click the queue name to list its details.
 
+==== Create an Exchange
+
+To create an exchange:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top taskbar, click *MQ*.
+. Click *Destinations*.
+. Click the blue plus circle.
+. Click *Exchange*.
++
+image:mq-create-demo-exchange.png[mq-create-demo-exchange, width="400"]
++
+. Specify the name `MyDemoExchange`.
+. Click the checkbox to bind MyDemoQueue to this exchange.
+. Click *Save Changes*.
+. In the Destinations screen. click the exchange name to list its details.
+
+=== Send and Receive a Message for a Queue
+
+Anypoint Platform lets you access a feature where you can send
+messages to a queue and then view them. The messages content can
+be text, JSON, or CSV.
+
+==== Send a Message to the Queue
+
+To send a message to a queue:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top taskbar, click *MQ*.
+. Click *Destinations*.
+. Click the MyDemoQueue entry in Destinations to view details about
+the queue.
+. Click the queue name in the details to open the Messaging feature:
++
+image:mq-access-messaging.png[mq-access-messaging]
++
+. In the settings page, click *Message Sender*:
++
+image:mq-click-msg-sender.png[mq-click-msg-sender]
++
+. Type text in the *Payload*:
++
+image:mq-msg-sender-text-payload.png[mq-msg-sender-text-payload]
++
+. Click *Send*.
+
+==== Get a Message From a Queue
+
+This section builds on the last. To get a message from a queue,
+follow the directions in <<Send a Message to the Queue>> and
+advance to Step 6, except click *Message Browser*:
+
+image:mq-click-msg-browser.png[mq-click-msg-browser]
+
+
+=== Send a Message to an Exchange
+
+== Configure Anypoint Studio for MQ
+
+In this section, we use Anypoint Studio to create a simple application that you can use
+to publish a message to a queue, or to consume the message, and to ack and nack the message.
+
+First, return to Anypoint Platform and register an application that we can use in Studio.
 
 === Register a Client Application
 
-MQ provides the *Client Application* settings so that you can register each application that you want to communicate through MQ.
-For each application you register, MQ creates a client ID and a client secret that you plug into your application.
-These credentials enable MQ to recognize your application when your application publishes a message to a queue or exchange, and when an application consumes a message from a queue.
+Anypoint Platform > MQ provides the *Client Application* settings so that you can register each application that you want to communicate through MQ.
+For each application you register, MQ creates a client ID and a client secret that you plug into your application in Anypoint Studio.
+These credentials enable the MQ server to recognize your application when your application publishes a message to a queue or exchange, and when an application consumes a message from a queue.
 
 To register a client application:
 
@@ -146,18 +223,8 @@ image:mq-tut-blue-create-button.png[mq-tut-blue-create-button]
 +
 image:mq-tut-create-client-app.png[mq-tut-create-client-app]
 
-*Note*: Leave the Client Apps window open. We need to copy and paste the Client ID and Client Secret
+*Note*: Leave the *Client Apps* window open. We need to copy and paste the Client ID and Client Secret
 into the configuration for Anypoint Studio in the next step.
-
-== Configure Anypoint Studio for MQ
-
-In this section, we use Anypoint Studio to create a simple application that you can use
-to publish a message to a queue, or to consume the message, and to ack and nack the message.
-
-For this section, you need to have the client ID and secret you created
-in <<Register a Client Application>>, so have
-link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform] > *MQ* > *Client App*
-open to copy the information to your Studio application.
 
 === Configure Studio for the Anypoint MQ Connector Plugin
 
