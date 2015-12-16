@@ -22,21 +22,19 @@ This guide walks through the complete process of creating a queue and publishing
 .. <<Assign User Permissions>> - Give yourself permission to view the user interface - Good model for when you add users in your organization to MQ.
 .. <<Create an Admin Role>> - Create an admin's role for all permissions - Helps you define who in your organization should administer MQ versus have lesser permissions.
 .. <<Create a Queue and an Exchange>> - Create a queue where MQ messages are published and consumed by applications.
-.. <<Send and Receive a Message for a Queue>> - Send the demo
-queue a message and then get the message.
-.. <<Send a Message to an Exchange>> - Send the demo
-exchange a message and then get the message from the demo queue.
+.. <<Send and Receive a Queue Message>> - Send the demo queue a message and then get the message.
+.. <<Send a Message to an Exchange>> - Send the demo exchange a message and then get the message from the demo queue.
 |2 |<<Configure Anypoint Studio for MQ>> |Use Anypoint Platform to register a client application and get values for the Client ID and Client Secret. Then in Anypoint Studio, get the MQ connector and create a flow for publishing or consuming messages, and run the Mule Application to ensure your application works and to serve HTTP requests at your localhost.
 |3 |<<Send and Receive Messages>> |Use the MQ > Messages feature in Anypoint Platform to send and receive messages.
 |===
 
 == Configure Anypoint Platform
 
-In the sections that follow, we use Anypoint Platform to assign an administrative role, create an application, and create an exchange.
+In the sections that follow, we use Anypoint Platform to assign an administrative role, create an application, create a queue and exchange, and send and receive queue messages, and send messages to an exchange.
 
 === Assign User Permissions
 
-Assign user permissions to yourself for use with MQ. These permissions let you create client applications, and destinations by creating queues and exchanges. You can use this same information to assign user permissions for others in your organization.
+You can use Anypoint Platform to assign user permissions to yourself for use with MQ. These permissions let you create client applications, and destinations by creating queues and exchanges. You can use this same information to assign user permissions for others in your organization.
 
 To assign user permissions:
 
@@ -149,13 +147,13 @@ image:mq-create-demo-exchange.png[mq-create-demo-exchange, width="400"]
 . Click *Save Changes*.
 . In the Destinations screen. click the exchange name to list its details.
 
-=== Send and Receive a Message for a Queue
+=== Send and Receive a Queue Message
 
 Anypoint Platform lets you access a feature where you can send
 messages to a queue and then view them. The messages content can
-be text, JSON, or CSV.
+be text, JSON, or CSV (comma-separated values).
 
-==== Send a Message to the Queue
+==== Send a Message to a Queue
 
 To send a message to a queue:
 
@@ -172,13 +170,13 @@ image:mq-access-messaging.png[mq-access-messaging]
 +
 image:mq-click-msg-sender.png[mq-click-msg-sender]
 +
-. Type text in the *Payload* such as `Hello Mules`:
+. Type text in the *Payload* such as `Hello Mules` (leave the *Type* field set to *Text*):
 +
 image:mq-msg-sender-text-payload.png[mq-msg-sender-text-payload]
 +
 . Click *Send*.
 
-==== Verify the Message in the Queue
+==== Verify the Message in a Queue
 
 To verify that the message arrived in the queue:
 
@@ -221,9 +219,78 @@ Alternatively, you can delete the message by clicking the trash can icon. In Any
 +
 image:mq-message-delete-trash-can-icon.png[mq-message-delete-trash-can-icon, width="393"]
 
+Now you are able to send and receive messages in Anypoint MQ. In the next section, you can try
+alternate ways of formatting messages.
 
+==== Send a CSV or JSON Message
+
+To send a JSON message:
+
+. Click *Message Sender*.
+. Set the *Type* to *JSON*.
+. Set the *Payload* to:
++
+[source,json,linenums]
+----
+{
+"animal that walks":"dog",
+"animal that swims":"fish",
+"animal that flies":"parrot"
+}
+----
++
+*Note*: JSON must have a return after every line. If compressed into a single statement, the message
+browser only shows the message as " " - the same output displays for any invalid JSON text. You can
+also submit JSON using the link:/anypoint-mq/#mqapis[Anypoint MQ APIs].
++
+. Click *Message Browser* and the message ID to view the message:
++
+image:mq-json-get-msg.png[mq-json-get-msg]
+
+To send a CSV message:
+
+. Click *Message Sender*.
+. Set the *Type* to *CSV*.
+. Set the *Payload* to:
++
+[source,code]
+----
+"dog",
+"fish",
+"parrot"
+----
++
+. Click *Message Browser* and the message ID to view the message.
 
 === Send a Message to an Exchange
+
+Sending a message to an exchange is very similar to sending a message to a queue.
+The only difference is that you can get the message from any queue bound to an exchange.
+
+To send a message to an exchange:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top taskbar, click *MQ*.
+. Click *Destinations*.
+. Click the `MyDemoExchange` entry in Destinations to view details about
+the exchange.
+. Click the *MyDemoExchange* link in the details screen to access the Message Sender:
++
+image:mq-exchange-msg-access.png[mq-exchange-msg-access]
++
+. Click *Message Sender*:
++
+image:mq-exchange-msg-sender.png[mq-exchange-msg-sender]
++
+. Type the contents of the *Payload* and click *Send*:
++
+image:mq-exchange-payload.png[mq-exchange-payload]
+
+You can now use the Message Browser to get the message from the MyDemoQueue as described
+in <<Get a Message From a Queue>>.
+
+You can also send comma-separated value (CSV) or JSON content in the payload by changing
+the message *Type* value. For more information, see <<Send a CSV or JSON Message>>.
 
 == Configure Anypoint Studio for MQ
 
@@ -399,10 +466,6 @@ INFO  <date> <time> [WrapperListener_start_runner] org.mule.module.launcher.Star
 * default                                       * default                        * DEPLOYED           *
 *******************************************************************************************************
 ----
-
-== Send and Receive Messages
-
-
 
 == See Also
 
