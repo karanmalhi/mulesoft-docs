@@ -21,18 +21,16 @@ This guide walks through the complete process of creating a queue and publishing
 
 .. <<Assign User Permissions>> - Give yourself permission to view the user interface - Good model for when you add users in your organization to MQ.
 .. <<Create an Admin Role>> - Create an admin's role for all permissions - Helps you define who in your organization should administer MQ versus have lesser permissions.
-.. <<Create a Queue and an Exchange>> - Create a queue where MQ messages are published and consumed by applications.
-.. <<Send and Receive a Queue Message>> - Send the demo queue a message and then get the message.
-.. <<Send a Message to an Exchange>> - Send the demo exchange a message and then get the message from the demo queue.
+.. <<Queues>> - Create queues, and send and receive messages.
+.. <<Exchanges>> - Create exchanges, and send messages.
 |2 |<<Configure Anypoint Studio for MQ>> |Use Anypoint Platform to register a client application and get values for the Client ID and Client Secret. Then in Anypoint Studio, get the MQ connector and create a flow for publishing or consuming messages, and run the Mule Application to ensure your application works and to serve HTTP requests at your localhost.
-|3 |<<Send and Receive Messages>> |Use the MQ > Messages feature in Anypoint Platform to send and receive messages.
 |===
 
 == Configure Anypoint Platform
 
 In the sections that follow, we use Anypoint Platform to assign an administrative role, create an application, create a queue and exchange, and send and receive queue messages, and send messages to an exchange.
 
-=== Assign User Permissions
+== Assign User Permissions
 
 You can use Anypoint Platform to assign user permissions to yourself for use with MQ. These permissions let you create client applications, and destinations by creating queues and exchanges. You can use this same information to assign user permissions for others in your organization.
 
@@ -67,7 +65,7 @@ image:mq-tut-permissions-summary.png[mq-tut-permissions-summary]
 +
 You can use this display to delete permissions if needed. For this tutorial, you can leave all as shown.
 
-=== Create an Admin Role
+== Create an Admin Role
 
 After you create permissions for yourself, you can create a role that you can apply to other users in your organization.
 While you don't need roles to complete this tutorial, when you use MQ as an administrator or developer, you should create
@@ -102,19 +100,17 @@ image:mq-tut-permissions.png[mq-tut-permissions]
 +
 . Click the green checkmark on the right to save your changes: image:mq-tut-green-checkmark-icon.png[mq-tut-green-checkmark-icon]
 
-=== Create a Queue and an Exchange
+== Queues
 
-A queue provides a temporary stack for holding messages. Applications push messages to the queue and other applications consume
-the messages. An application that intends to consume messages either acks (acknowledges) the message acquires the message contents, or nacks (negative acknowledgement) the message to indicate that the application does not want to consume that message.
-When an application acks a message, MQ locks the message for a limited duration so only the application can consume it, and then removes the message after the application consumes the message.
+A queue provides a temporary stack for holding messages. Applications
+push messages to the queue and other applications consume
+the messages. In Anypoint MQ, you can read messages, return the messages
+for later viewing, or delete a message. By default, messages return to the
+waiting area so other applications can read them. Messages persist until the
+time to live (TTL) value expires--by default, a message persists in Anypoint MQ
+for 7 days.
 
-An exchange is a collection of one or more queues.
-An exchange lets you send one message that can appear on
-multiple queues. Exchanges let you organize queues within
-your organization, or to use exchanges to send specific
-types of messages.
-
-==== Create a Queue
+=== Create a Queue
 
 To create a queue:
 
@@ -127,35 +123,26 @@ image:mq-tut-mq-taskbar.png[mq-tut-mq-taskbar]
 +
 image:mq-destinations-label.png[image:mq-destinations-label]
 +
-. Click the blue plus circle.
-. Click *Queue*.
+. As shown in the following animation, click the blue plus circle, click
+*Queue*, type `MyDemoQueue` for the queue ID, and click *Save Changes*.
+After the queue creates, the detail screen appears for the queue. If
+the details don't appear, click the right side of the queue entry.
 +
-image:mq-qx.png[Create Queue or Exchange decision click box]
-+
-In the *Create Queue* window:
-+
-image:mq-create-demo-queue.png[mq-create-demo-queue, width="315"]
-+
-.. Specify a name. For this tutorial, use `MyDemoQueue`. You can
-leave the rest of the options as they appear.
-.. Click *Save Changes*.
-. In the Destinations screen, click the queue *Type* to list its details:
-+
-image:mq-queue-details.png[mq-queue-details]
+image:mq-create-queue.gif[Create queue animated gif]
 +
 *Note*: Where you click on a queue entry in the Destinations table governs
 what you see next:
 +
 image:mq-entryui.png[mq-entryui]
 
-===== How Do I Delete a Queue?
+=== How Do I Delete a Queue?
 
 To delete a queue:
 
 . Click *Destinations*.
 . Click the *right* side of the queue entry in the Destinations table:
 +
-image:mq-click-type.png[mq-click-type]
+image:mq-click-type-q.png[mq-click-type-q]
 +
 . Click the trash can symbol in the upper right.
 . In the Delete Queue menu, click the checkbox:
@@ -164,35 +151,12 @@ image:mq-delete-queue.png[mq-delete-queue]
 +
 . Click *Delete Queue*.
 
-==== Create an Exchange
-
-To create an exchange:
-
-. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
-. In the top task bar, click *MQ*.
-. Click *Destinations*.
-. Click the blue plus circle.
-. Click *Exchange*.
-+
-image:mq-create-demo-exchange.png[mq-create-demo-exchange, width="325"]
-+
-. Specify the name `MyDemoExchange`.
-. Click the checkbox to bind MyDemoQueue to this exchange.
-. Click *Save Changes*.
-. In the Destinations screen. click the exchange name to list its details.
-
-=== Send and Receive a Queue Message
-
-Anypoint Platform lets you access a feature where you can send
-messages to a queue and then view them. The messages content can
-be text, JSON, or CSV (comma-separated values).
-
-==== Send a Message to a Queue
+=== Send a Message to a Queue
 
 To send a message to a queue:
 
 . Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
-. In the top taskbar, click *MQ*.
+. In the top task bar, click *MQ*.
 . Click *Destinations*.
 . Click the MyDemoQueue entry in Destinations to view details about
 the queue.
@@ -210,7 +174,7 @@ image:mq-msg-sender-text-payload.png[mq-msg-sender-text-payload]
 +
 . Click *Send*.
 
-==== Verify the Message in a Queue
+=== Verify the Message in a Queue
 
 To verify that the message arrived in the queue:
 
@@ -218,12 +182,12 @@ To verify that the message arrived in the queue:
 +
 image:mq-click-destinations.png[mq-click-destinations, width="173"]
 +
-. Click the queue to see the queue detail. The detail shows that a message is in
-the queue:
+. Click the right side of the queue entry to view details and see the number of messages in the queue
+as shown in this animation:
 +
-image:mq-msgs-in-queue.png[mq-msgs-in-queue]
+image:mq-view-details.gif[view queue details animated gif]
 
-==== Get a Message From a Queue
+=== Get a Message From a Queue
 
 To get a message from a queue:
 
@@ -256,7 +220,7 @@ image:mq-message-delete-trash-can-icon.png[mq-message-delete-trash-can-icon, wid
 Now you are able to send and receive messages in Anypoint MQ. In the next section, you can try
 alternate ways of formatting messages.
 
-==== Send a CSV or JSON Message
+=== Send a CSV or JSON Message
 
 To send a JSON message:
 
@@ -292,6 +256,47 @@ To send a CSV message:
 +
 . Click *Message Browser* and the message ID to view the message.
 
+== Exchanges
+
+The sections that follow help you work with Anypoint MQ Exchanges. An exchange
+consists of a collection of one or more queues. Exchanges help you organize
+queues and send one message to all its bound queues. You can still send and
+receive messages from a bound queue, but the exchange ensures all queues
+get the same message.
+
+=== Create an Exchange
+
+To create an exchange:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top task bar, click *MQ*.
+. Click *Destinations*.
+. Click the blue plus circle.
+. Click *Exchange*.
++
+image:mq-create-demo-exchange.png[mq-create-demo-exchange, width="325"]
++
+. Specify the name `MyDemoExchange`.
+. Click the checkbox to bind MyDemoQueue to this exchange.
+. Click *Save Changes*.
+. In the Destinations screen. click the exchange *Type* to list its details.
+
+=== How Do I Delete an Exchange?
+
+To delete an exchange:
+
+. Click *Destinations*.
+. Click the *right* side of the exchange entry in the Destinations table:
++
+image:mq-click-type-x.png[mq-click-type-x]
++
+. Click the trash can symbol in the upper right.
+. In the Delete Exchange menu, click the checkbox:
++
+image:mq-delete-exchange.png[mq-delete-exchange]
++
+. Click *Delete Exchange*.
+
 === Send a Message to an Exchange
 
 Sending a message to an exchange is very similar to sending a message to a queue.
@@ -300,7 +305,7 @@ The only difference is that you can get the message from any queue bound to an e
 To send a message to an exchange:
 
 . Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
-. In the top taskbar, click *MQ*.
+. In the top task bar, click *MQ*.
 . Click *Destinations*.
 . Click the `MyDemoExchange` entry in Destinations to view details about
 the exchange.
@@ -500,8 +505,7 @@ INFO  <date> <time> [WrapperListener_start_runner] org.mule.module.launcher.Star
 == See Also
 
 * link:/anypoint-mq[Anypoint MQ]
+* link:/anypoint-mq/mq-queues-and-exchanges[Create queues and exchanges, and send and receive messages]
 * link:/anypoint-mq/mq-access-management[Set user or role MQ access permission]
-* link:/anypoint-mq/mq-studio[Create app in Studio]
-* link:/anypoint-mq/mq-queues-and-exchanges[Create destinations or register client apps]
+* link:/anypoint-mq/mq-studio[Use Anypoint Studio with the MQ Connector]
 * link:/anypoint-mq/mq-understanding[Understand MQ concepts]
-* link:/anypoint-mq/mq-release-notes[Release Notes]
