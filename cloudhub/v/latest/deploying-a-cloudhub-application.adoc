@@ -125,6 +125,10 @@ Click the Secure data gateway checkbox if your application has a link:/cloudhub/
 
 Check this box to enable persistent queues on your application. Persistent queues protect against message loss and allow you to distribute workloads across a set of workers. Before you can take advantage of persistent queueing, your application needs to be set up to use queues. See link:/cloudhub/cloudhub-fabric[CloudHub Fabric] for more information.
 
+[IMPORTANT]
+If your mule application is using link:/mule-user-guide/v/3.7/batch-processing[Batch] component and persistent queues, then you might see batch record being processed multiple times. All batch records are stored in Amazon SQS and by default the visibility of the message is set to 70 seconds. If your batch process takes longer than 70 seconds, then batch process might see same message again and process it multiple times.  To avoid this issue please set 'persistent.queue.min.timeout' system parameter to a reasonable value, for example if your batch process takes 30 minutes to complete then set value to 'persistent.queue.min.timeout=2700000' milliseconds ( 45 Minutes). Maximum value of 43000000 milliseconds (12 hours) is supported. See screen shot below for setting the value in cloudhub
+image:MuleBatchWithPersistentQueueDuplicationSolution.png[MuleBatchWithPersistentQueues]
+
 === Automatic Restart
 
 If you are deploying to a runtime that supports worker monitoring (3.4.0 runtime or later), you have the option to check *Automatically restart application when not responding*. With this box checked, CloudHub automatically restarts your application when the monitoring system discovers a problem with your application. If this box is not checked, CloudHub produces all the log messages, notifications, and any configured alerts, but takes no action to restart the application. 
