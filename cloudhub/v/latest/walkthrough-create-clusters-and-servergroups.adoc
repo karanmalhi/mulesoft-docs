@@ -3,48 +3,51 @@
 
 image:cluster_high_level.png[diagram]
 
--Description of Scenario + Purpose of it.
--Pre-requisites for Scenario
-  To create server groups or clusters, all servers must be
+This document walks you through the steps needed to configure a server in the Runtime Manager, and then add it to a Cluster or a Server Group so that you can deploy apps to multiple servers at a time.
+
+To be able to walk through this scenario, you must have the following:
+* An Anypoint Platform account that enables you to use the runtime manager
+* Five servers on premises that match the link:/mule-user-guide/v/3.7/hardware-and-software-requirements[Hardware and Software Requirements] to run Mule ESB. None of these servers can belong to any existing clusters or server groups.
+
+
 -Some preliminary - troubleshooting steps
 
 when to use cluster / server group
+
+The main difference between a cluster and a server group, is that a server group is stateless whilst a cluster does keep track of server states. The servers in a cluster know what state the other servers are in, and so distribute the work load accordingly. Servers in a server group don't know what the rest of the machines are up to which may lead to less computing efficiency.
+
 
 == Configure a Server
 
 diagram
 
-The steps below should be carried out for every server that you wish to use. In this walkthrough, we'll run these steps on five different servers.
+The steps below should be carried out for every one of the servers that you wish to use. In this walkthrough, we'll run these steps on five different servers.
 
 . Download the latest version of Mule ESB and unzip it in your hard drive
 . Download the compatible version of the link:/cloudhub/the-mule-agent[Mule Agent]
-. Copy and paste all of the files from the Mule Agent into the Mule ESB '{MULE-HOME}/bin' folder
+. Unzip the `mule-agent-[VERSION].zip` file to the `$MULE_HOME/bin` folder.
+
 +
 [NOTE]
-While copying and pasting, if prompted select `replace all`
+If you happen to have a prior version of the agent installed and are prompted to rename or replace files, select `replace all`
 
 . Log in to your account on the Anypoint Platform
-. Navigate to Cloudhub and then the Servers tab, then click *Add Server*
+. Navigate to Cloudhub and the correct environment, select the *Servers* tab, then click *Add Server*
 
 +
-image
+image:agent_server_button.png[add server]
 
-. Click *Copy* to select the configuration
+. The Runtime Manager provides you with a generic command to install Mule agent on a server. Click *Copy* to copy this command to your clipboard.
 
 +
-image
+image:org_code.png[org code]
 
-. Open a command line window. cd into the Mule `/bin` folder
-. Paste the “configuration”
+. Open a command line window. CD into the `$MULE_HOME/bin` folder
+. Paste the command you just copied and run it
 
 +
 [NOTE]
 Replace “server name” with a server name of your choice.
-
- then hit *Enter*
-
-+
-image
 
 . At this point you should see a succes message. If you get any errors, check the troubleshooting section below
 
@@ -71,22 +74,28 @@ image:create-cluster.png[create cluster]
 . Select *Multicast*
 (because bla bla)
 . Select the servers you want to include in your cluster
+
 +
 image
+
 +
 [NOTE]
 You can only select stand-alone servers (not part of a previous cluster/server group) that are online
 . Click *Create Cluster*
+
 +
 image
+
 . Wait for the servers to restart and come online again. You will be prompted with a success message
 
 If you have already created a cluster and wish to add additional servers to it, follow the steps below:
 
 . In the *Servers* tab, click on the cluster you wish to scale up
 . On the side panel, click *Add Server*
+
 +
 image
+
 . Select the server you wish to add
 . Wait for the servers to restart and come online again. You will be prompted with a success message
 
@@ -97,10 +106,12 @@ image:deploy_to_cluster_diagram.png[deploy to cluster]
 . Navigate to the *Applications* tab
 . Click *Deploy* to deploy an application
 . Assign a name to your application and select the target, in this case the cluster you created
+
 +
 image
 
 . Click *Choose file* to select the application you will deploy
+
 +
 [NOTE]
 The file you assign must be a Mule .zip file. See how to export these files from studio in link:i/mule-user-guide/v/3.7/importing-and-exporting-in-studio[Importing and Exporting in Studio].
@@ -114,14 +125,18 @@ image:create-server-group.png[server group]
 
 . In the *Servers* tab, click *Crate Group*
 . Select the servers you want to include in your group
+
 +
 image
+
 +
 [NOTE]
 You can only select stand-alone servers (not part of a previous cluster/server group) that are online
 . Click *Create Group*
+
 +
 image
+
 . Wait for the success message
 
 
@@ -137,6 +152,7 @@ image:deploy_to_server_group_diagram.png[deploy to server group]
 image
 
 . Click *Choose file* to select the application you will deploy
+
 +
 [NOTE]
 The file you assign must be a Mule .zip file. See how to export these files from studio in link:i/mule-user-guide/v/3.7/importing-and-exporting-in-studio[Importing and Exporting in Studio].
