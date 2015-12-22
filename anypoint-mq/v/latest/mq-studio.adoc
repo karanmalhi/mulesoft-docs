@@ -5,20 +5,49 @@
 
 This section describes how to install the Anypoint MQ connector in Anypoint Studio and how to configure Studio to handle applications.
 
-=== Add MQ Connector to Studio
-
 To add the Anypoint MQ connector to Studio:
 
-. In Studio, click *Help* > *Install New Software*.
-. Paste this URL into the *Work with* field and press Enter:
+. In Studio, click the X in the upper left of the screen:
 +
-`http://studio.mulesoft.org/r4/addons/beta`
+image:mq-exchange-x.png[Exchange X icon in the Studio task bar]
 +
-. Click the checkbox for *Anypoint Messaging Connector* and click *Next*:
+. In Anypoint Exchange, search for `anypoint mq`:
 +
-image:mq-connector-install.png[Type URL and click Anypoint Messaging Connector]
+image:mq-exchange-search-for-mq.png[mq-exchange-search-for-mq]
 +
-. Follow the prompts to install the software.
+. Click *Install*.
+. Type your first and last name, email address, and telephone number. Click the checkbox to agree to the MuleSoft terms of service:
++
+image:mq-install-prompt.png[mq-install-prompt]
++
+. Click *Install*.
+. Follow the prompts to install the *MQ Connector* software.
+
+== Create a Client App
+
+Creating a client app provides the client ID and client secret you can use to register an app as either an Anypoint MQ publisher or subscriber.
+
+. In Anypoint Platform, click *MQ*.
+. Click *Client Apps* from the left nav bar:
++
+image:mq-client-apps-in-nav.png[mq-client-apps-in-nav, width="177"].
++
+. Click the blue plus circle:
++
+image:mq-blue-plus-circle.png[Create client app circle button about two-thirds to the right below the task bar]
++
+. Specify the name of the client application.
++
+image:mq-create-client-app-window.png[mq-create-client-app-window]
++
+. Click *Save Changes*.
+. Click the client app entry to view the client ID and secret values:
++
+image:mq-client-apps-detail.png[mq-client-apps-detail]
++
+. Click the Copy button for the ID or secret to copy the value to your computer's clipboard.
+
+*Note*: If using the Chrome browser and the Copy buttons don't function, click *Settings* > *Show advanced settings* > *Privacy* > *Content settings* > *Plugins* > *Detect and run important plugin content*.
 
 == Add a Client App to Studio
 
@@ -35,9 +64,7 @@ image:mq-client-apps-in-nav.png[mq-client-apps-in-nav]
 . Click the green plus sign to the right of *Connector Configuration*.
 . In the Global Element Properties window:
 .. Copy the *Anypoint Platform* > *MQ* > *Client App* > *Client App ID* value to Studio's *Client ID* field.
-.. Copy the *Client App* > *Client Secret* value to Studio's *Client Secret* field.
-+
-You can ignore the remaining fields.
+.. Copy the *Client App* > *Client Secret* value to Studio's *Client Secret* field. You can ignore the other settings to test your first connector. If you want to set the remaining fields or tabs, see <<Advanced Global Element Properties>>.
 +
 .. Click *OK*.
 . Click the *Operation* field and specify an operation such as Publish or Consume.
@@ -85,11 +112,68 @@ http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/m
 </mule>
 ----
 
+== Advanced Global Element Properties
+
+This section provides information about all the Global Element Properties screens.
+
+=== General Tab
+
+image:mq-global-element-props-full.png[mq-global-element-props-full]
+
+The General tab fields are:
+
+[width="100%",cols="30a,10a,10a,50a",options="header"]
+|===
+|Field |Req'd |Default |Description
+|Use Global Provider Config |n |n |Makes provider configuration
+available to all applications.
+|Provider |y |n |(Required if you choose `Use Global Provider Config`) - Lists the name Provider_Settings after you specify the client ID and client secret to use for all applications. Provider is a container for required attributes that identifies the Anypoint MQ broker access (URL, client ID, and Client Secret) values.
+|Max Redelivery |n |0 |Number of redeliveries
+to try in case a message fails.
+|[[am]]Acknowledgement Mode |n | |Defines how the Anypoint MQ messages are acknowledged when the message are removed from being inflight messages. Possible values are: NONE (they are removed as soon as they are read), AUTO (they are removed when the message flow is completed), and MANUAL (they should be removed manually,  and using the ACK message processor).
+|Acknowledgement Timeout |n | |When you take an Anypoint MQ message from a queue, the broker puts it in flight, and the message remains in that state until the ACK is performed (application reads the message and Anypoint MQ deletes it), or the Acknowledgement Timeout is reached. If ACK is performed, then the message is removed from the queue, if Acknowledgement Timeout is reached, the message returns to the queue.
+|Use default worker threading profile |n |y |See link:/mule-user-guide/v/3.7/tuning-performance[Tuning Performance]. The threading profile options let you optimize connector performance for use with Anypoint MQ.
+|Use custom worker threading profile |n |n |See link:/mule-user-guide/v/3.7/tuning-performance[Tuning Performance].
+|Max Active Threads |n | |See link:/mule-user-guide/v/3.7/tuning-performance[Tuning Performance].
+|Thread TTL |n | |Thread time to live duration.
+|Pool Exhausted Action |n |n |Pool exhausted action.
+|Thread Wait Timeout |n |n |Thread wait timeout in milliseconds.
+|Max Buffer Size |n |n |Max buffer size.
+|===
+
+=== TLS/SSL and Proxy Tabs
+
+The TSL/SSL and Proxy tabs share the same information as the
+link:/mule-user-guide/v/3.7/http-connector[HTTP Connector].
+
+=== Prefetch Tab
+
+Number of messages to receive at once when asking for messages. The response can contain fewer messages than this number depending of the `poolingTime` set.
+
+When you subscribe a flow to an Anypoint MQ queue, the flow pool regularly the queue looking for messages. This operation can be very time consuming. In order to avoid delays, prefetch was introduced. This is a component placed between the flow and the Anypoint MQ queue that polls the queue regularly, but without processing the pooled messages. You can change these values depending
+on your site's performance needs.
+
+image:mq-prefetch-general.png[mq-prefetch-general]
+
+The Prefetch tab fields are:
+
+[width="100%",cols="20a,50a",options="header"]
+|===
+|Value |Description
+|Fetch Size |Number of messages to prefetch.
+|Fetch Timeout |Maximum duration in milliseconds to wait for the required amount of messages. When this time elapses, the response is sent with as many messages as taken during the period.
+|Frequency |The duration in milliseconds to execute
+the retrieve operation when the prefetch queue is not empty.
+|===
+
+*Note*: For best performance, set `Fetch Size` to 10 (maximum value) and reduce `Frequency` to increase the pooling time and the resulting dequeuing of transactions per second (TPS). You can increase `Fetch Timeout` if message processing is slow. For example, if processing takes 5 seconds, set the `Fetch Timeout` to at least double this time (10000 milliseconds).
+
+Apart from these performance-related parameters, it is important to properly configure the xref:am[Acknowledgement Mode].
+
 == See Also
 
 * link:/anypoint-mq[Anypoint MQ]
 * link:/anypoint-mq/mq-tutorial[Tutorial]
+* link:/anypoint-mq/mq-queues-and-exchanges[Create queues and exchanges, and send and receive messages]
 * link:/anypoint-mq/mq-access-management[Set user or role MQ access permission]
-* link:/anypoint-mq/mq-queues-and-exchanges[Create destinations or register client apps]
 * link:/anypoint-mq/mq-understanding[Understand MQ concepts]
-* link:/anypoint-mq/mq-release-notes[Release Notes]
