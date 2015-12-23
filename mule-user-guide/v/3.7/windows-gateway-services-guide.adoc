@@ -3,7 +3,7 @@
 
 Windows Gateway Services provides connectivity to proprietary functionality on the Windows platform, and is used by the MSMQ connector, PowerShell Connector, Dynamics CRM Connector, and Dynamics AX Connector.
 
-link:https://repository.mulesoft.org/nexus/content/repositories/releases/org/mule/modules/anypoint-windows-gateway-service/1.8.0/anypoint-windows-gateway-service-1.8.0.zip[Install Windows Gateway Services]
+link:https://repository.mulesoft.org/nexus/content/repositories/releases/org/mule/modules/anypoint-windows-gateway-service/1.8.5/anypoint-windows-gateway-service-1.8.5.zip[Install Windows Gateway Services]
 
 See link:/release-notes/msmq-connector-release-notes[MSMQ Connector Release Notes] for version information.
 
@@ -19,7 +19,7 @@ For information on MSMQ, see the link:/mule-user-guide/v/3.7/msmq-connector-use
 
 === Installing the Windows Gateway Services
 
-. Download the Windows Gateway Services installer from link:https://repository-master.mulesoft.org/nexus/content/repositories/releases/org/mule/modules/anypoint-windows-gateway-service/1.6.0/anypoint-windows-gateway-service-1.6.0.zip[here]. Unzip the software distribution.
+. Download the Windows Gateway Services installer from link:https://repository-master.mulesoft.org/nexus/content/repositories/releases/org/mule/modules/anypoint-windows-gateway-service/1.8.5/anypoint-windows-gateway-service-1.8.5.zip[here]. Unzip the software distribution.
 . Double-click the `AnyPoint-Windows-Gateway-Service.exe` file.  
 . Click *Options* to change the installation location, or click *Install* to start the installation. 
 . Copy the Authentication Token that displays for use when you configure the connection to the Gateway Service from Anypoint Studio.. For more information, see the link:/mule-user-guide/v/3.7/windows-powershell-connector-guide[Windows PowerShell Connector Guide.] After you copy the token, click *Install*.
@@ -67,15 +67,12 @@ Example:
 
 `Register-SslCert.ps1 a495cbf8c4af496f1ef81efb224c8097d039f922 everyone 9333`
 
-=== Load-balanced configuration
+=== Load Balanced Configuration
 
 Windows Gateway Services supports running in a load-balanced configuration to allow for fault tolerance. When running multiple gateway services instances, each member should be configured to perform MSMQ background jobs at a non-overlapping interval.
-
-MSMQ background job processing is by default performed at zero minutes past the hour, but to prevent overlap when multiple service instances are running, a configuration property called cleanup-delay should be set on each gateway instance. The recommended value to use for this on each machine is (60 / instanceCount) * (instanceNumber - 1) where instanceNumber is an integer value 1..n.
-
-For example, a cluster of 2 machines would use cleanup-delay of 0 on machine 1, 30 on machine 2. A cluster of 3 machines would use backgroundJobInterval of 0 on machine 1, 20 on machine 2, and 40 on machine 3.
-
-This setting is found in the Mule.SelfHost.config file:
+MSMQ background job processing is by default performed every 10 minutes starting at zero minutes past the hour. To prevent multiple gateway instances simultaneously attempting to perform cleanup on the queues when running in load-balanced configuration, a setting called cleanup-delay should be specified on each gateway instance. The recommended value to use for this on each machine is (10 / instanceCount) * (instanceNumber - 1) where instanceNumber is an integer value 1..n.
+For example, a cluster of 2 machines would use cleanup-delay of 0 on machine 1, 5 on machine 2. A cluster of 3 machines would use cleanup-delay of 0 on machine 1, 3 on machine 2, and 6 on machine 3. Machine clocks should be synchronized by NTP or equivalent mechanism to ensure this offset is applied correctly.
+The cleanup-delay setting is found in the Mule.SelfHost.config file:
 
 [source, xml, linenums]
 ----

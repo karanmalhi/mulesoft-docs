@@ -1,4 +1,4 @@
-= MQ Queues and Exchanges
+= Anypoint MQ Queues and Exchanges
 :keywords: mq, destinations, queues, exchanges, client application
 
 Anypoint MQ is a messaging broker that lets applications communicate by publishing a Mule Message to a queue so that another application can consume the message.
@@ -7,96 +7,213 @@ This guide describes how to create a queue, exchange, and client application usi
 
 == Create a Queue
 
-You can use Anypoint Platform to create queues and exchanges.
+To create a queue:
 
 . Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
-. Click *MQ* in the taskbar:
+. In the top task bar, click *MQ*.
 +
-image:mq-in-taskbar.png[MQ appears in the upper AP taskbar]
+image:mq-tut-mq-taskbar.png[mq-tut-mq-taskbar]
 +
-. Click the blue plus circle and click *Queue* from the drop-down menu:
+. Click *Destinations*:
 +
-image:mq-click-queue.png[Click the Queue option from the blue circle menu]
+image:mq-destinations-label.png[mq-destinations-label, width="177"]
 +
-. In the *Create Queues* window, provide a queue name, and if needed, change the time-to-live default values for how long a message persists before being automatically deleted, and how long you can apply a lock to a message so that an application has exclusive access to the message. The default values you set affect the settings in the xref:createapp[client apps] you create.
-. If needed, mark the queue so that any messages that arrive in the queue get encrypted using password-based encryption (PBE) with MD5 and  DES. To mark the queue, slide the Encryption slider to the right.
+. Click the blue plus circle.
+. Click *Queue*.
 +
-image:mq-create-queue.png[Create a queue window]
+In the *Create Queue* window:
 +
+image:mq-create-demo-queue.png[mq-create-demo-queue, width="400"]
++
+.. Specify a name.
+.. (Optional) Change the time-to-live (TTL) durations for the default message TTL - how long messages persist, and
+for the lock TTL - how long messages are locked for applications to have exclusive access to a message.
+.. (Optional) Set the queue to encrypted. Anypoint MQ uses PBE with MD5 and DES to encrypt messages.
+.. Click *Save Changes*.
+. In the Destinations screen, click the queue name to list its details:
++
+image:mq-queue-details.png[mq-queue-details]
+
+The next section describes how Anypoint Platform lets you send
+messages to a queue and view, return the messages to the queue, or delete the messages.
+Message content (called a payload) can be text, JSON, or CSV (comma-separated values).
+
+=== Send a Message to a Queue
+
+To send a message to a queue:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top task bar, click *MQ*.
+. Click *Destinations*.
+. Click the queue entry in Destinations to view details about
+the queue.
+. Click the queue name in the details to open the Messaging feature:
++
+image:mq-access-messaging.png[mq-access-messaging]
++
+. In the settings page, click *Message Sender*:
++
+image:mq-click-msg-sender.png[mq-click-msg-sender]
++
+. Type text in the *Payload* such as `Hello Mules` (leave the *Type* field set to *Text*):
++
+image:mq-msg-sender-text-payload.png[mq-msg-sender-text-payload]
++
+. Click *Send*.
+
+=== Verify the Message in a Queue
+
+To verify that the message arrived in the queue:
+
+. Click *Destinations*:
++
+image:mq-click-destinations.png[mq-click-destinations, width="173"]
++
+. Click the queue to see the queue detail. The detail shows that a message is in
+the queue:
++
+image:mq-msgs-in-queue.png[mq-msgs-in-queue]
+
+=== Get a Message From a Queue
+
+To get a message from a queue:
+
+. Follow the directions in <<Send a Message to the Queue>> and
+advance to Step 6, except click *Message Browser*:
++
+image:mq-click-msg-browser.png[mq-click-msg-browser]
++
+. Click *Get Messages*.
++
+image:mq-get-messages.png[mq-get-messages]
++
+. Click the message ID value to view the message.
++
+image:mq-click-id.png[mq-click-id]
++
+. If you want to return the message to the queue, such as if other applications may also want to read
+the message, click the *Return Messages* icon - this is the default condition. If you switch screens back
+to the Message Sender or to Destinations, messages automatically return to the queue.
+In Anypoint MQ, returning the messages to the queue is known as `nack` - the message is not altered. However,
+the time to live (TTL) value you set when you created your queue determines how long the message is available
+before Anypoint MQ deletes it.
++
+image:mq-click-retmsgs.png[mq-click-retmsgs,width="75"]
++
+Alternatively, you can delete the message by clicking the trash can icon. In Anypoint MQ, deleting a message is called an `ack`:
++
+image:mq-message-delete-trash-can-icon.png[mq-message-delete-trash-can-icon, width="393"]
+
+Now you are able to send and receive messages in Anypoint MQ. In the next section, you can try
+alternate ways of formatting messages.
+
+=== Send a CSV or JSON Message
+
+To send a JSON message:
+
+. Click *Message Sender*.
+. Set the *Type* to *JSON*.
+. Set the *Payload* to:
++
+[source,json,linenums]
+----
+{
+"animal that walks":"dog",
+"animal that swims":"fish",
+"animal that flies":"parrot"
+}
+----
++
+. Click *Message Browser* and the message ID to view the message:
++
+image:mq-json-get-msg.png[mq-json-get-msg]
+
+To send a CSV message:
+
+. Click *Message Sender*.
+. Set the *Type* to *CSV*.
+. Set the *Payload* to:
++
+[source,code]
+----
+"dog",
+"fish",
+"parrot"
+----
++
+. Click *Message Browser* and the message ID to view the message.
+
+== Create an Exchange
+
+To create an exchange:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top task bar, click *MQ*.
+. Click *Destinations*.
+. Click the blue plus circle.
+. Click *Exchange*.
++
+image:mq-create-demo-exchange.png[mq-create-demo-exchange, width="400"]
++
+. Specify the name `MyDemoExchange`.
+. Click the checkbox to bind MyDemoQueue to this exchange.
 . Click *Save Changes*.
-
-=== Queue Details
-
-Review the destination details screen:
-
-image:mq-queue-details.png[Queue Details to the right of the queue entry]
-
-You can use the details display to:
-
-* Purge messages
-* Delete a queue
-* View queued messages
-* View in-flight messages
-* View exchanges to which the queue is bound
-
-== Create a Message Exchange
-
-A message exchange is made up of one or more queues that are bound to the exchange.
-
-. Click the blue plus circle and click *Exchange*:
+. In the Destinations screen. click the exchange name to list its details:
 +
-image:mq-click-exchange.png[From the blue circle drop down click Exchange]
-+
-In the *Create Exchange* window, provide an exchange name, and click which queues to bind to the exchange. If needed, mark the exchange so that any messages that arrive in each queue gets encrypted (using PBE with MD5 and DES). To mark the exchange, slide the Encryption slider to the right.
-+
-image:mq-create-exchange.png[Create an exchange window]
-+
-. Click *Save Changes*.
+image:mq-exchange-details.png[mq-exchange-details]
 
-=== Message Exchange Details
+=== Bind a Queue to an Exchange
 
-The message exchange details appear to the right of the exchange entry:
+To bind a queue to an exchange:
 
-image:mq-exchange-details.png[Exchange details to the right of the entry]
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top task bar, click *MQ*.
+. Click *Destinations*.
+. Click the left side of the exchange entry in Destinations.
++
+*Note*: Where you click on an exchange entry in the Destinations table governs
+what you see next:
++
+image:mq-where-to-click-x.png[mq-where-to-click-x]
++
+. In the Exchange menu, click *Bind* for each queue you want to bind to the exchange:
++
+image:mq-bind-queue-to-exchange.png[mq-bind-queue-to-exchange]
 
-You can use the details display to:
+=== Send a Message to an Exchange
 
-* Delete the exchange
-* Monitor exchange throughput
-* View which queues are bound to the exchange
+Sending a message to an exchange is very similar to sending a message to a queue.
+The only difference is that you can get the message from any queue bound to an exchange.
 
-[[createapp]]
-== Create a Client App
+To send a message to an exchange:
 
-Creating a client app provides the client ID and client secret you can use to register an app as either an MQ publisher or subscriber.
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top task bar, click *MQ*.
+. Click *Destinations*.
+. Click the `MyDemoExchange` entry in Destinations to view details about
+the exchange.
+. Click the *MyDemoExchange* link in the details screen to access the Message Sender:
++
+image:mq-exchange-msg-access.png[mq-exchange-msg-access]
++
+. Click *Message Sender*:
++
+image:mq-exchange-msg-sender.png[mq-exchange-msg-sender]
++
+. Type the contents of the *Payload* and click *Send*:
++
+image:mq-exchange-payload.png[mq-exchange-payload]
 
-. In Anypoint Platform, click *MQ*.
-. Click *Client Apps* from the left nav bar:
-+
-image:mq-client-apps-in-nav.png[Click Client Apps in left nav bar].
-+
-. Click the blue plus circle:
-+
-image:mq-blue-plus-circle.png[Create client app circle button about two-thirds to the right below the taskbar]
-+
-. Specify the name of the client application.
-+
-image:mq-create-client-app-window.png[mq-create-client-app-window]
-+
-. Click *Save Changes*.
-. Click the client app entry to view the client ID and secret values:
-+
-image:mq-client-app-details.png[Client app details appears to the right of the client entry]
-+
-. Click the Copy button for the ID or secret to copy the value to your computer's clipboard.
+You can now use the Message Browser to get the message from the MyDemoQueue as described
+in <<Get a Message From a Queue>>.
 
-*Note*: If using the Chrome browser and the Copy buttons don't function, click *Settings* > *Show advanced settings* > *Privacy* > *Content settings* > *Plugins* > *Detect and run important plugin content*.
+You can also send comma-separated value (CSV) or JSON content in the payload by changing
+the message *Type* value. For more information, see <<Send a CSV or JSON Message>>.
 
 == See Also
 
 * link:/anypoint-mq[Anypoint MQ]
 * link:/anypoint-mq/mq-tutorial[Tutorial]
 * link:/anypoint-mq/mq-access-management[Set user or role MQ access permission]
-* link:/anypoint-mq/mq-studio[Create app in Studio]
+* link:/anypoint-mq/mq-studio[Use Anypoint Studio with the MQ Connector]
 * link:/anypoint-mq/mq-understanding[Understand MQ concepts]
-* link:/anypoint-mq/mq-release-notes[Release Notes]
