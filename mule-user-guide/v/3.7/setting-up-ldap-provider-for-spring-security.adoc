@@ -4,30 +4,27 @@
 
 This page describes how you can configure a Spring Security LDAP provider, which can be used by Mule 2.2 or later as follows:
 
-* As its security provider via http://www.mulesoft.org/docs/site/current/apidocs/org/mule/module/spring/security/SpringProviderAdapter.html[SpringProviderAdapter]
+* As its security provider via
+link:http://www.mulesoft.org/docs/site/current/apidocs/org/mule/module/spring/security/SpringProviderAdapter.html[SpringProviderAdapter]
 * To perform link:/mule-user-guide/v/3.7/component-authorization-using-spring-security[component authorization]
 
 For information on configuring an in-memory provider, see link:/mule-user-guide/v/3.7/configuring-security[Configuring Security].
 
-== Setup
+== JAR Files
 
-Before proceeding, ensure that you have the following .jar files in your project classpath:
+The Mule software distribution provides the Spring `.jar` files you need in the `<distribution>/lib/opt` directory:
 
-* spring-security-ldap-3.1.2.RELEASE.jar 
-* spring-security-core-3.1.2.RELEASE.jar
-* spring-ldap-core-1.3.1.RELEASE.jar
-
-If you do not already have these files, you can download them here: 
-
-* link:https://repo.springsource.org/libs-release-local/org/springframework/security/spring-security/3.1.2.RELEASE/spring-security-3.1.2.RELEASE-dist.zip  (this link contains spring-security-core-3.1.2.RELEASE.jar and spring-security-ldap-3.1.2.RELEASE under the "dist" directory)
-* http://s3.amazonaws.com/dist.springframework.org/release/LDAP/spring-ldap-1.3.1.RELEASE-minimal.zip  (this contains spring-ldap-1.3.1.RELEASE.jar inside the "dist" directoy) +
-
+* `spring-ldap-core-2.0.2.RELEASE.jar`
+* `spring-security-config-4.0.1.RELEASE.jar`
+* `spring-security-core-4.0.1.RELEASE.jar`
+* `spring-security-ldap-4.0.1.RELEASE.jar`
+* `spring-security-web-4.0.1.RELEASE.jar`
 
 == Declaring the Beans
 
-You must set up two beans in Spring, a link:http://static.springsource.org/spring-security/site/docs/3.0.x/apidocs/org/springframework/security/ldap/DefaultSpringSecurityContextSource.html[DefaultSpringSecurityContextSource] and an http://static.springframework.org/spring-security/site/docs/3.0.x/apidocs/org/springframework/security/ldap/authentication/LdapAuthenticationProvider.html[LdapAuthenticationProvider]. The `DefaultSpringSecurityContextSource` is the access point for obtaining an LDAP context where the `LdapAuthenticationProvider` provides integration with the LDAP server. For example:
+You must set up two beans in Spring, a link:http://static.springsource.org/spring-security/site/docs/4.0.x/apidocs/org/springframework/security/ldap/DefaultSpringSecurityContextSource.html[DefaultSpringSecurityContextSource] and an link:http://static.springframework.org/spring-security/site/docs/4.0.x/apidocs/org/springframework/security/ldap/authentication/LdapAuthenticationProvider.html[LdapAuthenticationProvider]. The `DefaultSpringSecurityContextSource` is the access point for obtaining an LDAP context where the `LdapAuthenticationProvider` provides integration with the LDAP server. For example:
 
-You need to set up an LDAP context source that will be used by the spring security authentication provider to search and authenticate your users. Also, you need to define an authentication manager with an embedded LDAP authentication provider as shown:
+Set up an LDAP context source for use by the Spring security authentication provider to search and authenticate your users. Also, you need to define an authentication manager with an embedded LDAP authentication provider as shown:
 
 [source, xml, linenums]
 ----
@@ -36,7 +33,7 @@ You need to set up an LDAP context source that will be used by the spring securi
       xmlns:mule-ss="http://www.mulesoft.org/schema/mule/spring-security"
       xmlns:spring="http://www.springframework.org/schema/beans"
       ...
-      version="EE-3.3.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      version="EE-3.7.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       ...
       xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
@@ -57,10 +54,7 @@ You need to set up an LDAP context source that will be used by the spring securi
         <ss:authentication-manager alias="authenticationManager">
             <ss:ldap-authentication-provider user-search-filter="(uid={0})" user-search-base="ou=People" group-search-base="ou=Group"/>
         </ss:authentication-manager>
- 
- 
   </spring:beans>
- 
 ...
 ----
 
