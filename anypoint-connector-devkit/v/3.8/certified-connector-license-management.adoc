@@ -16,7 +16,7 @@ Using a MuleSoft-generated key ensures only the MuleSoft partner's paid customer
 Before submitting the developed connector to MuleSoft for certification, the prospective certified connector partner must complete these steps:
 
 . Include the following information for MuleSoft to use before generating a partner key and keystore.
-.. *Vendor Name*, *Contact Email*, *Contact Message*, *Connector Name*
+.. *Partner Name* (also known as "Provider Name"), *Contact Email*, *Contact Message*, *Connector Name*
 . Request the key and keystore from MuleSoft which are:
 .. The public `.key` file that you store in the connector
 .. The `.jks` master keystore is for you as the partner to generate licenses with.
@@ -37,10 +37,48 @@ public class LicensedConnector {
 ----
 +
 . Put the MuleSoft-provided `.key` file under `src/main/resources` or `src/main/resources/license` in the connector’s project directory.
-. The partner uses the key and the keystore to produce a license file to send to the connector customer according to detailed instructions provided to you by MuleSoft.
 
 === Sample Partner Connector
-You can download and import this link:_attachments/licSampleConnector.zip[sample connector] in Studio to see how the license management mechanism should be configured in the connector code and where the `.lic` license file should live in the project (`src/main/resources`).
+
+You can download and import this link:_attachments/licSampleConnector.zip[sample connector] in Studio to see how the license management annotations are configured in the connector code, understanding that and where the customer `.key` license file should live in the connector directory. (`src/main/resources`).
+
+== Producing a License File
+
+Mulesoft partners use the `.jks` file, and the license generation plugin to generate a license to send to the connector customer.
+
+From the command line, where "vendor.keystore" should be replaced with the path to your jks file, execute the command in the same directory where the `.jks` file is:
+
+[source, code]
+----
+mvn org.mule.tools.devkit:mule-devkit-license:license -Dvendor.keystore=betaprovider-license-demo.jks
+----
+
+[INFO]
+Optionally, you may specify the expiration date of the license by appending this argument onto the above command: `-Ddays.to.expire=<days-until-this-license-expires>`
+
+If the license is successfully created, the output is similar to this:
+
+----
+[INFO] Scanning for projects...
+[INFO]
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Maven Stub Project (No POM) 1
+[INFO] ------------------------------------------------------------------------
+[INFO]
+[INFO] --- mule-devkit-license:license (default-cli) @ standalone-pom ---
+* Enter the name of the client whom will receive this license: Bob
+* Enter the name of the provider of the Entitlement as it appears in the @RequiresEntitlement annotation: betaprovider
+* Enter the name of the Entitlement as it appears in the @RequiresEntitlement annotation: lic-demo
+* Enter the name of the Connector as it appears in the @Connector "name" attribute: license-demo
+* Enter keystore password:
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 18.151s
+[INFO] Finished at: Thu Dec 10 09:34:41 ART 2015
+[INFO] Final Memory: 6M/287M
+[INFO]
+----
 
 == Developing a Mule Application with a Licensed Connector
 
@@ -60,9 +98,9 @@ Instead of storing the license in the application, it can be placed in the `conf
 [NOTE]
 Storing the license in the Mule server is the recommended approach if multiple applications require the same license.
 
-== Licensed Connector User Experience
+== Deploying Application with Licensed Connector
 
-To test the experience of the user based on 1) whether they have properly obtained and stored their license and 2) where they try to deploy their application, follow these steps:
+To test the experience of the application developer using a partner connector based on 1) whether they have properly obtained and stored their license and 2) where they try to deploy their application, follow these steps:
 
 . Download the zipped link:_attachments/licSampleConnector.zip[sample connector project]
 . From the *File* menu, select *Import* to import the .zip file into the workspace.
