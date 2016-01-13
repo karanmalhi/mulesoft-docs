@@ -1,5 +1,5 @@
-= The Run and Wait Scope
-:version-info: 3.7.0 and later
+= Run and Wait Scope
+:version-info: 3.7.0 and newer
 :keywords: munit, testing, unit testing
 
 == Functionality
@@ -8,9 +8,9 @@ The Run and Wait scope provided by MUnit allows you to instruct MUnit to wait un
 
 == Defining Run and Wait
 
-In some cases, your production code may launch threads that produce key results. Usually, these are the results that you want to validate. But if those results are being processed in a separate thread, your test will run and finish before that separate thread has completed, i.e. before the results that you want to validate are available. To avoid this problem, you can use the `run-and-wait` scope.
+In some cases, your production code may launch threads that produce key results. Usually, these are the results that you want to validate. But if those results are being processed in a separate thread, your test runs and finishes before that separate thread completes, that is, before the results that you want to validate are available. To avoid this problem, you can use the `run-and-wait` scope.
 
-For the purposes of this document, we'll assume that we are testing the following Mule code:
+For the purposes of this document, we assume that we are testing the following Mule code:
 
 [source, xml, linenums]
 .Test code
@@ -29,15 +29,15 @@ The goal is to make your test wait until the `exampleFlow` has finished. To do s
 [source, xml, linenums]
 ----
 <flow name="testFlow">
-    <synchronize:run-and-wait timeout="16000">    //<1>
-        <flow-ref name="exampleFlow"/>            //<2>
+    <synchronize:run-and-wait timeout="16000"> //<1>
+        <flow-ref name="exampleFlow"/> //<2>
     </synchronize:run-and-wait>
 </flow>
 ----
 <1> Define `run-and-wait` scope.
 <2> Call the actual production code to test.
 
-[cols=","]
+[cols=",,"]
 |===
 |Attribute Name |Description
 
@@ -65,23 +65,31 @@ public class TheTest extends FunctionalMunitSuite {
 
   @Test
   public void test() throws Exception{
-    final Flow flow = (Flow) muleContext.getRegistry().lookupFlowConstruct("testFlow");       //<1>
+    final Flow flow = (Flow) muleContext.getRegistry().
+      lookupFlowConstruct("testFlow");   //<1>
 
-    Synchronizer synchronizer = new Synchronizer(muleContext, 12000){  //<2>
+    Synchronizer synchronizer =
+      new Synchronizer(muleContext, 12000){  //<2>
 
         @Override
         protected MuleEvent process(MuleEvent event) throws Exception{
 
-            return flow.process(event);                   //<3>
+            return flow.process(event);  //<3>
         }
     };
 
     MuleEvent event = testEvent("payload");
-    synchronizer.runAndWait(event);                       //<4>
+    synchronizer.runAndWait(event);   //<4>
   }
 }
 ----
-<1> Obtain the flow that will be tested.
+<1> Obtain the flow to test.
 <2> Create a new `Synchronizer` and implement the abstract method `process`.
 <3> Usually what you want to do is run a flow.
-<4> Call the `Synchronizer` implementation defined in (2).
+<4> Call the `Synchronizer` implementation defined in Note #2.
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]

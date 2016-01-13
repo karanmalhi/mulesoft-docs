@@ -14,8 +14,8 @@ NOTE: This page assumes you have the following property defined in your `pom.xml
 
 When running from Maven, you need to add the following artifact to your `.pom`:
 
-.DB Server Module Maven Dependency
-[source,console,linenums]
+[source,console]
+.DB Server module Maven dependency
 ----
 <dependency>
   <groupId>com.mulesoft.munit.utils</groupId>
@@ -29,8 +29,8 @@ When running from Maven, you need to add the following artifact to your `.pom`:
 
 For the purpose of this documentation we are going to assume we are testing the following Mule code:
 
-.Test Code
 [source, xml, linenums]
+.Test code
 ----
 <spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardDataSource" destroy-method="shutdown">
   <spring:property name="driverName" value="${db.driver}" />
@@ -64,8 +64,8 @@ For the purpose of this documentation we are going to assume we are testing the 
 === Defining the Database Server
 We start by defining the DB server parameters:
 
-.Define DB Server
 [source, xml, linenums]
+.Define DB server
 ----
 <munit:config mock-inbounds="false" mock-connectors="false"/>           //<1>
 
@@ -124,29 +124,30 @@ NOTE: The MUnit DB server is based on H2. Complex structures, index and join com
 
 To define you DB structure and content from a SQL file,  provide a valid set of ANSI SQL DDL (Data Definition Language) instructions.
 
-.Creating DB from SQL
 [source, xml]
+.Creating DB from SQL
 ----
 <dbserver:config  name="DB_Server" database="DATABASE_NAME" sqlFile="FILE_NAME.sql" />
 ----
 
-==== Defining the DB Structure from a CSV File
+===== Defining the DB Structure from a CSV File
 
 You can create your DB from CSV files.
 
 * The name of the table is the name of the file (in the example below, `customers`).
+
 * The name of the columns are the headers of your CSV file.
 
-.Creating DB from CSV
 [source, xml]
+.Creating DB from CSV
 ----
 <dbserver:config name="DB_Server" database="DATABASE_NAME" csv="customers.csv"/>
 ----
 
 You can also split your DB structure among several CSV files. In this case, include the file names as a list separated by a semicolon, as shown below.
 
-.Creating DB From Several CSVs
 [source, xml]
+.Creating DB From Several CSVs
 ----
 <dbserver:config name="DB_Server" database="DATABASE_NAME" csv="customers.csv;qbsyncjobs.csv"/>
 ----
@@ -155,8 +156,8 @@ You can also split your DB structure among several CSV files. In this case, incl
 
 In order to run, the database server must be started in the `before-suite`. You start the server using the `start-db-server` message processor.
 
-.Starting the DB Server
 [source, xml, linenums]
+.Starting the DB server
 ----
 <munit:before-suite name="before.suite" description="Starting DB server">
   <dbserver:start-db-server config-ref="DB_Server"/>
@@ -167,8 +168,8 @@ In order to run, the database server must be started in the `before-suite`. You 
 
 Once our DB server is up and running we can run our test.
 
-.Testing DB Example
 [source, xml, linenums]
+.Testing DB example
 ----
 <munit:test name="testDBServer" description="Data must be stored in the DB server">
   <flow-ref name="exampleFlow" />             //<1>
@@ -191,8 +192,10 @@ The MUnit DB Server allows you to execute instructions on the in-memory database
 you can add or remove registries before a test, and also check if your data was
 stored correctly.
 
-.Execute SQL Instructions Example
-[source, xml]
+[source, xml, linenums]
+.Execute SQL instructions example
+
+[source, xml, linenums]
 ----
 <dbserver:execute config-ref="DB_Server" sql="INSERT INTO some_table..."/>
 ----
@@ -201,8 +204,10 @@ stored correctly.
 
 The MUnit DB Server allows you to execute SQL queries. The resulting value is a list of maps.
 
+[source, xml, linenums]
 .Execute SQL query
-[source, xml]
+
+[source, xml, linenums]
 ----
 <dbserver:execute-query config-ref="DB_Server" sql="SELECT * FROM some_table"/>
 ----
@@ -213,8 +218,8 @@ The MUnit DB Server allows you to validate that the results of a query are as ex
 
 To do this, you use the `validate-that` tag. Set the `results` property to CSV with rows separated by a newline character (`\n`), as shown below.
 
-
-.Validate SQL Query
+[source, xml, linenums]
+.Validate SQL query
 [source, xml, linenums]
 ----
 <dbserver:validate-that config-ref="DB_Server"
@@ -227,8 +232,8 @@ The result should be a CSV text.
 
 To stop the DB server gracefully, it needs to be stopped in the `after-suite`, using the `stop-db-server` message processor.
 
-.Stop DB server
 [source, xml, linenums]
+.Stop DB server
 ----
 <munit:after-suite name="after.suite" description="Stopping DB server">
   <dbserver:stop-db-server config-ref="DB_Server"/>
@@ -236,10 +241,11 @@ To stop the DB server gracefully, it needs to be stopped in the `after-suite`, u
 ----
 
 == Execution Environments
+
 You may have noticed that our production code example makes extensive use of placeholders for certain parameters, such as `driverName`, `url` etc. in the example below:
 
-.Parameterized Production Code
 [source, xml, linenums]
+.Parameterized Production Code
 ----
 <spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardDataSource" destroy-method="shutdown">
   <spring:property name="driverName" value="${db.driver}" />
@@ -251,8 +257,8 @@ You may have noticed that our production code example makes extensive use of pla
 
 The reason for this is that properties allow us to create code that is more configurable. Compare the example above with:
 
-.Hardcoded Production Code
 [source, xml, linenums]
+.Hardcoded Production Code
 ----
 <spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardDataSource" destroy-method="shutdown">
   <spring:property name="driverName" value="org.mule.fake.Driver" />
@@ -271,12 +277,18 @@ On the other hand, the first example code allows us to define two different prop
 
 This is use in combination with the Mule property placeholder, shown below with `${env}`:
 
-.Parameterized Production Code
 [source, xml]
+.Parameterized Production Code
 ----
 <global-property value="mule.${env}.property"/>
 ----
 
-In the above example, the use of `${env}` allows us to leverage execution environments. So for example we can define two separate properties files, `mule.test.properties` and `mule.prod.properties`, containing the same properties with values according to the environment we wish to use.
+In the example above, the use of `${env}` allows us to leverage execution environments. So for example we can define two separate properties files, `mule.test.properties` and `mule.prod.properties`, containing the same properties with values according to the environment we wish to use.
 
 TIP: To run your test from Maven and issue the env parameter from the command line, you can run: `mvn -DargLine="-Dmule.env=test" clean test`.
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]

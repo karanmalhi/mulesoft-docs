@@ -26,6 +26,7 @@ When running from Maven, you need to add the following artifact to your `.pom`:
 ----
 
 == Defining The MUnit FTP Server
+
 For the purpose of this documentation we are going to assume we are testing the
 following Mule code:
 
@@ -72,6 +73,7 @@ We start by defining the FTP server parameters:
 |===
 
 === Starting the FTP Server
+
 In order to run, the FTP server must be started in the `before-suite`. You start the server using the `start-server` message processor.
 
 [source, xml, linenums]
@@ -83,6 +85,7 @@ In order to run, the FTP server must be started in the `before-suite`. You start
 ----
 
 === Running the Test
+
 Once our FTP server is up and running we can run our test.
 
 [source, xml, linenums]
@@ -98,9 +101,9 @@ NOTE: This FTP accepts any user, so there is no need to set up a user database o
 
 As you can see in the test, we make use of the `contains-file` message processor.
 
-This message processor attempts to validate the existence of a file in the FTP server. If the file is not present, the message processor will fail, thus causing the test to fail.
+This message processor attempts to validate the existence of a file in the FTP server. If the file is not present, the message processor fails, thus causing the test to fail.
 
-[cols=","]
+[cols=",,"]
 .Contains parameters
 |===
 |Attribute Name |Description
@@ -118,13 +121,13 @@ This message processor attempts to validate the existence of a file in the FTP s
 
 The `remove` message processor provides another operation that may be of use. This operation instructs the FTP server to remove a file from storage.
 
-[source, xml, linenums]
+[source, xml]
 .Removing files from FTP server example
 ----
 <ftpserver:remove config-ref="ftpServer" path="/tmp/ftp-jsonResult.txt"/>
 ----
 
-[cols=","]
+[cols=",,"]
 .Remove parameters
 |===
 |Attribute Name |Description
@@ -140,6 +143,7 @@ The `remove` message processor provides another operation that may be of use. Th
 TIP: This feature is of use when we are creating the same file name several times. For example, we can make use of it in an `after-test` to ensure that no name collisions cause the test to fail.
 
 === Stopping the FTP Server
+
 To stop the FTP server gracefully, it needs to be stopped in the `after-suite`, using the `stop-server` message processor.
 
 [source, xml, linenums]
@@ -151,6 +155,7 @@ To stop the FTP server gracefully, it needs to be stopped in the `after-suite`, 
 ----
 
 == Execution Environments
+
 You may have noticed that our production code example makes extensive use of placeholders for certain parameters, such as `host`, `port` etc. in the example below:
 
 [source, xml, linenums]
@@ -167,14 +172,14 @@ The reason for this is that properties allow us to create code that is more conf
 <ftp:outbound-endpoint host="some.host" port="myPort" user="myUser" password="myPassword" outputPattern="ftp-jsonResult.txt" path="/tmp"/>
 ----
 
-The second example code is untestable, even without MUnit. If we need to test this code before going to production, we will always hit the production DB server with our real credentials, which entails risk.
+The second example code is untestable, even without MUnit. If we need to test this code before going to production, we always hit the production DB server with our real credentials, which entails risk.
 
 On the other hand, the first example code allows us to define two different property files:
 
 * One for testing environment
 * One for the production environment
 
-This is use in combination with the Mule property placeholder, shown below with `${env}`:
+This is used in combination with the Mule property placeholder, shown below with `${env}`:
 
 [source, xml, linenums]
 .Parameterized Production Code
@@ -185,3 +190,9 @@ This is use in combination with the Mule property placeholder, shown below with 
 In the example above, the use of `${env}` allows us to leverage execution environments. So for example we can define two separate properties files, `mule.test.properties` and `mule.prod.properties`, containing the same properties with values according to the environment we wish to use.
 
 TIP: To run your test from Maven and issue the env parameter from the command line, you can run: `mvn -DargLine="-Dmule.env=test" clean test`.
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]
