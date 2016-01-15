@@ -1,5 +1,5 @@
-= The Mock Message Processor
-:version-info: 3.7.0 and later
+= Mock Message Processor
+:version-info: 3.7.0 and newer
 :keywords: munit, testing, unit testing
 
 == Overview
@@ -40,7 +40,7 @@ When defining a mock, we make use of the `when` message processor, as shown belo
 </mock:when>
 ----
 
-[cols=","]
+[cols=",,"]
 |===
 |Attribute Name |Description
 
@@ -58,7 +58,7 @@ The `messageProcessor` attribute accepts regular expressions. For example, you c
 </mock:when>
 ----
 
-The example above defines a mock for a message processor named `set-paylaod`, disregarding which namespace the message processor belongs to.
+The example above defines a mock for a message processor named `set-payload`, disregarding which namespace the message processor belongs to.
 
 NOTE: The regular expression language is the same as Java.
 
@@ -79,7 +79,7 @@ A mock definition is based on _matchers_, that is, parameters that match feature
 
 You can define as many attributes as you deem necessary to make the mock as representative as possible. When defining an attribute, you do so by defining:
 
-[cols=","]
+[cols=",,"]
 |===
 |Attribute Name |Description
 
@@ -93,7 +93,7 @@ You can define as many attributes as you deem necessary to make the mock as repr
 
 TIP: MUnit allows you to define mocks based on the content of the Mule message.
 
-TIP: If the attribute you wish to use when mocking is similar to `config-ref` and resolves to an actual bean, you can use the MUnit MEL function `getBeanFromMuleContext('bean_name')`. This function inspects the Mule registry and returns the bean with the matching name if present. See link:/mule-user-guide/v/3.7/the-assertion-message-processor[Assertion Message Processor] for details.
+TIP: If the attribute you wish to use when mocking is similar to `config-ref` and resolves to an actual bean, you can use the MUnit MEL function `getBeanFromMuleContext('bean_name')`. This function inspects the Mule registry and returns the bean with the matching name if present. See link:/munit/v/1.0.0/assertion-message-processor[Assertion Message Processor] for details.
 
 Several attributes in Mule's message processors support expressions, which are evaluated at runtime. MUnit is smart enough to understand this.
 
@@ -101,12 +101,14 @@ Suppose we change the test code to:
 [source, xml, linenums]
 ----
 <flow name="exampleFlow">
-  <set-variable variableName="#[1==1? 'var_true': 'var_false']" value="#['some value']" doc:name="Variable"/>
-  <set-variable variableName="#[1==2? 'var_true': 'var_false']" value="#['some value']" doc:name="Variable"/>
+  <set-variable variableName="#[1==1? 'var_true': 'var_false']"
+    value="#['some value']" doc:name="Variable"/>
+  <set-variable variableName="#[1==2? 'var_true': 'var_false']"
+    value="#['some value']" doc:name="Variable"/>
 </flow>
 ----
 
-In this example, we are going to mock _only_ the first `set-variable`. To specify this, we'll use _attributes_, as shown below:
+In this example, we are going to mock _only_ the first `set-variable`. To specify this, we use _attributes_, as shown below:
 
 [source, xml, linenums]
 ----
@@ -150,7 +152,7 @@ Also, note that to mock a `sub-flow` you can't just type the name of the `sub-fl
 ----
 
 
-[source, xml, linenums]
+[source, xml]
 ----
 #[matchContains('exampleSub_Flow1')]
 ----
@@ -170,12 +172,12 @@ When mocking a message processor, you can define the Mule message that the mocke
   <mock:with-attributes>
     <mock:with-attribute whereValue="#['Real Set Payload']" name="doc:name"/>
   </mock:with-attributes>
-  <mock:then-return payload="#['mocked_payload']"/> <!--1-->
+  <mock:then-return payload="#['mocked_payload']"/> //<1>
 </mock:when>
 ----
 <1> Define the message response.
 
-[cols=","]
+[cols=",,"]
 |===
 |Attribute Name |Description
 
@@ -190,7 +192,7 @@ When mocking a message processor, you can define the Mule message that the mocke
 
 |===
 
-==== Returning the original payload
+==== Returning the Original Payload
 
 If you don't want to mock the payload of the message processor and want to return
 the original payload, you can use the function `samePayload()`.
@@ -201,7 +203,7 @@ the original payload, you can use the function `samePayload()`.
   <mock:with-attributes>
     <mock:with-attribute whereValue="#['Real Set Payload']" name="doc:name"/>
   </mock:with-attributes>
-  <mock:then-return payload="#[samePayload()]"/> (1)
+  <mock:then-return payload="#[samePayload()]"/> //<1>
 </mock:when>
 ----
 <1> Return the same payload
@@ -216,9 +218,9 @@ but if you want to return the original payload and mock message properties you c
   <mock:with-attributes>
     <mock:with-attribute whereValue="#['Real Set Payload']" name="doc:name"/>
   </mock:with-attributes>
-  <mock:then-return payload="#[samePayload()]"> (1)
+  <mock:then-return payload="#[samePayload()]"> //<1>
     <mock:inbound-properties>
-      <mock:inbound-property key="property" value="#['propertyValue']"/> (2)
+      <mock:inbound-property key="property" value="#['propertyValue']"/> //<2>
     </mock:inbound-properties>
   </mock:then-return>
 </mock:when>
@@ -231,7 +233,7 @@ but if you want to return the original payload and mock message properties you c
 
 Sometimes it's easier to load complex payloads from a file. MUnit offers a set of MEL functions to help you achieve this.
 
-[cols=","]
+[cols=",,"]
 |===
 |Function Name |Attribute |Description
 
@@ -248,9 +250,9 @@ Sometimes it's easier to load complex payloads from a file. MUnit offers a set o
 [source, xml, linenums]
 .Example: getResource
 ----
-<mock:then-return payload="#[getResource('users.xml').asStream()]"/> <!--1-->
-<mock:then-return payload="#[getResource('users.xml').asString()]"/> <!--2-->
-<mock:then-return payload="#[getResource('users.xml').asByteArray()]"/> <!--3-->
+<mock:then-return payload="#[getResource('users.xml').asStream()]"/>    //<1>
+<mock:then-return payload="#[getResource('users.xml').asString()]"/>    //<2>
+<mock:then-return payload="#[getResource('users.xml').asByteArray()]"/> //<3>
 ----
 <1> Return the content of `users.xml` as an input stream.
 <2> Return the content of `users.xml` as a string.
@@ -259,7 +261,7 @@ Sometimes it's easier to load complex payloads from a file. MUnit offers a set o
 [source, xml, linenums]
 .Example: resultOfScript
 ----
-<script:script name="groovyScriptPayloadGenerator" engine="groovy"><![CDATA[  <!--1-->
+<script:script name="groovyScriptPayloadGenerator" engine="groovy"><![CDATA[  //<1>
   List<String> lists = new ArrayList<String>();
   lists.add("item1");
   lists.add("item2");
@@ -269,7 +271,7 @@ Sometimes it's easier to load complex payloads from a file. MUnit offers a set o
 </script:script>
 
   ...
-<mock:then-return payload="#[resultOfScript('groovyScriptPayloadGenerator')]"/> <!--2-->
+<mock:then-return payload="#[resultOfScript('groovyScriptPayloadGenerator')]"/> //<2>
   ...
 ----
 <1> Script definition.
@@ -293,7 +295,7 @@ With MUnit you can also define the properties of the message to be returned by a
 </mock:when>
 ----
 
-[cols=","]
+[cols=",,"]
 |===
 |Attribute Name |Description
 |`key`
@@ -336,7 +338,7 @@ This feature is offered through a different message processor: `mock:throw-an`.
 In the structure of the `throw-an` message processor, you define which message processor you wish to mock, just like the `when` message processor. However, here you also need to define the exception that should be thrown by the mocked message processor.
 
 Message Processor Attributes
-[cols=","]
+[cols=",,"]
 |===
 |Name |Description
 
@@ -365,7 +367,7 @@ You can use <<matchers,matchers>> -- parameters that match features of the desir
 You can define as many attributes as you deem necessary to make the mock as
 representative as possible. When defining an attribute, you do so by defining:
 
-[cols=","]
+[cols=",,"]
 |===
 |Attribute Name |Description
 
@@ -392,15 +394,19 @@ public class TheTest extends FunctionalMunitSuite {
 
   @Test
   public void test() {
-    Attribute attribute = Attribute.attribute("name").ofNamespace("doc").withValue("Real Set Payload"); // <1>
+    Attribute attribute =
+      Attribute.attribute("name").ofNamespace("doc").
+        withValue("Real Set Payload"); //<1>
 
-    MuleMessage messageToBeReturned = muleMessageWithPayload("Real Set Payload"); // <2>
-    messageToBeReturned.setProperty("property_name", "property_value",PropertyScope.INBOUND); // <3>
+    MuleMessage messageToBeReturned =
+      muleMessageWithPayload("Real Set Payload"); //<2>
+    messageToBeReturned.setProperty("property_name",
+      "property_value",PropertyScope.INBOUND); //<3>
 
-    whenMessageProcessor("set-payload") // <4>
-    .ofNamespace("mule")                // <5>
-    .withAttributes(attribute)          // <6>
-    .thenReturn(messageToBeReturned);   // <7>
+    whenMessageProcessor("set-payload") //<4>
+    .ofNamespace("mule")                //<5>
+    .withAttributes(attribute)          //<6>
+    .thenReturn(messageToBeReturned);   //<7>
   }
 
 }
@@ -412,3 +418,9 @@ public class TheTest extends FunctionalMunitSuite {
 <5> Define the name of the namespace of the message processor to be mocked (accepts regular expressions).
 <6> Set the message processor's attribute defined in (1).
 <7> Set the message to be returned by the mocked message processor defined in (3).
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]

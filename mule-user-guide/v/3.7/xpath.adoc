@@ -86,7 +86,7 @@ The $ sign marks the parameter. The function automatically resolves that variabl
 
 [source, xml, linenums]
 ----
-<set‐variablevariableName="word"value="handkerchief"/>
+<set‐variable variableName="word" value="handkerchief"/>
 <expression‐transformer>
    xpath3('//LINE[contains(.,$word)]',payload,'NODESET')
 </expression‐transformer>
@@ -100,25 +100,27 @@ The example below shows how to perform an XPath evaluation on a document with mu
 
 [source, xml, linenums]
 ----
-<soap:Envelopexmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-<soap:Bodyfoo="bar">
-  <ns1:echoxmlns:ns1="http://simple.component.mule.org/">
-    <ns1:echo>Hello!</ns1:echo>
-  </ns1:echo>
-</soap:Body> </soap:Envelope>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body foo="bar">
+    <ns1:echo xmlns:ns1="http://simple.component.mule.org/">
+      <ns1:echo>Hello!</ns1:echo>
+    </ns1:echo>
+  </soap:Body>
+</soap:Envelope>
 ----
 
 The above sample document has several namespaces, which the Xpath engine needs to be aware of in order to navigate the DOM tree. The relevant `xpath3()` function is shown below.
 
 [source, xml, linenums]
 ----
-<mulexml:namespace‐managerincludeConfigNamespaces="true">
-  <mulexml:namespaceprefix="soap"uri="http://schemas.xmlsoap.org/soap/envelope/"/>
-  <mulexml:namespaceprefix="mule"uri="http://simple.component.mule.org/"/>
-</mulexml:namespace‐manager>
+<mulexml:namespace-manager includeConfigNamespaces="true">    
+  <mulexml:namespace prefix="soap" uri="http://schemas.xmlsoap.org/soap/envelope/"/>
+  <mulexml:namespace prefix="mule" uri="http://simple.component.mule.org/"/>
+</mulexml:namespace-manager>
+
 
 <flowname="xpathWithNamespace">
-  <expression‐transformerexpression="xpath3('/soap:Envelope/soap:Body/mule:echo/mule:echo')"/>
+  <expression‐transformer expression="xpath3('/soap:Envelope/soap:Body/mule:echo/mule:echo')"/>
 </flow>
 ----
 

@@ -1,5 +1,5 @@
 = Verify Message Processor
-:version-info: 3.7.0 and later
+:version-info: 3.7.0 and newer
 :keywords: munit, testing, unit testing
 
 == Overview
@@ -14,7 +14,7 @@ When defining a verification, we are telling MUnit to fail a test if the verific
 
 TIP: You can define verifications over any message processor, even if you haven't created a mock for it.
 
-For the purposes of this document, we'll assume we are testing the following Mule code:
+For the purposes of this document, we assume we are testing the following Mule code:
 
 [source, xml, linenums]
 .Test code
@@ -28,12 +28,12 @@ For the purposes of this document, we'll assume we are testing the following Mul
 
 When defining a verify, we make use of the `verify-call` message processor.
 
-[source, xml, linenums]
+[source, xml]
 ----
 <mock:verify-call messageProcessor="mule:set-payload" times="1"/>
 ----
 
-[cols=","]
+[cols=",,"]
 |===
 |Attribute Name |Description
 
@@ -57,7 +57,7 @@ NOTE: The attributes `times`, `atLeast`, `atMost`, are mutually exclusive. Only 
 
 The `messageProcessor` attribute accepts regular expressions. You could create the same verification as follows:
 
-[source, xml, linenums]
+[source, xml]
 .Verify using regular expressions
 ----
 <mock:verify-call messageProcessor=".*:set-payload" times="1"/>
@@ -69,7 +69,7 @@ TIP: The regular expression language is the same as Java.
 
 === Defining Verifications with Message Processor Attributes
 
-The definition of a verification is based on matchers, i.e. parameters that match features of the desired message processor. Defining a verification solely on the name of the message processor largely limits your scope and actions. For this reason, MUnit allows you to define a verify by defining matchers over the value of a message processor's attributes.
+The definition of a verification is based on matchers, that is, parameters that match features of the desired message processor. Defining a verification solely on the name of the message processor largely limits your scope and actions. For this reason, MUnit allows you to define a verify by defining matchers over the value of a message processor's attributes.
 
 [source, xml, linenums]
 ----
@@ -82,7 +82,7 @@ The definition of a verification is based on matchers, i.e. parameters that matc
 
 You can define as many attributes as you deem necessary to make the verification as representative as possible. When defining an attribute, you do so by defining:
 
-[cols=","]
+[cols=",,"]
 |===
 |Attribute Name |Description
 
@@ -110,12 +110,13 @@ public class TheTest extends FunctionalMunitSuite {
 
   @Test
   public void test() {
-    Attribute attribute = Attribute.attribute("name").ofNamespace("doc").withValue("Real Set Payload"); // <1>
+    Attribute attribute = Attribute.attribute("name").
+      ofNamespace("doc").withValue("Real Set Payload"); //<1>
 
-    verifyCallOfMessageProcessor("set-payload") // <2>
-    .ofNamespace("mule")                        // <3>
-    .withAttributes(attribute)                  // <4>
-    .times(1);                                  // <5>
+    verifyCallOfMessageProcessor("set-payload") //<2>
+    .ofNamespace("mule")                        //<3>
+    .withAttributes(attribute)                  //<4>
+    .times(1);                                  //<5>
 
   }
 }
@@ -123,8 +124,13 @@ public class TheTest extends FunctionalMunitSuite {
 <1> Define the real message processor attribute to match.
 <2> Define the message processor's name to verify (accepts regular expressions).
 <3> Define the message processor's namespace to verify (accepts regular expressions).
-<4> Set the message processor's attribute defined in (1).
+<4> Set the message processor's attribute defined in Note #1.
 <5> Define the amount of times (could also be `atLeast(1)` or `atMost(1)`).
 
-
 INFO: Java does not provide default values for parameters `times`, `atLeast` or `atMost`, so you need to provide the value of the parameter that you use.
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]
