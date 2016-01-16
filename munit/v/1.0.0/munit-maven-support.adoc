@@ -1,5 +1,5 @@
 = MUnit Maven Support
-:version-info: 3.7.0 and later
+:version-info: 3.7.0 and newer
 :keywords: munit, testing, unit testing
 
 MUnit provides a Maven plugin that allows you to run your MUnit tests as part of your continuous integration environment.
@@ -12,9 +12,9 @@ For MUnit to run properly with Maven, you need to add a few sections to your `po
 
 TIP: If you are using Anypoint Studio, Maven integration is already solved for you. See link:/munit/v/1.0.0/using-maven-in-anypoint-studio[Using Maven in Anypoint Studio] for details.
 
-NOTE: This documentation assumes you have the following properties in your `pom.xml`: `<munit.version>` and `<mule.munit.support.version>`. +
+NOTE: This documentation assumes you have the following properties in your `pom.xml`: `<munit.version>` and `<mule.munit.support.version>`.
 +
-You should not combine MUnit modules of different versions. That is, the `munit.version` should be the same across all MUnit artifacts in your `pom.xml`, like the plugin or the runner. +
+Do not combine MUnit modules of different versions. That is, the `munit.version` should be the same across all MUnit artifacts in your `pom.xml`, like the plugin or the runner.
 +
 Regarding the Mule MUnit support module, the `mule.munit.support.version` should match the `mule.version`. For example, `3.7.0` version of the support module would be compatible with `3.7.0`, `3.7.1`, `3.7.2` and other versions of Mule, but not necessarily with `3.6.0`.
 
@@ -32,7 +32,7 @@ The MUnit Maven Plugin allows you to run MUnit tests from Maven. To enable the p
     <plugin>
       <groupId>com.mulesoft.munit.tools</groupId>
       <artifactId>munit-maven-plugin</artifactId>
-      <version>${munit-version}</version>
+      <version>${munit.version}</version>
       <executions>
         <execution>
           <id>test</id>
@@ -75,6 +75,7 @@ All the MUnit Test Suite files reside in `src/test/munit`. You need to tell Mave
 <2> The normal resources folder, usually used to store other files.
 
 === MUnit Dependencies
+
 Listed below are the _minimal artifacts_ required to enable MUnit to run from Maven.
 
 [source, xml, linenums]
@@ -117,7 +118,7 @@ MUnit artifacts are deployed in the Mule Maven repositories, which you've probab
 </repositories>
 ----
 
-You'll also need to add the Plugin repository.
+You also need to add the Plugin repository.
 
 [source, xml, linenums]
 .Plugin Repositories
@@ -139,9 +140,10 @@ TIP: If you code your MUnit tests in Java, you don't need the MUnit Maven Plugin
 
 == The MUnit Maven Plugin
 
-The MUnit Maven Plugin makes it possible to run the XML-based tests. It has a few features we'll discuss below.
+The MUnit Maven Plugin makes it possible to run the XML-based tests. It has a few features we discuss below.
 
 === Running MUnit Tests From Maven
+
 [source,console]
 .Running MUnit tests in a project example
 ----
@@ -153,13 +155,14 @@ mvn clean test
 You can instruct MUnit Maven Plugin to run only tests that belong to a specific test suite.
 
 To do this, we use the property `munit.test`.
+
 [source,console]
 .Running a specific MUnit Test Suite example
 ----
 mvn clean test -Dmunit.test=<regex-test-suite>
 ----
 
-As you can see, the property `munit.test` accepts regular expressions. The expression will be applied to the name of the MUnit Test Suite file. The regular expression language is the Java implementation.
+As you can see, the property `munit.test` accepts regular expressions. The expression is applied to the name of the MUnit Test Suite file. The regular expression language is the Java implementation.
 
 The following is a valid example:
 [source,console]
@@ -178,7 +181,7 @@ In the same way that you instruct MUnit to run one test suite, you can also tell
 mvn clean test -Dmunit.test=<regex-test-suite>#<regex-test-name>
 ----
 
-The addition is the special character `#`. To the right of it you should type the test name. As you can see, it also accepts regular expressions. The expression will be applied to the attribute `name` of the MUnit Test.
+The addition is the special character `#`. To the right of it you should type the test name. As you can see, it also accepts regular expressions. The expression is applied to the attribute `name` of the MUnit Test.
 
 The following is a valid example:
 [source,console]
@@ -186,12 +189,13 @@ The following is a valid example:
 mvn clean test -Dmunit.test=.*my-test.*#.*test-scenario-1.*
 ----
 
-TIP: The tests inside the MUnit Test Suite that don't match the regular expression will be flagged as *ignored*.
+TIP: The tests inside the MUnit Test Suite that don't match the regular expression is flagged as *ignored*.
 
 === Skip MUnit Tests
 
 ==== Skipping All Tests
-When building your application, you may want to prevent a test from running. MUnit leverages the same mechanism as Maven, so if you wish to skip tests you can make use of the parameter `skipTests`.
+
+When building your application, you may want to prevent a test from running. MUnit leverages the same mechanism as Maven, so if you wish to skip tests, you can make use of the parameter `skipTests`.
 
 [source,console]
 .Skipping Tests example
@@ -200,10 +204,11 @@ mvn clean package -DskipTests
 ----
 
 ==== Skipping Only MUnit Tests
-MUnit also comes with another property that will only prevent MUnit tests from running.
+
+MUnit also comes with another property that only prevents MUnit tests from running.
 While at the same time allowing any other test, like JUnit tests, to keep running.
 
-If you wish to skip only MUnit tests you can make use of the parameter `skipMunitTests`.
+If you wish to skip only MUnit tests, you can make use of the parameter `skipMunitTests`.
 
 [source,console]
 .Skipping MUnit Tests example
@@ -244,7 +249,7 @@ By default, logs are output to the console, but you can redirect them to a file.
 ----
 <1> Redirect logs.
 
-The log will output to `target/surefire-reports/munit.-output.txt`.
+The log outputs to `target/surefire-reports/munit.-output.txt`.
 
 ==== Setting System Variables
 
@@ -276,25 +281,25 @@ You may wish to define specific system variables needed for your MUnit test to r
 <1> Sends variables.
 
 === Dynamic Ports
-When trying to test a Mule Application in a continous integration (CI) environment the following scenario is not uncommon:
+
+When testing a Mule application in a continuous integration (CI) environment, the following scenario is not uncommon:
 
 `Your application tries to open a specific port. The port is already in use. The application fails with a port binding exception.`
 
-This is bound to happen and the easy solution to this problem is to have your application using a free port.
-The MUnit Maven Plugin comes with a build in feature to do just that.
+This is bound to happen and the easy solution to this problem is to have your application use a free port.
+The MUnit Maven Plugin comes with a built in feature to do just that.
 
-`MUnit Dynamic Ports` instructs the MUnit Maven Plugin to look for unbind ports and reserve them, before the tests over the Mule Application
-start running. Each port selected will be placed in a system property under the name indicated in the configuration.
-Afterwards the number of the port can be acquire by the application by the use of placeholders.
+`MUnit Dynamic Ports` instructs the MUnit Maven Plugin to look for unbound ports and reserve them before running the tests over the Mule application. Each port selected is placed in a system property under the name indicated in the configuration.
+Afterwards the port number can be acquired by the application by the use of placeholders.
 
 TIP: The Ports to be selected by the plugin are taken from the following range: `[40000,50000)`
 
-NOTE: Dynamic Ports feature is only available as part of the MUnit Maven Plugin, thus you can not expect this feature to work when running
-tests from inside Anypoint Studio.
+NOTE: Dynamic Ports feature is only available as part of the MUnit Maven Plugin, thus you can not expect this feature to work when running tests from inside Anypoint Studio.
 
 
 ==== Enabling Dynamic Ports
-In order to enable the feature you need to add the following code to the `configuration` section of the MUnit Maven Plugin
+
+In order to enable the feature, you need to add the following code to the `configuration` section of the MUnit Maven Plugin:
 
 [source, xml, linenums]
 .Dynamic Ports Configuration
@@ -304,8 +309,7 @@ In order to enable the feature you need to add the following code to the `config
 </dynamicPorts>
 ----
 
-If you have the following placeholder in your application: `${http.port}`
-The configuration will look something like:
+If you have the `${http.port}` placeholder in your application, the configuration looks something like:
 
 [source, xml, linenums]
 .Example
@@ -316,6 +320,7 @@ The configuration will look something like:
 ----
 
 ==== Preparing Your Application
+
 Of course all this comes with a trade off.
 The part of the application trying to make use of a port must be parametrized by use of a placeholder.
 For instance, you may want to have your Mule application listening for HTTP traffic. In order to do that you should provide the following configuration:
@@ -329,7 +334,7 @@ For instance, you may want to have your Mule application listening for HTTP traf
 </flow>
 ----
 
-Now this application will always listen in port `8081`. To make it dynamic you need to change it to:
+Now this application always listens in port `8081`. To make it dynamic, change it to:
 
 [source, xml, linenums]
 .HTTP Simple Application with dynamic port
@@ -339,34 +344,38 @@ Now this application will always listen in port `8081`. To make it dynamic you n
     <http:listener config-ref="HTTP_Listener_Configuration" path="/" />
 </flow>
 ----
-<1> Notice the place holder `${http.port}`.
+<1> Notice the placeholder `${http.port}`.
 
-With the application coded in this way, and the configuration of Dynamic Ports in place your application will start each run listening in a different port.
+With the application coded in this way, and the configuration of Dynamic Ports in place your application starts each run listening on a different port.
 
 === Coverage
-MUnit used to have a basic coverage feature only abailable from Anypoint Studio.
-Since MUnit version `1.0.0` this feature is also available from the command line by use of the MUnit Maven Plugin.
+
+MUnit used to have a basic coverage feature only available from Anypoint Studio.
+Since MUnit version `1.2.0` this feature is also available from the command line by the use of the MUnit Maven Plugin.
 
 ==== Objective
-The MUnit Coverage feature, main goal is to provide a metric on how much of a Mule Application has been executed by a set of MUnit tests.
-Thus allowing the users to obtain a quality metric of the application.
-If you wish to know more about the coverage concept you can check link:https://en.wikipedia.org/wiki/Code_coverage[this Wikipedia Article].
+
+The MUnit Coverage feature provides a metric on how much of a Mule application has been executed by a set of MUnit tests.
+This lets the users obtain a quality metric for the application.
+For more information, see this link:https://en.wikipedia.org/wiki/Code_coverage[Wikipedia article on Code Coverage].
 
 It's worth noticing, MUnit Coverage is based on the amount of message processors executed.
-MUnit Coverage will provide metrics regarding:
+MUnit Coverage provides metrics for:
 
-* *Application overall coverage*: It's an average of the items bellow
-* *Resource coverage*: It refers to each Mule configuration file under `src/main/app`. Each of them is considered a resource by MUnit Coverage.
-* *Flow coverage*: It refers to any of the following `Flows, Sub-flows, Batch jobs`
+* *Application overall coverage*: An average of the items below.
+* *Resource coverage*: Refers to each Mule configuration file under `src/main/app`. Each of is considered a resource by MUnit Coverage.
+* *Flow coverage*: Refers to any of the following `Flows`, `Sub-flows`, and `Batch jobs`.
 
 ==== Configuration
-The following section will cover how to configure MUnit Coverage.
 
-Currently you have a basic set of Coverage related features from Anypoint Studio. But it's worth noticing that the full set of features is only
+The following section covers how to configure MUnit Coverage.
+
+A basic set of Coverage related features is in Anypoint Studio. However, the full set of features is only
 available when running from Maven. Thus all of the configuration is done through the `pom.xml` file.
 
 ===== Enabling Coverage
-To enable MUnit Coverage it's enough with adding the following configuration to the MUnit Plugin:
+
+To enable MUnit Coverage, add the following configuration to the MUnit Plugin:
 
 [source,xml,linenums]
 .MUnit Coverage - Minimal Configuration
@@ -383,10 +392,10 @@ To enable MUnit Coverage it's enough with adding the following configuration to 
   </configuration>
 </plugin>
 ----
-<1> This will enable the coverage feature
+<1> This enables the coverage feature
 
-When enabling MUnit Coverage you will only see a summary report in the console.
-By default no other action will be taken so it's merely informative.
+When enabling MUnit Coverage, you only see a summary report in the console.
+By default no other action is taken so it's merely informative.
 
 This is how a summary report looks like:
 
@@ -401,9 +410,11 @@ This is how a summary report looks like:
 ----
 
 ===== Failing Build
-One of the features of MUnit Coverage is to fail the build is a certain coverage level is not reached.
 
-To make the build fail is enough to add the following line to the configuration.
+One of the features of MUnit Coverage is to fail the build if a certain coverage level is not reached.
+
+To make the build fail, add the following lines to the configuration:
+
 [source,xml,linenums]
 .MUnit Coverage - Fail Build
 ----
@@ -414,13 +425,16 @@ To make the build fail is enough to add the following line to the configuration.
 ----
 <1> Enable *Fail Build Feature*
 
-Now, the next logical step is to define those coverage levels. MUnit Coverage handles three different levels:
+Now, the next logical step is to define the coverage levels.
+
+MUnit Coverage handles three different levels:
 
 * Application
 * Resource
 * Flow
 
-Here is how to define the require coverage level:
+Here is how to define the required coverage level:
+
 [source,xml,linenums]
 .MUnit Coverage - Require Coverage
 ----
@@ -436,8 +450,8 @@ Here is how to define the require coverage level:
 
 TIP: Each value represents a percentage.
 
-In the even that you define coverage levels but set the property `failBuild` to *false*, if the levels are not reached a warring will be shown in
-MUnit Coverage summary.
+If you define coverage levels, but set the property `failBuild` to *false*, and if the levels are not reached, a warning displays in the MUnit Coverage summary.
+
 Something like this:
 
 [source,console,linenums]
@@ -454,26 +468,27 @@ INFO] [CoverageManager] Printing Coverage Report...
 ----
 <1> Warning detailing which coverage level wasn't meet
 
-TIP: If no level is defined the -1 is assumed. Thus the build won't fail due to lack of coverage.
+TIP: If no level is defined, -1 is assumed, which indicates that the build won't fail due to lack of coverage.
 
 ===== Reports
-As we've showed before by default MUnit Coverage shows summary report in the console. But that's is no the only option.
-MUnit Coverage offers, currently, two types of reports:
+
+As we've shown before by default, MUnit Coverage shows summary report in the console. But that's not the only option.
+MUnit Coverage currently offers two types of reports:
 
 * Console
 * HTML
 
-The *Console* report, it's printed in the console. It works in a complementary manner to the summary report.
-It shows a detail of each resource, flow/sub-flow/batch, and it's coverage level.
+The *Console* report, is printed in the console. It works with the summary report and
+shows details of each resource, flow, sub-flow, and batch, and its coverage level.
 
-The *HTML* report, shows the same information but in such a way that it can be show in any web browser.
-To access the *HTML* report you need to browse you application folder structure:
+The *HTML* report shows the same information, which you can view in any web browser.
+To access the *HTML* report, browse your application folder structure:
 
 * `${application.path}/target/munit-reports/coverage`
 
-In there locate the file *`summary.html`*, this is the starting point of the report and it will allow you to navigate through all the data.
+Locate the file *summary.html*, which is the starting point of the report and lets you navigate through all the data.
 
-To enable the reports you need to add the following configuration:
+To enable the reports, add the following configuration:
 
 [source,console,linenums]
 .MUnit Coverage - Report Configuration
@@ -552,9 +567,9 @@ Running testingEchoFlow
 ERROR - The test testingEchoFlow finished with an Error.
 Failed to invoke set. Message payload is of type: NullPayload
 org.mule.api.MessagingException: Failed to invoke set. Message payload is of type: NullPayload
-    at testingEchoFlow.munit:set{payload-ref=#[strig: Hello world!]}(test-config.xml:19)
+    at testingEchoFlow.munit:set{payload-ref=#[string: Hello world!]}(test-config.xml:19)
 Caused by: org.mule.api.expression.InvalidExpressionException: [Error: unknown class or illegal statement: org.mvel2.ParserContext@b6ba69]
-[Near : {... strig: Hello world! ....}]
+[Near : {... string: Hello world! ....}]
                                ^
 [Line: 1, Column: 19]
     at org.mule.el.mvel.MVELExpressionLanguage.validate(MVELExpressionLanguage.java:244)
@@ -597,3 +612,9 @@ mvn archetype:generate
   -Dpackage=org.mule
   -DarchetypeRepository=http://repository.mulesoft.org/releases
 ----
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]
