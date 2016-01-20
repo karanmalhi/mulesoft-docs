@@ -1,6 +1,7 @@
 = TLS Configuration
 :keywords: tls, trust, store, https, ssl, secure messages, encryption, trust store, key store, keystore, truststore
 
+
 == The TLS Configuration Element
 
 The TLS Configuration element is independent of any module or transport. In Mule 3.7 onwards, it's supported both by the HTTP Connector and in the Web Service Consumer.
@@ -17,6 +18,9 @@ In XML, the basic syntax for the element is the following:
 password="mulepassword"/>
  </tls:context>
 ----
+
+[TIP]
+You can include a TLS context element in a link:/mule-user-guide/v/3.8-beta/shared-resources[domain project] so that it can be shared amongst multiple projects that are deployed to a same server.
 
 The `tls:context` element defines a configuration for TLS, which can be used from both the client and server sides. It can be referenced by other configuration objects of other modules (or defined as a nested element of one of them).
 
@@ -35,13 +39,17 @@ The keystore may contain two passwords, as one of them can serve for accessing t
 The 'tls:trust-store' and 'tls:key-store' elements must reference existing certificates. If you don't provide any values for the trust-store, default Java certificates are used. To generate your own certificates, you can do so by following the steps below using the link:https://docs.oracle.com/javase/6/docs/technotes/tools/windows/keytool.html[Java Keytool].
 
 === Generating a Keystore
-​
+
 . To generate a keystore that exposes your server's credentials, run the command:
+
 +
 [source, code, linenums]
 ----
 keytool -genkey -alias serverkey -keyalg RSA -keystore server.jks
 ----
+
+[NOTE]
+Keytool generates certificates using the DSA algorithm by default. You can instead specify it to use the RSA algorithm as in the example above through the '-keylag' argument.
 
 . You will then be prompted for additional details, along with the store password and key password.
 ​
@@ -55,10 +63,30 @@ keytool -export -alias serverkey -keystore server.jks -file server_cert.cer
 [NOTE]
 There is no default Java key store in the standard JDK distribution, so you must generate your own certificates in order to use this element.
 
+If you also wish to get signed by a Certification Authority (CA), you must export your certificate in the standard CSR format. To do so you can run this command:
+
+[source, code, linenums]
+----
+keytool -certreq -keystore server.jks -alias example.com -file certificate_file
+----
+
+Here, '-file' refers to the name you wish to give to your certificate file. Once generated, send the CSR file to the CA and follow their instructions to obtain their signature.
+
+Once you have obtained the CA's signature, you can import the signed certificate file through the following command:
+
+[source, code, linenums]
+----
+keytool -import -keystore keystore -alias example.com -file signed_certificate_file
+----
+
+[NOTE]
+The alias you assign when importing must not be linked to any existing key or the process will fail.
+
+
 === Generating a Trust Store
 
 [TIP]
-The standard JDK distribution includes a *default truststore* which is used by default in the 'tls:trust-store' element, but you can generate your own if you wish to have greater security.
+The standard JRE distribution includes a *default trust store* with certificates for several major certificate authorities (CA's) which is used by default in the 'tls:trust-store' element, but you can generate your own if you wish to have greater security or when using self-signed certificates.
 
 . To create a trustStore, run the command:
 +
@@ -67,7 +95,7 @@ The standard JDK distribution includes a *default truststore* which is used by d
 keytool -import -alias serverkey -keystore client_truststore.ts -file server_cert.cer
 ----
 
-Without a trust store that contains the server's certificate, the client will not trust the server and will raise a `javax.net.ssl.SSLHandshakeException`.
+The client will trust the server if a chain of trust can be established, either directly to the server (in case its certificate is in the trust store) or through a signing CA whose certificate is present in the trust store, failing otherwise. This means that a trust store must be defined when using self-signed certificates.
 
 
 
@@ -82,6 +110,7 @@ The Mule 'conf' folder includes two files that allow you to fine-tune the config
 * 'tls-fips140-2.conf' (Allows fine-tuning when Mule is running in FIPS security mode)
 
 Open the relevant file and comment or uncomment items in the lists to manually configure the allowed cipher suites and SSL protocols. If you make no changes to these files, Mule allows the configured security manager to select cipher suites and protocols.
+
 
 
 == Examples (for HTTPS)
@@ -169,6 +198,15 @@ If you're using the HTTP Connector for a 2-way TLS authenticated connection, the
 You can access the client principal through: `inboundProperties['http.client.cert'].getSubjectDN()`
 ====
 
+== Attributes of the tls-context Element
+
+[width"99a",cols="10a,80a,10a"]
+|===
+|*Attribute* |*Description* |*Required*
+|enabledProtocols||Optional
+|enabledCipherSuites ||Optional
+|===
+
 == Attributes of the trust-store Element
 
 [width"99a",cols="10a,80a,10a"]
@@ -178,6 +216,7 @@ You can access the client principal through: `inboundProperties['http.client.ce
 |type |The type of the trust store (default JKS) + |Optional
 |password |The trust store password. + |Optional
 |algorithm |The algorithm used in the trust store (default SunX509) |Optional
+|insecure | Boolean that determines if the trust-store is to be used or not. If set to `true`, all servers are accepted without any validation. |Optional
 |===
 
 == Attributes of the key-store Element
