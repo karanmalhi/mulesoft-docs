@@ -1,0 +1,40 @@
+= Logging in MUnit
+:version-info: 3.7.0 and later
+:keywords: munit, testing, unit testing, log, logging
+
+MUnit allows you to have a log configuration specifically for your tests. In this way, you can log information differently from the way that your Mule application logs. To do this, you need a file called `log4j2-test.xml` in your classpath with the desired log configuration for your tests. This file overrides any log configuration for Mule applications, but it is used only when running MUnit tests.
+
+An example of a `log4j2-test.xml` file is shown below.
+
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%-5p %d [%t] %c: %m%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <!-- CXF is used heavily by Mule for web services -->
+        <AsyncLogger name="org.apache.cxf" level="WARN"/>
+        <!-- Apache Commons tend to make a lot of noise which can clutter the log-->
+        <AsyncLogger name="org.apache" level="WARN"/>
+        <!-- Reduce startup noise -->
+        <AsyncLogger name="org.springframework.beans.factory" level="WARN"/>
+        <!-- Mule classes -->
+        <AsyncLogger name="org.mule" level="INFO"/>
+        <AsyncLogger name="com.mulesoft" level="INFO"/>
+        <AsyncLogger name="org.mule.api.processor.LoggerMessageProcessor" level="DEBUG"/>
+
+        <AsyncRoot level="INFO">
+            <AppenderRef ref="Console"/>
+        </AsyncRoot>
+    </Loggers>
+</Configuration>
+----
+
+This configuration disables logs like _cxf_ or _apache commons_. It also sets the logger message processor to `DEBUG` mode. If you don't specify the logging mode the default will be `ERROR`.
+
+TIP: The configuration file must reside in the classpath in order to work correctly. Preferably, the file should reside in the `src/test/resources` folder, since this a resource you use when running your tests, and the folder belongs to the classpath.
+
+NOTE: If you don't create a `log4j2-test.xml` file, Mule looks for a file called `log4j2.xml`. For additional information about the priority in which the log configuration files are selected, see link:/mule-user-guide/v/3.8-beta/logging-in-mule[Logging in Mule].
