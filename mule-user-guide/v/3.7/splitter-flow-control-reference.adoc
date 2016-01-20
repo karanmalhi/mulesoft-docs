@@ -5,9 +5,8 @@ The Splitter Flow Control splits a message into separate fragments, then sends t
 
 Splitting and aggregating the message is especially useful when you intend to process the split parts in asynchronous flows running on separate servers. Together, the splitter and aggregator flow controls allow you to share the workload among several servers and still be able to reassemble the message after it's processed.
 
-
-
-
+[NOTE]
+Weigh the pros and cons of using a splitter and aggregator in your flow, versus using a "Foreach" scope link:/mule-user-guide/v/3.7/foreach#using-foreach-versus-splitter-and-aggregator-pairs[here].
 
 == Splitter Configuration
 
@@ -24,13 +23,13 @@ image:Splitter.png[Splitter] +
 |*Enable Correlation* a|
 Specifies whether Mule should give outgoing messages a correlation ID. Options are:
 
-* ** `IF_NOT_SET`(existing correlation IDs are maintained)
-** `ALWAYS` (existing correlation IDs are overridden)
-** `NEVER` (no action)
+* `IF_NOT_SET`(existing correlation IDs are maintained)
+* `ALWAYS` (existing correlation IDs are overridden)
+* `NEVER` (no action)
 
  |`IF_NOT_SET` |`enableCorrelation="IF_NOT_SET"`
-|*Message Info Mapping* |Optional. If this child element is not configured, `MuleMessage.getCorrelationId()` is used, which is optimal for most use cases. Maps attributes from incoming data to construct Correlation ID and Message ID on outgoing messages. |  |`<expression-message-info-mapping messageIdExpression=""#[java.util.UUID.randomUUID().toString()]``" `correlationIdExpression="#[xpath3('//order/@id')]"`/>`
-|*Expression* |Expression to define how to split the message. This is a required field. |  |`expression="#[xpath3('//item')]" `
+|*Message Info Mapping* |Optional. If this child element is not configured, `MuleMessage.getCorrelationId()` is used, which is optimal for most use cases. Maps attributes from incoming data to construct Correlation ID and Message ID on outgoing messages. |  |`<expression-message-info-mapping messageIdExpression="\#[java.util.UUID.randomUUID().toString()]" correlationIdExpression="#[xpath3('//order/@id')]"/>`
+|*Expression* |Expression to define how to split the message. This is a required field. |  |`expression="#[xpath3('//item')]"`
 |===
 ....
 [tab,title="XML Editor or Standalone"]
@@ -528,7 +527,7 @@ Defines a timeout in milliseconds to wait for events to be aggregated. By defaul
 
  |`` |`timeout="60000"`
 |*Fail On Timeout* |If set, your app will fail if the aggregator times out. |false |`failOnTimeout="true"`
-|*Message Info Mapping* |Optional. If this child element is not configured, `MuleMessage.getCorrelationId()` is used, which is optimal for most use cases. Defines where to obtain Correlation ID and Message ID in incoming messages. |  |`<expression-message-info-mapping messageIdExpression=""#[java.util.UUID.randomUUID().toString()]``" `correlationIdExpression="#[xpath3('//order/@id')]"`/>`
+|*Message Info Mapping* |Optional. If this child element is not configured, `MuleMessage.getCorrelationId()` is used, which is optimal for most use cases. Defines where to obtain Correlation ID and Message ID in incoming messages. |  |`<expression-message-info-mapping messageIdExpression="\#[java.util.UUID.randomUUID().toString()]" correlationIdExpression="#[xpath3('//order/@id')]"/>`
 |*Store Prefix* +
  |Defines the prefix of the ObjectStore names |  |`storePrefix="split_"`
 |===
