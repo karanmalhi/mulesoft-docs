@@ -45,7 +45,7 @@ The 'tls:trust-store' and 'tls:key-store' elements must reference existing certi
 +
 [source, code, linenums]
 ----
-keytool -genkey -alias serverkey -keyalg RSA -keystore server.jks
+keytool -genkey -alias serverkey -keylag RSA -keystore server.jks
 ----
 
 [NOTE]
@@ -111,7 +111,10 @@ The Mule 'conf' folder includes two files that allow you to fine-tune the config
 
 Open the relevant file and comment or uncomment items in the lists to manually configure the allowed cipher suites and SSL protocols. If you make no changes to these files, Mule allows the configured security manager to select cipher suites and protocols.
 
+The protocol and cipher suites that you set in these configuration files is overriden by what is then set up in an individual 'tls:context' element if those parameters are defined.
 
+[NOTE]
+TLS 1.0 is no longer a valid protocol due to its significant vulnerabilites.
 
 == Examples (for HTTPS)
 
@@ -203,9 +206,23 @@ You can access the client principal through: `inboundProperties['http.client.ce
 [width"99a",cols="10a,80a,10a"]
 |===
 |*Attribute* |*Description* |*Required*
-|enabledProtocols||Optional
-|enabledCipherSuites ||Optional
+|enabledProtocols| Overrides the protocols set in the <<Global TLS configuration>> |Optional
+|enabledCipherSuites | Overrides the cipher suites set in the <<Global TLS configuration>> |Optional
 |===
+
+[TIP]
+====
+Cipher Suite names can be very lengthy, which can have an impact in the readability of your XML code. To keep things neater, you can instead keep your Cipher Suite names in an external properties file in your Mule project and refer to it.
+
+image:tls-cipher-property.png[cipher suite]
+
+You can then reference your properties via the following syntax
+
+[source, xml, linenums]
+----
+<tls:context name="serverTlsContext" enabledCipherSuites="${mySuite}" >
+----
+====
 
 == Attributes of the trust-store Element
 
