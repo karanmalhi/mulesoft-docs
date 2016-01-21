@@ -111,7 +111,7 @@ The Mule 'conf' folder includes two files that allow you to fine-tune the config
 
 Open the relevant file and comment or uncomment items in the lists to manually configure the allowed cipher suites and SSL protocols. If you make no changes to these files, Mule allows the configured security manager to select cipher suites and protocols.
 
-The protocol and cipher suites that you set in these configuration files is overriden by what is then set up in an individual 'tls:context' element if those parameters are defined.
+The list of protocols and cipher suites that you set in these configuration files can then be constrained locally by what is set up in an individual 'tls:context' element if those parameters are defined.
 
 [NOTE]
 TLS 1.0 is no longer a valid protocol due to its significant vulnerabilites.
@@ -206,21 +206,21 @@ You can access the client principal through: `inboundProperties['http.client.ce
 [width"99a",cols="10a,80a,10a"]
 |===
 |*Attribute* |*Description* |*Required*
-|enabledProtocols| Overrides the protocols set in the <<Global TLS configuration>> |Optional
-|enabledCipherSuites | Overrides the cipher suites set in the <<Global TLS configuration>> |Optional
+|enabledProtocols| Specifies which protocols to enable, out of the list of protocols set in the <<Global TLS configuration>> |Optional
+|enabledCipherSuites | Specifies which cipher suites to enable, out of the list in <<Global TLS configuration>> |Optional
 |===
 
 [TIP]
 ====
-Cipher Suite names can be very lengthy, which can have an impact in the readability of your XML code. To keep things neater, you can instead keep your Cipher Suite names in an external properties file in your Mule project and refer to it.
+Cipher Suite names can be very lengthy, which can have an impact in the readability of your XML code. To keep things neater, you can instead keep your Cipher Suite names in an link:/mule-user-guide/v/3.8-beta/configuring-properties[external properties file] in your Mule project and refer to it.
 
 image:tls-cipher-property.png[cipher suite]
 
-You can then reference your properties via the following syntax
+You can then reference your properties via the following syntax:
 
 [source, xml, linenums]
 ----
-<tls:context name="serverTlsContext" enabledCipherSuites="${mySuite}" >
+<tls:context name="serverTlsContext" enabledCipherSuites="${myCipherSuites}" >
 ----
 ====
 
@@ -233,8 +233,11 @@ You can then reference your properties via the following syntax
 |type |The type of the trust store (default JKS) + |Optional
 |password |The trust store password. + |Optional
 |algorithm |The algorithm used in the trust store (default SunX509) |Optional
-|insecure | Boolean that determines if the trust-store is to be used or not. If set to `true`, all servers are accepted without any validation. |Optional
+|insecure | Boolean that determines if validations against the trust-store are to be done at all. If set to `true`, all certificates are accepted without any validation. If not set, it defaults to 'false' |Optional
 |===
+
+[WARNING]
+Setting the 'insecure' property to 'true' renders connections vulnerable to attacks, its use is only recommended for prototyping and testing purposes.
 
 == Attributes of the key-store Element
 
@@ -247,6 +250,20 @@ You can then reference your properties via the following syntax
 |keyPassword |The key manager password (password for the private key inside the key store) |Optional
 |algorithm |The algorithm used in the key store (default SunX509) |Optional
 |===
+
+== Cipher Suite Behavior
+
+Whenever a TLS comunication takes place with between two systems, a negotiation determines which cipher suite will be used out of the list of those that are enabled on both ends. The following logic determines how this list of enabled cipher suites is defined:
+
+* If nothing is configured, you will use the list of cipher suites that are available by default with your Java environment.
+* If you have a <<Global TLS configuration>> file, the list you define in its 'enabledCipherSuites' property will be used instead.
++
+[TIP]
+Note that this property supports adding the value "default", which falls back on the default cipher suites of your Java environment
+
+* In your 'tls:context' element, you can include the 'enabledCipherSuites' property and select a subset of the cipher suites that are included in your global TLS configuration file. You cannot reference cipher suites here that are not included in your global TLS configuration file.
+
+
 
 == See Also
 
