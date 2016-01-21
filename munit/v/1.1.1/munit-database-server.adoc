@@ -1,0 +1,294 @@
+= MUnit Database Server
+:version-info: 3.7.0 and later
+:keywords: munit, testing, unit testing
+
+== Overview
+
+One of the main problems of testing production code are external system connections. If we create a test of a piece of code that connects with a database server, we need to install a DB server in our local environment in order to run the tests. Another option is to have an external DB server for testing only, but the major problem with this approach is that our Maven project would not be portable -- we could not send it to a third party because they would not be able to compile it without installing the DB server first.
+
+To enable you to avoid this issue, MUnit allows you to implement a database server in your local environment.
+
+== Maven Dependency
+
+NOTE: This page assumes you have the following property defined in your `pom.xml`: `<munit.version></munit.version>`.
+
+When running from Maven, you need to add the following artifact to your `.pom`:
+
+[source,console]
+.DB Server module Maven dependency
+----
+<dependency>
+  <groupId>com.mulesoft.munit.utils</groupId>
+  <artifactId>dbserver</artifactId>
+  <version>${munit.version}</version>
+  <scope>test</scope>
+</dependency>
+----
+
+== Defining The MUnit DB Server
+
+For the purpose of this documentation we are going to assume we are testing the following Mule code:
+
+[source, xml, linenums]
+.Test code
+----
+<spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardDataSource" destroy-method="shutdown">
+  <spring:property name="driverName" value="${db.driver}" />
+  <spring:property name="url" value="${db.url}" />
+  <spring:property name="user" value="${db.user}" />
+  <spring:property name="password" value="${db.password}" />
+</spring:bean>
+
+<jdbc:connector name="jdbcConnectorInbound" dataSource-ref="jdbcDataSource">
+  <jdbc:query key="lookupJob" value="SELECT * FROM jobtitlelookup WHERE jobtitleid = #[variable:jobid]" />
+</jdbc:connector>
+
+<flow name="exampleFlow">
+
+  <jdbc:outbound-endpoint connector-ref="jdbcConnectorInbound" queryKey="lookupJob" exchange-pattern="request-response" />
+
+  <choice>
+    <when expression="#[payload.size()>0]">
+      <set-payload value="#[payload[0].get('jobtitle')]"/>
+    </when>
+    <otherwise>
+      <set-payload value="#['HIR']"/>
+    </otherwise>
+  </choice>
+
+  <set-variable value="job" variableName="#[payload]"/>
+
+</flow>
+----
+
+=== Defining the Database Server
+We start by defining the DB server parameters:
+
+[source, xml, linenums]
+.Define DB server
+----
+<munit:config mock-inbounds="false" mock-connectors="false"/>           //<1>
+
+<dbserver:config  name="DB_Server" database="DATABASE_NAME" sqlFile="FILE_NAME.sql" />    //<2>
+----
+<1> Defines MUnit configuration. Notice that `mock-connectors` set to `false`.
+<2> Defines the DB server configuration.
+
+
+[cols=","]
+.DB server config parameters
+|===
+|Attribute Name |Description
+
+|`name`
+|Defines the configuration name of this DB server. Must be unique.
+
+|`database`
+|Defines the name of the in-memory DB.
+
+|`sqlFile`
+|Specifies the path of the SQL file that defines the DB structure/contents. This parameter is used to create the DB at startup. It's mutually exclusive with `csv`.
+
+|`csv`
+|Specifies the path of the-comma separated file used to define the DB structure/contents. This parameter is used to create the DB at startup. It's mutually exclusive with `sqlFile`.
+
+|===
+
+In the examples in this document, the file `FILE_NAME.sql` defines a table named `jobtitlelookup`, with a single record.
+
+==== DB Server Connection Parameters
+
+The MUnit DB server has the following default set of connection parameters:
+
+[source,console]
+.MUnit DB connection properties
+----
+db.driver=org.h2.Driver
+db.url=jdbc:h2:mem:DATABASE_NAME;MODE=MySQL
+db.user=
+db.password=
+----
+
+The values of the `db.user` and `db.password` parameters are intentionally blank.
+
+==== Defining the DB Structure
+
+There are two different ways to define the structure and content of your database:
+
+* SQL
+* CSV
+
+NOTE: The MUnit DB server is based on H2. Complex structures, index and join commands may not work properly.
+
+===== Defining the DB Structure from an SQL File
+
+To define you DB structure and content from a SQL file,  provide a valid set of ANSI SQL DDL (Data Definition Language) instructions.
+
+[source, xml]
+.Creating DB from SQL
+----
+<dbserver:config  name="DB_Server" database="DATABASE_NAME" sqlFile="FILE_NAME.sql" />
+----
+
+===== Defining the DB Structure from a CSV File
+
+You can create your DB from CSV files.
+
+* The name of the table is the name of the file (in the example below, `customers`).
+
+* The name of the columns are the headers of your CSV file.
+
+[source, xml]
+.Creating DB from CSV
+----
+<dbserver:config name="DB_Server" database="DATABASE_NAME" csv="customers.csv"/>
+----
+
+You can also split your DB structure among several CSV files. In this case, include the file names as a list separated by a semicolon, as shown below.
+
+[source, xml]
+.Creating DB From Several CSVs
+----
+<dbserver:config name="DB_Server" database="DATABASE_NAME" csv="customers.csv;qbsyncjobs.csv"/>
+----
+
+=== Starting the DB Server
+
+In order to run, the database server must be started in the `before-suite`. You start the server using the `start-db-server` message processor.
+
+[source, xml, linenums]
+.Starting the DB server
+----
+<munit:before-suite name="before.suite" description="Starting DB server">
+  <dbserver:start-db-server config-ref="DB_Server"/>
+</munit:before-suite>
+----
+
+=== Running the Test
+
+Once our DB server is up and running we can run our test.
+
+[source, xml, linenums]
+.Testing DB example
+----
+<munit:test name="testDBServer" description="Data must be stored in the DB server">
+  <flow-ref name="exampleFlow" />             //<1>
+  <munit:assert-on-equals expectedValue="#['Culinary Team Member']" actualValue="#[flowVars['job']]" />  //<2>
+</munit:test>
+----
+
+<1> Run the production code.
+<2> Assert the payload returned by the production code, which should come from our in-memory database.
+
+As you can see, we are not using any new message processor, since the database has already been initialized and loaded with the proper data. Hence we are just validating that the query run in our production code is correct, and that the payload returned is the expected one.
+
+=== Other MUnit DB server Message Processors
+
+The MUnit DB server also offers a few other features, outlined in this section.
+
+==== Executing SQL instructions
+
+The MUnit DB Server allows you to execute instructions on the in-memory databases, so
+you can add or remove registries before a test, and also check if your data was
+stored correctly.
+
+[source, xml, linenums]
+.Execute SQL instructions example
+
+[source, xml, linenums]
+----
+<dbserver:execute config-ref="DB_Server" sql="INSERT INTO some_table..."/>
+----
+
+==== Executing SQL Queries
+
+The MUnit DB Server allows you to execute SQL queries. The resulting value is a list of maps.
+
+[source, xml, linenums]
+.Execute SQL query
+
+[source, xml, linenums]
+----
+<dbserver:execute-query config-ref="DB_Server" sql="SELECT * FROM some_table"/>
+----
+
+==== Validating SQL Query Results
+
+The MUnit DB Server allows you to validate that the results of a query are as expected.
+
+To do this, you use the `validate-that` tag. Set the `results` property to CSV with rows separated by a newline character (`\n`), as shown below.
+
+[source, xml, linenums]
+.Validate SQL query
+[source, xml, linenums]
+----
+<dbserver:validate-that config-ref="DB_Server"
+  query="SELECT * FROM jobtitlelookup WHERE JOBTITLE='Developer';"
+  returns='"JOBTITLE","EECSALARYORHOURLY","JOBTITLEID"\n"Developer","SALARY","10"'/>
+----
+The result should be a CSV text.
+
+=== Stopping the DB Server
+
+To stop the DB server gracefully, it needs to be stopped in the `after-suite`, using the `stop-db-server` message processor.
+
+[source, xml, linenums]
+.Stop DB server
+----
+<munit:after-suite name="after.suite" description="Stopping DB server">
+  <dbserver:stop-db-server config-ref="DB_Server"/>
+</munit:after-suite>
+----
+
+== Execution Environments
+
+You may have noticed that our production code example makes extensive use of placeholders for certain parameters, such as `driverName`, `url` etc. in the example below:
+
+[source, xml, linenums]
+.Parameterized Production Code
+----
+<spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardDataSource" destroy-method="shutdown">
+  <spring:property name="driverName" value="${db.driver}" />
+  <spring:property name="url" value="${db.url}" />
+  <spring:property name="user" value="${db.user}" />
+  <spring:property name="password" value="${db.password}" />
+</spring:bean>
+----
+
+The reason for this is that properties allow us to create code that is more configurable. Compare the example above with:
+
+[source, xml, linenums]
+.Hardcoded Production Code
+----
+<spring:bean id="jdbcDataSource" class="org.enhydra.jdbc.standard.StandardDataSource" destroy-method="shutdown">
+  <spring:property name="driverName" value="org.mule.fake.Driver" />
+  <spring:property name="url" value="192.168.0.3" />
+  <spring:property name="user" value="myUser" />
+  <spring:property name="password" value="123456" />
+</spring:bean>
+----
+
+The second example code is untestable, even without MUnit. If we need to test this code before going to production, we always hit the production DB server with our real credentials, which entails risk.
+
+On the other hand, the first example code allows us to define two different property files:
+
+* One for the testing environment
+* One for the production environment
+
+This is use in combination with the Mule property placeholder, shown below with `${env}`:
+
+[source, xml]
+.Parameterized Production Code
+----
+<global-property value="mule.${env}.property"/>
+----
+
+In the example above, the use of `${env}` allows us to leverage execution environments. So for example we can define two separate properties files, `mule.test.properties` and `mule.prod.properties`, containing the same properties with values according to the environment we wish to use.
+
+TIP: To run your test from Maven and issue the env parameter from the command line, you can run: `mvn -DargLine="-Dmule.env=test" clean test`.
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]

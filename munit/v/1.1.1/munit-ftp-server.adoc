@@ -1,0 +1,198 @@
+= MUnit FTP Server
+:version-info: 3.7.0 and later
+:keywords: munit, testing, unit testing
+
+== Overview
+
+One of the main problems of testing production code are external system connections. If we create a test of a piece of code that connects with an FTP server, we need to install an FTP server in our local environment in order to run the tests. Another option is to have an external FTP server for testing only, but the major problem with this approach is that our Maven project would not portable -- we would not be able to send it to a third party because they would not be able to compile it without installing the FTP server first.
+
+To enable you to avoid this issue, MUnit allows you to implement an FTP server in your local environment.
+
+== Maven Dependency
+
+NOTE: This page assumes you have the following property defined in your `pom.xml`: `<munit.version></munit.version>` .
+
+When running from Maven, you need to add the following artifact to your `.pom`:
+
+[source,console]
+.FTP Server module Maven dependency
+----
+<dependency>
+  <groupId>com.mulesoft.munit.utils</groupId>
+  <artifactId>ftpserver</artifactId>
+  <version>${munit.version}</version>
+  <scope>test</scope>
+</dependency>
+----
+
+== Defining The MUnit FTP Server
+
+For the purpose of this documentation we are going to assume we are testing the
+following Mule code:
+
+[source, xml, linenums]
+.Code to be tested
+----
+<flow name="exampleFlow">
+  <set-payload value="#['something_something_dark_side']"/>
+
+  <ftp:outbound-endpoint host="${host}" port="${ftp.port}" user="${ftp.user}" password="${ftp.password}" outputPattern="ftp-jsonResult.txt" path="/tmp">
+  </ftp:outbound-endpoint>
+</flow>
+----
+
+=== Defining the FTP Server
+
+We start by defining the FTP server parameters:
+
+[source, xml, linenums]
+.Define FTP server
+----
+<munit:config mock-inbounds="false" mock-connectors="false"/>   //<1>
+
+<ftpserver:config port="${ftp.port}" name="ftpServer"/>         //<2>
+----
+<1> Defines the MUnit configuration. Notice that `mock-connectors` is set to `false`.
+<2> Define the FTP server configuration.
+
+
+[cols=","]
+.FTP server config parameters
+|===
+|Attribute Name |Description
+
+|`name`
+|Defines the configuration name of this FTP server. The value must be unique.
+
+|`port`
+|Defines the port on which the FTP server should listen.
+
+|`secure`
+|(Boolean.) Defines the FTP protocol. Accepted values are `true` for SFTP or `false` for FTP. The default is `false`.
+
+|===
+
+=== Starting the FTP Server
+
+In order to run, the FTP server must be started in the `before-suite`. You start the server using the `start-server` message processor.
+
+[source, xml, linenums]
+.Start FTP server
+----
+<munit:before-suite name="before.suite" description="Starting FTP server">
+  <ftpserver:start-server config-ref="ftpServer"/>
+</munit:before-suite>
+----
+
+=== Running the Test
+
+Once our FTP server is up and running we can run our test.
+
+[source, xml, linenums]
+.Testing FTP example
+----
+<munit:test name="testFTPServer" description="Data must be stored in the ftp server">
+  <flow-ref name="exampleFlow" />
+  <ftpserver:contains-files file="ftp-jsonResult.txt" path="/tmp" config-ref="ftpServer"/>
+</munit:test>
+----
+
+NOTE: This FTP accepts any user, so there is no need to set up a user database or list.
+
+As you can see in the test, we make use of the `contains-file` message processor.
+
+This message processor attempts to validate the existence of a file in the FTP server. If the file is not present, the message processor fails, thus causing the test to fail.
+
+[cols=",,"]
+.Contains parameters
+|===
+|Attribute Name |Description
+
+|`config-ref`
+|Defines the FTP server configuration.
+
+|`path`
+|Defines in which folder to search.
+
+|`file`
+|Defines the name of the file to look for.
+
+|===
+
+The `remove` message processor provides another operation that may be of use. This operation instructs the FTP server to remove a file from storage.
+
+[source, xml]
+.Removing files from FTP server example
+----
+<ftpserver:remove config-ref="ftpServer" path="/tmp/ftp-jsonResult.txt"/>
+----
+
+[cols=",,"]
+.Remove parameters
+|===
+|Attribute Name |Description
+
+|`config-ref`
+|Defines the FTP server configuration.
+
+|`path`
+|The full path of the file to remove.
+
+|===
+
+TIP: This feature is of use when we are creating the same file name several times. For example, we can make use of it in an `after-test` to ensure that no name collisions cause the test to fail.
+
+=== Stopping the FTP Server
+
+To stop the FTP server gracefully, it needs to be stopped in the `after-suite`, using the `stop-server` message processor.
+
+[source, xml, linenums]
+.Stop FTP server
+----
+<munit:after-suite name="after.suite" description="Stoping FTP server">
+  <ftpserver:stop-server config-ref="ftpServer"/>
+</munit:after-suite>
+----
+
+== Execution Environments
+
+You may have noticed that our production code example makes extensive use of placeholders for certain parameters, such as `host`, `port` etc. in the example below:
+
+[source, xml, linenums]
+.Parameterized Production Code
+----
+<ftp:outbound-endpoint host="${host}" port="${ftp.port}" user="${ftp.user}" password="${ftp.password}" outputPattern="ftp-jsonResult.txt" path="/tmp"/>
+----
+
+The reason for this is that properties allow us to create code that is more configurable. Compare the example above with:
+
+[source, xml, linenums]
+.Hardcoded Production Code
+----
+<ftp:outbound-endpoint host="some.host" port="myPort" user="myUser" password="myPassword" outputPattern="ftp-jsonResult.txt" path="/tmp"/>
+----
+
+The second example code is untestable, even without MUnit. If we need to test this code before going to production, we always hit the production DB server with our real credentials, which entails risk.
+
+On the other hand, the first example code allows us to define two different property files:
+
+* One for testing environment
+* One for the production environment
+
+This is used in combination with the Mule property placeholder, shown below with `${env}`:
+
+[source, xml, linenums]
+.Parameterized Production Code
+----
+<global-property value="mule.${env}.property"/>
+----
+
+In the example above, the use of `${env}` allows us to leverage execution environments. So for example we can define two separate properties files, `mule.test.properties` and `mule.prod.properties`, containing the same properties with values according to the environment we wish to use.
+
+TIP: To run your test from Maven and issue the env parameter from the command line, you can run: `mvn -DargLine="-Dmule.env=test" clean test`.
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]
