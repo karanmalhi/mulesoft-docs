@@ -35,13 +35,17 @@ The keystore may contain two passwords, as one of them can serve for accessing t
 The 'tls:trust-store' and 'tls:key-store' elements must reference existing certificates. If you don't provide any values for the trust-store, default Java certificates are used. To generate your own certificates, you can do so by following the steps below using the link:https://docs.oracle.com/javase/6/docs/technotes/tools/windows/keytool.html[Java Keytool].
 
 === Generating a Keystore
-​
+
 . To generate a keystore that exposes your server's credentials, run the command:
+
 +
 [source, code, linenums]
 ----
 keytool -genkey -alias serverkey -keyalg RSA -keystore server.jks
 ----
+
+[NOTE]
+Keytool generates certificates using the DSA algorithm by default. You can instead specify it to use the RSA algorithm as in the example above through the '-keyalg' argument.
 
 . You will then be prompted for additional details, along with the store password and key password.
 ​
@@ -54,6 +58,26 @@ keytool -export -alias serverkey -keystore server.jks -file server_cert.cer
 
 [NOTE]
 There is no default Java key store in the standard JDK distribution, so you must generate your own certificates in order to use this element.
+
+If you also wish to get signed by a Certification Authority (CA), you must export your certificate in the standard CSR format. To do so you can run this command:
+
+[source, code, linenums]
+----
+keytool -certreq -keystore server.jks -alias example.com -file certificate_file
+----
+
+Here, '-file' refers to the name you wish to give to your certificate file. Once generated, send the CSR file to the CA and follow their instructions to obtain their signature.
+
+Once you have obtained the CA's signature, you can import the signed certificate file through the following command:
+
+[source, code, linenums]
+----
+keytool -import -keystore keystore -alias example.com -file signed_certificate_file
+----
+
+[NOTE]
+The alias you assign when importing must not be linked to any existing key or the process will fail.
+
 
 === Generating a Trust Store
 
