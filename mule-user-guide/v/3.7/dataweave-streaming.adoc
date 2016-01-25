@@ -64,15 +64,19 @@ The File Connector automatically enables streaming.
 </mule>
 ----
 
+....
+------
+
+
 == Output Streams and The WeaveOutputHandler
 
-After transformation, DataWeave returns a WeaveOutputHandler. This handler is capable of deferring writing the Mule Message's payload until there is a stream available to write it to. This allows for the DataWeave output to remain outside of the heap as processing continues.
+After transformation, DataWeave returns a `WeaveOutputHandler`. This handler is capable of deferring writing the Mule Message's payload until there is a stream available to write it to. This allows for the DataWeave output to remain outside of the heap as processing continues.
 
-This behavior has been known to cause confusion amongst new DataWeave users. Often from a need to inspect their payload. Getting a the message's payload will return a WeaveOutputHandler object rather than a String representation. For example, consider a logger you wish to log your payload with.
+Keep in mind that when inspecting your payload, this behavior makes things work differently. Getting a the message's payload will return a `WeaveOutputHandler` object rather than a String representation. For example, consider a logger you wish to log your payload with:
 
 image:file_to_file_dw_log.png[log DW output]
 
-The output of this logger will appear as the following.
+The output of this logger will appear as the following:
 
 [source, txt, linenums]
 ----
@@ -84,11 +88,12 @@ org.mule.lifecycle.AbstractLifecycleManager: Starting: 'File.dispatcher.65796418
 org.mule.transport.file.FileConnector: Writing file to: /Users/mulesoft/output/inputCSV.csv
 ----
 
-In order to log the payload in a String representation, you'll need to request the payload in a String representation. This can be achieved by using the expression `#[message.payloadAs(java.lang.String)]`.
+If you wish to log the payload as a String representation, you'll need to request the payload in a String representation. This can be achieved by using the expression `#[message.payloadAs(java.lang.String)]`.
 
 image:file_to_file_dw_log_string.png[log DW output as String]
 
-WARNING: An expression such as this is the equivalent of consuming the DataWeave output and transforming it into a String. Even when this expression is used in the context of a logger. The payload will move to the next processor as a String. It's also important to note that once consumed as such, the entire payload will exist in memory.
+[WARNING]
+This expression is the equivalent of consuming the DataWeave output and transforming it into a String. Even when this expression is used in the context of a logger. The payload will reach the next processor as a String. It's also important to note that once consumed as such, the entire payload will exist in memory.
 
 The output of this logger will appear as the following.
 
