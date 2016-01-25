@@ -23,7 +23,16 @@ image:basic_anatomy.png[basic_anatomy]
 
 The *Interface* is, as the name suggests, the mediator between the service exposed to the world, and the internal assets that need to be exposed.
 
-As the definition of the API, its job is to designate the resource(s) which either contain or access the data assets. Essentially, the interface is the part of the API that defines the data to which end users have access, and specifies the actions against the data you wish to make available through your API (GET, PUT, etc.). In APIkit, this relationship is known as a "resource-action pairing."  Use RESTful API Modeling Language (http://raml.org/[RAML]) to define your interface, then import the interface (which manifests as a .raml file) into Anypoint Studio with APIkit. Once imported, APIkit uses the content of the RAML file as the *API Definition* (i.e. the API's interface).
+As the definition of the API, its job is to designate the resource(s) which either contain or access the data assets. Essentially, the interface is the part of the API that defines the data to which end users have access, and specifies the actions against the data you wish to make available through your API (GET, PUT, etc.). In APIkit, this relationship is known as a "resource-action pairing."  Use RESTful API Modeling Language (http://raml.org/[RAML]) to define your interface. You can write your RAML file in the editor that exists in the link:anypoint.mulesoft.com[Anypoint Platform] or in Anypoint Studio. You can also import a RAML file from the Anypoint Platform into Anypoint Studio, and keep both versions in sync by pulling and pushing changes from Studio.
+
+[TIP]
+====
+When creating a new Mule project in Anypoint Studio, you can import a RAML file from your local disk, via a direct URL to an address that contains a RAML file, or from an API in your Anypoint Platform account.
+
+When importing from an API, Studio also imports any dependencies that your RAML file may have. You can then keep both versions in sync by pushing or pulling changes to the API definition in your account.
+====
+
+APIkit then uses the content of the RAML file as the *API Definition* (i.e. the API's interface).
 
 See short example code below:
 
@@ -96,26 +105,20 @@ image:apikitmainflow.png[apikitmainflow]
 ....
 [source, xml,linenums]
 ----
-<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
- 
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
- 
 http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
- 
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
- 
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd" version="EE-3.5.0">
-    <apikit:config name="apiConfig" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router"/>
-    <apikit:mapping-exception-strategy name="apiKitGlobalExceptionMapping"/>
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+  <http:listener-config name="httpListenerConfig" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
+  <apikit:config name="apiConfig" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router"/>
 ...
- 
- <flow name="main" doc:name="main">
-        <http:inbound-endpoint address="http://localhost:8081" doc:name="HTTP" exchange-pattern="request-response">
-            <object-to-string-transformer />
-        </http:inbound-endpoint>
-        <apikit:router config-ref="Router" doc:name="APIkit Router"/>
-        <exception-strategy ref="apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
-    </flow> 
+  <flow name="main">
+    <http:listener config-ref="httpListenerConfig" path="/api/*" doc:name="HTTP"/>
+    <apikit:router config-ref="apiConfig" doc:name="APIkit Router"/>
+    <exception-strategy ref="t-shirt-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+  </flow>
 ...
 </mule>
 ----
@@ -148,7 +151,7 @@ For example, where an API's interface enables an end user to GET a list of teams
 
 == Console
 
-Beyond the three above-listed parts of an API, there is a fourth part – technically, not a part of the REST API itself – that APIkit exposes when you deploy the API: the** Console**. 
+Beyond the three above-listed parts of an API, there is a fourth part – technically, not a part of the REST API itself – that APIkit exposes when you deploy the API: the ** Console**.
 
 Not only does it document your API so that it is consumable and usable by application developers, APIkit can help you test your newly built API to ensure that it functions as intended. You can use your browser to point at the URL configured in your API Definition to access the auto-generated, fully testable documentation for your API. Through a Web-based user interface, you can browse all the actions your API supports – GETting this, POSTing that – and send test calls to your API to solicit responses. In addition to using it for testing, you can expose the console as API documentation, so that end users of your API have an excellent resource for learning how to consume your API. See the example below.
 
@@ -176,14 +179,18 @@ image:how_it_works.png[how_it_works]
 
 == Strengths of APIkit
 
-When you combine *RAML* with **Anypoint Studio** and the Mule extension that is *APIkit*, you've set yourself up with a powerful environment for quickly assembling REST APIs.
+When you combine *RAML* with **Anypoint Studio**, you've set yourself up with a powerful environment for quickly assembling REST APIs.
 
 _Assembling_ is a key concept of APIkit as it involves less line-by-line coding and more "aligning the pieces of the puzzle" to quickly build an API with which you can interact almost immediately. Essentially, Anypoint Studio with APIkit presents you with a suite of tools with which you can assemble the pieces of a REST API puzzle – a RAML file constructed to define resources, an out-of-the-box router to map defined resources to backend flows, and backend flows pieced together to access the resources – so you don't have to plod through weeks of coding to yield something useful and testable. Just build it, test it, tweak it, then deploy it. 
 
 Further, APIkit leverages a scaffolding plugin to save you a step in building your API. Rather than building your backend flows manually in Studio, you can auto-generate flows based upon the content of the API definition (i.e. RAML file). With the skeleton of all the backend flows in place, all you need to do is fill in a few configuration details, then hit save and run.
 
 [TIP]
-If you want to migrate or copy an existing API Version, you don't need to go through all these steps. You can simply link:/anypoint-platform-for-apis/managing-api-versions[export the existing API] to a .zip file and then import it into a new API Version.
+====
+If you created your Mule project through APIkit by referencing an existing API in your Anypoint Platform account, you can keep a same version of your RAML file in sync between the Anypoint Platform and Studio.
+
+Just right-click your project in the package explorer, and select *Anypoint Platform > Push API Definition* or *Anypoint Platform > Pull API Definition* accordingly.
+====
 
 == See Also
 
