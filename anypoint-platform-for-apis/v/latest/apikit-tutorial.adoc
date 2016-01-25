@@ -10,6 +10,7 @@ This document assumes you are familiar with some of the design decisions and req
 == Prerequisites
 
 This tutorial uses the specialized *Gateway Runtime*, which you can download and install following instructions below. Nevertheless, you can also use any regular Mule runtime (as long as it's version *3.5.0* or newer) and perform the same steps identically.
+The Mule Runtime beta version 3.8-M1 can also be used in this tutorial. As of 3.8, the both the Mule Runtime and the Gateway Runtime are merged into one.
 
 [WARNING]
 If the version of Studio you are using is older than *Anypoint Studio May 2014*, link:http://www.mulesoft.com/platform/mule-studio[download and install the latest GA version] to continue.
@@ -18,7 +19,7 @@ Also note that, if you're using the Gateway Runtime, some Studio components are 
 
 == Download and Install the Gateway Runtime
 
-To install the Gateway Runtime:
+If you wish to install the Gateway Runtime, follow the steps below:
 
 . In Studio, Select *Help* > *Install New Software*
 +
@@ -165,7 +166,7 @@ While necessary to create an APIkit API, it is not the purpose of this tutorial 
 [NOTE]
 If you're using the Gateway Runtime, certain Studio components are not available. This is because the functionality of this runtime is limited to API platform specific capabilities.
 +
-. Check *Add APIkit components*. In the *RAML file* field, enter the filepath of the `api.raml` file on your local drive. +
+. Check *Add APIkit components*. In the *RAML file* field, click the `...` icon and then `Browse Files` to then search your local drive for the `api.raml` file. +
 +
 image:new+project.jpeg[new+project] +
 +
@@ -177,7 +178,7 @@ image:apikitt-pe.png[apikitt-pe]
 
 When you click *Finish* to open your new project, magic happens! Studio uses the imported RAML file to automatically generate the following items, each of which are described in more detail below.
 
-* A *Main flow* with an HTTP endpoint, an APIkit Router, and an exception strategy reference
+* A *Main flow* with an HTTP Listener, an APIkit Router, and an exception strategy reference
 * Skeletal *Backend flows*, one for each resource-action pairing in the RAML file
 * Several global *exception strategy mappings*
 
@@ -190,21 +191,21 @@ Studio generates a simple, standard *Main flow* with an HTTP endpoint, an APIkit
 image:apikitmainflow.png[apikitmainflow]
 
 [NOTE]
-Note that APIkit also supports Jetty endpoints. If you wish to use Jetty, manually replace the HTTP endpoint with a Jetty endpoint.
+Note that APIkit also supports Jetty endpoints. If you wish to use Jetty, manually replace the HTTP Listener with a Jetty endpoint.
 ....
 [tab,title="Studio XML Editor"]
 ....
 [source,xml,linenums]
 ----
-<flow name="main">
-   <http:inbound-endpoint address="http://localhost:${http.port}/api" />
-   <apikit:router config-ref="apiConfig" />
-   <exception-strategy ref="apiKitGlobalExceptionMapping" />
+<flow name="api-main">
+    <http:listener config-ref="api-httpListenerConfig" path="" doc:name="HTTP"/>
+    <apikit:router config-ref="api-config" doc:name="APIkit Router"/>
+    <exception-strategy ref="api-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
 </flow>
 ----
 
 [NOTE]
-Note that APIkit also supports Jetty endpoints. If you wish to use Jetty, manually replace the HTTP endpoint with a Jetty endpoint.
+Note that APIkit also supports Jetty endpoints. If you wish to use Jetty, manually replace the HTTP Listener with a Jetty endpoint.
 ....
 ------
 
@@ -283,20 +284,20 @@ Studio generates several global *exception strategy mappings* that the Main flow
 ==== Configuring Details
 
 . In the main flow, double-click the *APIkit Router* to open its properties editor in the console. In the APIkit Router properties, notice that you have the option of using a drop-down menu to adjust the *Router configuration*. Because you used Studio to auto-generate a skeletal structure of the backend flows that supports the requests sent to your API, you need not use this feature to customize the mapping between resource, action and backend flow; Studio has defined the mapping for you automatically. Read more details on link:/anypoint-platform-for-apis/apikit-beyond-the-basics[custom mapping].
-. In the main flow, double-click the *HTTP connector* to open its properties editor in the console, then click the *Advanced* tab. Notice that Studio has populated the *Address* field with a default value. Change the default value of Address to match the baseUri in the RAML file: http://localhost:8081/remote-vending/api
+. In the main flow, double-click the *HTTP connector* to open its properties editor in the console, Click on the *edit* icon next to the Connector Configuration to edit its global configuration element. Notice that Studio has populated the *Host* and *Port* fields with default values. Change the default value of these as well as the *Base Path* to match the baseUri in the RAML file: 'http://localhost:8081/remote-vending/api/*''
 +
 
 [tabs]
 ------
 [tab,title="Studio Visual Editor"]
 ....
-image:apikitt-http.png[apikitt-http]
+image:apikit-tutorial-httpsetup.png[apikitt-http]
 ....
 [tab,title="Studio XML Editor"]
 ....
 [source,xml,linenums]
 ----
-<http:inbound-endpoint address="http://localhost:8081/remote-vending/api" doc:name="HTTP" exchange-pattern="request-response"/>
+<http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration" basePath="remote-vending/api/*"/>
 ----
 ....
 ------
