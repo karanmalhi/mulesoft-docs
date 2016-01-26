@@ -136,26 +136,27 @@ To produce that output, you must write this transform into the source section (l
 %dw 1.0
 %output application/json
 ---
- [{
-    "productCode": payload.ListInventoryResponse.inventory.productCode,
-    "size": payload.ListInventoryResponse.inventory.size,
-    "description": payload.ListInventoryResponse.inventory.description,
-    "count": payload.ListInventoryResponse.inventory.count
+ [{
+    "productCode": payload.ListInventoryResponse.*inventory.productCode,
+    "size": payload.ListInventoryResponse.*inventory.size,
+    "description": payload.ListInventoryResponse.*inventory.description,
+    "count": payload.ListInventoryResponse.*inventory.count
 }]
 ----
 +
 [TIP]
 Use autocomplete to help you write out the full path to each of the elements that come in the input. The code produced by the autocomplete might have slightly different syntax from the provided example, but it produces the same results.
 +
-Note that the preview displayed in the output section now matches the desired output:
+. Click the 'Preview' button to display a sameple output, note that it matches the desired output:
 +
-image:dataweave1.png[dataweave1]
-+
-. Move on to the first DataWeave transformer in the `get:/orders/{orderId}/status:t-shirt-config` flow. You see that in this case there already is a basic scaffolding laid out in the transform, based on the known expected input of the Web Service Consumer; however you have to select what to populate these fields with out of the known inputs. Two fields are required for the output:
+image:dw-prevew-button.png[preview]
+. Right-click on the intput section and select *Edit Sample Data* to provide sample values to your input, these will be used to construct your output preview. Fill in the scaffold structure with mock values, note how the preview section is updated in real time to show how the provided input would be processed.
+. Move on to the first DataWeave transformer in the `get:/orders/{orderId}/status:t-shirt-config` flow. Two fields are required for the output:
+** `email` (which is an inbound property of the incoming message)
 ** `orderId` (which arrives as a parameter in the URI path)
-** `email` (which is an inbound property of the incoming message). 
+. In this case you can easily create the needed transform by simply dragging and dropping fields from the input to the output. Drag 'flowvars.orderId' onto 'orderId' and 'http.query.params.email' onto 'email'
 +
-The DataWeave code to populate those fields as desired is like this:
+The DataWeave code to populate those fields as desired looks like this:
 +
 [source,dataweave,linenums]
 ----
@@ -164,10 +165,10 @@ The DataWeave code to populate those fields as desired is like this:
 %namespace ns0 http://mulesoft.org/tshirt-service
 ---
 {
-    ns0#TrackOrder: {
-        email: flowVars.orderId,
-        orderId: inboundProperties.'http.query.params'.email
-    }
+  ns0#TrackOrder: {
+    email: inboundProperties."http.query.params".email,
+    orderId: flowVars.orderId
+ }
 }
 ----
 +
@@ -196,7 +197,7 @@ These are the same three fields that are sent as an output of the WSC, however t
 }
 ----
 +
-. The two mappings in the `post:/orders:t-shirt-config` flow are also just as easy as this last one. In the first, an initial scaffolding is already laid out for you to complete with references to the input fields, simply fill each with a reference to an element of the payload. The final result should look like this:
+. The first mapping in `post:/orders:t-shirt-config` flow is even easier, you can simply Drag and Drop the entire Payload parent element, from 'Payload : Json' onto 'XML<OrderTshirt>'. When promted simply choose 'auto assign' fields.
 +
 [source,dataweave,linenums]
 ----
@@ -219,7 +220,7 @@ These are the same three fields that are sent as an output of the WSC, however t
 }
 ----
 +
-In the second DataWeave, the desired output must only have one field, that is easily attainable from the payload:
+In the second Transform Message element, the desired output must only have one field, that is easily attainable from the payload:
 +
 [source,json,linenums]
 ----
@@ -228,7 +229,7 @@ In the second DataWeave, the desired output must only have one field, that is ea
 }
 ----
 +
-This is the transform you must write to carry out this transformation:
+This is the transform you must write to carry out this transformation, which you can create by simply dragging 'OrderTshirtResponse.orderId' onto 'orderId':
 +
 [source,dataweave,linenums]
 ----
@@ -236,7 +237,7 @@ This is the transform you must write to carry out this transformation:
 %output application/java
 ---
 {
-    "orderId": payload.TrackOrderResponse.orderId
+    "orderId": payload.OrderTshirtResponse.orderId
 }
 ----
 +
