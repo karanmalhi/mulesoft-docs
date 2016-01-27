@@ -1,0 +1,104 @@
+= Configuring Components
+:keywords: components, anypoint, studio, esb
+
+Components contain the business logic for working with the messages passed through Mule ESB. A component can be any type of object, including a link:/mule-user-guide/v/3.8-m1/using-spring-beans-as-flow-components[Spring bean], link:/mule-user-guide/v/3.8-m1/configuring-java-components[POJO], link:/mule-user-guide/v/3.8-m1/scripting-module-reference[script], link:/mule-user-guide/v/3.8-m1/using-web-services[web service], or REST call.
+
+Because they are highly specific to your implementation, you will typically link:/mule-user-guide/v/3.8-m1/developing-components[create your own custom components], or simply use an existing POJO. Mule also ships with some standard components you can use or extend as needed. This page describes how to configure the different types of components.
+
+For detailed information on the elements you configure for components, see link:/mule-user-guide/v/3.8-m1/component-configuration-reference[Component Configuration Reference].
+
+== Simple Components
+
+There are several simple components included with Mule that are useful for testing or bypassing component execution.
+
+[width="100%",cols=",",options="header"]
+|===
+|Configuration Element |Description
+|*<log-component/>* |Logs component invocations, outputting the received message as a string. This component does not return a response.
+|*<echo-component/>* |Extends the log component to log and echo the incoming message. The message is transformed before being returned, so transformations on inbound endpoints will be applied.
+|*<null-component/>* |Throws an exception when invoked. This is useful for testing use cases that use a forwarding consumer inbound router.
+|*<test:component/>* |Configures the Mule `FunctionalTestComponent`, which allows more complex testing scenarios to be created. For more information, see link:/mule-user-guide/v/3.8-m1/functional-testing[Functional Testing].
+|===
+
+== Java Components
+
+Java components specify a Java class to be used as the component or configure a reference to an implementation in a container such as Spring. They also configure the way in which Mule should manage the Java component's life-cycle, invoke it, and (if pooled) manage the pool of instances.
+
+Java components can be configured quickly and easily by simply specifying the component implementation class name on the `<component>` or `<pooled-component>` element. The `<pooled-component>` element allows you to establish a pooling profile for the flow (see link:/mule-user-guide/v/3.8-m1/tuning-performance[Tuning Performance]). In both cases, the `PrototypeObjectFactory` will be used by default and a new object instance will be created for each request or (for pooled components) for each new object in the pool.
+
+[source, xml, linenums]
+----
+<component class="org.my.ComponentImpl"/>
+...
+<pooled-component class="org.my.ComponentImpl"/>
+----
+
+Alternatively, you can explicitly specify object factories, such as the `SingletonObjectFactory` that creates a single instance of the object:
+
+[source, xml, linenums]
+----
+<component>
+     <singleton-object class="org.my.ComponentImpl"/>
+</component>
+----
+
+The explicit syntax is required instead of the shortcut `<component class>` syntax if you add interceptors to the component. For further configuration options and information on the default settings that are applied, see link:/mule-user-guide/v/3.8-m1/configuring-java-components[Configuring Java Components].
+
+== Customizing Behavior with Interceptors
+
+Mule interceptors are useful for attaching behaviors to multiple components. The interceptor pattern is often referred to as practical AOP (Aspect Oriented Programming), as it allows the developer to intercept processing on an object and potentially alter the processing and outcome. For complete information, see link:/mule-user-guide/v/3.8-m1/using-interceptors[Using Interceptors].
+
+== Lifecycle
+
+Components have a lifecycle like any other object in the Mule registry. Lifecycle can be configured by adding one or more lifecycle interfaces to your component. Since Mule 3.0 link:http://en.wikipedia.org/wiki/JSR_250[JSR-250] annotations can be used to configure initialise and destroy methods. The following list describes in order the lifecycle phases for component objects.
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Lifecycle |Description |Interface |Annotation
+|initialise |The first lifecycle method called once any injectors on the component have been called. This means any properties on the component will be set before the initialise lifecycle is called. |`org.mule.api.lifecycle.Initialisable` |`javax.annotation.PostConstruct`
+|start |This is called when the MuleContext is started. |`org.mule.api.lifecycle.Startable` | 
+|stop |This is called when the MuleContext is stopped. |`org.mule.api.lifecycle.Stoppable` | 
+|dispose |Called as the object is being disposed off. Typically this happens because either the MuleContext is shutting down. |`org.mule.api.lifecycle.Disposible` |`javax.annotation.PreDestroy`
+|===
+
+=== Lifecycle examples
+
+==== Full lifecycle:
+
+[source, code, linenums]
+----
+org.my.ComponentImpl implements org.my.Component, org.mule.api.lifecycle.Lifecycle
+{
+    public void initialise() throws InitialisationException { }
+ 
+    public void start() throws MuleException { }
+ 
+    public void stop() throws MuleException { }
+ 
+    public void dispose() { }
+}
+----
+
+==== Initialise-only lifecycle:
+
+[source, code, linenums]
+----
+org.my.ComponentImpl implements org.my.Component, org.mule.api.lifecycle.Initialisable
+{
+    public void initialise() throws InitialisationException { }
+}
+----
+
+==== Initialise/Dispose lifecycle using link:http://en.wikipedia.org/wiki/JSR_250[JSR-250] annotations:
+
+[source, code, linenums]
+----
+org.my.ComponentImpl implements org.my.Component
+{
+    @PostConstruct
+    public void init() { }
+ 
+    @PreDestroy
+    public void destroy() { }
+}
+----
