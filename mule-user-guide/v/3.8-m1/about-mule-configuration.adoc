@@ -1,0 +1,95 @@
+= About Mule Configuration
+
+:keywords: configuration, deploy, esb, mule
+
+Following is an introduction to configuring Mule ESB via the Spring XML file. For details on this file, see link:/mule-user-guide/v/3.8-m1/about-the-xml-configuration-file[About the XML Configuration File].
+
+== Overview of a Mule Configuration
+
+A Mule ESB configuration file is a tree, as shown in the following illustration:
+
+image:muleConfig.png[muleConfig]
+
+Each of these elements provides access to configuration object within Mule:
+
+* link:/mule-user-guide/v/3.8-m1/custom-message-processors[Custom Message Processors] - Observe a message, or modify either a message or the message flow. Examples include transformers and filters.
+
+* link:/mule-user-guide/v/3.8-m1/using-flows-for-service-orchestration[Flows] - Use message processors to define message flow between a source and a target.
+
+* Mule Global Configuration - Global settings, such as the default transaction time-out, that apply to the entire Mule configuration
+
+* link:/mule-user-guide/v/3.8-m1/configuring-a-transport[Connectors] - Non-default configuration of any transports used
+
+* link:/mule-user-guide/v/3.8-m1/endpoint-configuration-reference[Endpoints] - Define the channel and address or path where messages are sent or received. You can define them globally and use them in multiple flows.
+
+* link:/mule-user-guide/v/3.8-m1/using-transformers[Transformers] - Convert data from one format to another. You can define them globally and use them in multiple flows.
+
+* Filters - Filter out the messages that don't match specific criteria. You can define them globally and use them in multiple flows.
+
+Following is an example of a simple Mule configuration file:
+
+*Simple Mule Configuration*
+
+[source, xml, linenums]
+----
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+      xsi:schemaLocation="
+          http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.0/mule.xsd
+          http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.0/mule-vm.xsd">
+ 
+    <vm:connector name="vmConnector" queueTimeout="5000"/>
+ 
+    <vm:endpoint name="CustomerRequests" path="customer.requests"/>
+    <vm:endpoint name="CustomerResponses" path="customer.responses"/>
+ 
+    <custom-transformer name="ThisToThat" class="com.acme.transformer.ThisToThat"/>
+ 
+    <flow name="myBasicFlow">
+        <inbound-endpoint ref="CustomerRequests"/>
+        <component class="com.acme.service.BasicService"/>
+        <outbound-endpoint ref="CustomerResponses" transformer-refs="ThisToThat"/>
+    </flow>
+</mule>
+----
+
+Other, more advanced things you may configure at this level:
+
+* link:/mule-user-guide/v/3.8-m1/configuring-security[Security Manager] - Authenticates requests based on one or more security providers
+
+* link:/mule-user-guide/v/3.8-m1/mule-agents[Agents] - Agents are typically used for cross-cutting concerns such as logging or management
+
+* link:/mule-user-guide/v/3.8-m1/mule-server-notifications[Notifications] - Allow you to be notified upon certain lifecycle events
+
+* link:/mule-user-guide/v/3.8-m1/transaction-management[Transaction Management] - Mule transactions are configured on inbound endpoints, where an endpoint can be configured to start a new transaction or join an existing one.
+
+* link:/mule-user-guide/v/3.8-m1/configuring-properties[Properties] - Property placeholders, message properties, and system properties.
+
+== Global Configuration Settings
+
+You can configure global configuration settings such as the default transaction timeout and default threading profile in the `<configuration>` element. For example:
+
+[source, xml, linenums]
+----
+<mule>
+...
+  <configuration defaultTransactionTimeout="31337">
+    <default-threading-profile poolExhaustedAction="RUN"/>
+...
+  </configuration>
+----
+
+For a list of the available global configuration settings, see link:/mule-user-guide/v/3.8-m1/global-settings-configuration-reference[Global Settings Configuration Reference].
+
+== Accessing the Configuration Programmatically
+
+All Mule configuration is accessible from a single object: org.mule.api.config.MuleConfiguration.
+
+Configurations in a MuleConfiguration are set when a `MuleContext` is created. The object becomes immutable after it is started and can be accessed using the following:
+
+[source, java, linenums]
+----
+// implement MuleContextAware to have the reference injected
+MuleConfiguration configuration = context.getConfiguration();
+----

@@ -1,0 +1,69 @@
+= CXF Module Reference
+:keywords: cxf, soap connector
+
+[WARNING]
+====
+When sending requests to an external web service, the recommended approach is to use the link:/mule-user-guide/v/3.8-m1/web-service-consumer[Web Service Consumer] rather than the CXF Module.
+====
+
+The Mule CXF module provides support for web service integration via link:http://cxf.apache.org/[Apache CXF]. Apache CXF is an open source services framework that helps you build and develop services using front-end programming APIs, like JAX-WS.
+
+== Using the CXF Module
+
+Use the following links for information on configuring and using the CXF transport with your implementation of Mule.
+
+*Building and Consuming Services*
+
+* link:/mule-user-guide/v/3.8-m1/cxf-module-overview[Overview]
+* link:/mule-user-guide/v/3.8-m1/building-web-services-with-cxf[Building Web Services]
+* link:/mule-user-guide/v/3.8-m1/consuming-web-services-with-cxf[Consuming Web Services]
+* link:/mule-user-guide/v/3.8-m1/proxying-web-services-with-cxf[Proxying Web Services]
+* link:/mule-user-guide/v/3.8-m1/using-http-get-requests[Using HTTP GET Requests]
+* link:/mule-user-guide/v/3.8-m1/cxf-module-configuration-reference[Configuration Reference]
+* link:/mule-user-guide/v/3.8-m1/wsdl-connectors[Using the WSDL Connector]
+
+*Web Service Standards*
+
+* link:/mule-user-guide/v/3.8-m1/supported-web-service-standards[Supported Web Service Standards]
+* link:/mule-user-guide/v/3.8-m1/using-mtom[Using MTOM]
+* link:/mule-user-guide/v/3.8-m1/enabling-ws-addressing[Enabling WS-Addressing]
+* link:/mule-user-guide/v/3.8-m1/enabling-ws-security[Enabling WS-Security]
+* link:http://cxf.apache.org/docs/ws-trust.html[WS-Trust], link:http://cxf.apache.org/docs/ws-secureconversation.html[WS-SecureConversation], and link:http://cxf.apache.org/docs/ws-securitypolicy.html[WS-SecurityPolicy] on the CXF website
+
+== Troubleshooting
+
+This section includes common problems and solutions you might encounter when using the CXF transport.
+
+*I've received a "java.lang.IllegalArgumentException: wrong number of arguments" when using the CXF outbound endpoint*
+
+The CXF outbound endpoint uses the CXF generated to client to send messages. Because of this, your message payload must match the signature of the operation being invoked. This error results when the payload does not match the signature.
+
+Here's an example. If you have an operation on the client like this:
+
+[source, java]
+----
+public void sendData(String data1, String data2, String data3);
+----
+
+Your message payload must be like this:
+
+[source, java]
+----
+Object payload = new Object[] { "data1", "data2", "data3" };
+----
+
+*My WSDL does not have the correct service address (such as, its localhost instead of foo.com)*
+
+If you are doing WSDL-first development, ensure that your @WebService annotation on your service implementation has the correct name, serviceName, targetNamespace, and portName attributes. If these are not correct, CXF cannot navigate your WSDL, find the address, and replace it with the address currently being used.
+
+Your WebService annotation should look like this:
+
+[source, java, linenums]
+----
+@WebService(name = "YourWSDLPortType",
+            serviceName = "YourServiceName",
+            portName = "YourPortName",
+            targetNamespace = "http://your-namespace",
+            endpointInterface = "your.endpoint.Interface",
+            wsdlLocation = "your.wsdl")
+----

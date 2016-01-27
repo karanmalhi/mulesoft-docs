@@ -1,0 +1,90 @@
+= Set Payload Transformer Reference
+:keywords: anypoint studio, esb, set payload, payload
+
+This transformer sets the payload to whatever you define. The payload can be a literal string or a link:/mule-user-guide/v/3.8-m1/mule-expression-language-mel[Mule Expression].
+
+== Configuration
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+image:set_payload.png[set_payload]
+
+[width="100%",cols="25%,25%,25%,25%",options="header"]
+|===
+|Field |Value |Description |XML
+|Display Name |Set Payload |Customize to display a unique name for the transformer in your application. a|`doc:name="Set Payload"`
+|Value |String or Mule Expression |Enter a literal string or a Mule expression that defines how Mule should set the payload. a|`value="#['Hello, ' + message.payload]"`
+|===
+....
+[tab,title=XML "Editor or Standalone"]
+....
+
+[source, xml, linenums]
+----
+# Example setting a payload to a literal string.
+ 
+<set-payload value="MyNewPayload" doc:name="Set Payload"/>
+ 
+# Example setting a payload using a Mule expression. This takes the current payload and transformes it by adding the string "Hello, " in front of it. Thus, if your payload was "Charlie", this set-payload transformer changes it to "Hello, Charlie".
+ 
+<set-payload value="#['Hello, ' + message.payload]" doc:name="Set Payload"/>
+----
+
+[cols=",",options="header"]
+|===
+|Element |Description
+|*set-payload* |Set a payload on your message (as shown in examples above).
+|===
+
+[width="100%",cols="50%,50%",options="header"]
+|===
+|Element Attribute |Description
+|*value* |The literal string or Mule expression that defines how Mule should set the payload.
+|*doc:name* a|
+Customize to display a unique name for the transformer in your application.
+
+Note: Attribute not required in Mule Standalone configuration.
+|===
+....
+------
+
+== Example
+
+In this example, the Set Payload transformer sets the payload to a "Hello, World" message that includes today's date (retrieved using a Mule expression.)
+
+[tabs]
+------
+[tab,title="STUDIO Visual Editor"]
+....
+image:set+payload+flow.png[set+payload+flow]
+
+image:set+payload.png[set+payload]
+....
+[tab,title="XML Editor or Standalone"]
+....
+
+[source, xml, linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" version="EE-3.6.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+ 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+ 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+ 
+    <http:listener-config name="listener-config" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
+    <flow name="HelloFlow1" doc:name="HelloFlow1">
+        <http:listener config-ref="listener-config" path="/" doc:name="HTTP Connector"/>
+        <set-payload value="#['Hello, World!' + ' Today is ' + server.dateTime.format('dd/MM/yy')]" doc:name="Set Payload"/>
+    </flow>
+</mule>
+----
+....
+------
+== See Also
+
+* See the link:/mule-fundamentals/v/3.7/anypoint-exchange[examples].
+* Read more about link:/mule-user-guide/v/3.8-m1/transformers[other transformers] available in Mule.
