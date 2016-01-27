@@ -270,9 +270,11 @@ The resulting flow looks:
 
 [source, xml, linenums]
 ----
-<sharepoint-2013:folder-create config-ref="Sharepoint_2013" url="/path/to/folder" doc:name="Sharepoint 2013"/>
- 
-<sharepoint-2013:folder-delete config-ref="Sharepoint_2013" url="/path/to/folder" doc:name="Sharepoint 2013"/>
+<sharepoint-2013:folder-create config-ref="Sharepoint_2013" 
+url="/path/to/folder" doc:name="Sharepoint 2013"/>
+
+<sharepoint-2013:folder-delete config-ref="Sharepoint_2013" 
+url="/path/to/folder" doc:name="Sharepoint 2013"/>
 ----
 
 === Adding a File
@@ -288,6 +290,14 @@ fileServerRelativeUrl="/path/to/folder/filename" 
 fileContentStream-ref="#[payload]" overwrite="true" 
 doc:name="Sharepoint 2013"/>
 ----
+
+In order to upload large files you need to configure your Sharepoint and IIS servers:
+
+- Set 'Maximum Upload Size' to 2047MB (max) at SP management console for site.
+- Set connection timeout for IIS site to high value.
+- Set the 'Maximum Allowed Content Length' to 2147483647 for IIS app (at request filtering).
+
+> Note: The Sharepoint REST API (which the connector uses) supports uploading files up to 2GB. When working with large files it's recommended to provide the system local path to the file (_localFilePath_ parameter's value) as it's the most efficient way to upload it through the connector.
 
 === Getting File Contents
 
