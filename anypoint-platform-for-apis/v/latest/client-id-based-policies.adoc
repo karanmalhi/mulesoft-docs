@@ -7,17 +7,21 @@ This page describes the configuration and runtime application instructions for t
 * *<<Rate Limiting - SLA Based>>*
 * *<<Throttling - SLA Based>>*
 
-If you wish to track application access to your API or enforce SLA limits, you must:
+If you wish to track application access to your API or enforce SLA limits:
 
 * *You must Apply* one or more of the policies that handles Client ID authentication.
-* If you want to use *Rate Limiting - SLA Based* or **Throttling - SLA Based**, you must also create at least one *SLA Tier* to define request amount limits.
-* Ask that your users register an application via the link:/anypoint-platform-for-apis/engaging-users-of-your-api[API Portal] of your API – this grants them a Client ID and a Client Secret.
-* If a user requested to add his app to an SLA Tier that you configured with manual approval, you must *approve this request*.
+* If you want to use *Rate Limiting - SLA Based* or *Throttling - SLA Based*, you must also create at least one *SLA Tier* to define request amount limits.
+* You must ask that your users register an application via the link:/anypoint-platform-for-apis/engaging-users-of-your-api[API Portal] of your API – this grants them a Client ID and a Client Secret.
+* If a user requests to add an app to an SLA Tier that you configured with manual approval, you must *approve this request*.
 * Applications must *provide their application's Client ID and Secret* in every request they make to your API.
 
-== Assumptions
+== Prerequisites
 
 This document assumes that you are an API Version Owner for the API version that you want to manage, or that you are an Organization Administrator.
+
+To access SLA tiers, log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform], click *APIs*, click the version number of an API to view its details. Then click *SLA tiers*:
+
+image:ap-sla-tiers.png[ap-sla-tiers]
 
 == Client ID Regulating Policies
 
@@ -25,34 +29,34 @@ The Anypoint Platform for APIs currently offers three policies that deal with Cl
 
 === Client ID enforcement
 
-With this policy enabled, all calls to your API must include a valid client ID and client secret. To obtain these, users must register an application in your API Portal. When applying the policy, you'll see that by default, these credentials are expected in the form of query parameters named *client_id* and **client_secret**. You can alter the link:/mule-user-guide/v/3.6/mule-expression-language-basic-syntax[Mule expression] that points to this, and obtain these values from elsewhere in the HTTP message.
+With this policy enabled, all calls to your API must include a valid client ID and client secret. To obtain these, users must register an application in your API Portal. When applying the policy, you see that by default, these credentials are expected in the form of query parameters named *client_id* and *client_secret*. You can alter the link:/mule-user-guide/v/3.7/mule-expression-language-basic-syntax[Mule expression] that points to this, and obtain these values from elsewhere in the HTTP message.
 
 === Rate Limiting - SLA Based
 
-Rate limiting consists of putting a limit on how many requests can be accepted within a defined period of time. Any messages beyond the maximum amount within the time period are rejected. There are two policies in the Anypoint Platform that allow you to do this: *Rate Limiting* and **Rate Limiting - SLA Based**.
+Rate limiting consists of putting a limit on how many requests can be accepted within a defined period of time. Any messages beyond the maximum amount within the time period are rejected. There are two policies in the Anypoint Platform that allow you to do this: *Rate Limiting* and *Rate Limiting - SLA Based*.
 
 With the regular rate limiting policy, a limit is imposed globally over all of the requests that reach your API. If you want to apply this, you don't need to create any SLA Tiers nor have your users register applications or send Client IDs.
 
-With the SLA based rate limiting policy, the requests from each application that accesses your API are managed separately. Each application has a contract that references one of the SLA Tiers that you will define. SLA tiers dictate the number of requests per time period that are allowed for an application.
+With the SLA based rate limiting policy, the requests from each application that accesses your API are managed separately. Each application has a contract that references one of the SLA Tiers that you define. SLA tiers dictate the number of requests per time period that are allowed for an application.
 
-By default, the Client ID and token credentials are expected in the form of query parameters named *client_id* and **client_secret**. You can alter the link:/mule-user-guide/v/3.6/mule-expression-language-basic-syntax[Mule expression] that points to this, and obtain these values from elsewhere in the HTTP message.
+By default, the Client ID and token credentials are expected in the form of query parameters named *client_id* and **client_secret**. You can alter the link:/mule-user-guide/v/3.7/mule-expression-language-basic-syntax[Mule expression] that points to this, and obtain these values from elsewhere in the HTTP message.
 
 === Throttling - SLA Based
 
-Throttling works a lot like rate limiting, except that requests that exceeed the SLA limits aren’t rejected, they are delayed and put in a queue. They can then be processed in the following period, or eventually rejected if they get left out repeatedly for an established number of times. There are two policies in the Anypoint Platform that allow you to do this: *Throttling* and **Throttling - SLA Based**.
+Throttling works a lot like rate limiting, except that requests that exceed the SLA limits aren’t rejected, they are delayed and put in a queue. They can then be processed in the following period, or eventually rejected if they get left out repeatedly for an established number of times. There are two policies in the Anypoint Platform that allow you to do this: *Throttling* and **Throttling - SLA Based**.
 
 With the regular throttling policy, a limit is imposed globally over all of the requests that reach your API. If you want to apply this, you don't need to create any SLA Tiers nor have your users register applications or send Client IDs.
 
-With the SLA based throttling policy, the requests from each application that accesses your API are managed separately. Each of these applications has a contract that references one of the SLA Tiers that you will define. SLA tiers dictate the number of requests per time period that are allowed for the application.
+With the SLA based throttling policy, the requests from each application that accesses your API are managed separately. Each of these applications has a contract that references one of the SLA Tiers that you define. SLA tiers dictate the number of requests per time period that are allowed for the application.
 
-By default, the Client ID and secret credentials are expected in the form of query parameters named *client_id* and **client_secret**. You can alter the link:/mule-user-guide/v/3.6/mule-expression-language-basic-syntax[Mule expression] that points to this, and obtain these values from elsewhere in the HTTP message.
+By default, the Client ID and secret credentials are expected in the form of query parameters named *client_id* and *client_secret*. You can alter the link:/mule-user-guide/v/3.7/mule-expression-language-basic-syntax[Mule expression] that points to this, and obtain these values from elsewhere in the HTTP message.
 
 You can also set the delay time in between attempts for when requests are not accepted, as well as the amounts of attempts to try.
 
 == Creating SLA Tiers
 
 [WARNING]
-SLA Tiers are ONLY needed if you're applying *Rate Limiting - SLA Based* or **Throttling - SLA Based**. Other policies aren't dependent on these.
+SLA Tiers are ONLY needed if you're applying *Rate Limiting - SLA Based* or *Throttling - SLA Based*. Other policies aren't dependent on these.
 
 Go to your API version page and select the *SLA Tiers* in the bottom section of the screen. There you are able to create and manage SLA Tiers.
 
@@ -73,7 +77,7 @@ Multiple throughput limits can be specified for a single SLA tier. As illustrate
 
 ==== Response Headers
 
-Three headers are included in request responses that inform users about the SLA restrictions and the remaining spare capacity that the SLA allows. When this SLA enforces multiple policies that limit request throughput, a single set of headers will inform about the spare capacity in reference to only the most restrictive of the policies in place.
+Three headers are included in request responses that inform users about the SLA restrictions and the remaining spare capacity that the SLA allows. When this SLA enforces multiple policies that limit request throughput, a single set of headers inform about the spare capacity in reference to only the most restrictive of the policies in place.
 
 For example, a user of your API may receive a response that includes these headers:
 ----
@@ -81,7 +85,7 @@ X-RateLimit-Limit: 20
 X-RateLimit-Remaining: 14
 X-RateLimit-Reset: 19100
 ----
-In this case, it's telling the user that within the next 19100 milliseconds, only 14 more requests will be allowed by the SLA, which is set to allow 20 within this time-window.
+In this case, it's telling the user that within the next 19100 milliseconds, only 14 more requests are allowed by the SLA, which is set to allow 20 within this time-window.
 
 == Registering Applications
 
@@ -105,7 +109,7 @@ There you can view details about your pending and processed requests and manage 
 
 == Required Fields in API Calls
 
-If you're implementing a Client ID based policy, all of the requests made to your API must contain a *Client ID* and a *Client* *Secret*. By default, these values are expected to arrive as query parameters, by the names *client_id* and **client_secret**, this is expressed by the following link:/mule-user-guide/v/3.6/mule-expression-language-basic-syntax[Mule expressions]:
+If you're implementing a Client ID based policy, all of the requests made to your API must contain a *Client ID* and a *Client* *Secret*. By default, these values are expected to arrive as query parameters, by the names *client_id* and **client_secret**, this is expressed by the following link:/mule-user-guide/v/3.7/mule-expression-language-basic-syntax[Mule expressions]:
 
 [source,code,linenums]
 ----
@@ -130,7 +134,7 @@ When an HTTP request is transformed into a Mule Message, the following transform
 
 If your API exposes a link:http://raml.org[RAML] definition that users may need to reference (perhaps via the link:/anypoint-platform-for-apis/engaging-users-of-your-api[API Console], which is generated from a RAML file), then the RAML definition should reliably detail every element that is expected in calls to your API.
 
-As established, applying one of these Client ID policies implies that all requests coming to your API need to include both a Client ID and Client Secret (which by default are both expected to be query parameters). This required information must be explicit in the RAML of your API, as users that turn to it for reference will otherwise find that their requests are rejected.
+As established, applying one of these Client ID policies implies that all requests coming to your API need to include both a Client ID and Client Secret (which by default are both expected to be query parameters). This required information must be explicit in the RAML of your API, as users that turn to it for reference otherwise find that their requests are rejected.
 
 The recommended way of doing this is to create a *trait* at the start of your RAML definition and then reference this trait in every operation of your API. Your trait might look like this:
 
@@ -160,3 +164,6 @@ Refer to the link:https://github.com/raml-org/raml-spec/blob/master/raml-0.8.md
 == See Also
 
 * Return to the link:/anypoint-platform-for-apis/applying-runtime-policies[Applying Runtime Policies] page.
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]
