@@ -1,0 +1,58 @@
+= Idempotent Filter
+:keywords: anypoint studio, esb, filters, conditional, gates, idempotent
+
+Ensures that only unique messages are received by a service by checking the unique ID of the incoming message.
+
+== Idempotent Message Filter
+
+Ensures that only unique messages are received by a service by checking the unique ID of the incoming message. Note that the ID used can be generated from the message using an expression defined in the `idExpression` attribute. By default, the expression used is `#[message:id]`, which means the underlying endpoint must support unique message IDs for this to work. Otherwise,  `UniqueIdNotSupportedException` is thrown.
+
+=== Attributes of idempotent-message-filter
+
+[width="100%",cols="20a,80a",options="header",]
+|===
+|Name|Description
+|name|Type: name (no spaces), optional - Identifies the processor so that other elements can reference it. Required if the processor is defined at the global level.
+|onUnaccepted |Type: string, optional - Events that are not accepted by the filter are sent to this (optional) named message processor.
+|throwOnUnaccepted |Type: boolean, optional - Whether to throw an exception if a message is not accepted
+|idExpression |Type: string, optional - Defines one or more expressions to use when extracting the ID from the message. For example, it's possible to combine  headers as the ID of the message to provide idempotency:
+
+[source,code]
+----
+#[headers:foo,bar]
+----
+
+Or, you could combine the message ID with a header:
+
+[source,code]
+----
+#[message:id]-#[header:foo]
+----
+
+If this property is not set, the following is used by default:
+
+[source,code]
+----
+#[message:id]
+----
+
+|valueExpression |Type: string, optional - Defines one or more expressions to use when extracting the value from the message.
+|storePrefix |Type: name (no spaces), optional - Defines the prefix of the object store names.
+|===
+
+=== Child Elements of idempotent-message-filter
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|Name |Cardinality |Description
+|abstract-object-store |0..1 |A placeholder for an object store that can be used by routers to maintain state.
+|===
+
+== See Also
+
+* link:/mule-user-guide/v/3.8-m1/routers#idempotent-message-filter[Idempotent Message Filter]
+* link:/mule-user-guide/v/3.8-m1/routers#idempotent-secure-hash-message-filter[Secure Message Filter]
+* link:/mule-management-console/v/3.7/reliability-patterns[Reliability Patterns]
+* link:/mule-user-guide/v/3.8-m1/mule-object-stores[Mule Object Stores]
+* link:/mule-user-guide/v/3.8-m1/routers[Routers]
+* link:/mule-user-guide/v/3.8-m1/object-store-module-reference[Object Store Module Reference]

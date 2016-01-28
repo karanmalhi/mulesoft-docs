@@ -1,0 +1,90 @@
+= Record Variable
+:keywords: anypoint studio, esb, batch, record variables, collections, arrays
+
+_Enterprise, CloudHub_
+
+With batch processing comes the ability to set, remove, and reference variables associated to individual records. Serialized and persisting only through the Process phase, a *record variable* stores information at the record level, rather than the flow or session level. For example, you can use recordVars to capture whether or not a customer contact – as a record – already exists in a database.
+
+image:capture_customer_contact.png[capture_customer_contact]
+
+== Prerequisites
+
+This document assumes that you are familiar with link:/mule-fundamentals/v/3.7/anypoint-studio-essentials[Anypoint Studio] and have reviewed the overview and basic anatomy of link:/mule-user-guide/v/3.8-m1/batch-processing[Batch Processing]. 
+
+== Setting a Record Variable
+
+During the link:/mule-user-guide/v/3.8-m1/batch-processing[Process phase], the record _is_ the message payload. As such, you may wish to use MEL expressions in message processors within a batch step to replace or manipulate the payload during processing. However, where you don't want to touch the payload, you can use record variables to persist information between batch steps. There are two way you can set record variables within batch steps in a batch job:
+
+* Set a *Record Variable message processor* in one of the batch steps in your batch job, setting the *Operation* to *Set Record Variable*. View full details of the message processor's link:/mule-user-guide/v/3.8-m1/batch-processing-reference[attributes].
++
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+image:record_variable.png[record_variable]
+....
+[tab,title="XML Editor"]
+....
+[source, xml, linenums]
+----
+<batch:set-record-variable doc:name="Record Variable" variableName="age" value="#[payload.age]"/>
+----
+....
+------
+
+* Use a MEL expression to add a new `recordVars` to records within a batch step.
+
+[source, code, linenums]
+----
+#[recordVars['key']]
+----
+
+== Removing a Record Variable
+
+During the link:/mule-user-guide/v/3.8-m1/batch-processing[Process] phase of batch processing, use the *Record Variable message processor* to remove an existing `recordVars` from records, setting the *Operation* to *Remove Record Variable*. View full details of the message processor's link:/mule-user-guide/v/3.8-m1/batch-processing-reference[attributes]. 
+
+[tabs]
+------
+[tab,title="STUDIO Visual Editor"]
+....
+image:remove_rec_variable.png[remove_rec_variable]
+....
+[tab,title="XML Editor"]
+....
+[source, xml, linenums]
+----
+<batch:remove-record-variable doc:name="Record Variable" variableName="age" />
+----
+....
+------
+
+== Accessing a Record Variable
+
+To access a record variable within the link:/mule-user-guide/v/3.8-m1/batch-processing[Process] and link:/mule-user-guide/v/3.8-m1/batch-processing[On Complete] phases of batch processing, use the following expression:
+
+[source, code, linenums]
+----
+#[recordVars['foo']]
+----
+
+For example, say you conditionally set a record variable on records in the first batch step – maybe wherever the value of `state` is `Maine`, you set a recordVars for "qualified".
+
+[source, code, linenums]
+----
+batch:set-record-variable-transformer doc:name="Record Variable" variableName="qualified" value="#[message.payload.state['ME']]"/>
+----
+
+In the second batch step, you can use an accept expression to instruct the step to process only qualified records, as shown below.
+
+[source, code, linenums]
+----
+#[recordVars['qualified']]
+----
+
+== See Also
+
+* Access link:/mule-user-guide/v/3.8-m1/batch-processing-reference[reference details] about batch processing.
+* Examine the link:/mule-user-guide/v/3.8-m1/batch-processing-reference[attributes] you can configure for batch jobs, steps and message processors.
+* Learn more about link:/mule-user-guide/v/3.8-m1/batch-filters-and-batch-commit[filters] in batch processing.
+* Learn more about link:/mule-user-guide/v/3.8-m1/batch-filters-and-batch-commit[batch commit].

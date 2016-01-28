@@ -1,0 +1,47 @@
+= Creating Flow Objects and Transformers Using Annotations
+:keywords: customize, annotations, custom flow objects, custom transformers
+
+Annotations now allow flow objects to be created using purely annotations on the flow component. Additionally, there is a new annotation for creating Mule transformers that makes it much easier to define and discover custom transformers.
+
+== Assumptions
+
+This page assumes you are familiar with Java annotations (marked with an @). For a brief overview of annotations, see the  link:http://docs.oracle.com/javase/tutorial/java/annotations/[Java annotations tutorial]. For annotations used in the Anypoint Connector DevKit, see the link:/anypoint-connector-devkit/v/3.7/annotation-reference[Annotations Reference].
+
+== Annotations for Flow Components
+
+Annotations especially help if you're using flow components, where annotations provide request injection capabilities. This means you can define what data to read from the incoming methods, similar to dependency injection for runtime.
+
+When you have a request to your component, what kind of things can you inject? You can inject message payload, then transform that into an object. You can also inject message headers, attachments, perform actions on payload (using xpath annotation to describe the node you want to get from the incoming document). This reduces the amount of xml you need to create for your configuration, because you can now put it all in the component. This makes your configuration a lot cleaner.
+
+== Annotations for Transformers
+
+Mule provides annotations for creating Mule transformers that makes it much easier to define and discover custom transformers.
+
+Until now, creating transports for Mule required a good deal of XML, even though the most important thing you wanted to see was probably where the data came from and where it went. The new annotation in Mule 3.0 removes the need for some of the xml config required to define a new transport.
+
+[TIP]
+====
+When using Parameter annotations remember that every parameter needs to be annotation for the method invocation to work.
+====
+
+== Annotations Reference
+
+[width="100%",cols="25%,25%,25%,25%",options="header",]
+|===
+|Annotation |Description |Type |Module
+|link:/mule-user-guide/v/3.8-m1/transformer-annotation[@ContainsTransformerMethods] |Signals that a class contains transformer methods (Since Mule 3.0.1) |Method |annotations
+|link:/mule-user-guide/v/3.8-m1/transformer-annotation[@Transformer] |Used to create a Mule transformer from a class method |Method |annotations
+|link:/mule-user-guide/v/3.8-m1/schedule-annotation[@Schedule] |Schedules a method for execution using either a simple frequency or cron expression |Method |quartz
+|@IntegrationBean |A dependency injector annotation used to inject an iBean such as Facebook or Amazon S3 into your component |Field |ibeans
+|@MockIntegrationBean |Similar to the @IntegrationBean annotation, this one can be used in tests to create a mock instance of an ibean, which is good for testing the bean without actually making requests to the external service |Field |ibeans
+|link:/mule-user-guide/v/3.8-m1/lookup-annotation[@Lookup] |Dependency injection annotation used to retrieve objects from the registry |Field,Parameter |annotations
+|link:/mule-user-guide/v/3.8-m1/payload-annotation[@Payload] |A parameter injection annotation that can be used on component entry points and transformer methods defined using the @Transformer annotation, this annotation controls how the current message payload is passed into a method by performing automatic transformation of the message payload to match the annotated parameter type |Parameter |annotations
+|link:/mule-user-guide/v/3.8-m1/inboundheaders-annotation[@InboundHeaders] |Used on component entry points and transformer methods, this annotation controls how the current message inbound headers are passed into a method. The annotation supports, Map, List, single headers and wildcards |Parameter |annotations
+|link:/mule-user-guide/v/3.8-m1/outboundheaders-annotation[@OutboundHeaders] |Used on component entry points and transformer methods, this annotation controls how the current message outbound headers are passed into a method. Users can write to this Map to attach headers to the outgoing message |Parameter |annotations
+|link:/mule-user-guide/v/3.8-m1/inboundattachments-annotation[@InboundAttachments] |Used on component entry points and transformer methods, this annotation controls how the current message inbound attachments are passed into a method. The annotation supports, Map, List, single headers and wildcards |Parameter |annotations
+|link:/mule-user-guide/v/3.8-m1/outboundattachments-annotation[@OutboundAttachments] |Used on component entry points and transformer methods, this annotation controls how the current message outbound attachments are passed into a method. Users can write to this Map to attach attachments to the outgoing message |Parameter |annotations
+|link:/mule-user-guide/v/3.8-m1/xpath-annotation[@Xpath] |This annotation can be used to execute an Xpath expression on the message payload with the result being passed into the method. |Parameter |xml
+|link:/mule-user-guide/v/3.8-m1/groovy-annotation[@Groovy] |This annotation can be used to execute an Groovy expression on the message payload with the result being passed into the method. |Parameter |scripting
+|link:/mule-user-guide/v/3.8-m1/mule-annotation[@Mule] |A parameter injection annotation that can be used on component entry points and transformer methods, this annotation can be used to execute a link:/mule-user-guide/v/3.8-m1/mule-expression-language-mel[Mule Expression] |Parameter |annotations
+|link:/mule-user-guide/v/3.8-m1/function-annotation[@Function] |A parameter injection annotation expression on the message payload with the result being passed into the method, this annotation exposes a common set of functions used in Mule such as a counter, UUID generator, date and timestamps, etc |Parameter |annotations
+|===

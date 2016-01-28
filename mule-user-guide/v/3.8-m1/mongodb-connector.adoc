@@ -1,0 +1,183 @@
+= MongoDB Connector
+:keywords: mongodb connector, mongo db connector, user guide
+:imagesdir: ./images
+
+link:https://www.mongodb.org[MongoDB] is a cross-platform document-oriented database. Classified as a NoSQL database, MongoDB eschews the traditional table-based relational database structure in favor of JSON-like documents with dynamic schemas (MongoDB calls the format BSON), making the integration of data in certain types of applications easier and faster.
+
+== Introduction
+
+MongoDB Connector is a closed source connector which provides a connection between Mule and third-party software MongoDB server. It implements the MongoDB v3.0 API modules and it also includes different types of transformers for data management.
+
+MongoDB Connector is an SDK-based connector developed with DevKit 3.7.1.
+
+=== Prerequisites
+
+This document assumes that you are familiar with MongoDB API.
+To use the this connector you need the following:
+
+* MongoDB instance
+* Set of valid credentials, including the required MongoDB endpoints, pointing to your instance
+* MuleSoft Enterprise License
+
+=== Requirements
+
+For hardware and software requirements please visit link:https://www.mulesoft.com/lp/dl/mule-esb-enterprise[Mulesoft.com]
+
+=== Dependencies
+
+The MongoDB connector requires the following dependencies:
+
+|===
+|Application/Service|Version
+
+|Anypoint Studio|3.7
+|Mule Runtime|EE 3.6.0 and above
+|MongoDB|3.0 and above
+|Java|JDK 7 and above
+|===
+
+== Installing and Configuring
+
+=== Installing
+
+To install the MongoDB Connector:
+
+. Open Anypoint Studio and got to **Help > Install New Software**
+. Select *Anypoint Connectors Update Site - \http://repository.mulesoft.org/connectors/releases/3.5.0*
+. Locate the MongoDB Connector
+
++
+
+image:mg_install.png["Anypoint Studio Install Window"]
+
+. Click *Next* and accept the license agreement
+. Restart Studio when prompted
+
+For more information on how to install a connector link:/mule-user-guide/v/3.8-m1/installing-connectors[click here].
+
+After installing the connector, your studio palette should contain the following. It would be useful at this point to filter your palette to show only message processors relating to MongoDB Connector.
+
+image:mg_palette.png["Anypoint Studio palette - MongoDB Connector"]
+
+== Updating from an Older Version
+* Uninstall the previous MongoDB Connector.
+* Install the latest version of MongoDB Connector from the update site.
+* Ensure that the Maven dependencies have been updated correctly from *Mongo DB[v3.X.X]* to *Mongo DB[v4.0.1]*.
+* Update flows that are using *Phased Out* or *Deprecated operations*.
+** Most operation names have been changed to comply with Mongo Driver v3, so if you had an *InsertObject* operation, now it will appear as *InsertDocument*.
+** WriteResult objects have been removed. Now your operations will only return Strings, Documents and DBObjects.
+** MongoDB **transformers**  have been replaced by implicit ones. So, if your input data is a **Map** and, you want to perform an Insert operation, just drag a MongoDB connector into the workspace, choose the **InsertDocument** operation and you're done! You no longer require the use of the transformer.
+** Remember that `mongo:config` does *NOT* support the *port* field anymore. Now you will have to specify the port inside the *host* field of your `mongo:config` using the format *"host:port"*.
+For more information see the link:/mule-user-guide/v/3.8-m1/mongodb-connector-migration-guide[MongoDB Connector 4.0.1 Migration Guide]
+
+== Using This Connector
+
+Start by inserting:
+
+* Your MongoDB credentials and endpoints in a **.properties** file and load them using the **Property Placeholder** component.
+* An inbound endpoint into your flow. For e.g. **HTTP**.
+* A *Transform Message* component.
+* A *MongoDB* transformer e.g. **Document to json**.
+
++
+
+image:mg_basic_flow.png["MongoDB Connector initial flow"]
+
+=== Setting up the Global Configuration
+To setup the Global Configuration:
+
+. Go to the **Global Element** tab and click the *Create* button
+. Inside the filter textbox type in "Mongo", and select *MongoDB*, from the *Connector Configuration* directory.
+. When you select the global element of your choice, you will be presented with the global element properties to enter.
+.. The **Username** field refers to the username you use to access your MongoDB instance.
+.. The **Password** field should contain the corresponding password.
+.. You also need to specify the **Database** used to send and retrieve data from your MongoDB instance. Before running your application, make sure that the user has the necessary permissions to do so.
+.. You may also need to set the **Servers** property, which is composed of a host:port comma-separated list (in case you have a replica set). This attribute is optional, and if left empty, it defaults to **localhost:27017**.
+.. You may adjust the values for the **Connect Timeout**, **Connections Per Host**, **Max Wait Time** and the **Socket Timeout** for requests that are sent to MongoDB.  The default value for **Connect Timeout** is 30000ms. This means that any connection requests that take longer than 30 seconds to be sent and received will throw an exception. You can override this behavior by setting their values to 0, meaning that the MongoDB connector will wait indefinitely until a request is successfully sent and a response is received.
+
+The following screenshot shows the MongoDB configuration with Spring property placeholders (for more information see link:/mule-user-guide/v/3.8-m1/configuring-properties[Configuring Properties]) for the Connection field values. This is the recommended approach when you plan to deploy your application to CloudHub or to a Mule ESB server. However, you may harcode your connection credentials in the Global Element Properties shown below if you are in the development stage and simply want to speed up the process.
+
+image:mg_globalelements.png["MongoDB Connector Global Elements"]
+
+[width="100%",columns=",",options="header"]
+|===
+|Fields|Description
+|*Username*|MongoDB username. Input your username using Mule property placeholder syntax.
+|*Password*|MongoDB password. Input your password using Mule property placeholder syntax.
+|*Database*|MongoDB database. Input your database using Mule property placeholder syntax.
+|*Servers*|This location points to the default MongoDB instance, Input your endpoint using Mule property placeholder syntax.
+|===
+
+=== Setting up the Global Configuration with SSL (optional)
+As of MongoDB Connector v4.0.0, we support the use of SSL. To setup the Global Configuration:
+
+* In the **Global Element** tab for your MongoDB connection, make sure you check **SSL** property field.
+* Remember, your instance must support this feature. For more information check http://docs.mongodb.org/manual/tutorial/configure-ssl[MongoDB documentation].
+
+
+=== Invoking an Operation
+In order to invoke a simple operation (such as the **insertDocument** operation), you can follow these steps:
+
+. From the palette, drag and drop the *MongoDB connector* into your flow by placing it between the *HTTP connector* and the *MongoDB Transformer*.
+. Configure the connector by selecting the *Connector Configuration* you created in the previous section and choosing the operation to invoke.
+
++
+
+image:mg_insertconnector.png["MongoDB Connector"]
+
+. From the palette, drag and drop the **Transform Message** component before the **MongoDB** connector.
+. Click on *Transform Message* and enter two key-value pairs as shown below.
+
++
+
+[source,dataweave,linenums]
+----
+%dw 1.0
+%output application/java
+---
+{
+	name:"Peter",
+	age:"42"
+}
+----
+
++
+
+image:mg_dataweave.png[Transform Message]
+
+The complete example flow is included here for your reference.
+
+[tabs]
+------
+[tab,title="Studio Visual Editor"]
+....
+
+image:mg_final_flow.png[Transform Message]
+
+....
+[tab,title="XML Editor"]
+....
+[source,xml,linenums]
+----
+<flow name="insert-document-flow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/" doc:name="HTTP"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+{
+    name:"Peter",
+    age:"42"
+}]]></dw:set-payload>
+        </dw:transform-message>
+        <mongo:insert-document config-ref="Mongo_DB__Configuration" collection="People" doc:name="Insert Document"/>
+        <mongo:document-to-json doc:name="Document to Json"/>
+</flow>
+----
+....
+------
+== See Also
+
+* For additional technical information, regarding MongoDB Connector please visit our http://mulesoft.github.io/mongo-connector/3.6.1/mule/mongo-config.html[online documentation]. You may also want access to MuleSoft’s expert support team, which requires you subscribe to Mule ESB Enterprise and log into MuleSoft’s Customer Portal.
+
+* For more information on the MongoDB API, please visit its link:http://docs.mongodb.org/manual[API documentation page].
