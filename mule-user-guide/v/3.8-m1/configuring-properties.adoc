@@ -1,0 +1,193 @@
+= Configuring Properties
+:keywords: anypoint, studio, esb, on premises, on premise, amc, properties, system properties, property placeholders
+
+This page describes configuring properties, such as property placeholders and system properties.
+
+== Property Placeholders
+
+You can use Ant-style property placeholders in your Mule ESB configuration. For example:
+
+[source,xml, linenums]
+----
+<smtp:outbound-endpoint user="${smtp.username}" password="${smtp.password}"/>
+----
+
+The values for these placeholders can be made available in a variety of ways, as described in the sections below.
+
+== Global Properties
+
+You can use the `<global-property>` element to set a placeholder value from within your Mule configuration, such as from within another Mule configuration file:
+
+[source,xml, linenums]
+----
+<global-property name="smtp.username" value="JSmith"/>
+<global-property name="smtp.password" value="ChangeMe"/>
+----
+
+== Properties Files
+
+[WARNING]
+====
+If you're deploying multiple applications through a link:/mule-user-guide/v/3.8-m1/shared-resources[Shared Resources] structure, then you shouldn't set anything in the properties files, as there might potentially be conflicts between the various apps that share a domain. Instead, you can set environment variables over the scope of the deployed app, its domain and other apps under that domain.
+
+As explained in the Shared Resources page, in Studio you can create these variables through the *Environment tab* of the *Run Configurations menu*, reachable via the dropdown menu next to the Play button.
+====
+
+In Anypoint Studio, you can create and edit a properties file in your project's folders.
+
+image:properties+file.png[properties+file]
+
+To load properties from a file, you can use the standard Spring element +
+ `<context:property-placeholder>`:
+
+[source,xml, linenums]
+----
+xmlns:context="http://www.springframework.org/schema/context"
+xsi:schemaLocation="http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+ 
+<context:property-placeholder location="smtp.properties"/>
+<flow name="myProject_flow1">
+    <logger message="${propertyFromFile}" doc:name="System Property Set in Property File"/>
+</flow>
+----
+
+To load multiple properties files, separate them with commas:
+
+[source,xml, linenums]
+----
+<context:property-placeholder location="email.properties,http.properties,system.properties" placeholderPrefix="${"/>
+----
+
+Since properties from files, system properties and environment variables are referred to through the same syntax, you can add a `system-properties-mode` parameter to your property placeholder to ensure that overrides work in the way that you desire. The accepted values for this parameter are ENVIRONMENT, NEVER, FALLBACK, OVERRIDE:
+
+[source,xml, linenums]
+----
+<context:property-placeholder location="app.properties" system-properties-mode="ENVIRONMENT"/>
+<flow name="myProject_flow1">
+    <logger message="${propertyFromFile}" doc:name="System Property Set in Property File"/>
+</flow>
+----
+
+== Message Properties
+
+You can use placeholders to perform logic on message properties such as the header. For example, if you wanted to evaluate the content-type portion of the message header, you would specify it as `#[message.inboundProperties['Content-Type']]`. Typically, you use message property placeholders with expressions. For more information, see link:/mule-user-guide/v/3.8-m1/mule-expression-language-mel[Mule Expression Language MEL].
+
+== System Properties
+
+The placeholder value can come from a JDK system property. If you start Mule from the command line, you would specify the properties as follows:
+
+[source,xml, linenums]
+----
+mule -D-M-Dsmtp.username=JSmith -D-M-Dsmtp.password=ChangeMe
+----
+
+or edit the system properties in `conf/wrapper.conf` if you are deploying Mule as a webapp. When running Mule in a container, as of Mule 2.2.2 you can also specify the server ID in the `web.xml` file as follows:
+
+[source,xml, linenums]
+----
+<context-param>
+  <param-name>mule.serverId</param-name>
+  <param-value>MyServer</param-value>
+</context-param>
+----
+
+If you start Mule programmatically, you would specify the properties as follows before creating and starting the Mule context:
+
+[source,xml, linenums]
+----
+System.getProperties().put("smtp.username", "JSmith");
+System.getProperties().put("smtp.password", "ChangeMe");
+----
+
+There are also several system properties that are immutable after startup. To set these, you customize the `MuleConfiguration` using the set method for the property (such as `setId` for the system ID), create a `MuleContextBuilder`, load the configuration to the builder, and then create the context from the builder.
+
+For example:
+
+[source,xml, linenums]
+----
+SpringXmlConfigurationBuilder configBuilder = new SpringXmlConfigurationBuilder("my-config.xml");
+DefaultMuleConfiguration muleConfig = new DefaultMuleConfiguration();
+muleConfig.setId("MY_SERVER_ID");
+MuleContextBuilder contextBuilder = new DefaultMuleContextBuilder();
+contextBuilder.setMuleConfiguration(muleConfig);
+MuleContextFactory contextFactory = new DefaultMuleContextFactory();
+MuleContext muleContext = contextFactory.createMuleContext(configBuilder, contextBuilder);
+muleContext.start();
+----
+
+For information on the set methods you can use to set system properties, see:
+
+http://www.mulesoft.org/docs/site/current/apidocs/org/mule/config/DefaultMuleConfiguration.html[org.mule.config.DefaultMuleConfiguration]
+
+For information on configuration builders, see link:/mule-user-guide/v/3.8-m1/about-configuration-builders[About Configuration Builders].
+
+=== Setting System Properties in Anypoint Studio
+
+You can also add properties when you launch your project on Anypoint Studio, through the Run Configurations menu:
+
+. Right click on your project in the package explorer
+
+. Select *Run As > Run Configurations*
+
+. Pick the *Arguments* tab
+
+. Add your arguments to the *VM arguments* field, preceding property names with *-D*
++
+image:Arguments+Tab.png[Arguments+Tab]
++
+Your properties will then be available every time you deploy your app through Studio. You can then reference them through the following syntax:
++
+[source,xml, linenums]
+----
+<logger message="${propertyFromJVMArg}" doc:name="System Property Set in Studio throug JVM args"/>
+----
+
+== Environment Variables
+
+Environment variables can be defined in various different ways, there are also several ways to access these from your apps. Regardless of how an environment variable is defined, the recommended way to reference it is through the following syntax:
+
+[source,xml, linenums]
+----
+${variableName}
+----
+
+=== Environment Variables From the OS
+
+To reference a variable that is defined in the OS, you can simply use the following syntax:
+
+[source,xml, linenums]
+----
+<logger message="${USER}" doc:name="Environment Property Set in OS" />
+----
+
+=== Setting Environment Variables in Anypoint Studio
+
+You can set variables in Studio through the Run Configuration menu:
+
+. Right click on your project in the package explorer
+
+. Select *Run As > Run Configurations*
+
+. Pick theEnvironment tab
+
+. Click the New button and assign your variable a name and value.
++
+image:Environment+Tab.png[Environment+Tab]
+
+Your variable will then be available every time you deploy through Studio. You can then reference it through the following syntax:
+
+[source,xml, linenums]
+----
+<logger message="${TEST_ENV_VAR}" doc:name="Environment Property Set in Studio"/>
+----
+
+Note that the syntax makes no distinction between when you're referencing a variable in the OS and a variable defined here. In case names overlap, there's a radio button you can select when creating these variables that lets you define whether these variables will override the original OS ones or not.
+
+image:Environment+Tab2.png[Environment+Tab2]
+
+== See Also
+
+* Read more about mule messages and their properties in our link:http://blogs.mulesoft.org/mule-school-the-mulemessage-property-scopes-and-variables/[MuleSoft Blog].
+
+* link:/mule-user-guide/v/3.8-m1/deploying-to-multiple-environments[Deploying to Multiple Environments]

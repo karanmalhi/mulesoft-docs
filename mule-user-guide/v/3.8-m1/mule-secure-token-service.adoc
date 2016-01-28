@@ -1,0 +1,95 @@
+= Mule Secure Token Service OAuth 2.0a Provider
+:keywords: esb, security, oauth, authentication, oauth provider, token, private key, secret key, access key
+
+[NOTE]
+The *Mule Oauth 2.0a Secure Token Service* is not yet fully certified for operation on *CloudHub*. If you are interested in deploying it in this environment, please visit the link:http://www.mulesoft.com/support-login[MuleSoft Customer Portal] and open a ticket to request guidance.
+
+== Overview of OAuth 2.0a
+
+*OAuth 2.0a* (Open standard for Authorization) is a method of allowing an application to have limited access to a protected resource via a 3rd-party Web service. In other words, OAuth provides a secure way for a Web service to gain limited, temporary access to a resource, such as a user account, via another Web service.
+
+Use Mule Secure Token Service to apply OAuth 2.0a to your Web service provider to:
+
+* grant consumers of your Web service limited access to secure data
+* avoid disclosing an end user's access credentials to a Web service consumer
+* retain the authority to revoke the consumer’s access to an end user's secure data at any time
+
+To better understand how OAuth works, we must first define the entities involved.
+
+[width="100%",cols="50%,50%",]
+|===
+|Access Credentials |information one needs to access an asset, such as username and password
+|Resource Owner |a person or system that owns the protected resource and credentials needed to access the resource
+|Protected Resource |data which a Consumer wishes to use, to which only the resource owner has access via the access credentials
+|Service Provider |an application or system which stores the protected resource; issues tokens to the Consumer after authenticating the resource owner and confirming authorization to access data
+|Consumer (Client) |a 3rd-party application or system that needs to use the protected resource
+|Authorization Code |a code issued by the Service Provider after confirming the identification of a registered Consumer; exchanged with Service Provider during OAuth dance to acquire a Token
+|Token |authorization that a Service Provider gives to a Consumer to use the protected resource; (the token does not contain the protected resource or access credentials)
+|Refresh Token |credentials that a Service Provider issues to a Consumer to obtain access to a protected resource again when the original Token expires or becomes invalid; (facilitates access to the protected resource without performing the whole dance again)
+|Scope |an identifier in the token that defines the specific data to which the consumer has access
+|===
+
+Adding OAuth to an online interaction is like giving a parking attendant the valet key to your rental car. You don’t want the parking attendant to access the laptop you have stored in your trunk, but you do want him to park your car for you (limited use of the protected resource). As the resource owner, you could give the attendant your car key (access credentials) to park your car, but with the key, he could also open the trunk and take your laptop. Luckily, the car rental company (the service provider) provided a valet key (token) that will enable the attendant to start the car (scope), but will not allow him to access the trunk.
+
+[width="100%",cols="50%,50%",]
+|===
+|Access Credentials |car key
+|Resource Owner |you
+|Protected Resource |car
+|Service Provider |rental car company
+|Consumer |parking attendant
+|Token |valet key
+|Scope |ability to drive the car, but not access the trunk
+|===
+
+In the online world, adding OAuth to an online activity gives a Web service permission to use some of the information in an online private account an end user maintains with another Web service. For example, say you have just discovered a new website that issues online invitations for events. You are anxious to use this service for your upcoming party for 100 friends, but you do not want to enter the email addresses of 100 invitees into the online invitation website. You have already entered them into your online address book on another website. Luckily, the invitation website can use OAuth to solve the problem.
+
+Because it wants to make your life easier, the invitation website gives you the option of importing all your contacts from another website. You (resource owner) can click a button to access your account (protected resource) on the daily planner website. When you click the button, the invitation website (consumer) directs you to login page for the daily planner website (service provider). You enter your username and password (access credentials) to access your account (protected resource). After you log in, the daily planner website provides the invitation website with a token that allows the invitation website to import all of your contacts (scope), yet do nothing more (for example, it cannot change your password or access the personal calendar you have stored in the same account). The interaction between Consumer and Service provider in this context is referred to as the *OAuth dance* (see figure below). +
++
+image:OAuth_dance.png[OAuth_dance]
+
+[width="100%",cols="50%,50%",]
+|===
+|Access Credentials |your username and password to your account on the daily planner website
+|Resource Owner |you
+|Protected Resource |your account on the daily planner website
+|Service Provider |daily planner website
+|Consumer |invitation website
+|Token |token
+|Scope |access to the address book, only
+|===
+
+=== The OAuth Dance
+
+The example above briefly describes the *OAuth dance* between client, provider and resource owner. The list below describes the sequential steps in an OAuth dance which employs the Authorization Code link:/mule-user-guide/v/3.8-m1/authorization-grant-types[grant type]. (For a graphical illustration of the dance steps, see the link:/mule-user-guide/v/3.8-m1/mule-sts-oauth-2.0a-example-application[Mule STS OAuth 2.0a Example Application].)
+
+. Client app submits a request to the service provider to become a registered client.
+. Service provider evaluates the client request, then, if approved creates a client ID and client secret (if the client identifies itself as `CONFIDENTIAL` ) for the client app, which it stores in a list of registered clients, and sends to the client app.  (If the client identifies itself as `PUBLIC`, the service provider issues only a client ID, but no client secret.)
+. Client app wants to use data (protected resource) housed by service provider, so initiates a request to access the data to the service provider.
+. Client app calls the service provider's authorization server, providing client ID to confirm that it is a registered client of the Service Provider.
+. Client app, using a login page supplied by the service provider, asks that the resource owner use the access credentials to authenticate themselves to the service provider.
+. After confirming that the client ID is valid (i.e. the client app has previously registered with the service provider), and authenticating the resource owner via login credentials, the service provider returns an authorization code.
+. Client app calls the service provider's authorization server again, providing its authorization code, client ID (again), and client secret.
+. Service provider returns a token in which it specifies the scope.
+. Client app calls the service provider's resource server, providing the token, to request the protected resource (data).
+. Service provider delivers the protected resource.
+
+== Configuring OAuth 2.0a on a Mule Web Service Provider
+
+Whenever you wish to expose a Web service protected with OAuth 2.0a security, you must insert an *OAuth Provider* and a *Global OAuth Provider* into your Mule Application. The link:/mule-user-guide/v/3.8-m1/creating-an-oauth-2.0a-web-service-provider[Creating an OAuth 2.0a Web Service Provider] document describes how to build a Web service protected by OAuth 2.0a.
+
+== Configuring OAuth 2.0a on a Mule Web Service Consumer
+
+Whenever you wish to connect your *Web service client* to an API which uses OAuth 2.0a security, you must comply with the provider’s mandate and add OAuth 2.0a security to your Web service client. (Access the Web service provider’s documentation to determine whether it demands the use of OAuth 2.0a.)
+
+Apply OAuth 2.0a to your Web service client to access a Web service that mandates the use of OAuth. This enables you to:
+
+* leverage an end user’s secure asset with a Web service provider by requesting, and temporarily gaining restricted access to, the asset
+* avoid acquiring a resource owner’s protected resources
+
+Use an Anypoint Connector (several are included in the out-of-the-box Mule ESB distribution) in your Mule flow to consume a Web service. Alternatively, use link:/anypoint-connector-devkit/v/3.7[DevKit] to build a customized connector that will enable you to connect with, and consume, the Web service of an external service provider.
+
+== Next Steps
+
+. Examine the link:/mule-user-guide/v/3.8-m1/mule-sts-oauth-2.0a-example-application[Mule STS OAuth 2.0a Example Application] which illustrates how to add OAuth 2.0a to a Web service provider in Mule.
+. Learn more about link:/mule-user-guide/v/3.8-m1/authorization-grant-types[Authorization Grant Types].
