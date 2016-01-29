@@ -67,6 +67,50 @@ To manually change the configuration of a cluster node, follow these steps:
 Ensure that the options you apply in the configuration file are valid for all cluster nodes. Failure to do so can cause you to  break the cluster configuration and inadvertently disable the cluster.
 ====
 
+=== Quorum management.
+
+When managing a manually configured cluster you can now set a minimum quorum of machines required for the cluster to be operational. +
+When partitioning a network, clusters are available by default. However, by setting a minimum quorum size you can achieve better consistency by rejecting updates that do not pass a minimum threshold.
+
+To enable quorum, the +mule.cluster.quorumsize+ property has to be placed on the cluster configurations file +{MULE_HOME}/.mule/mule-cluster.properties+ defining the minimum number of nodes of the cluster to remain in an operational state.
+
+A +QuorumException+ will be thrown whenever the number of active nodes in the cluster is below the configured value in +mule.cluster.quorumsize+.
+
+[CAUTION]
+====
+*QuorumExceptions must be catched*
+
+When configuring a Quorum Size for your cluster, you need to catch the thrown exception to make some sort of decision (e.g. send an email, stop process, logging, retry strategies, etc)
+====
+
+=== Object Store Persistence
+You can persistently store JDBC data in a centralized system, accessible from all cluster nodes.
+
+To enable Object store persistency, you need to add new properties to the +{MULE_HOME}/.mule/mule-cluster.properties+  file defining the database configuration values:
+
+. *mule.cluster.jdbcstoreurl*: The JDBC URL for connection to the database
+. *mule.cluster.jdbcstoreusername*: Database username
+. *mule.cluster.jdbcstorepassword*: Database user password
+. *mule.cluster.jdbcstoredriver*: JDBC Driver class name
+. *mule.cluster.jdbcstorequerystrategy*:  SQL dialect
+
+[IMPORTANT]
+====
+In mule-3.8-M1, only MySQL query dialect is supported. Other dialects such as PostgreSQL are going to be supported on mule-3.8-M2.
+====
+
+Always keep in mind that the data storage needs to be hosted in a centralized DB reachable from all nodes. +
+Don't use more than one database per cluster.
+
+
+=== Monitoring
+You can monitor the events thrown by the cluster members through the link:http://www.oracle.com/technetwork/java/javase/tech/javamanagement-140525.html[JMX technology].
+
+The JMX monitoring option is disabled by default. In order to enable it, you will need to add the +mule.cluster.jmxenabled+ property to the +{MULE_HOME}/.mule/mule-cluster.properties+ configuration file.
+
+Please note that enabling JMX might cause some performance overheads given that the underlying structure adds listeners to get the statistics for each individual node.
+
+
 == Cluster Configuration Parameters
 
 The following table lists the parameters of the `mule-cluster.properties` file.
@@ -107,9 +151,22 @@ Two nodes listening on port 5701:
 192.168.1.19,192.168.1.20
 ----
 
+|`mule.cluster.quorumsize` | Enables you to define the minimum number of machines required in a cluster to remain in an operational state.
 |`mule.cluster.multicastenabled` |*(Boolean)* Enable/disable multicast. Set to `false` if using fixed IP addresses for cluster node discovery (see option `mule.cluster.nodes` above).
 |`mule.cluster.multicastgroup` |Multicast group IP address to use.
 |`mule.cluster.multicastport` |Multicast port number to use.
+|`mule.cluster.jdbcstoreurl` | Required only when storing persistent data. +
+The JDBC URL for connection to the database
+|`mule.cluster.jdbcstoreusername` |*Required only when storing persistent data*. +
+Database username
+|`mule.cluster.jdbcstorepassword` |*Required only when storing persistent data*. +
+Database user password
+|`mule.cluster.jdbcstoredriver` |*Required only when storing persistent data*. +
+JDBC Driver class name
+|`mule.cluster.jdbcstorequerystrategy` |*Required only when storing persistent data*. +
+SQL dialect for accessing the stored object data
+|`mule.cluster.jmxenabled`|*(Boolean)* Enable/disable monitoring 
+
 |===
 
 == See Also
