@@ -16,20 +16,88 @@ link:/cloudhub/managing-applications-and-servers-in-the-cloud-and-on-premises[Ma
 
 == Multicast Versus Unicast
 
-A cluster can be created on Anypoint Management Center from servers that are already registered with the Anypoint Management Center console. While configuring a cluster, you can specify either unicast or multicast options for identifying a node within the cluster:
+A cluster can be created the Runtime Manager from servers that are already registered with the Anypoint Runtime Manager console. While configuring a cluster, you can specify either unicast or multicast options for identifying a node within the cluster:
 
-* *Unicast*. A unicast cluster requires that you configure the IP addresses of which nodes to associate together. No special network configuration is necessary other than to indicate which the server IP addresses make up the cluster. Each server needs to be in Running status when it is added to a unicast cluster in CloudHub. Mule relies on the IP address as the unique handle for identifying a server, which means it is impossible to have IP addresses dynamically assigned using DHCP for servers in a unicast cluster. If a server has multiple interfaces, use the internal IP, the one that allows a node to have a direct communication with other nodes. Clustering across different subnets is not supported. If a server restarts and it uses DHCP to get a new IP address, it needs to be rejoined with the cluster using its new IP address.
+* *Unicast*. A unicast cluster requires that you configure the IP addresses of which nodes to associate together. No special network configuration is necessary other than to indicate which are the server IP addresses that make up the cluster. Each server needs to be in Running status when it is added to a unicast cluster. If a server has multiple interfaces, use the internal IP, the one that allows a node to have a direct communication with other nodes. Clustering across different subnets is not supported.
+
+[NOTE]
+Mule relies on the IP address as the unique handle for identifying a server, which means it is impossible to have IP addresses dynamically assigned using DHCP for servers on a unicast cluster. If a server is restarted and uses DHCP to get a new IP address, it needs to be rejoined with the cluster using its new IP address.
 
 * *Multicast*. A multicast cluster groups servers that automatically detect each other. Servers that are part of a multicast cluster should be on the same network segment.
 
-One advantage of using multicast is that a server does not need to be running to be configured as a node in a cluster. Another is that you can add nodes to the cluster dynamically without restarting the cluster. *Note*: Check with your network administrator if multicast is allowed in your network, as many networks block multicast.
+One advantage of using multicast is that a server does not need to be running to be configured as a node in a cluster. Another is that you can add nodes to the cluster dynamically without restarting the cluster.
+
+[NOTE]
+Check with your network administrator if multicast is allowed within your network, as many networks block multicast functionalities.
+
+
+== Cluster Status Reference
+
+
+[width="100a",cols="25a,25a,25a,25a",options="header"]
+|===
+Cluster scenario
+|
+tool tip
+(List view)
+|status
+(Detail pane)
+|icon
+|When all nodes are running
+|Running
+|Running
+| image:status_green.png[green]
+
+|When some nodes are running and some are down
+|Partial (x of y running)
+|Partial (x of y running)
+| image:status_yellow.png[yellow]
+
+|When all nodes are disconnected
+|Disconnected
+|Disconnected
+| image:status_white.png[white]
+
+|When a server/node is registered in the platform but never was started
+|Created
+|Created
+| image:status_black.png[black]
+
+|When all nodes are running
++
+Visibility issues between the nodes
+|Running
+with
+communication issue
+|Running
+| image:status_yellow.png[yellow]
+
+|When some nodes are running some are down
++
+Visibility issues between the nodes
+|Partial (x of y running)
+with
+communication Issue
+|Partial (x of y running)
+| image:status_yellow.png[yellow]
+
+
+|A node is being added to the cluster
+|-
+|-
+|
+
+
+
+|===
+
 
 == Creating a Cluster On Premises
 
 To create a cluster at your site (on premises):
 
 . Download and install the same version of link:https://www.mulesoft.com/platform/mule[Mule Runtime] on all servers you want to participate in the cluster.
-. From each server in the cluster, run the link:/cloudhub/managing-applications-and-servers-in-the-cloud-and-on-premises[amc_setup] script to register the server with Anypoint Management Center.
+. From each server in the cluster, run the link:/cloudhub/managing-applications-and-servers-in-the-cloud-and-on-premises[amc_setup] script to register the server with the Runtime Manager.
 
 == Creating a Cluster in CloudHub
 
@@ -40,21 +108,23 @@ To create a cluster in CloudHub:
 +
 image:CloudHubStartPage.png[CloudHubStartPage]
 +
-. Click the *Servers* tab and add each server. For more information, see link:/cloudhub/managing-applications-and-servers-in-the-cloud-and-on-premises[Managing Applications and Servers in the Cloud and On Premises]
-. 
-After all servers are added in CloudHub, click *Create Cluster*. Servers can be added to a cluster in any status.
+. Click the *Servers* tab and register each server to the platform. For more information, see link:/cloudhub/managing-applications-and-servers-in-the-cloud-and-on-premises[Managing Applications and Servers in the Cloud and On Premises]
 +
-image:CreateCluster.png[CreateCluster]
+image:ServerStatus_No_Cluster_AllOnline.png[all servers]
+. 
+After all servers are registered and visible in the Servers tab, click *Create Cluster*. Servers can be added to a cluster in any status.
++
+image:create_cluster_button.png[CreateCluster]
 +
 . Give the cluster a name. The cluster name must not start or end with a dash, must be at least 3 characters long, no more than 40 characters, must be unique, and contain only letters, numbers, or dashes.
 . Choose *Multicast* or *Unicast*. For more information, see link:multicast <<Multicast Versus Unicast, Multicast Versus Unicast>>.
 . Click the names of the servers to add to your cluster, and click *Create Cluster*. Multicast servers can be in any link:/cloudhub/managing-applications-and-servers-in-the-cloud-and-on-premises[Status State], whereas unicast servers must have a Status of Running. All servers in a cluster must be running the same Mule Runtime version.
 +
-image:CreateACluster.png[CreateACluster]
+image:CreateCluster_Multicast.png[CreateACluster]
 +
 . Click the cluster name to list details about the cluster. This view also lets you add additional servers, remove servers, and delete the cluster:
 +
-image:ClusterDetail.png[ClusterDetail]
+image:AddingServertoCluster_SidePanel.png[ClusterDetail]
 
 
 == Deleting a Server From a Cluster
@@ -79,9 +149,12 @@ image:DeleteMessage.png[DeleteMessage]
 To delete a cluster from CloudHub:
 
 . From the CloudHub *Servers* tab, click the name of a cluster to show details.
++
+image:server_details.png[server details]
+
 . Click the down arrow next to the cluster status and click *Delete Cluster*:
 +
-image:DeleteServerDownArrow.png[DeleteServerDownArrow]
+image:down_arrow_status.png[DeleteServerDownArrow]
 +
 . A prompt appears to be sure you want to continue. Click the check box and click *Delete Cluster*:
 +
@@ -93,13 +166,15 @@ image:DeleteACluster.png[DeleteACluster]
 To add an additional server to a cluster:
 
 . In the CloudHub Servers tab, click the name of a cluster to open the details view. 
++
+image:server_details.png[server details]
 . Click *Add Servers*.
 +
-image:AddServers.png[AddServers]
+image:add_servers_button.png[AddServers]
 +
 . Click the checkbox for each server to add to the cluster, and click *Add Servers*
 +
-image:AddAnotherServer.png[AddAnotherServer]
+image:AddingServertoCluster_SelectServer.png[AddAnotherServer]
 
 
 == See Also

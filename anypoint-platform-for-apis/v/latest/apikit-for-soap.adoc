@@ -1,0 +1,305 @@
+= APIkit for SOAP
+:keywords: apikit, soap
+
+*_V. 0.8.0 BETA_*
+
+== Introduction
+
+As an interface between applications, an API's job is to open small windows in an internal system through which external systems can access particular bits of data and perform actions with the data. APIkit for SOAP makes it easier to implement a SOAP interface that enables external users to access your data, then integrate it with backend processes to function as an API.
+
+This document explores the basic anatomy of APIkit for SOAP and how the parts work together to become a REST API.
+
+=== Prerequisites
+
+This document assumes you are familiar with the creation and/or the understanding of:
+
+* link:https://en.wikipedia.org/wiki/Web_Services_Description_Language[WSDL] file.
+* link:https://en.wikipedia.org/wiki/SOAP[SOAP] and API principles.
+* link:https://en.wikipedia.org/wiki/SoapUI[SoapUI] - It’s particularly nice to have a minimum understanding on any SOAP client tool to hit an endpoint with some operation.
+
+[NOTE]
+====
+APIkit for SOAP only works on EE Mule.
+====
+
+== Download and Install APIkit for SOAP
+
+To install the APIkit for SOAP plugin:
+
+. In Studio, Select *Help* > *Install New Software*
++
+image:install-software.jpeg[install-software.jpeg]
++
+. In the field labeled *Work with*, copy the following update site address to the field and press Return: `http://studio.mulesoft.org/r4/apikit-for-soap`
++
+image:update-site-apikit-soap.png[update-site-apikit-soap.png]
++
+. A table displays the different available elements in that update site, select the *APIkit for SOAP* to download it, then click *Next*.
+. Follow through the rest of the wizard, accepting the terms and conditions. The APIkit for the SOAP plugin downloads and installs, and Studio needs to restart when done.
+
+== Basic Anatomy
+
+As a relatively simple-to-use construct, there are three main parts of APIkit for SOAP which are combined to form a SOAP API (similar to what APIkit does for REST scenarios):
+
+. Interface
+. Main flow
+. Backend flows
+
+image:components-interface.png[components-interface.png]
+
+=== Interface
+
+The *interface* it’s defined by a WSDL file (the SOAP contract) that exposes a set of services (link:http://www.w3.org/TR/wsdl#_services[http://www.w3.org/TR/wsdl#_services]) to the world, where each one of them has a set of operations to interact with. For SOAP scenarios the underlying type of data is XML and it’s defined by schemas within the same WSDL file or by importing XSD files.
+
+=== Main Flow
+
+The *main flow* manages 2 critical functions:
+
+. Exposes the SOAP API via HTTP.
+. Routes requests between the interface (defined by the WSDL) and the *backend flows*
+This is the flow where you can dispatch/route an incoming message to a specific flow by analyzing the HTTP request.
+
+=== Backend Flow
+
+The *backend flows* do the "heavy lifting" of actually performing the actions the interface defined.
+
+For example, where an API’s interface enables an end user to list the inventory, the backend flow mapped to that operation in the interface accesses a database to look up a list of items, then provides the XML response to the request. In Mule, you build flows to perform the backend work to support the API’s interface.
+
+The way the routing done in main flow works is by convention, where the name of the flow has the following semantics: `<soap_operation>:<apikit-soap_configuration_name>`
+
+== Usage
+
+In order to show how APIkit for SOAP works, we use a local WSDL file (look for `tshirt2.wsdl` file at the bottom), although it does support consuming a remote WSDL (anyone fits, but for this demo we encourage you to try link:http://devkit-cookbook.cloudhub.io/soap?wsdl[Cookbook] WSDL file)
+
+[NOTE]
+====
+APIkit for SOAP does not download protected resources from the web, which means that if a WSDL file is behind a schema model as Basic authentication it won’t work. You need to manually download the WSDL file and all it’s dependencies (such as XSD) and pick those files locally.
+====
+
+=== Creating a New Project
+
+. Download the example link:_attachments/tshirt2.wsdl[tshirt2.wsdl] file to your local drive.
+. Under the *File menu*, select *New* > *Mule Project*.
+. In the New Mule Project wizard, enter a Name for your project and a pick an *EE runtime*.
+. Check *Add APIkit SOAP* components. Click the ellipsis to look for the downloaded WSDL in step 1 (or put a URL of a valid WSDL file like link:http://devkit-cookbook.cloudhub.io/soap?wsdl[Cookbook WSDL]). Once the WSDL file is processed, pick a service, and port from both drop-down menus.
++
+image:new-apikit-soap-project.png[new-apikit-soap-project.png]
++
+. Click *Finish*. Studio launches the new project for you and opens a new flow on a fresh canvas. Notice that Studio creates a new hierarchy of folders labeled, `src/main/wsdl`, into which it inserts the WSDL file you imported with all of the needed schemas to make it work (it introspects the previously defined WSDL file). Notice that if the WSDL file is remote, then it doesn’t download at all as the reference to the resource remains outside of the scope of the Mule’s app resources.
++
+image:wsdl-resource.png[wsdl-resource.png, width="300"]
++
+.  Right-click the canvas and run the app. Once deployed, you should be able to hit http://localhost:8081/tshirtService?wsdl and obtain the same WSDL file you selected when creating the Mule project.
+APIkit for SOAP retrieves the full WSDL contract when hitting the exposed endpoint by the HTTP connector by adding `?wsdl` to the query parameters.
+
+=== Hitting the Endpoint
+
+We use SoapUI to work with this exposed endpoint, but any SOAP client does the trick.
+By default, each generated flow has a payload that states the current operation needs to be implemented by returning a link:http://whatis.techtarget.com/definition/SOAP-fault[SOAP fault].
+
+To get started:
+
+. Create a SoapUI project feeding the `http://localhost:8081/tshirtService?wsdl` URL:
++
+image:soapui-new-project.png[soapui-new-project.png]
++
+. We use the `OrderTshirt` operation by creating a request with some values (put *L* as value of the `<size>` element)
++
+image:soapui-ordertshirt-request.png[soapui-ordertshirt-request.png]
++
+The result is the fault we mentioned before, as `OrderTshirt` doesn’t have a real implementation on the API side.
++
+[source,xml,linenums]
+----
+<soap:Fault xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+    <faultcode>soap:Server</faultcode>
+    <faultstring>Operation [OrderTshirt:api-config] not implemented</faultstring>
+</soap:Fault>
+----
++
+Let’s change that!
++
+. Remove the “Set Payload” element of the flow `OrderTshirt:api-config`, and add a “Transform Message” component (look in the Studio’s palette toolbar). Once you focus on the component, the user interface displays the input and output for the current operation, `OrderTshirt` as input, and `OrderTshirtResponse` as output.
++
+A simple transformation could be something like:
++
+[source,xml,linenums]
+----
+{
+  ns0#OrderTshirtResponse: {
+    orderId: "I got a request from "
+    ++ payload.ns0#OrderTshirt.name
+  }
+}
+----
++
+image:transform-payload.png[transform-payload.png]
++
+Once done, save the project and wait until it redeploys the whole Mule application.
++
+. Use the same request, and see that the output has changed!
++
+Now we have, for the same request as before, a new response:
++
+[source,xml,linenums]
+----
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <ns0:OrderTshirtResponse xmlns:ns0="http://mulesoft.org/tshirt-service">
+      <orderId>I got a request from John</orderId>
+    </ns0:OrderTshirtResponse>
+  </soap:Body>
+</soap:Envelope>
+----
+
+=== Working with Headers
+
+You can use the information in the header sent by the request under the `apiKey` header element.
+
+To do so:
+
+. Edit the “Transform message” mapping by adding the following script:
++
+[source,xml,linenums]
+----
+{
+  ns0#OrderTshirtResponse: {
+    orderId: "I got a request from "
+    ++ payload.ns0#OrderTshirt.name
+    ++ ", using the following auth header "
+    ++ inboundProperties['soap.AuthenticationHeader'].ns0#AuthenticationHeader.apiKey
+  }
+}
+----
++
+. Hit the endpoint through SoapUI and the response changes to the following:
++
+[source,xml,linenums]
+----
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope
+  <soap:Body>
+    <ns0:OrderTshirtResponse xmlns:ns0="http://mulesoft.org/tshirt-service">
+      <orderId>I got a request from John, using the following auth header 987654321</orderId>
+    </ns0:OrderTshirtResponse>
+  </soap:Body>
+</soap:Envelope>
+----
++
+. If we want to add a header to the outgoing message to fulfill the expected contract, add a property in the “Transform message” by clicking on *Payload* > *Add new target* > *property* (from the drop down) and finally using the value `soap.APIUsageInformation` (as it’s the expected one by the contract if you see it in the metadata flow output tab.
++
+image:adding-header-transform-message.gif[adding-header-transform-message.gif]
++
+The transformation script should be something like the following:
++
+[source,xml,linenums]
+----
+{
+  ns0#APIUsageInformation: {
+    apiCallsRemaining: 10
+  }
+}
+----
++
+. If we hit the same endpoint, by executing the OrderTshirt request, the response envelope by the APIkit for SOAP is:
++
+[source,xml,linenums]
+----
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header>
+    <ns0:APIUsageInformation xmlns:ns0="http://mulesoft.org/tshirt-service">
+      <apiCallsRemaining>10</apiCallsRemaining>
+    </ns0:APIUsageInformation>
+  </soap:Header>
+  <soap:Body>
+    <ns0:OrderTshirtResponse xmlns:ns0="http://mulesoft.org/tshirt-service">
+      <orderId>I got a request from John, using the following auth header 987654321</orderId>
+    </ns0:OrderTshirtResponse>
+  </soap:Body>
+</soap:Envelope>
+----
++
+If needed, the complete transformation script is:
++
+[source,xml,linenums]
+----
+<dw:transform-message doc:name="Transform Message">
+    <dw:input-inbound-property propertyName="soap.AuthenticationHeader"/>
+    <dw:set-payload><![CDATA[%dw 1.0
+%output application/xml
+%namespace ns0 http://mulesoft.org/tshirt-service
+---
+{
+ns0#OrderTshirtResponse: {
+orderId: "I got a request from "
+++ payload.ns0#OrderTshirt.name
+++ ", using the following auth header "
+++ inboundProperties['soap.AuthenticationHeader'].ns0#AuthenticationHeader.apiKey
+}
+}]]></dw:set-payload>
+    <dw:set-property propertyName="soap.APIUsageInformation"><![CDATA[%dw 1.0
+%output application/xml
+%namespace ns0 http://mulesoft.org/tshirt-service
+---
+{
+ns0#APIUsageInformation: {
+apiCallsRemaining: 10
+}
+}]]></dw:set-property>
+</dw:transform-message>
+----
+
+=== Using Typed Faults
+
+Another feature that APIkit for SOAP supports is the capability to help you build typed SOAP Faults. For the `tshirt2.wsdl` file, there is just one typed fault named `TshirtFault` that’s mapped to every operation that the WSDL has (OrderTshirt, ListInventory, and TrackOrder).
+
+We are going to make the ListInventory operation display the typed fault.
+
+. Delete the “Set Payload” processor of the `ListInventory:api-config` flow.
+. Look for “Fault” in the Studio’s palette toolbar, drag and drop it into the `ListInventory:api-config` flow.
+. Pick `ListInventory` as the operation and `TshirtFault` as the typed fault.
+. Add a “Transform Message” component before the “SOAP Fault” component.
+. Edit the mapping to put a value like 500:
++
+[source,xml,linenums]
+----
+{
+  ns0#TshirtFault: {
+    errorStuff: 500
+  }
+}
+----
++
+image:transform-message-with-fault.png[transform-message-with-fault.png]
++
+. Save and run the app.
+. Hit the `ListInventory` operation by a SOAP client, and the outcome is not the default fault response, but the following envelope:
++
+[source,xml,linenums]
+----
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <ns0:TshirtFault xmlns:ns0="http://mulesoft.org/tshirt-service">
+         <errorStuff>500</errorStuff>
+      </ns0:TshirtFault>
+   </soap:Body>
+</soap:Envelope>
+----
+
+=== Updating Your WSDL File
+
+At some point you might want to update your WSDL file by adding an operation, or edit a message of an existing one. If that happens, then you should run the scaffolder again to let the app know your WSDL file has changed.
+
+. Add an operation to the WSDL by copying and pasting an existing one and changing an attribute.
++
+As modifying a WSDL file by hand is tricky, we have uploaded a modified link:_attachments/tshirt-modified.wsdl[tshirt-modified.wsdl] file for you to copy *its whole content* and paste it in tshirt2.wsdl (replacing all of tshirt2.wsdl's content by the new WSDL file).
++
+. Right click in the project and click *Mule* > *Generate SOAP Flows*.
+. A new flow is generated under the name of `DeleteOrder:api-config` as shown in the image.
++
+image:generate-sources.png[generate-sources.png, width="300"]
+
+== Resources
+
+* Local link:_attachments/tshirt2.wsdl[tshirt2.wsdl] file.
+* Local link:_attachments/tshirt-modified.wsdl[tshirt-modified.wsdl] file (with a new operation).
+* Remote link:http://devkit-cookbook.cloudhub.io/soap?wsdl[Cookbook WSDL] file.

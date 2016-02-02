@@ -1,0 +1,334 @@
+= Assertion Message Processors
+:version-info: 3.7.0 and later
+:keywords: mule, esb, tests, qa, quality assurance, verify, functional testing, unit testing, stress testing
+
+== Overview
+
+The Assert feature, provided by MUnit, allows the developer to run _assertions_ in order to validate the state of a Mule message's content.
+
+All the message processors listed bellow can be used either to validate the Mule message after the production code runs, or as part of the MUnit Spy message processor.
+
+TIP: Every MUnit Assertion message processor contains an attribute message. It is recommended to fill this optional attribute in order to easily identify a failing assertion.
+
+== Assert Payload
+
+The `assert-payload-equals` message processor validates that the payload of a Mule message is equal to an expected value.
+
+[source, xml]
+----
+<munit:assert-payload-equals message="oops!" expectedValue="'#[['value 1','value 2']]"/>
+----
+
+[cols=",,"]
+|===
+|Attribute Name |Description
+
+|`message`
+|The error message to print if the assertions fails. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|`expectedValue`
+|The value to compare the payload against. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|===
+
+If the assertion fails, the message processor throws a `junit.framework.AssertionFailedError`.
+
+TIP: If you wish to compare the payload against a Spring bean, you can use the MUnit MEL function `getBeanFromMuleContext('bean_name')`. This function inspects the Mule registry and returns the bean with the matching name if it is present.
+
+
+== Assert Null
+
+The `assert-null` message processor validates that the Mule message's payload is `NullPayload`.
+
+[source, xml]
+.assert-null example
+----
+<munit:assert-null message="oops!"/>
+----
+
+[cols=",,"]
+|===
+|Attribute Name |Description
+
+|`message`
+|Defines the error message to print if the assertions fails. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|===
+
+If the assertion fails, the message processor throws a `junit.framework.AssertionFailedError`.
+
+== Assert Not Null
+
+The `assert-not-null` message processor validates that the Mule message's payload is _not_ `NullPayload`.
+
+[source, xml]
+.assert-not-null example
+----
+<munit:assert-not-null message="oops!"/>
+----
+
+[cols=",,"]
+|===
+|Attribute Name |Description
+
+|`message`
+|Defines the error message to print if the assertions fails. It accepts MEL expressions. If left as
+literal, it assumes a string value.
+
+|===
+
+If the assertion fails, the message processor throws a `junit.framework.AssertionFailedError`.
+
+== Assert Equals
+
+The `assert-on-equals` message processor validates equality between two objects.
+
+[source, xml]
+.assert-on-equals example
+----
+<munit:assert-on-equals message="oops!" expectedValue="#['expected']" actualValue="#['actual_value']"/>
+----
+
+[cols=",,"]
+|===
+|Attribute Name |Description
+
+|`message`
+|Defines the error message to print if the assertions fails. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|`expectedValue`
+|Defines the value of the expected object. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|`actualValue`
+|Defines the actual value we are validating. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|===
+
+If the assertion fails, the message processor throws a `junit.framework.AssertionFailedError`.
+
+== Assert Not Equals
+
+The `assert-not-same` message processor validates whether two objects are different.
+
+[source, xml]
+.assert-not-same example
+----
+<munit:assert-not-same message="oops!" expectedValue="#['']" actualValue="#[payload]"/>
+----
+
+[cols=",,"]
+|===
+|Attribute Name	|Description
+
+|`message`
+|Defines the error message to print if the assertions fails. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|`expectedValue`
+|Defines the value of the expected object. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|`actualValue`
+|Defines the actual value we are validating. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|===
+
+If the assertion fails, the message processor throws a `junit.framework.AssertionFailedError`.
+
+
+== Assert False
+
+The `assert-false` message processor validates that the result of a boolean expression is _false_.
+
+[source, xml]
+.assert-false example
+----
+<munit:assert-false  message="oops!" condition="#[ 1 != 1 || payload.length != 0]"/>
+----
+
+[cols=",,"]
+|===
+|Attribute Name |Description
+
+|`message`
+|Defines the error message to print if the assertions fails. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|`condition`
+|Defines the expression you want to validate.
+
+|===
+
+If the assertion fails, the message processor throws a `junit.framework.AssertionFailedError`.
+
+== Assert True
+
+The `assert-true` message processor validates that the result of a boolean expression is _true_.
+
+[source, xml]
+.assert-true example
+----
+<munit:assert-true  message="oops!" condition="#[ 1 == 1 && payload.length == 0]"/>
+----
+
+[cols=",,"]
+|===
+|Attribute Name |Description
+
+|`message`
+|Defines the error message to print if the assertions fails. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|`condition`
+|Defines the expression you want to validate.
+
+|===
+
+If the assertion fails, the message processor throws a _junit.framework.AssertionFailedError_.
+
+
+=== MUnit Utilitarian MEL Functions
+
+You can greatly enhance the capabilities of the Assert True message processor by combining it with the MUnit utilitarian MEL Functions, a set of MEL expressions that help validate the status of a Mule message.
+
+==== Message Properties Finder
+
+These functions validate the existence of a certain message property by its name. They are specially useful in cases where the value of a message property is irrelevant, but you need to validate that the property was created by the flow you're testing.
+
+[cols=",,"]
+|===
+|Function  |Description
+
+|`messageHasproperty is foundInAnyScopeCalled(propertyName)`
+|Returns true if a property in _any scope_ with the name provided is found.
+
+|`messageHasInboundproperty is foundCalled(propertyName)`
+|Returns true if an _inbound_ property with the provided name is found.
+
+|`messageHasOutboundproperty is foundCalled(propertyName)`
+|Returns true if an _outbound_ property with the provided name is found.
+
+|`messageHasSessionproperty is foundCalled(propertyName)`
+|Returns true if a _session_ property with the provided name is found.
+
+|`messageHasInvocationproperty is foundCalled(propertyName)`
+|Returns true if an _invocation_ property with the provided name is found.
+
+|`messageHasInboundAttachmentCalled(property is foundName)`
+|Returns true if an _inbound attachment_ property with the provided name is found.
+
+|`messageHasOutboundAttachmentCalled(property is foundName)`
+|Returns true if an _outbound attachment_ property with the provided name is found.
+
+|===
+
+[source, xml, linenums]
+.MUnit Matchers - Property Finder Example
+----
+<munit:assert-true condition="#[messageHasPropertyInAnyScopeCalled('my_property')]"/>
+<munit:assert-true condition="#[messageHasInvocationPropertyCalled('another_property')]"/>
+----
+
+==== Other MEL functions
+
+[cols=",,"]
+|===
+|Function  |Description
+
+|`getBeanFromMuleContext('bean_name')`
+|Inspects the Mule registry and returns the bean with the matching name if present.
+
+|===
+
+== Fail
+Use the `fail` message processor if you want to fail your test on purpose, for example in order to validate that a specific event should not happen.
+
+[source, xml]
+.Fail Example
+----
+<munit:fail message="This should not happen"/>
+----
+
+[cols=",,"]
+|===
+|Attribute Name |Description
+
+|`message`
+|Defines the error message to print if the assertion fails. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|===
+
+== Defining Custom Assertions
+
+If need a more specific assertion, MUnit allows you to extend the assertion message processor's library, and hence define your own custom assertions.
+
+=== Defining Custom Assertion Implementations
+
+To implement a custom assertion you need to implement the interface `org.mule.munit.MunitAssertion`.
+
+[source,java,linenums]
+.Custom assertion example
+----
+package your.package;
+
+public class CustomAssertion implements MunitAssertion{
+  @Override
+  public MuleEvent execute(MuleEvent muleEvent) throws AssertionError {   //<1>
+    if ( !muleEvent.getMessage().getPayload().equals("Hello World") ){    //<2>
+      throw new AssertionError("Error the payload is incorrect");
+    }
+
+  return muleEvent;                                                       //<3>
+
+  }
+}
+----
+<1> Implement the only method in the interface `public MuleEvent execute(MuleEvent muleEvent) throws AssertionError`.
+<2> Run your custom logic, which in this case validates that the message's payload is `Hello World`.
+<3> If the validation is passed, return the same event.
+
+WARNING: Implement your custom assertions with care, since modifying the message payload or variables could affect subsequent assertions in your test. Normal MUnit assertions guarantee that this does not happens unless specified.
+
+=== Defining a Custom Assertion Message Processor
+
+After you have defined your custom assertion, use the `run-custom` message processor to run it.
+
+[source, xml]
+----
+<munit:run-custom assertion-ref="#[new your.package.CustomAssertion()]"/>
+----
+
+[cols=",,"]
+|===
+|Attribute Name |Description
+
+|`assertion-ref`
+|Defines the custom assertion instance to run.
+
+|===
+
+You can also define your custom assertion as a bean.
+
+[source, xml, linenums]
+.Define Custom Assertion as a Bean
+----
+<spring:beans>    //<1>
+  <spring:bean class="your.package.CustomAssertion" name="customAssertion"/>
+</spring:beans>
+...
+<munit:test name="testCustomAssertion" description="run custom assertion test">
+    <munit:run-custom assertion-ref="customAssertion"/> //<2>
+</munit:test>
+----
+<1> Define custom assertion bean.
+<2> Run custom assertion using bean name.
+
+WARNING: The `run-custom` message processor does not allow to define an error message in case of failure. This is handled by the custom assertion implementation.
+
+== Defining Assertions With Java Code
+
+The MUnit assertions are based in JUnit assertions, thus there is no new Java API.
+
+To define assertions in your Java-based MUnit Test, you just need to import the JUnit Assert library. MUnit does not provide a Java assert library.
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]

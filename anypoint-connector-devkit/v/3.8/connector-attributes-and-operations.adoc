@@ -1,0 +1,51 @@
+= Adding Connector Functionality
+:keywords: devkit, attributes, operations, data, model, static, dynamic
+
+Once you have your authentication working, you can start adding functionality to your connector. Adding functionality requires the following steps:
+
+* Adding configurable attributes that provide state information on the connector that can be used in operations
+* Implementing the operations available on the connector
+* Defining a data model for objects passed into and out of operations on the connector
+
+This document introduces the main styles of API access.
+
+== Attributes
+
+Attributes on a connector are like attributes in any Mule element and they are exposed in the connector's global configuration dialog. Internally, they are instance variables on the main `@Connector` class with getters and setters, so they can be referenced and manipulated in the code of your connector.
+
+One common use for attributes is to provide endpoint details for your connector – for example, to specify whether to connect to a development sandbox endpoint or a production system endpoint. 
+
+More details can be found in link:/anypoint-connector-devkit/v/3.8/defining-connector-attributes[Defining Connector Attributes]. 
+
+== Static Versus Dynamic Data Models 
+
+The underlying data model for the API you connect to often drives design decisions about the best way to represent data going to and from your connector. The goal in general is to choose a representation that fits the underlying data, while still supporting the necessary metadata to work with link:/mule-user-guide/v/3.7/datasense[DataSense].
+
+* *Static data models* have fixed definitions of all the objects and their attributes supported by the target. Most services, particularly relatively simple ones, implement static data models. For APIs using static data models, it is recommended to create Plain Old Java Objects (POJOs) that correspond to the objects exposed through the connector's operations. Short of a revision to the target APIs, these classes do not need to change in individual deployments.
+* *Dynamic data models* enable the customization of the application objects and their attributes. Complex ERP applications often implement dynamic data models so that they can be customized from one customer to the next. In the case of a dynamic data model, it is recommended that you use Java key-value Maps to represent application objects in Mule. 
+
+More details can be found in Static Data Model & Dynamic Data Model Examples in this document about link:/anypoint-connector-devkit/v/3.8/adding-datasense[Adding DataSense].
+
+== API Access Methods and Client Implementation Styles
+
+Most of the Java code you write for your connector relates to calling operations on your target and passing data between those operations and Mule. This is the area that varies most among connectors, and contains the most target-specific code.
+
+Services can expose operations several ways. The most common are summarized in the table below, along with Mule's recommended client technology for interfacing with them. 
+
+[width="100%",cols="30a,30a,30a",options="header"]
+|===
+|Service API Style |Recommended Approach |Notes
+|Pre-built Java Client Library |Using a Client Library a|* If available, this is generally the simplest approach to calling the remote service.
+|SOAP API  |Apache CXF a|* The de facto standard for publishing and consuming SOAP web services.
+.2+|REST API |Jersey Client a|* Can address virtually any REST API.
+|RESTCall Annotations a|* DevKit's built-in client for "pure" RESTful APIs
+* Most RESTful-style APIs aren't "pure" enough; in practice, Jersey Client is more effective
+|===
+
+=== Choosing Among Multiple Access Methods
+
+Some services expose multiple APIs accessible via different styles to suit different use cases. For example, an application may have a Java client library that fits the most common use cases, and lower-level REST or SOAP APIs that expose more complete functionality with a different model. Choose the one that best fits your situation.
+
+== See Also
+
+* *NEXT:* Continue to link:/anypoint-connector-devkit/v/3.8/defining-connector-attributes[Defining Connector Attributes].

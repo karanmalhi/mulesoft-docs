@@ -1,0 +1,500 @@
+= Anypoint MQ Tutorial
+:keywords: mq, tutorial, queue, exchange, client, studio, postman
+
+This guide:
+
+* Walks through creating user roles, a queue and an exchange.
+* Describes publishing to a queue or exchange, and consuming from a queue.
+* Using Anypoint Studio with the Anypoint MQ connector,
+and creating a client application
+
+== Prerequisites
+
+* Read link:/anypoint-mq/mq-understanding[Understanding Anypoint MQ] to familiarize yourself with the terminology and concepts of using MQ.
+* Create an link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform] account to configure user permissions, register applications in MQ, and to create queues and exchanges.
+* link:http://www.mulesoft.com/mule-esb-subscription[Subscribe] to Mule ESB Enterprise - An Enterprise license is required to use the MQ server software.
+* Install link:https://www.mulesoft.com/platform/studio[Anypoint Studio].
+
+== Tutorial Workflow
+
+[width="100%", cols="5a,20a,75a",options="header"]
+|===
+|# |Task |Description
+|1 |<<Configure Anypoint Platform>>
+|Use link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform] to:
+
+.. <<Assign User Permissions>> - Give yourself permission to view the user interface - Good model for when you add users in your organization to MQ.
+.. <<Create an Admin Role>> - Create an admin's role for all permissions - Helps you define who in your organization should administer MQ versus have lesser permissions.
+.. <<Queues>> - Create queues, and send and receive messages.
+.. <<Exchanges>> - Create exchanges, and send messages.
+|2 |<<Configure Anypoint Studio for MQ>> |Use Anypoint Platform to register a client application and get values for the Client ID and Client Secret. Then in Anypoint Studio, get the MQ connector and create a flow for publishing or consuming messages, and run the Mule Application to ensure your application works and to serve HTTP requests at your localhost.
+|===
+
+== Configure Anypoint Platform
+
+In the sections that follow, we use Anypoint Platform to assign an administrative role, create an application, create a queue and exchange, and send and receive queue messages, and send messages to an exchange.
+
+== Assign User Permissions
+
+You can use Anypoint Platform to assign user permissions to yourself for use with MQ. These permissions let you create client applications, and destinations by creating queues and exchanges. You can use this same information to assign user permissions for others in your organization.
+
+To assign user permissions:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. Click the gear icon and *Users*:
++
+image:mq-tut-gear-and-users.png[mq-tut-gear-and-users]
++
+. Click your username value:
++
+image:mq-tut-click-username.png[mq-tut-click-username]
++
+. Click *MQ* and click the green box to set an environment and permissions:
++
+image:mq-tut-users-mq.png[mq-tut-users-mq]
++
+. After you click the green box, the field changes to *+ Add an environment by name*. Click the plus sign *+* and in the drop-down menu, click *Production* as shown in this composite illustration:
++
+image:mq-tut-env-permissions.png[mq-tut-env-permissions]
++
+. Under *Permission(s)*, click *Select Access* > *Select All*. When you click *Select All*, `Select Access` changes to *Manage destinations, Manage clients, (Total: 5)* to show which which permissions you chose.
++
+image:mq-tut-manager-dests.png[mq-tut-manager-dests]
++
+. Click the green checkmark to save your settings: image:mq-tut-green-checkmark-icon.png[mq-tut-green-checkmark-icon]
++
+A summary list appears:
++
+image:mq-tut-permissions-summary.png[mq-tut-permissions-summary]
++
+You can use this display to delete permissions if needed. For this tutorial, you can leave all as shown.
+
+== Create an Admin Role
+
+After you create permissions for yourself, you can create a role that you can apply to other users in your organization.
+While you don't need roles to complete this tutorial, when you use MQ as an administrator or developer, you should create
+roles for all those in your organization who use MQ. After the previous section where you assigned permissions to yourself,
+the steps to create a role are very similar and this exercise takes little extra time now and benefits you later.
+
+Creating a role lets you create permissions depending on each user's function in your organization, such as for administrators, developers, or for those who only view information but don't change it.
+
+In this tutorial, we grant all permissions to the `MQ Admin` role. When you create other roles for your organization, you can change the permissions as required.
+
+To assign role permissions:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. Click the gear icon and *Roles*:
++
+image:mq-tut-gear-and-roles.png[mq-tut-gear-and-roles]
++
+. Click *Add role*.
++
+image:mq-tut-add-role-for-admin.png[mq-add-role-for-admin]
++
+. Specify an administrator's role for those who create client apps, queues, and exchanges.
+. Click *Add role*.
+. Click the Role name and click *MQ*.
+. Click the green bar, click the plus sign for *Add an environment by name*, and choose the *Production* environment.
++
+image:mq-tut-set-role-env.png[mq-tut-set-role-env]
++
+. Click *Permission(s)* > *Select Access* > *Select All*. When you click Select All, Select Access, changes to *Manage destinations, Manage clients, (Total: 5)*:
++
+image:mq-tut-permissions.png[mq-tut-permissions]
++
+. Click the green checkmark on the right to save your changes: image:mq-tut-green-checkmark-icon.png[mq-tut-green-checkmark-icon]
+
+== Queues
+
+A queue provides a temporary stack for holding messages. Applications
+push messages to the queue and other applications consume
+the messages. In Anypoint MQ, you can read messages, return the messages
+for later viewing, or delete a message. By default, messages return to the
+waiting area so other applications can read them. Messages persist until the
+time to live (TTL) value expires--by default, a message persists in Anypoint MQ
+for 7 days.
+
+=== Create a Queue
+
+To create a queue:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top task bar, click *MQ*.
++
+image:mq-tut-mq-taskbar.png[mq-tut-mq-taskbar]
++
+. Click *Destinations*:
++
+image:mq-destinations-label.png[image:mq-destinations-label]
++
+. As shown in the following animation, click the blue plus circle, click
+*Queue*, type `MyDemoQueue` for the queue ID, and click *Save Changes*.
+After the queue creates, the detail screen appears for the queue. If
+the details don't appear, click the right side of the queue entry.
++
+image:mq-create-queue.gif[Create queue animated gif]
++
+*Note*: Where you click on a queue entry in the Destinations table governs
+what you see next:
++
+image:mq-entryui.png[mq-entryui]
+
+=== How Do I Delete a Queue?
+
+To delete a queue:
+
+. Click *Destinations*.
+. Click the *right* side of the queue entry in the Destinations table:
++
+image:mq-click-type-q.png[mq-click-type-q]
++
+. Click the trash can symbol in the upper right.
+. In the Delete Queue menu, click the checkbox:
++
+image:mq-delete-queue.png[mq-delete-queue]
++
+. Click *Delete Queue*.
+
+=== Send a Message to a Queue
+
+To send a message to a queue:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top task bar, click *MQ*.
+. Click *Destinations*.
+. Click the MyDemoQueue entry in Destinations to view details about
+the queue.
+. Click the queue name in the details to open the Messaging feature:
++
+image:mq-access-messaging.png[mq-access-messaging]
++
+. In the settings page, click *Message Sender*:
++
+image:mq-click-msg-sender.png[mq-click-msg-sender]
++
+. Type text in the *Payload* such as `Hello Mules` (leave the *Type* field set to *Text*):
++
+image:mq-msg-sender-text-payload.png[mq-msg-sender-text-payload]
++
+. Click *Send*.
+
+=== Verify the Message in a Queue
+
+To verify that the message arrived in the queue:
+
+. Click *Destinations*:
++
+image:mq-click-destinations.png[mq-click-destinations, width="173"]
++
+. Click the right side of the queue entry to view details and see the number of messages in the queue
+as shown in this animation:
++
+image:mq-view-details.gif[view queue details animated gif]
+
+=== Get a Message From a Queue
+
+To get a message from a queue:
+
+. Follow the directions in <<Send a Message to the Queue>> and
+advance to Step 6, except click *Message Browser*:
++
+image:mq-click-msg-browser.png[mq-click-msg-browser]
++
+. Click *Get Messages*.
++
+image:mq-get-messages.png[mq-get-messages]
++
+. Click the message ID value to view the message.
++
+image:mq-click-id.png[mq-click-id]
++
+. If you want to return the message to the queue, such as if other applications may also want to read
+the message, click the *Return Messages* icon - this is the default condition. If you switch screens back
+to the Message Sender or to Destinations, messages automatically return to the queue.
+In Anypoint MQ, returning the messages to the queue is known as `nack` - the message is not altered. However,
+the time to live (TTL) value you set when you created your queue determines how long the message is available
+before Anypoint MQ deletes it.
++
+image:mq-click-retmsgs.png[mq-click-retmsgs,width="75"]
++
+Alternatively, you can delete the message by clicking the trash can icon. In Anypoint MQ, deleting a message is called an `ack`:
++
+image:mq-message-delete-trash-can-icon.png[mq-message-delete-trash-can-icon, width="393"]
+
+Now you are able to send and receive messages in Anypoint MQ. In the next section, you can try
+alternate ways of formatting messages.
+
+=== Send a CSV or JSON Message
+
+To send a JSON message:
+
+. Click *Message Sender*.
+. Set the *Type* to *JSON*.
+. Set the *Payload* to:
++
+[source,json,linenums]
+----
+{
+"animal that walks":"dog",
+"animal that swims":"fish",
+"animal that flies":"parrot"
+}
+----
++
+. Click *Message Browser* and the message ID to view the message:
++
+image:mq-json-get-msg.png[mq-json-get-msg]
+
+To send a CSV message:
+
+. Click *Message Sender*.
+. Set the *Type* to *CSV*.
+. Set the *Payload* to:
++
+[source,code]
+----
+"dog",
+"fish",
+"parrot"
+----
++
+. Click *Message Browser* and the message ID to view the message.
+
+== Exchanges
+
+The sections that follow help you work with Anypoint MQ Exchanges. An exchange
+consists of a collection of one or more queues. Exchanges help you organize
+queues and send one message to all its bound queues. You can still send and
+receive messages from a bound queue, but the exchange ensures all queues
+get the same message.
+
+=== Create an Exchange
+
+To create an exchange:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top task bar, click *MQ*.
+. Click *Destinations*.
+. Click the blue plus circle.
+. Click *Exchange*.
++
+image:mq-create-demo-exchange.png[mq-create-demo-exchange, width="325"]
++
+. Specify the name `MyDemoExchange`.
+. Click the checkbox to bind MyDemoQueue to this exchange.
+. Click *Save Changes*.
+. In the Destinations screen. click the exchange *Type* to list its details.
+
+=== Bind a Queue to an Exchange
+
+To bind a queue to an exchange:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top task bar, click *MQ*.
+. Click *Destinations*.
+. Click the left side of the exchange entry in Destinations.
++
+*Note*: Where you click on an exchange entry in the Destinations table governs
+what you see next:
++
+image:mq-where-to-click-x.png[mq-where-to-click-x]
++
+. In the Exchange menu, click *Bind* for each queue you want to bind to the exchange:
++
+image:mq-bind-queue-to-exchange.png[mq-bind-queue-to-exchange]
+
+=== How Do I Delete an Exchange?
+
+To delete an exchange:
+
+. Click *Destinations*.
+. Click the *right* side of the exchange entry in the Destinations table:
++
+image:mq-click-type-x.png[mq-click-type-x]
++
+. Click the trash can symbol in the upper right.
+. In the Delete Exchange menu, click the checkbox:
++
+image:mq-delete-exchange.png[mq-delete-exchange]
++
+. Click *Delete Exchange*.
+
+=== Send a Message to an Exchange
+
+Sending a message to an exchange is very similar to sending a message to a queue.
+The only difference is that you can get the message from any queue bound to an exchange.
+
+To send a message to an exchange:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. In the top task bar, click *MQ*.
+. Click *Destinations*.
+. Click the `MyDemoExchange` entry in Destinations to view details about
+the exchange.
+. Click the *MyDemoExchange* link in the details screen to access the Message Sender:
++
+image:mq-exchange-msg-access.png[mq-exchange-msg-access]
++
+. Click *Message Sender*:
++
+image:mq-exchange-msg-sender.png[mq-exchange-msg-sender]
++
+. Type the contents of the *Payload* and click *Send*:
++
+image:mq-exchange-payload.png[mq-exchange-payload]
+
+You can now use the Message Browser to get the message from the MyDemoQueue as described
+in <<Get a Message From a Queue>>.
+
+You can also send comma-separated value (CSV) or JSON content in the payload by changing
+the message *Type* value. For more information, see <<Send a CSV or JSON Message>>.
+
+== Configure Anypoint Studio for MQ
+
+In this section, we use link:https://www.mulesoft.com/platform/studio[Anypoint Studio] to create a simple application that you can use
+to publish a message to a queue, or to consume the message, and to ack and nack the message.
+
+In the next section, we return to link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform] and register an application that we can use in Studio.
+
+=== Register a Client Application
+
+The Anypoint MQ feature in link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform] lets you register a *Client Application* and get a client ID and a client secret that you plug into an application you create in Anypoint Studio.
+These credentials enable the MQ server to recognize your Studio application.
+
+To register a client application:
+
+. Log into link:https://anypoint.mulesoft.com/#/signin[Anypoint Platform].
+. Click *MQ* in the top task bar:
++
+image:mq-tut-mq-taskbar.png[mq-tut-mq-taskbar]
++
+. Click *Client Apps*:
++
+image:mq-tut-client-apps.png[mq-tut-client-apps]
++
+. Click the blue plus *+* button:
++
+image:mq-tut-blue-create-button.png[mq-tut-blue-create-button]
++
+. Specify an application name such as `DemoClientApp` and click *Save Changes*.
++
+image:mq-tut-create-client-app.png[mq-tut-create-client-app]
+
+*Note*: Leave the *Client Apps* window open. We need to copy and paste the Client ID and Client Secret
+into the configuration for Anypoint Studio in the next step.
+
+=== Configure Studio for the Anypoint MQ Connector Plugin
+
+To add the Anypoint MQ connector to Studio:
+
+. In Studio, click the *X* in the upper left of Studio:
++
+image:mq-exchange-x.png[Exchange X icon in the Studio task bar]
++
+. In Anypoint Exchange, search for `anypoint mq`:
++
+image:mq-exchange-search-for-mq.png[mq-exchange-search-for-mq]
++
+. Click *Install*.
+. Type your first and last name, email address, and telephone number. Click the checkbox to agree to the MuleSoft terms of service:
++
+image:mq-install-prompt.png[mq-install-prompt]
++
+. Click *Install*.
+. Follow the prompts to install the *Anypoint MQ* connector.
+
+=== Use Studio to Create an Application
+
+To create an application:
+
+. Create a new Mule Project. Click *File* > *New* > *Mule Project*.
+. Search for "http" and drag the *HTTP Connector* to the Studio Canvas.
+Here's how the Canvas appears after pulling all the building blocks to
+the Canvas:
++
+image:mq-connector-visual-flow.png[mq-connector-visual-flow]
++
+.. Search for "set" and drag *Set Payload* to the Canvas.
+.. Search for "mq" and drag the *Anypoint MQ* connector icon to the canvas.
+.. Search for "logger" and drag *Logger* to the Canvas.
+. Click the HTTP Connector and click the green plus sign to the right of *Connector Configuration*:
++
+image:mq-http-connector.png[mq-http-connector]
++
+. In the HTTP Connector's Global Element Properties, set the host to *localhost* and the port to *8081*. Click *OK*.
++
+image:mq-http-connector-globals.png[mq-http-connector-globals]
++
+. Set the *Path* to `/mq/{messageId}`.
+. Click *Set Payload* in the Canvas and set the *Value* to:
++
+[source,code]
+----
+#[message.inboundProperties.'http.uri.params'.messageId]
+----
++
+. Click the *Anypoint MQ* connector, and click the green plus sign to the right of *Connector Configuration*:
+. In the MQ Connector's Global Element Properties window, add the information from Anypoint Platform:
++
+image:mq-connector-properties.png[mq-connector-properties]
++
+.. Copy the *Client App* > *Client App ID* value to Studio's *Client ID* field.
+.. Copy the *Client App* > *Client Secret* value to Studio's *Client Secret* field.
+.. Set *Max Redelivery* to *-1* to ensure that Anypoint MQ keeps retrying to deliver a message that is not delivered. The -1 value indicates that there is no limit to retries.
++
+image:mq-set-max-redelivery.png[mq-set-max-redelivery]
++
+For more information on
+other options and tabs, see link:/anypoint-mq/mq-studio#advanced-global-element-properties[Advanced Global Element Properties] in link:/anypoint-mq/mq-studio[Configuring MQ in Anypoint Studio].
++
+.. Click *OK*.
+. Click the *Operation* field and specify an operation such as `publish` or `consume`.
+. Specify the *Destination* as the name of the Queue or Exchange that you set in Anypoint Platform:
++
+image:mq-destination-queue.png[mq-destination-queue]
++
+. Click the *Logger* and set the Message field to:
++
+*MQ Message: #[payload]*
++
+image:mq-logger-properties.png[mq-logger-properties]
++
+. Save your project.
+
+
+=== Run the Studio Application
+
+In Anypoint Studio, click the project name in Package Explorer, and click *Run* > *Run As* > *Mule Application*.
+
+The output should end with these statements:
+
+[source,code,linenums]
+----
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Started app 'mqdemo'                                     +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+INFO  <date_and_time> [main] org.mule.module.launcher.DeploymentDirectoryWatcher:
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++ Mule is up and kicking (every 5000ms)                    +
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+INFO  <date_and_time> [main] org.mule.module.launcher.StartupSummaryDeploymentListener:
+**********************************************************************
+*              - - + DOMAIN + - -               * - - + STATUS + - - *
+**********************************************************************
+* default                                       * DEPLOYED           *
+**********************************************************************
+
+*******************************************************************************************************
+*            - - + APPLICATION + - -            *       - - + DOMAIN + - -       * - - + STATUS + - - *
+*******************************************************************************************************
+* mqdemo                                        * default                        * DEPLOYED           *
+*******************************************************************************************************
+----
+
+== See Also
+
+* link:/anypoint-mq[Anypoint MQ]
+* link:/anypoint-mq/mq-queues-and-exchanges[Create queues and exchanges, and send and receive messages]
+* link:/anypoint-mq/mq-access-management[Set user or role MQ access permission]
+* link:/anypoint-mq/mq-studio[Use Anypoint Studio with the MQ Connector]
+* link:/anypoint-mq/mq-understanding[Understand MQ concepts]

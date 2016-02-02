@@ -1,0 +1,53 @@
+= IP Blacklist
+:keywords: IP, blacklist, validation, policy
+
+This page describes the configuration and runtime application instructions for the IP blacklist policy for the Anypoint Platform for APIs.
+The IP blacklist policy allows you to control wether a list or range of IP addresses can access and interact with your configured API endpoint.
+
+== Prerequisites
+This document assumes that you are an API Version Owner for the API version that you want to manage, or that you are an Organization Administrator.
+
+==  Blacklisting IP addresses to access your API endpoint
+There are currently two options to blacklist addresses for your API:
+
+. <<Option 1: Blacklist access based on the IP address of the request>>
+. <<Option 2: Blacklist access based on the origin IP address of the x-Forwarded-For header>>
+
+=== Option 1: Blacklist access based on the IP address of the request
+You can choose to blacklist a list of IP addresses by specifying them in the white space under the blacklist section of the form:
+
+image:ip+blacklist.png[ip+blacklist]
+
+All addresses defined there will be blacklisted to access and interact with your API.
+
+There are three ways you can specify an address or a range or addresses:
+
+. Define a specific IP address by simply enumerating it in the white space (e.g. 192.168.1.1).
+. Define a subset of addresses by identifying a subnet mask (e.g. 192.168.3.1/30 will include the consolidated range: 192.168.3.0 - 192.168.3.3).
+. Define a whole range of IP addresses by simply stating the relevant octets of the IP address you want to permit (e.g. setting "192.168" will include IP addresses from 192.168.0.0 to 192.168.255.255).
+
+
+=== Option 2: Blacklist access based on the origin IP address of the x-Forwarded-For header
+If your client is connecting to your API through an HTTP proxy or a load-balancer, you might want to blacklist your client's specific IP (i.e. the IP originating the request) instead of the address that will appear in the request.
+For example:
+If you are interested in blacklisting 192.168.2.3 and this client is connecting through an HTTP proxy whose address is 92.40.1.255, their request will show up with this public address.
+In order to go around this, applications use the 'X-Forwarded-For' header to identify the origin IP addresses of a request that was redirected to your endpoint.
+
+You can use a Mule expression to instruct the service to look for the IP address in the 'x-Forwarded-For' header:
+
+[source, EML]
+----
+#[message.inboundProperties['http.headers']['X-Forwarded-For']]
+----
+
+And insert it in the IP expression field:
+
+image:ip+whitelist+ip_expression.png[ip+blacklist+ip_expression]
+
+This will instruct API Platform to look at the first IP address that ranks in the concatenated values of the 'x-Forwarded-For' header of the request.
+
+
+== See Also
+
+* link:/mule-user-guide/v/3.7/mule-expression-language-mel[Mule Expression Language (MEL)]
+* Return to the link:/anypoint-platform-for-apis/applying-runtime-policies[Applying Runtime Policies] page.

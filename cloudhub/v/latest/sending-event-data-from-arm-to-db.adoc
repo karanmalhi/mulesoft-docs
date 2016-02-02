@@ -1,0 +1,281 @@
+= Sending Event Data from ARM to External Data Bases
+keywords: analytics, monitoring, logs, mule events, logging, apy analytics, metrics, traceability, arm, anypoint runtime manager, db, sql, mysql, oracle, jdbc
+
+By simply configuring a few settings, the event notifications produced by your running Mule Applications can be easily stored in a database.
+
+To see how to send this same information to Splunk, ELK or other third party software, see link:/cloudhub/sending-data-from-arm-to-external-monitoring-software[Sending data from ARM to External Monitoring Software].
+
+== Prerequisites
+
+Please make sure you have the following software installed:
+
+* Mule ESB – Version 3.6 or above
+* API Gateway Standalone – Version 2.1.0 or above  (optional in case you want to deal with apps that are built with the API Gateway Runtime)
+* The Mule Agent Plugin version 1.3.0 or above
+
+
+== Install the Mule Agent
+
+First you must install the Mule Agent, which is in charge of sending messages out of mule. In order to send event information to third party software, you need to have version *1.3.0* or newer of the Mule Agent.
+
+See link:/mule-agent/v/1.3.0/installing-mule-agent[Installing the Mule Agent] or link:/mule-agent/v/1.3.0/installing-mule-agent#running-the-updater[Updating the Mule Agent].
+
+
+== Install Event Tracking Database Internal Handlers
+
+Download the API Analytics Tracking Database Internal Handlers from *link:http://mule-agent.s3.amazonaws.com/1.3.0/mule-agent-internal-handlers-db-1.3.0.zip[here]* and unzip them on `{MULE_HOME}/plugins/mule-agent-plugin/lib/modules` folder.
+
+== Agent Configurable Fields
+
+Once you have the latest Mule Agent and the Event Tracking Database Internal Handlers installed on your API Gateway Standalone server you enable the internal handler by modifying your `{MULE_HOME}/conf/mule-agent.yml` configuration file.
+
+Below we provide example configurations for MySQL Server, ORACLE and Microsoft SQL Server.
+
+Although the required fields are `driver`, `jdbcUrl`, `user` and `pass`. You can also configure the `eventsTable`, `annotationsTable` and `businessTable` in which the events data is stored.
+
+|===
+|Field|Data Type|Description|Type|Default Value
+
+|driver
+|String
+|Represents the JDBC driver to use to communicate with the database server.
+|Required
+|
+
+|jdbcUrl
+|String
+|Represents the JDBC url to the database server.
+|Required
+|
+
+|user
+|String
+|The username to connect to the database server.
+|Required
+|
+
+|pass
+|String
+|The password to connect to the database server.
+|Required
+|
+
+|eventsTable
+|String
+|Represents the name of the table in which the agent will store the events.
+|Optional
+|MULE_EVENTS
+
+|annotationsTable
+|String
+|Represents the name of the table in which the agent will store the annotations associated to the main event.
+|Optional
+|MULE_EVENTS_ANNOTATIONS
+
+|businessTable
+|String
+|Represents the name of the table in which the agent will store the custom business events associated to the main event.
+|Optional
+|MULE_EVENTS_BUSINESS
+
+|===
+
+== Proposed Configurations
+
+Below are a few examples for setting up the agent for working with some of the most common databases.
+
+=== MySQL
+
+==== Schema
+
+[source, sql, linenums]
+----
+CREATE TABLE MULE_EVENTS (
+  id                  CHAR(36)     NOT NULL,
+  action              VARCHAR(500) NULL,
+  application         VARCHAR(500) NULL,
+  mule_message        LONGTEXT     NULL,
+  mule_message_id     VARCHAR(36)  NULL,
+  notification_type   VARCHAR(500) NULL,
+  path                VARCHAR(500) NULL,
+  resource_identifier VARCHAR(500) NULL,
+  timestamp           BIGINT       NOT NULL,
+  source              TEXT         NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE MULE_EVENTS_ANNOTATIONS (
+  id               CHAR(36)     NOT NULL,
+  event_id         CHAR(36)     NOT NULL,
+  annotation_type  VARCHAR(100) NULL,
+  annotation_value VARCHAR(255) NULL,
+  PRIMARY KEY (id),
+  KEY FK_MULE_EVENTS_ANNOTATIONS_MULE_EVENTS_IDX (event_id),
+  CONSTRAINT FK_MULE_EVENTS_ANNOTATIONS_MULE_EVENTS
+  FOREIGN KEY (event_id) REFERENCES MULE_EVENTS (id)
+    ON DELETE CASCADE
+);
+
+CREATE TABLE MULE_EVENTS_BUSINESS (
+  id             CHAR(36)     NOT NULL,
+  event_id       CHAR(36)     NOT NULL,
+  business_key   VARCHAR(30)  NOT NULL,
+  business_value VARCHAR(255) NULL,
+  PRIMARY KEY (id),
+  KEY FK_MULE_EVENTS_BUSINESS_IDX (event_id),
+  CONSTRAINT FK_MULE_EVENTS_BUSINESS_MULE_EVENTS
+  FOREIGN KEY (event_id) REFERENCES MULE_EVENTS (id)
+    ON DELETE CASCADE
+);
+
+----
+
+==== Internal Handler Configuration
+
+. Download the MySQL JDBC driver from http://dev.mysql.com/downloads/connector/j/.
+. Extract the .zip file to obtain the `mysql-connector-java-_VERSION_-bin.jar` file
+. Copy this .jar file to `{MULE_HOME}/plugins/mule-agent-plugin/lib/modules`.
+. Modify the file `{MULE_HOME}/conf/mule-agent.yml` to include the following:
++
+[source,yaml, linenums]
+....
+---
+  mule.agent.tracking.handler.database:
+    enabled: true
+    driver: com.mysql.jdbc.Driver
+    jdbcUrl: jdbc:mysql://192.168.61.128/mule
+    user: root
+    pass: test
+....
+
+
+=== ORACLE
+
+==== Schema
+
+[source, sql, linenums]
+----
+CREATE TABLE MULE_EVENTS (
+  id                  CHAR(36)     NOT NULL,
+  action              VARCHAR(500) NULL,
+  application         VARCHAR(500) NULL,
+  mule_message        CLOB         NULL,
+  mule_message_id     VARCHAR(36)  NULL,
+  notification_type   VARCHAR(500) NULL,
+  path                VARCHAR(500) NULL,
+  resource_identifier VARCHAR(500) NULL,
+  timestamp           NUMBER       NOT NULL,
+  source              CLOB         NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE MULE_EVENTS_ANNOTATIONS (
+  id               CHAR(36)     NOT NULL,
+  event_id         CHAR(36)     NOT NULL,
+  annotation_type  VARCHAR(100) NULL,
+  annotation_value VARCHAR(255) NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT FK_MEA_ME
+  FOREIGN KEY (event_id) REFERENCES MULE_EVENTS (id) ON DELETE CASCADE
+);
+
+CREATE INDEX FK_MAE_IDX ON MULE_EVENTS_ANNOTATIONS (event_id);
+
+CREATE TABLE MULE_EVENTS_BUSINESS (
+  id             CHAR(36)     NOT NULL,
+  event_id       CHAR(36)     NOT NULL,
+  business_key   VARCHAR(30)  NOT NULL,
+  business_value VARCHAR(255) NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT FK_MEB_ME
+  FOREIGN KEY (event_id) REFERENCES MULE_EVENTS (id) ON DELETE CASCADE
+);
+
+CREATE INDEX FK_MEB_IDX ON MULE_EVENTS_BUSINESS (event_id);
+
+----
+
+==== Internal Handler Configuration
+
+. Download the Oracle JDBC driver from http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html.
+. Extract the .zip file to obtain the .jar file
+. Copy this .jar file to `{MULE_HOME}/plugins/mule-agent-plugin/lib/modules`.
+. Modify the file `{MULE_HOME}/conf/mule-agent.yml` to include the following:
++
+[source,yaml, linenums]
+....
+---
+  mule.agent.tracking.handler.database:
+    enabled: true
+    driver: oracle.jdbc.OracleDriver
+    jdbcUrl: jdbc:oracle:thin:@192.168.61.128/XE
+    user: root
+    pass: test
+....
+
+
+=== Microsoft SQL Server
+
+==== Schema
+
+[source, sql, linenums]
+----
+CREATE TABLE MULE_EVENTS (
+  id                  CHAR(36)     NOT NULL,
+  action              VARCHAR(500) NULL,
+  application         VARCHAR(500) NULL,
+  mule_message        VARCHAR(MAX) NULL,
+  mule_message_id     VARCHAR(36)  NULL,
+  notification_type   VARCHAR(500) NULL,
+  path                VARCHAR(500) NULL,
+  resource_identifier VARCHAR(500) NULL,
+  timestamp           BIGINT       NOT NULL,
+  source              VARCHAR(MAX) NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE MULE_EVENTS_ANNOTATIONS (
+  id               CHAR(36)     NOT NULL,
+  event_id         CHAR(36)     NOT NULL,
+  annotation_type  VARCHAR(100) NULL,
+  annotation_value VARCHAR(255) NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT FK_MULE_EVENTS_ANNOTATIONS_MULE_EVENTS
+  FOREIGN KEY (event_id) REFERENCES MULE_EVENTS (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX FK_MULE_EVENTS_ANNOTATIONS_MULE_EVENTS_IDX ON MULE_EVENTS_ANNOTATIONS (event_id);
+
+CREATE TABLE MULE_EVENTS_BUSINESS (
+  id             CHAR(36)     NOT NULL,
+  event_id       CHAR(36)     NOT NULL,
+  business_key   VARCHAR(30)  NOT NULL,
+  business_value VARCHAR(255) NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT FK_MULE_EVENTS_BUSINESS_MULE_EVENTS
+  FOREIGN KEY (event_id) REFERENCES MULE_EVENTS (id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX FK_MULE_EVENTS_BUSINESS_IDX ON MULE_EVENTS_BUSINESS (event_id);
+----
+
+==== Internal Handler Configuration
+
+. Download the Microsoft JDBC driver from https://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=11774.
+. Extract the `sqljdbc_4_%version%.tar.gz` file to obtain the `sqljdbc4%version%_.jar` file
+. Copy this .jar file to `{MULE_HOME}/plugins/mule-agent-plugin/lib/modules`.
+. Modify the file `{MULE_HOME}/conf/mule-agent.yml` to include the following:
+
++
+[source,yaml, linenums]
+....
+---
+  mule.agent.tracking.handler.database:
+    enabled: true
+    driver: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    jdbcUrl: jdbc:sqlserver://192.168.61.128:1433;databaseName=Mule;
+    user: root
+    pass: test
+....

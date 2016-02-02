@@ -1,0 +1,70 @@
+= HTTP Basic Authentication - Deprecated
+:keywords: devkit, authentication, http basic
+
+This page discusses the DevKit's support for HTTP basic authentication, and how to implement a connector that uses HTTP Authentication link:https://www.ietf.org/rfc/rfc2617.txt[RFC-2617] to authenticate with your API.
+
+HTTP Basic authentication is the simplest technique for enforcing access control to web resources. It uses static, standard HTTP headers which means that no handshakes have to be done in anticipation.
+
+== Prerequisites
+
+This document assumes you are familiar with the link:/anypoint-connector-devkit/v/3.8[Anypoint Connector DevKit] and you are ready to implement authentication on your connector. It assumes you are familiar with the various link:/anypoint-connector-devkit/v/3.8/authentication-methods[authentication methods] and you are using HTTP basic authentication to authenticate with your API.
+
+== @HttpBasicAuth Annotation
+
+To implement HTTP basic authentication on your Connector you need to create a new class and annotate it with @HttpBasicAuth.
+
+The following table describes all parameters for the `@HttpBasicAuth` annotation.
+
+[width="100%",cols="25a,25a,25a,25a",options="header"]
+|===
+|Parameter |Description |Required? |Default Value
+|*friendlyName* |Defines the name that is going to be displayed in the connector configuration pop up. |✓ |
+|*configElementName* |Defines the name for the configuration  that is going to be used in the mule app. |  |config
+|*headerName* |Name of the header that contains the username and password encoded in Base64 |  |Authorization
+|*prefix* |Use prefix before encoding the username and password into Base64. |  |Basic
+|===
+
+== Adding @HttpBasicAuth to the @Connector Class
+
+[source,java, linenums]
+----
+@Connector(name = "connector")
+public class MyConnector
+{
+   @Config
+   private HttpBasicAuthStrategy strategy;
+
+   @Processor
+   @Restcall(uri = "https://someuri.com/api/method", method = HttpMethod.POST)
+   public abstract String method(@RestPostParam("parameter")String param);
+}
+
+@HttpBasicAuth(configElementName="http-ba-config", friendlyName="HTTP Basic Auth")
+public class HttpBasicAuthStrategy
+{
+   @Configurable
+   @BasicAuthUsername
+   private String username;
+
+   @Configurable
+   @BasicAuthPassword
+   private String password;
+}
+----
+
+=== @HttpBasicAuth Required Class Properties
+
+Your Strategy class needs `@Configurable` instance properties to allow the user to specify their username and password, when using the connector as shown above:
+
+* `@BasicAuthUsername` holds the username
+* `@BasicAuthPassword` holds the password
+
+*Important*: Ensure these instance variables have public getters and setters (not shown).
+
+=== @HttpBasicAuth Only for @Restcall @Processor
+
+As HTTP Basic Authentication is a method for an HTTP user agent that provides a username and password when making a request using static standard HTTP headers. You can only use this authentication method for REST call operations.
+
+== See Also
+
+link:/anypoint-connector-devkit/v/3.8/authentication[Authentication]

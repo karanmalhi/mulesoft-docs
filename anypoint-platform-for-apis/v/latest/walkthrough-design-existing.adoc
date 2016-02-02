@@ -5,7 +5,7 @@
 
 [NOTE]
 ====
-This page is part of the Anypoint Platform for APIs walkthrough. If you landed here by mistake and you're not sure where to start, go to the link:/anypoint-platform-for-apis/anypoint-platform-for-apis-walkthrough[walkthough introduction] to learn more.
+This page is part of the Anypoint Platform for APIs walkthrough. If you landed here by mistake and you're not sure where to start, go to the link:/anypoint-platform-for-apis/anypoint-platform-for-apis-walkthrough[walkthrough introduction] to learn more.
 
 Looking for a user guide for building APIs in the Anypoint Platform? See link:/anypoint-platform-for-apis/designing-your-api[Designing Your API].
 ====
@@ -45,7 +45,8 @@ In this walkthrough, we take an existing SOAP API that already has a link:http:/
 
 . If you haven't already, click *Define API* on your API Version Details page to open API Designer.
 +
-image:raml+create.jpeg[raml+create]
+image:raml-create.jpeg[raml+create]
+
 
 . In your new RAML file, the first thing you notice is that the information you provided when registering the new API (the name and version number) have been entered for you in the root.
 +
@@ -66,14 +67,14 @@ version: 1.0.development
 baseUri: http://www.tshirt.com/api
 ----
 +
-Next, look at the Shelf at the bottom of the Designer. The Shelf is context aware: it displays a list of the components you can enter at that point in the hierarchy of your API. These components are arranged into categories that appear when relevant: Root, Docs, Parameters, Security, Resources, Methods,  Traits and Types, Schemas, Body, and Responses.
+Next, look at the Shelf at the bottom of the Designer. The Shelf is context aware: it displays a list of the components you can enter at that point in the hierarchy of your API. These components are arranged into categories that appear when relevant: Root, Docs, Parameters, Security, Resources, Methods, Traits and Types, Schemas, Body, and Responses.
 +
 image:API+Designer+shelf.png[API+Designer+shelf]
 +
 Instead of typing each of these components in, you can click what you want to add, which then appears in your RAML definition. As you enter a component, it disappears from the Shelf. For example, because you can't have two `GET` methods for the same resource, if you select a `GET` method from the list of Methods, it disappears from the Shelf. 
 . Next, look at your API's link:http://tshirt-service.cloudhub.io/?wsdl[original WSDL], which lists a set of operations that can be called. All of these operations act upon a certain type of resource: notice how they have names like `ListInventory`, `OrderTshirt`, or `TrackOrder`. In this API, all operations involve one of the following three resources: `products` (mostly t-shirts), `orders` (t-shirt orders, of course), and order `status`.
 +
-image:wsdl.png[wsdl]
+image:wsdl.png[wsdl illustration]
 +
 In your RAML file, create a resource for each of the three resources that can be called by the API:
 +
@@ -88,7 +89,7 @@ image:new+resource.png[new+resource]
 Then, just replace the text in the resource title and in its child element `displayName`.
 +
 [WARNING]
-Keep in mind that the elements that the API Designger suggests depend contextually upon where you place the cursor, the shelf only offers you the option of placing elements that make sense in that particular position within the RAML tree structure.
+Keep in mind that the elements that the API Designer suggests depend contextually upon where you place the cursor, the shelf only offers you the option of placing elements that make sense in that particular position within the RAML tree structure.
 +
 Here's what your RAML should look like so far:
 +
@@ -222,7 +223,7 @@ baseUri: http://www.tshirt.com/api
                 }
 ----
 
-. To ensure that `POST` requests sent to the *`/order`* resource are valid, you can enforce that they all follow a given structure. You can provide a schema to match for incoming requests to ensure their validity. To help developers that are trying to understand what input your API requires, you can also add an example message, which will not only be readable in the RAML code, but that will be visibly exposed if the API is looked at in the API Console. Add both these elements into the `post` method of the `/orders` resource, placing them within `body – application/json`.
+. To ensure that `POST` requests sent to the *`/order`* resource are valid, you can enforce that they all follow a given structure. You can provide a schema to match for incoming requests to ensure their validity. To help developers that are trying to understand what input your API requires, you can also add an example message, which not only is readable in the RAML code, but that is visibly exposed if the API is looked at in the API Console. Add both these elements into the `post` method of the `/orders` resource, placing them within `body – application/json`.
 +
 [source,yaml,linenums]
 ----
@@ -316,27 +317,28 @@ queryParameters:
 
 Now that you've designed your API, it's time to test your user's experience of calling the API in the API console. 
 
-. Above the API console on the right, note that the Mocking Service is currently off. Flip it on. +
-
+. Above the API console on the right, note that the Mocking Service is currently off. Flip it on.
 +
 image:mocking+service.png[mocking+service]
-
-. Notice the change to your RAML definition. Where previously your `baseUri` was a placeholder for the duration of the design phase (the service isn't actually tied to anything at the moment: calling http://www.tshirt.com/api doesn't return a response), now you've got something that looks like so: +
-
 +
-image:mock+URL.png[mock+URL] +
+. Notice the change to your RAML definition. Where previously your `baseUri` was a placeholder for the duration of the design phase (the service isn't actually tied to anything at the moment: calling http://www.tshirt.com/api doesn't return a response), now you've got something that looks like so:
 +
-
-Whoa. What happened here? The `baseUri` that you provided when declaring your basic information at the root has been commented out and supplanted by a new URI.  With this one simple action, you've effectively published your API and it is now ready to receive live calls. You've provided example responses, right? You can make live calls in the API Console OR your browser, which returns data that you've provided in your RAML API definition. You can see what your API consumers see when they make calls to the API, and fully test APX.  +
- +
-Let's test that theory in the API console by making a `GET` request on the status of a particular order. +
-
+image:mock+URL.png[mock+URL]
++
+Whoa. What happened here? The `baseUri` that you provided when declaring your basic information at the root has been commented out and supplanted by a new URI.  With this one simple action, you've effectively published your API and it is now ready to receive live calls. You've provided example responses, right? You can make live calls in the API Console OR your browser, which returns data that you've provided in your RAML API definition. You can see what your API consumers see when they make calls to the API, and fully test APX.
++
+Let's test that theory in the API console by making a `GET` request on the status of a particular order.
 +
 image:Screenshot+2014-07-03+14.49.46.png[Screenshot+2014-07-03+14.49.46]
 +
-
 As you can see, by providing a valid email address, the request URL reflected the resource path appended to the `baseUri` (just as it would with any functioning API). The call was performed live, and in response, the user receives a status 200: success! The response body is the example in the RAML file. In this case, the information isn't important - it's knowing how the response looks and that it's successful that's important.
 
 == Next
 
 Congratulations, you've completed your RAML definition. Proceed to link:/anypoint-platform-for-apis/walkthrough-build[Build].
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]

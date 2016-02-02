@@ -1,0 +1,205 @@
+= Internal Handler Buffering
+:keywords: agent, mule, esb, servers, monitor, notifications, external systems, third party, get status, metrics
+
+The Mule agent provides a simple way of implementing Internal handlers with buffering support. This documents shows how to implement and configure buffers for Mule agent internal handlers.
+
+== Implementing a Buffered Internal Handler
+
+=== BufferedHandler Abstract Class
+
+To implement a buffered internal handler, you need to extend the `BufferedHandler<T>` abstract class. The methods to overwrite are:
+
+* `boolean canHandle(T message)`
+
+   Returns true if the message can be handled by the internal handler
+
+* `boolean flush(Collection<T> collectionOfMessages)`
+
+   Provides the implementation to send the messages stored in the buffer to the external service
+
+=== Example
+
+[source, java, linenums]
+----
+@Named("com.mulesoft.agent.mypublisher")
+@Singleton
+public class MyPublisher extends BufferedHandler<List<Metric>>
+{
+    @Configurable(value = "mule")
+    String metricPrefix;
+
+    @Inject
+    public MyPublisher()
+    {
+        super();
+    }
+
+    public MyPublisher(OnOffSwitch enabledSwitch)
+    {
+        super();
+        this.enabledSwitch = enabledSwitch;
+    }
+
+    @Override
+    public boolean canHandle(@NotNull List<Metric> metrics)
+    {
+        // Evaluates if the message could be handled
+    }
+
+    @Override
+    public boolean flush(@NotNull Collection<List<Metric>> listOfMetrics)
+    {
+        // Send messages to external service
+    }
+}
+----
+
+== Configuring a Buffering Internal Handler
+
+=== Buffering Configuration Object
+
+If the internal handler includes buffering support, you can can configure the buffer in the `mule-agent.yml` file. The following table lists the available configuration parameters.
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|===
+|Field |Description |Default value
+|`type` |Buffer type. Valid values are `MEMORY` or `DISK`. | 
+|`retryCount` |Number of retries after an exception was thrown in the flush method. | 
+|`maximumCapacity` |Maximum size capacity. | 
+|`flushFrequency` |Frequency at which the flush method will run, in milliseconds. | 
+|`filePath` |Path to the buffer file. Only valid for buffers of type `DISK`. |`PATH/bufferFile`
+|`whenExhausted` |Strategy to follow when the buffer is exhausted. If not specified, the buffer will grow automatically. Valid values are `FAIL` and `FLUSH.` |N/A
+|`flushThreadsNumber` |Number of threads used by the FlushThreadExecutor when the buffer is exhausted and the strategy defined by `whenExhausted` is `FLUSH` (see row above). |`60`
+|`discardMessagesOnFlushFailure` |If true, messages will not be returned to the buffer if the flush is not successful. |`false`
+|===
+
+=== Sample `mule-agent.yml` Files
+
+==== Configuring Buffering in a Publisher
+
+[source, yaml, linenums]
+----
+
+---
+muleInstanceUniqueId: validId
+organizationId: organizationId
+
+transports:
+    websocket.transport:
+        security:
+            keyStorePassword: mykeystorePassword
+            keyStoreAlias: agent
+            keyStoreAliasPassword: agentpassword
+
+    rest.agent.transport:
+        security:
+            keyStorePassword: mykeystorePassword
+            keyStoreAlias: agent
+            keyStoreAliasPassword: agentpassword
+        port: 9997
+
+services:
+    mule.agent.application.service:
+        enabled: true
+
+    mule.agent.domain.service:
+        enabled: true
+
+    mule.agent.jmx.publisher.service:
+        enabled: true
+        frequency: 15
+        frequencyTimeUnit: MINUTES
+        beans:
+            -   beanQueryPattern: java.lang:type=Runtime
+                attribute: Uptime
+                monitorMessage: Monitoring memory up-time
+            -   beanQueryPattern: java.lang:type=MemoryPool,*
+                attribute: Usage.used
+                monitorMessage" : Used Memory
+
+internalHandlers:
+    domaindeploymentnotification.internal.message.handler:
+        enabled: true
+
+    applicationdeploymentnotification.internal.message.handler:
+        enabled: false
+
+    com.mulesoft.agent.test.buffering.jmx.internal.handler:
+        enabled: true
+        buffer:
+            type: DISK
+            retryCount: 1
+            flushFrequency: 10000
+            maximumCapacity: 30
+            filePath: publisher-buffer.log
+
+externalHandlers:
+    applications.request.handler:
+        enabled: true
+
+    domains.request.handler:
+        enabled: true
+----
+==== Configuring Buffering in Events Tracking
+
+[source, yaml, linenums]
+----
+---
+muleInstanceUniqueId: validId
+organizationId: organizationId
+
+transports:
+    websocket.transport:
+        security:
+            keyStorePassword: mykeystorePassword
+            keyStoreAlias: agent
+            keyStoreAliasPassword: agentpassword
+
+    rest.agent.transport:
+        security:
+            keyStorePassword: mykeystorePassword
+            keyStoreAlias: agent
+            keyStoreAliasPassword: agentpassword
+        port: 9997
+
+services:
+    mule.agent.application.service:
+        enabled: true
+
+    mule.agent.domain.service:
+        enabled: true
+
+    mule.agent.jmx.publisher.service:
+        enabled: true
+        frequency: 15
+        frequencyTimeUnit: MINUTES
+        beans:
+            -   beanQueryPattern: java.lang:type=Runtime
+                attribute: Uptime
+                monitorMessage: Monitoring memory up-time
+            -   beanQueryPattern: java.lang:type=MemoryPool,*
+                attribute: Usage.used
+                monitorMessage" : Used Memory
+
+internalHandlers:
+    domaindeploymentnotification.internal.message.handler:
+        enabled: true
+
+    applicationdeploymentnotification.internal.message.handler:
+        enabled: false
+
+    tracking.notification.internal.message.handler:
+        enabled: true
+        buffer:
+            type: MEMORY
+            retryCount: 1
+            flushFrequency: 10000
+            maximumCapacity: 30
+
+externalHandlers:
+    applications.request.handler:
+        enabled: true
+
+    domains.request.handler:
+        enabled: true
+----

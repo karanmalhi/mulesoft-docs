@@ -1,0 +1,351 @@
+= Complex Data Types Attributes
+:keywords: devkit, data, complex data types, enumerated types, enum class, collections, list, map, spring beans
+
+One integration point between Mule and your connector is the data passing between the connector and Mule ESB, such as when configuring a component. Primitive data types are straightforward; however enumerated types, arrays, and complex types require special handling.
+
+== Enumerated Types
+
+Anypoint DevKit provides an easy way for handling enumerated types. Methods annotated with `@Processor` or `@Source` can receive enums as parameters and these can be passed as strings from Mule. It's also possible to use enumerated types along with `java.lang.Collection` and `java.lang.Map`.
+
+Consider the following extension:
+
+[source,java, linenums]
+----
+@Connector(name="my-connector")
+public class MyConnector {
+
+    private Map<Property, String> properties;
+
+    @Configurable
+    private Property myProperty;
+
+    @Processor
+    public void setProperties(Map<Property, String> properties) {
+        this.properties = properties;
+    }
+
+    @Processor
+    public String getPropertyValue(Property property) {
+        return properties.get(property);
+    }
+----
+
+With this `enum` class:
+
+[source,java, linenums]
+----
+public enum Property {
+    FIRST_NAME, LAST_NAME, ADDRESS
+}
+----
+
+Then the following enums types and flows are valid:
+
+[source, xml, linenums]
+----
+<my-connector:config myProperty="FIRST_NAME"/>
+----
+
+[source, xml, linenums]
+----
+<flow name="setProperties">
+    <my-connector:set-properties>
+        <my-connector:properties>
+            <my-connector:property key="FIRST_NAME">Muley</enums:property>
+            <my-connector:property key="LAST_NAME">The Mule</enums:property>
+        </my-connector:properties>
+    </my-connector:set-properties>
+</flow>
+----
+
+[source, xml, linenums]
+----
+<flow name="getPropertyValue">
+    <my-connector:get-property-value property="LAST_NAME"/>
+</flow>
+----
+
+=== How It Works
+
+Under the hood, Anypoint DevKit generates a Transformer for all the enumerated types that appear as parameters of `@Processor` and `@Source` methods, or any instance field annotated with `@Configurable`. So when a string is entered in the xml for an enumerated type, the enum constant with the specified name is passed to the method or assigned to the field.
+
+The generated schema file also adds restrictions so that only matching enumerated values can be used in the xml.  For example, since the possible values for the `Property` enum are `FIRST_NAME`, `LAST_NAME,` and `ADDRESS` then the following is not valid and the validation of the schema  fails:
+
+[source, xml, linenums]
+----
+<flow name="getPropertyValue">
+    <my-connector:get-property-value property="COUNTRY"/>
+</flow>
+----
+
+== Collections
+
+Anypoint DevKit provides a simple way to handle `java.util.Collection` and `java.util.Map` types, whether they appear in `@Configurable` fields, or as parameters of `@Processor` or `@Source` methods. DevKit also allows more complex scenarios where types are nested such as `Map<String, List<String>>` or `List<Map<String, Object>>`.
+
+There are two ways to handle these types from Mule.
+
+* Declare the elements explicitly.
+* Pass a reference to the elements.
+
+[NOTE]
+All  examples and explanations on this page are valid for `@Connector` classes.
+
+=== Collection Examples
+
+Consider the following custom Mule Connector:
+
+[source,java, linenums]
+----
+import org.mule.api.annotations.Configurable;
+import org.mule.api.annotations.Connector;
+import org.mule.api.annotations.Processor;
+import org.mule.api.annotations.param.Optional;
+
+import java.util.List;
+import java.util.Map;
+
+@Connector(name = "collection")
+public class CollectionConnector {
+
+    @Configurable
+    @Optional
+    private List<String> strings;
+
+    @Configurable
+    @Optional
+    private Map<String, String> mapStrings;
+----
+
+And these Spring beans:
+
+[source,xml, linenums]
+----
+<spring:bean id="objectA" class="java.lang.String">
+    <spring:constructor-arg value="ObjectA"/>
+</spring:bean>
+
+<spring:bean id="objectB" class="java.lang.String">
+    <spring:constructor-arg value="ObjectB"/>
+</spring:bean>
+
+<spring:bean id="list" class="org.springframework.beans.factory.config.ListFactoryBean">
+    <spring:property name="sourceList">
+        <spring:list>
+            <spring:ref bean="objectA"/>
+            <spring:ref bean="objectB"/>
+        </spring:list>
+    </spring:property>
+</spring:bean>
+----
+
+You can configure the Connector any of the following ways.
+
+* Declare the list elements explicitly.
++
+[source,xml, linenums]
+----
+<collection:config>
+    <collection:strings>
+        <collection:string>MuleSoft</collection:string>
+        <collection:string>FTW</collection:string>
+    </collection:strings>
+</collection:config>
+----
++
+* Declare the map elements explicitly. 
++
+[source,xml, linenums]
+----
+<collection:config>
+    <collection:map-strings>
+        <collection:map-string key="a">MuleSoft</collection:map-string>
+        <collection:map-string key="b">FTW</collection:map-string>
+    </collection:map-strings>
+</collection:config>
+----
++
+* Like the previous map, use the tag names (`a` and `b`) as keys.
++
+[source,xml, linenums]
+----
+<collection:count-map-of-strings config-ref="configC">
+    <collection:map-strings>
+        <collection:a>mulesoft</collection:a>
+        <collection:b>ftw</collection:b>
+    </collection:map-strings>
+</collection:count-map-of-strings>
+----
++
+* Declare one element explicitly and use a reference for the other element. 
++
+[source,xml, linenums]
+----
+<collection:config>
+    <collection:strings>
+        <collection:string>MuleSoft</collection:string>
+        <collection:string value-ref="objectA"/>
+    </collection:strings>
+</collection:config>
+----
++
+* Instead of declaring the elements of the list, pass a reference to a bean of the same type.
++
+[source,xml, linenums]
+----
+<collection:config name="configA">
+    <collection:strings ref="list" />
+</collection:config>
+----
+
+
+== Nested Collections
+
+Now consider the following `@Processor` method.
+
+[source,java, linenums]
+----
+@Processor
+public void mapOfLists(Map<String, List<String>> map) {
+----
+
+The generated message processor can be invoked as follows.
+
+[source,xml, linenums]
+----
+<collection:map-of-lists>
+    <collection:map>
+        <collection:map key="key1" value-ref="list" />
+        <collection:map key="key2" value-ref="#[map-payload:anotherList]" />
+    </collection:map>
+</collection:map-of-lists>
+----
+
+Instead of passing the values of the map by reference, the map itself can also be a reference:
+
+[source,xml, linenums]
+----
+<collection:map-of-lists>
+    <collection:map ref="#[map-payload:myMap]" />
+</collection:map-of-lists>
+----
+
+== Supported Complex Types
+
+Anypoint DevKit supports the following types:
+
+[width="100%",cols="50%,50%",]
+|===
+a|
+* `int`
+* `float`
+* `long`
+* `byte`
+* `short`
+* `double`
+* `boolean`
+* `char`
+* `java.lang.Integer`
+* `java.lang.Float`
+* `java.lang.Long`
+* `java.lang.Byte`
+
+ a|
+* `java.lang.Short`
+* `java.lang.Double`
+* `java.lang.Boolean`
+* `java.lang.Character`
+* `java.lang.String`
+* `java.math.BigDecimal`
+* `java.math.BigInteger`
+* `java.util.Date`
+* `java.lang.Class`
+* `java.net.URL`
+* `java.net.URI`
+
+|===
+
+You can pass other types by reference.
+
+[source,java, linenums]
+----
+@Processor
+public void receiveAComplexType(MyComplexType myComplexType) { ... }
+----
+
+Anypoint DevKit enables you to use such processors, especially when Anypoint DataMapper uses the module. DataMapper-friendly modules pass information in beans, since DataMapper can extract metadata from both a Java bean and the XML. DevKit also standardizes the way Mule passes references.
+
+== Complex Type Construction
+
+When an `@Processor` method receives a complex type, Anypoint DevKit deconstructs the object then constructs a schema that can be used to reconstruct that object. This lets you represent complex type objects with concise, intuitive XML. For example:
+
+[source,xml, linenums]
+----
+<ns:receive-a-complex-type>
+    <ns:my-complex-type color="red"/>
+</ns:receive-a-complex-type>
+----
+
+You can use the following annotations inside the complex type definition to control schema generation:
+
+* `@Optional`
+* `@Default`
+
+Further, a complex type can have inner lists or maps of other complex types. 
+
+=== Ignoring Fields in a Complex Type
+
+The `@Ignore` annotation tells DevKit to ignore a field inside a complex object.
+
+[source,java, linenums]
+----
+public class MyComplexType
+{
+    private String color;
+
+    @Ignore
+    private String description;
+}
+
+@Processor
+public void receiveAComplexType(MyComplexType myComplexType) { ... }
+----
+
+Anypoint DevKit omits the description field from the generated schema. For example, the snippet below is invalid, because the `@Ignored description` attribute is not part of the generated schema. For DevKit's purposes, at the XML level this element does not have a `description` attribute.
+
+[source,xml, linenums]
+----
+<ns:receive-a-complex-type>
+    <ns:my-complex-type color="red" description=""/>
+</ns:receive-a-complex-type>
+----
+
+=== Passing List and Map Objects by Reference
+
+Anypoint DevKit standardizes the way to pass objects by reference. List and Map objects can be passed by reference in a `ref` attribute in a child element, as in the following examples.
+
+[source,java, linenums]
+----
+@Processor
+public void receiveAList(List<String> strings) { ... }
+----
+
+[source,xml, linenums]
+----
+<ns:receive-a-list>
+  <ns:strings ref="#[payload]"/>
+</ns:receive-a-list>
+----
+
+In Anypoint DevKit, passing a complex object also uses a  `ref` attribute in a child element.
+
+[source,xml, linenums]
+----
+<ns:receive-a-complex-type>
+    <ns:my-complex-type ref="#[payload]"/>
+</ns:receive-a-complex-type>
+----
+
+== See Also
+
+* NEXT: Continue to link:/anypoint-connector-devkit/v/3.8/adding-datasense[Add DataSense] to your Connector.
+* Learn how to link:/anypoint-connector-devkit/v/3.8/developing-devkit-connector-tests[Test Your Connector].

@@ -57,14 +57,14 @@ image:create-user.png[create-user]
 
 Calculate the database quota (that is, database space) by examining the actual usage of the account over a period of time. First, determine the actual size of the database. Open the Oracle SQL Command Line (SQL*Plus) and enter the following:
 
-[source, code, linenums]
+[source, code]
 ----
 select sum(bytes) from user_segments
 ----
 
 Next, calculate the space actually used by the schema (the schema in Oracle is the logged-in user). Enter the following in SQL*Plus:
 
-[source, code, linenums]
+[source, code]
 ----
 connect TRACKER/tracker@orcl;select sum(bytes) from user_segments
 ----
@@ -75,7 +75,7 @@ Your results will depend on your environment and database configuration.
 
 After you calculate the database quota, you can set it through the ALTER USER command. For example, the following command sets the database quota for the user to 1 MB:
 
-[source, code, linenums]
+[source, code]
 ----
 alter user TRACKER quota 1M on users;
 ----
@@ -105,14 +105,14 @@ If you run the management console as part of the Mule ESB distribution,you can f
 
 In the persistence.xml file, replace:
 
-[source, xml, linenums]
+[source, xml]
 ----
 <property name="openjpa.jdbc.DBDictionary" value="batchLimit=-1" />
 ----
 
 with:
 
-[source, xml, linenums]
+[source, xml]
 ----
 <property name="openjpa.jdbc.DBDictionary" value="oracle (DriverVendor=oracle)" />
 ----
@@ -123,7 +123,27 @@ In the tracking-ApplicationContext.xml file, change the definitions of the dataS
 
 [source, xml, linenums]
 ----
-<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">    <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />    <property name="url" value="jdbc:oracle:thin:@127.0.0.1:1521:orcl" />    <property name="username" value="TRACKER" />    <property name="password" value="tracker" /></bean><tx:annotation-driven transaction-manager="transactionManager" /><bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">     <property name="entityManagerFactory" ref="entityManagerFactory" /></bean><bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">     <property name="dataSource" ref="dataSource" />     <property name="persistenceUnitName" value="persistence-unit" />     <property name="jpaVendorAdapter" bean id="jpaAdapter" class="org.springframework.orm.jpa.vendor.OpenJpaVendorAdapter" />     <property name="database" value="ORACLE" />     <property name="showSql" value="true" />     </bean>     <property>     <property name="loadTimeWeaver">        <bean class="com.mulesoft.mmc.tracking.jpa.OpenJPALoadTimeWeaver" />     </property></bean>
+<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+  <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+  <property name="url" value="jdbc:oracle:thin:@127.0.0.1:1521:orcl" />
+  <property name="username" value="TRACKER" />
+  <property name="password" value="tracker" />
+</bean><tx:annotation-driven transaction-manager="transactionManager" />
+<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+  <property name="entityManagerFactory" ref="entityManagerFactory" />
+</bean>
+  <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+  <property name="dataSource" ref="dataSource" />
+  <property name="persistenceUnitName" value="persistence-unit" />
+  <property name="jpaVendorAdapter" bean id="jpaAdapter" class="org.springframework.orm.jpa.vendor.OpenJpaVendorAdapter" />
+  <property name="database" value="ORACLE" />
+  <property name="showSql" value="true" />
+</bean>
+<property>
+  <property name="loadTimeWeaver">
+    <bean class="com.mulesoft.mmc.tracking.jpa.OpenJPALoadTimeWeaver" />
+</property>
+</bean>
 ----
 
 Note that localhost is used as the default port and SID is specified as "orcl". User "TRACKER" is the same created in step 4.
@@ -132,7 +152,7 @@ Note that localhost is used as the default port and SID is specified as "orcl".
 
 The persistence.xml file includes the following property specification:
 
-[source, xml, linenums]
+[source, xml]
 ----
 <property name="openjpa.jdbc.SynchronizeMappings" value="buildSchema(SchemaAction=add)" />\
 ----
@@ -147,7 +167,7 @@ ORA-12519, TNS: no appropriate service handler found. If you get this error, you
 
 * Login to Oracle as system, then open SQL*Plus and enter the following::
 
-[source, code, linenums]
+[source, code]
 ----
 ALTER SYSTEM SET PROCESSES=150 SCOPE=SPFILE;
 ----
@@ -157,3 +177,11 @@ ALTER SYSTEM SET PROCESSES=150 SCOPE=SPFILE;
 link:/mule-management-console/v/3.2/business-events-use-cases[<< Previous: *Business Events Use Caases*]
 
 link:/mule-management-console/v/3.2/working-with-alerts[Next: *Working With Alerts* >>]
+
+== See Also
+
+* link:https://www.mulesoft.com/dl/mmc[MMC Download]
+* link:https://www.mulesoft.com/tcat/download[Tcat Download]
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]

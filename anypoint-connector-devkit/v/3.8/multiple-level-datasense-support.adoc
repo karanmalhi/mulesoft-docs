@@ -1,0 +1,251 @@
+= Multiple Level DataSense Support
+:keywords: devkit, datasense, multiple level, multi-level
+
+As seen before, Mule DataSense is a feature that allows you to displays the metadata of entities included in a service in a friendly manner. In its original form, DataSense uses a single key to identify the entity for which the MetaData has to be retrieved. This single-key approach might be a restriction for complex cases, where the entities to be describe through MetaData are identified in a nested way, with more than one identifiers and that most of the time work in a closely related way, creating a selection tree based on the previously selected key.
+
+For example, if you want to describe a state in the world, a single key with the name of the state is not going to be enough to uniquely identify it. A better id for a state would be a nested combination of "region->country->state", where the user would first select the region, then a country from the ones available for that region, and finally a state in the previously selected country.
+
+DevKit 3.7 and later adds support for MultiLevel DataSense, a feature that allows the developer to easily provide a set of multi-level nested keys, that greatly improves the user experience when selecting a complex-key for an entity.
+
+== Add Multi-Level DataSense Support
+
+As a connector developer, you can describe metadata using nested levels, providing a key for each level. When developing a connector, you can describe a MetadataKeyRetriever with multiple composed keys that are later processed in a MetadataRetriever as a single object.  In each processor you can declare a single composed key with labels for each level.
+
+This allows better granularity when describing an entity, and improves the experience of those using the connector at design time.
+
+=== Connector Developer Usage
+
+This section describes implementing a metadata category and the metadata key parameter.
+
+==== @MetaDataCategory Implementation
+
+Implementing a MetaDataCategory that uses multi-level keys, implies the following modifications to the original methods:
+
+* @MetaDataKeyRetriever must return a `List<ComposedMetaDataKey>`. Categories using ComposedKeys can only return this kind of keys.
+* @MetaDataRetriever must receive a single ComposedMetaDataKey +
+
+For cases where the default keySeparator "||" can be a valid combination inside the keyId's to be used, then the @MetaDataKeyRetriever can be configured with a custom keySeparator to be used when levels are concatenated
+
+[source,java, linenums]
+----
+@MetaDataCategory
+public class CustomSeparatorComposedKeyCategory {
+ 
+    // Common Category Setup
+    // ...
+    private static final int REGION = 0;
+    private static final int COUNTRY = 1;
+    private static final int STATE = 2;
+ 
+    @MetaDataKeyRetriever( keySeparator="@@" ) 
+    // keySeparator is Optional, with a default value of '||'
+    public List<ComposedMetaDataKey> getMetaDataKeys() throws Exception {
+         
+      return ComposedMetaDataKeyBuilder.getInstance()
+           .newKeyCombination()
+             .newLevel() // Region
+               .addId("south", "South America") // Added to Dropdown 1
+             .endLevel()
+             .newLevel() // Country
+               .addId("arg", "Argentina") // Added to Dropdown 2
+             .endLevel()
+             .newLevel() // State
+               .addId("bsas", "Buenos Aires") // Added to Dropdown 3
+               .addId("tucu", "Tucuman") // Added to Dropdown 3
+             .endLevel()
+           .endKeyCombination()
+           .newKeyCombination()
+             .newLevel() // Region
+               .addId("north", "North America") // Added to Dropdown 1
+             .endLevel()
+             .newLevel() // Country
+               .addId("usa", "United States") // Added to Dropdown 2
+             .endLevel()
+             .newLevel() // State
+               .addId("ny", "New York") // Added to Dropdown 3
+               .addId("ca", "California") // Added to Dropdown 3
+             .endLevel()
+           .endKeyCombination()
+         .build();
+    }
+ 
+ 
+    @MetaDataRetriever
+    public MetaData getMetaData(ComposedMetaDataKey composedKey) throws Exception {
+        DefaultMetaDataBuilder builder = new DefaultMetaDataBuilder();
+        MetaDataModel model;
+        
+        // A valid key would be: south@@arg@@tucu
+        if (composedKey.getSortedIds().get(REGION).equals("south")) {
+            model = builder.createDynamicObject("TravelData")
+                             .addList("mainCities").ofSimpleField(DataType.STRING)
+                             .endDynamicObject()
+                         .build();
+        } else {
+            model = builder.createDynamicObject("BusinessData")
+                             .addList("mainBanks").ofSimpleField(DataType.STRING)
+                             .endDynamicObject()
+                         .build();
+        }
+        return new DefaultMetaData(model);
+    }
+}
+----
+
+==== @MetaDataKeyParam Implementation
+
+@MetaDataKeyParam must declare a *labels* attribute, declaring a label for each DataSense level to be shown in Studio as a drop-down. Labels is the "name" of the drop-down.
+
+[source,java, linenums]
+----
+@Processor
+@MetaDataScope( CustomSeparatorComposedKeyCategory.class )
+public Map<String,Object> addEntity(
+            @MetaDataKeyParam( labels={"Region", "Country", "State"} ) String key,
+            @Payload Map<String,Object> entity) 
+{
+    //...
+}
+----
+
+=== Restrictions
+
+* The keySeparator cannot contain these characters: `#[]`
+* Labels cannot contain a comma (,) character.
+* The number of labels must match the number of key levels provided by the MetaDataKeyRetriever method.
+
+=== Builder Details: How to Create Multiple Key Combinations
+
+==== Fluent Builder
+
+Use Fluent Builder to create multiple key combinations in scenarios when all the information is available for a one-line creation.
+
+In the following example, the expected IDs output is:
+
+[source, code, linenums]
+----
+south||arg||bsas, south||arg||tucu, north||usa||nyc, north||usa||ca
+----
+
+Three drop-downs display in Anypoint Studio, as shown in the previous screenshots:
+
+* The top one shows "South America" and "North America". 
+* Depending on the first selection, the second one shows "Argentina" or "United States" as options.
+* The third drop-down shows "Buenos Aires" and "Tucuman" when Argentina is selected in the second drop-down, or "San Francisco" and "Los Angeles", if United States is selected in the second drop-down. 
+
+[source.java]
+----
+return ComposedMetaDataKeyBuilder.getInstance()
+.newKeyCombination()
+    .newLevel().addId("south", "South America").endLevel()
+    .newLevel().addId("arg", "Argentina").endLevel()
+    .newLevel().addId("bsas", "Buenos Aires").addId("tucu", "Tucuman")
+.endKeyCombination()
+.newKeyCombination()
+    .newLevel().addId("north", "North America").endLevel()
+    .newLevel().addId("usa", "United States").endLevel()
+    .newLevel().addId("nyc", "New York").addId("ca", "California").endLevel()
+.endKeyCombination()
+.build();
+----
+
+=== Fluent Builder with Partial Level Definitions
+
+Similar to the first fluent approach, the partial Level's definition will enable code re-use while building keys.
+
+In this example, the expected IDs output is:
+
+[source,java, linenums]
+----
+id1||common1, id1||common2, id1||sub1, 
+id2||common1, id2||common2, id1||sub1, 
+id3||common1, id3||common2, id3||sub2, id3||sub3
+----
+
+[source,java, linenums]
+----
+// Partial Level definition
+MetaDataKeyLevel commonIds = new DefaultMetaDataKeyLevel();
+commonIds.addId("common1", "Common 1")
+                   .addId("common2", "Common 2");
+ 
+return ComposedMetaDataKeyBuilder.getInstance()
+    .newKeyCombination()
+      .newLevel()
+        .addId("id1", "Commons With Subset_1").addId("id2", "Commons With Subset_2")
+      .endLevel()
+      .newLevel()
+        .addIds(commonIds) // Partial Level re-use
+        .addId("sub1", "SubLevel 1")
+      .endLevel()
+    .endKeyCombination()
+    .newKeyCombination()
+        .newLevel()
+ .addId("id3", "Commons With Subset_3")
+ .endLevel()
+        .newLevel()
+          .addIds(commonIds) // Partial Level re-use
+          .addId("sub2", "SubLevel 2")
+          .addId("sub3", "SubLevel 3")
+        .endLevel()
+    .endKeyCombination()
+    .build();
+----
+
+==== Detached Builder
+
+Build each node separately, and merge them all together in the final build. All the keys being built are stored in the builder and concatenated once the build is executed:
+
+[source,java, linenums]
+----
+ComposedMetaDataKeyBuilder metaDataKeyBuilder = ComposedMetaDataKeyBuilder.getInstance();
+ 
+ComposedMetaDataKeyBuilder.CombinationBuilder firstCombinationBuilder = metaDataKeyBuilder.newKeyCombination();
+firstCombinationBuilder.newLevel().addId("id1", "ID1").endLevel();
+ 
+ComposedMetaDataKeyBuilder.LevelBuilder levelBuilder = firstCombinationBuilder.newLevel();
+for (String id : Arrays.asList(new String[]{"sub1", "sub2", "sub3"})) {
+    levelBuilder.addId(id, id.toUpperCase());
+}
+levelBuilder.endLevel();
+firstCombinationBuilder.endKeyCombination();
+ 
+ComposedMetaDataKeyBuilder.CombinationBuilder secondCombinationBuilder = metaDataKeyBuilder.newKeyCombination();
+secondCombinationBuilder.newLevel().addId("id2", "ID2").endLevel();
+ 
+levelBuilder = secondCombinationBuilder.newLevel();
+for (String id : Arrays.asList(new String[]{"sub1", "sub4", "sub5"})) {
+    levelBuilder.addId(id, id.toUpperCase());
+}
+levelBuilder.endLevel();
+secondCombinationBuilder.endKeyCombination();
+ 
+ 
+// Expected IDs output is: id1||sub1, id1||sub2, id1||sub3, id2||sub1, id2||sub4, id2||sub5
+ 
+return metaDataKeyBuilder.build();
+----
+
+== Mule App Developer Usage
+
+Connector users will see multiple drop-downs when selecting an operation using a ComposedKey. Each dropdown represents a different metadata level, and has associated a set of keys. Levels must be filled in order, since lower levels are directly related to the previous selections.
+
+When using the processor implemented above, Anypoint Studio will render the following view for the user: 
+
+image:MLAddEntry.png[MLAddEntry]
+
+When all the levels are populated, the final key is composed and the metadata is fetched for that key.
+
+image:full_dropdown_sample.png[full_dropdown_sample]
+
+In the XML, this key is placed as a single string, where each level is separated for the previously mentioned keySeparator.
+
+[source,xml, linenums]
+----
+<sample-connector:operation config-ref="config" myKey="north@@usa@@ca"/>
+----
+
+=== See Also
+
+* link:/mule-user-guide/v/3.7/datasense[DataSense]
+* link:/anypoint-connector-devkit/v/3.8/adding-datasense[Adding DataSense]

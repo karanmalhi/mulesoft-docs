@@ -1,0 +1,34 @@
+= WSDL Operation Filtering
+:keywords: wsdl, operation filtering, soap connect, session management
+//todo: make sub-item of https://docs.mulesoft.com/anypoint-connector-devkit/v/3.8/creating-a-soap-connector#coding-with-wsdlprovider ?
+
+== Introduction
+For a particular `ServiceDefinition`, the developer is able to filter out (that is, hide from the connector user) individual operations that are declared in the WSDL file.
+
+This filtering is necessary in order to exclude login/logout operations from the operations dropdown exposed to the application developer.
+//todo: is it that certain operations in the service should not require login/logout, such as pinging the server
+
+== Implementation
+
+The set of excluded operations must be listed in the `ServiceDefinition`, so the operations that should be off-limits to the application developer are effectively ignored by DevKit in the metadata key retrieval process.
+
+[source,java,linenums]
+----
+@WsdlServiceRetriever
+    public ServiceDefinition getServiceDefinition() {
+           ServiceDefinition service = new DefaultServiceDefinition(
+                          "ServiceId", "tshirt", "tshirt.wsdl","TshirtService","TshirtServicePort");
+
+           service.setExclusions(Arrays.asList("login", "logout"));
+
+            // Exclusions can also be set as:
+            // service.excludeOperation("myUnwantedOp");
+
+            return service;
+    }
+----
+
+Metadata keys that match the excluded operations are removed before metadata keys are returned through invocation of `getMetaDataKeys()`.
+
+== See Also
+Recall the basics of metadata retrieval from link:/anypoint-connector-devkit/v/3.8/adding-datasense#metadata-retrieval[here]

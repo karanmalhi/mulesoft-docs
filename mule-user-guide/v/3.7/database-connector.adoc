@@ -30,10 +30,9 @@ To use a Database connector in your Mule application:
 
 However, to really take advantage of the design-time power of the connector, consider using it in conjunction with the following Mule features:
 
-* *DataSense*: When enabled, DataSense uses information in the query statement (configured within the Database connector) to automatically extract metadata about the message your application must deliver to, or can expect from, the database. By enabling this functionality (in the Global Database connector element), Mule does the heavy lifting of discovering the type of data you must send to, or be prepared to receive from the database.
-* *DataMapper transformer*: When used in conjunction with a DataSense-enabled Database connector, DataMapper can automatically extract message metadata that you can use to visually map and/or transform to a different data format or structure. For example, if you configure a Database connector in your application, then drop a DataMapper after it, the DataMapper uses the information that DataSense extracted to pre-populate the input values for mapping, so that you only need to confirm (or adjust) the selections, then proceed to mapping to your desired output.  In other words, DataSense makes sure that DataMapper _knows_ the data format and structure with which it must work so you don't have to figure it out manually.
-
-For more information on best design-time practices with DataSense and DataMapper, consult the link:/mule-user-guide/v/3.7/database-connector[DataSense documentation].
+* *DataSense*: When enabled, DataSense uses information in the query statement (configured within the Database connector) to automatically extract metadata about the message your application must deliver to, or can expect from, the database. By enabling this functionality (in the Global Database connector element), Mule does the heavy lifting of discovering the type of data you must send to, or be prepared to receive from the database. For more information, see link:/mule-user-guide/v/3.7/datasense[DataSense].
+* *DataMapper*: When used in conjunction with a DataSense-enabled Database connector, DataMapper can automatically extract message metadata that you can use to visually map and/or transform to a different data format or structure. For example, if you configure a Database connector in your application, then drop a DataMapper after it, the DataMapper uses the information that DataSense extracted to pre-populate the input values for mapping, so that you only need to confirm (or adjust) the selections, then proceed to mapping to your desired output. In other words, DataSense makes sure that DataMapper _knows_ the data format and structure with which it must work so you don't have to figure it out manually. For more information, see link:/mule-user-guide/v/3.7/datamapper-concepts[DataMapper Concepts]
+* *DataWeave*: Replacement for DataMapper. When used in conjunction with a DataSense-enabled Database connector, DataWeave can extract message metadata and transform to a different data format or structure. For more information, see link:/mule-user-guide/v/3.7/dataweave[DataWeave].
 
 == Supported Operations
 
@@ -135,7 +134,8 @@ This section explains how to configure a database connector for use with any of 
 ------
 [tab,title="Studio Visual Editor"]
 ....
-*Required:*  The following table describes the attributes of the Global Database connector element that you  _must_ configure to be able to connect, then submit queries to a database. For a full list of elements, attributes, and default values, see link:/mule-user-guide/v/3.7/database-connector[Database Connector Reference]. See also <<Fields That Support MEL Expressions, Fields That Support MEL Expressions>>. 
+*Required:*  The following table describes the attributes of the Global Database connector element that you  _must_ configure to be able to connect, then submit queries to a database. For a full list of elements, attributes, and default values, see
+ link:/mule-user-guide/v/3.7/database-connector-reference[Database Connector Reference]. See also <<Fields That Support MEL Expressions, Fields That Support MEL Expressions>>. 
 
 === Oracle
 
@@ -159,7 +159,7 @@ image:mysql_global_elem.png[mysql_global_elem]
 |===
 |*Attribute, Required* |*Use*
 |*Name* |Use to define a unique identifier for the global Database connector element in your application.
-|*Database Configuration Parameters* OR *Configure via spring-bean* OR *Database URL * |Use to define the details needed for your connector to actually connect with your database. When you have completed the configuration, click *Test Connection...* to confirm that you have established a valid, working connection to your database.
+|*Database Configuration Parameters* OR *Configure via spring-bean* OR *Database URL* |Use to define the details needed for your connector to actually connect with your database. When you have completed the configuration, click *Test Connection* to confirm that you have established a valid, working connection to your database.
 |*Required dependencies* |Click *Add File* to add the database driver to your project. See <<Adding the Database Driver For Database Engines Supported Out of the Box, Adding the Database Driver For Database Engines Supported Out of the Box>> above for details.
 |===
 
@@ -171,7 +171,7 @@ image:derby_global_elem.png[derby_global_elem]
 |===
 |*Attribute, Required* |*Use*
 |*Name* |Use to define a unique identifier for the global Database connector element in your application.
-|*Database Configuration Parameters* OR *Configure via spring-bean* OR *Database URL * |Use to define the details needed for your connector to actually connect with your database. When you have completed the configuration, click *Test Connection...* to confirm that you have established a valid, working connection to your database. |
+|*Database Configuration Parameters* OR *Configure via spring-bean* OR *Database URL* |Use to define the details needed for your connector to actually connect with your database. When you have completed the configuration, click *Test Connection* to confirm that you have established a valid, working connection to your database. |
 |===
 
 === General Tab
@@ -208,10 +208,11 @@ image:Advanced_GE.png[Advanced_GE]
 ....
 [tab,title="XML Editor"]
 ....
+*DB Config <db:generic-config>*
+
 [width="99a",cols="30a,70a",options="header"]
 |===
-|*Attribute* |*Use*
-|DB Config `<db:generic-config>` |
+|Attribute |Use
 |*name* |Use to define unique identifier for the global Database Connector element in your application.
 |*database*
 *host*
@@ -223,10 +224,11 @@ See also <<Fields That Support MEL Expressions, Fields That Support MEL Expressi
 |*useXaTransactions* |Enable to indicate that the created datasource must support extended architecture (XA) transactions.
 |===
 
+*Pooling Profile <db:pooling-profile />*
+
 [width="99a",cols="30a,70a",options="header"]
 |===
-|*Attribute* |*Use*
-|Pooling Profile  `<db:pooling-profile `/> |
+|Attribute |Use
 |*driverClassName* |The fully qualified name of the database driver class.
 |*maxPoolSize*
 *minPoolSize*
@@ -239,7 +241,13 @@ See also <<Fields That Support MEL Expressions, Fields That Support MEL Expressi
 * Acquire Increment
 * Prepared Statement Cache Size
 * Max Wait Millis
-|*Connection Properties*  `<db:connection-properties>` |
+|===
+
+*Connection Properties  <db:connection-properties>*
+
+[width="99a",cols="30a,70a",options="header"]
+|===
+|Attribute |Use
 |*Advanced Parameters* |Send parameters as key-value pairs to your database. The parameters that can be set depend on what database software you are connecting to. Each parameter must be included in a separate tag, enclosed by connection properties like so:
 
 [source, xml, linenums]
@@ -255,7 +263,7 @@ See also <<Fields That Support MEL Expressions, Fields That Support MEL Expressi
 
 === Database Engines Not Supported Out of the Box - Generic Installation
 
-All databases that are not configured <<Database Engines Supported Out of the Box>> must be added through the generic database instalation, and then configured accordingly.
+All databases that are not configured <<Database Engines Supported Out of the Box>> must be added through the generic database installation, and then configured accordingly.
 
 ==== Adding the Database Driver for Generic DB Configuration
 
@@ -265,7 +273,7 @@ To install the database driver for a generic installation, follow the steps belo
 ------
 [tab,title="Studio Visual Editor"]
 ....
-. If you haven't already done so, download the driver for your particular database. For example, the driver for a MySQL database is available for link:http://dev.mysql.com/downloads/connector/j/[download] online.  
+. If you haven't already done so, download the driver for your particular database. For example, the driver for a MySQL database is available at link:http://dev.mysql.com/downloads/connector/j/[download Connector/j] online.  
 . Drag and drop the driver's .`jar` file from your local drive to the `root` folder in your project.
 . Add the `.jar` file to the build path of your project. Right click the project name, then select *Build Path* > *Configure Build Path…*
 . In the wizard that appears, click the *Libraries* tab, then click *Add Jars…*
@@ -404,11 +412,11 @@ When you configure a global element for a generic database server, you need to e
 
 === Configuring a Database Connector Instance Inside a Flow
 
-*Required:* The following table describes the attributes of the Database Connector element that you _must_ configure in order to be able to connect, then submit queries to a database. For a full list of elements, attributes, and default values, consult the link:/mule-user-guide/v/3.7/database-connector[Database Connector Reference]. See also <<Fields That Support MEL Expressions, Fields That Support MEL Expressions>>.
+*Required:* The following table describes the attributes of the Database Connector element that you _must_ configure in order to be able to connect, then submit queries to a database. For a full list of elements, attributes, and default values, consult the link:/mule-user-guide/v/3.7/database-connector-reference[Database Connector Reference]. See also <<Fields That Support MEL Expressions, Fields That Support MEL Expressions>>.
 
 [WARNING]
 ====
-Oracle and Derby databases are supported by Mule, but to configure them correctly you cannot do it via Studio's Visual Interface, but rather through Studio's XML Editor.
+The Oracle and Derby databases are supported by Mule, but you can only configure them correctly using Studio's XML Editor, not using Studio's Visual Editor.
 ====
 
 [width="99a",cols="30a,70a",options="header"]
@@ -442,7 +450,7 @@ image:insert_w_MEL.png[insert_w_MEL]
 
 image:truncate.png[truncate]
 
-*Optional:* The following table describes the attributes of the element that you can _optionally_ configure to customize some functionality of the Database Connector. For a full list of elements, attributes and default values, consult the  link:/mule-user-guide/v/3.7/database-connector[Database Connector Reference].
+*Optional:* The following table describes the attributes of the element that you can _optionally_ configure to customize some functionality of the Database Connector. For a full list of elements, attributes and default values, consult the  link:/mule-user-guide/v/3.7/database-connector-reference[Database Connector Reference].
 
 [TIP]
 ====
@@ -478,11 +486,11 @@ Supports all operations except `Select` and `Stored procedure`.
 
 image:bulk.png[bulk]
 
-===== Execute DLL Fields
+===== Execute DDL Fields
 
 * *Dynamic query* - Use with: Execute DDL. Perform an operation on the data structure, rather than the data itself through a DDL request.
 
-image:DLL.png[DLL]
+image:DLL.png[DDL]
 
 ==== Advanced Tab
 
@@ -521,7 +529,7 @@ image:advanced_select.png[advanced_select]
 Bulk mode requires a parameterized query with at least one parameter.
 +
 [NOTE]
-If you set bulk mode without a parameterized query it won't result in a single query in bulk mode, but rather numerous single queries, which has a much lower performance. 
+If you set bulk mode without a parameterized query it won't result in a single query in bulk mode, but rather numerous single queries, which has a much lower performance.
 +
 For example, imagine you have a query which is designed to insert employees into a database table, and for each employee, it must insert a last name and an ID. If the Database Connector submitted one query for each one of 1000 employees, the operation would be very time consuming and non-performant. If you enable bulk mode, the Database Connector executes one query to the database to insert all the employees' values as a list of parameter sets of last names and IDs.
 
@@ -582,11 +590,11 @@ The following steps describe how to configure your database connector to use a q
 . Click the plus sign next to the *Template Query Reference* field to create a new *Global Template Query Reference* element (see image, below).
 +
 image:template.png[template]
-
++
 . Studio displays the *Global Element Properties* panel, shown below. Provide a *Name* for your global element, then select a query type, either `Parameterized` or `Dynamic`.
 +
 image:template_GE.png[template_GE]
-
++
 . Use the radio buttons to choose the method by which you wish to define the query statement: define it inline, or define from a file.
 . Write your SQL query, which can optionally include variables. If you include a variable, reference it by prepending its name with a colon (:) as in `:myvar`.
 . Use the plus sign next to *Input Parameters* to create the variable, assign its default value and optionally select the data type.
@@ -594,7 +602,7 @@ image:template_GE.png[template_GE]
 . You can optionally add variables and values to the *Input Parameters* section of the database connector. These variables and their values are valid for _all_ SQL templates. If a variable has been defined here and also in an individual template, then the value specified here takes precedence. In the image below, the variable `value` has a value of `100`. This value is valid for any defined templates (which you can see in the drop-down menu) that reference the variable.
 +
 image:global_var.png[global_var] 
-
++
 . Click the blank space in the Studio canvas to save your changes.
 
 ==== Example of Parameterized Query Using Variables
@@ -684,11 +692,11 @@ When using DDL, you can only make dynamic queries (which may or may not have MEL
 ....
 *Example 1*
 
-image:dllexample.png[dllexample]
+image:dllexample.png[ddlexample]
 
 *Example 2*
 
-image:dllexample2.png[dllexample2]
+image:dllexample2.png[ddlexample2]
 ....
 [tab,title="XML Editor"]
 ....
@@ -837,7 +845,5 @@ The following example shows the Mule 3.7 and newer change where you can specify 
 
 == See Also
 
-* Study several link:/mule-user-guide/v/3.7/database-connector[example applications] which utilize the Database connector.
-* link:/mule-user-guide/v/3.7/database-connector[Database Connector Reference].
-* Learn more about link:/mule-user-guide/v/3.7/database-connector[DataMapper].
+* link:/mule-user-guide/v/3.7/database-connector-reference[Database Connector Reference].
 * See also <<Fields That Support MEL Expressions, Fields That Support MEL Expressions>>.

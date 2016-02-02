@@ -1,0 +1,508 @@
+= Adding DataSense
+:keywords: devkit, datasense, connectors, metadata, annotations, pojo
+
+Mule DataSense displays the metadata for the entities in a service. Although this feature is optional, Mule strongly recommends that you use DataSense in your connector to make its implementation much easier for users.
+
+image:devkit-steps-operations.png[devkit-steps-operations]
+
+== Prerequisites
+
+This document assumes that you are familiar with the connector architecture presented in link:/anypoint-connector-devkit/v/3.8[Anypoint Connector DevKit], and that you are familiar with link:/mule-user-guide/v/3.7/datasense[DataSense] from an end-user's perspective.
+
+== Connectors with DataSense 
+
+Integration developers often spend great amounts of time simply trying to determine the parameters and types of data to pass to a web service or are returned by a web service. Having to resort to each API's documentation to find out what these parameters are is an inefficient, fallible, and often frustrating experience. Thanks to DataSense, this information can be readily available within Anypoint Studio at design-time. 
+
+DataSense provides entities and their internal structure to Studio, which, in turn, presents this information to users employing the connector. DataSense also works with other Anypoint Studio features to:
+
+* Access a connector's metadata so that when the context is right, Studio intelligently makes suggestions for expected values in fields returned by the connector.
+* Use DataWeave's ability to automatically infer the input or output data within a mapping (when used in conjunction with a connector that is DataSense-enabled).
+
+[NOTE]
+The *fundamental advantage of DataSense* is the ability to extract metadata from the data model exposed by an application through the connector. Learn more about link:/mule-user-guide/v/3.7/datasense[DataSense].
+
+The two key steps to implementing DataSense are:  
+
+. *Configuring metadata retrieval* – Obtains the metadata from the service and provides an implementation of the connector to supply this information.
+. *Configuring metadata awareness* – Defines how the operations are annotated so that Anypoint Studio is aware of the DataSense implementation and provides information about it to end users of the connector.
+
+
+== Static Data Model
+
+A connector is considered to have a *static data model* (also known as a "strongly typed" data model) when it exposes its entities as a *POJO*. For example, if you make use of an SDK with a certain set of classes, these are resolved and known at compile time. 
+
+In this case, metadata retrieval is straightforward: the POJO entity class definitions can be referenced and they can provide all the metadata needed in Java, available using introspection. Awareness is already implied by the strongly typed parameter in the processor.
+
+[NOTE]
+Check the link:https://github.com/mulesoft/twitter-connector/tree/develop[Twitter connector] in GitHub for a working example.
+
+=== Static Metadata Retrieval
+
+To retrieve static metadata, obtain it from the connector. Because it is not likely to change, you don't need to make a call to the web service to gather it. Rather you can just *hard-code the information into the connector*.
+
+.  Inside your connector class, add a new method annotated with `@MetaDataKeyRetriever`:
++
+[source, java, linenums]
+----
+@MetaDataKeyRetriever
+    public List<MetaDataKey> getEntities() throws Exception {
+        List<MetaDataKey> entities = new ArrayList<MetaDataKey>();
+        entities.add(new DefaultMetaDataKey("Book_id","Book"));
+        entities.add(new DefaultMetaDataKey("Author_id","Author"));
+        entities.add(new DefaultMetaDataKey("BookList_id","BookList"));
+        return entities;
+    }
+----
++
+This method returns a list of the entity’s names. In this case, it retrieves a list with three keys: Book, Author, and BookList.
+. Implement a `@MetaDataRetriever` method, which obtains a description of each of the entities returned by the previous `@MetaDataKeyRetriever` method.
++
+[NOTE]
+The return type of the `@MetaDataRetriever`-annotated Java method _must be_ `MetaData` and it _must receive_ one `MetaDataKey` parameter.
++
+In this example, assume that the entity classes of the service exist locally. `Book.class` and `Author.class` can then be directly referenced in your code. You can call the interface `DefaultMetaDataBuilder`, provided by DevKit, to easily build a POJO.
++
+[source,java, linenums]
+----
+@MetaDataRetriever
+public MetaData describeEntity(MetaDataKey entityKey) throws Exception {
+    //Here we describe the entity depending on the entity key
+    if ("Author_id".equals(entityKey.getId())) {
+        MetaDataModel authorModel =  new DefaultMetaDataBuilder().createPojo(Author.class).build();
+        return new DefaultMetaData(authorModel);
+    }
+    if ("Book_id".equals(entityKey.getId())) {
+        MetaDataModel bookModel =  new DefaultMetaDataBuilder().createPojo(Book.class).build();
+        return new DefaultMetaData(bookModel);
+    }
+    if ("BookList_id".equals(entityKey.getId())) {
+        MetaDataModel bookListModel =  new DefaultMetaDataBuilder().createList().ofPojo(Book.class).build();
+        return new DefaultMetaData(bookListModel);
+    }
+    throw new RuntimeException(String.format("This entity %s is not supported",entityKey.getId()));
+}
+----
++
+This method automatically describes Book, BookList and Author with all the public fields exposed by them.
+
+[NOTE]
+====
+Using *two different operations* is ideal for retrieving metadata from an external service.
+
+The reason to use two different operations where one obtains the entities, and another obtains the descriptions is that *describing all the entities through a single method can result in an excessive number of API calls* (you probably need one API call per entity). 
+====
+
+=== Static Metadata Awareness
+
+So far we have implemented the description mechanism for all of the entities in the service we aim to connect. Now, make this information accessible to the message processors.
+
+The method receives the operation’s type as a parameter annotated with `@MetaDataKeyParam`. The method also receives the entity data that was returned by `@MetaDataRetriever` on a parameter annotated as `@Default("#[payload]")`.
+
+[NOTE]
+The types of data expected and generated by this method vary depending on whether your metadata is _static_ or _dynamic_. If your metadata is _static_, then the entity data is an `Object`:
+
+[source, java, linenums]
+----
+@Processor
+public Object create(@MetaDataKeyParam(affects = MetaDataKeyParamAffectsType.BOTH) String entityType, @Default("#[payload]") Object entityData) {
+    if (entityData instanceof Book) {
+        return createBook((Book) entityData));
+    }
+    if (entityData instanceof Author) {
+        return createAuthor((Author) entityData));
+    }
+    throw new RuntimeException("Entity not recognized");
+}
+private Object createAuthor(Author entityData) {
+    //CODE FOR CREATING NEW AUTHOR GOES HERE
+    return null;
+}
+private Object createBook(Book entityData) {
+    //CODE FOR CREATING A NEW BOOK GOES HERE
+    return null;
+}
+----
+
+[source, java, linenums]
+----
+@Processor
+public Object create(@MetaDataKeyParam String entityType, @Default("#[payload]") Object entityData) {
+    }
+----
+
+The output metadata changes according to the entity type selected in Studio. This is especially useful when used in conjuction with DataMapper or DataWeave (the Transform Message component). Because of this method, all the entities returned by `@MetaDataRetriever` display in a dropdown in Studio.
+
+image:DSimage.png[DSimage]
+
+Also, the metadata about the entity can then be passed on to other Mule elements such as DataMapper or DataWeave (the Transform Message component).
+
+image:image2.png[image2]
+
+=== Example Using Static Metadata
+
+The following section demonstrates how to build a connector that draws data from a Web service using a static data model.
+
+[NOTE]
+Download a full working example of this static metadata connector from link:https://github.com/mulesoft-labs/example-connector/tree/master/static-metadata-example[GitHub].
+
+In this example, the connector connects to a library Web service. The Web service contains two types of elements: *book* and *author*.
+
+The *book* element contains the following fields:
+
+* title
+* synopsis
+* author
+
+The *author* element contains the following fields:
+
+* firstName
+* lastName
+
+== Dynamic Data Model
+
+When the connector has a dynamic data model (also known as "weakly typed" data model) the metadata for a certain type is not immediately available. A certain `MetaDataKey` represents metadata that resolves at design or run-time, rather than compile time as with the static data model. To support DataSense functionality for connectors with dynamic data models, you must implement additional functionality to create the metadata based on data provided from the application.
+
+=== Dynamic Metadata Retrieval
+
+Dynamic metadata retrieval requires that you include two annotated metadata-related methods which generate DataSense metadata for a dynamic schema in a `@MetaDataCategory` referenced by your connector.
+
+* `@MetaDataKeyRetriever` retrieves a list of all the entity type names from the connected service.
++
+[source, java, linenums]
+----
+@MetaDataKeyRetriever
+public List<MetaDataKey> getMetadataKeys() {  }
+----
++
+* `@MetaDataRetriever` uses the list of metadata keys (retrieved by `@MetaDataKeyRetriever`) to retrieve the entity composition of each entity type.
++
+[source, java, linenums]
+----
+@MetaDataRetriever
+public MetaData getMetadata(MetaDataKey key) {  }
+----
+
+=== Dynamic Metadata Awareness
+
+This step makes the captured metadata accessible to the message processors. When implemented, a dropdown in the connector's properties editor in Studio displays all the entities returned by `@MetaDataKeyRetriever`; each of these is coupled with the properties returned by `@MetaDataRetriever`.
+
+image:DSimage.png[DSimage]
+
+For this to happen, the message processor must include a method that receives the entity type as a parameter annotated with `@MetaDataKeyParam`. This method must also receive the entity data (that was returned by `@MetaDataRetriever`) on a parameter that is annotated as `@Payload` or `@Default ("#[payload]")`.
+
+If your metadata is _dynamic_, the entity data is a `Map<String,Object>`:
+
+[source, java, linenums]
+----
+public Map<String,Object> create(@MetaDataKeyParam String entityType, @Default("#[payload]") Map<String,Object> entityData) {
+    }
+----
+
+If your metadata is a *list* of *dynamic objects*, the entity data is a `List<Map<String,Object>>`:
+
+[source, java, linenums]
+----
+public List<Map<String,Object>> getList(@MetaDataKeyParam String entityType, @Default("#[payload]") List<Map<String,Object>> entityData) {
+    }
+----
+
+=== Example Using Dynamic Metadata
+
+The following section demonstrates how to build a connector that draws data from a web service using a dynamic data model. The most practical way to implement metadata is always to do so dynamically. Doing things this way, if the entity’s attributes in the service you connect to vary over time, your connector effortlessly adapts to the changes.
+
+[NOTE]
+Download a full working example of this dynamic-metadata connector from link:https://github.com/mulesoft-labs/example-connector/tree/master/dynamic-metadata-example[GitHub].
+
+In this example, as in the <<Example Using Static Metadata,static model example>>, the web service the connector connects to is a book database. It contains two types of elements: books and authors, both contain the same fields as in the previous example.
+
+== Adding DataSense Support To Your Connector's Dynamic Data Model
+
+To implement DataSense in your connector, first create a `@MetaDataCategory` and bind it to the connector using `@MetaDataScope`. Follow this walkthrough which iterates on the dynamic data model section above.
+
+=== @MetaDataCategory and @MetaDataScope
+
+To group DataSense resolvers, DevKit provides the annotation `@MetaDataCategory` that you can apply to a Java class. Within this Java class, define the metadata retrieving mechanism, that is, the methods annotated with `@MetaDataKeyRetriever` and `@MetaDataRetriever`, as a `@MetaDataScope`.
+
+For example, suppose you wish to offer a regular message processor with an additional special message processor that provides access to a secret field on the Author entity named "books", representing the author’s written books. You can use metadata categories to bundle several distinct message processors into one connector, and display different groups of entities in each.
+
+The example below displays a `@MetaDataCategory` class that contains both `@MetaDataKeyRetriever` and `@MetaDataRetriever` methods, and resides in a separate Java file. We then dig into the annotated methods. You may establish a link between this class and your connector module. The most common way of doing this is to use `@Inject` to inject the connector class into the `@MetaDataCategory` class, as shown below.
+
+. Create the `@MetaDataCategory` class:
++
+[source, java, linenums]
+----
+import org.mule.common.metadata.*;
+import org.mule.common.metadata.builder.DefaultMetaDataBuilder;
+import org.mule.common.metadata.builder.DynamicObjectBuilder;
+import org.mule.common.metadata.datatype.DataType;
+
+import org.mule.api.annotations.components.MetaDataCategory;
+import org.mule.api.annotations.MetaDataKeyRetriever;
+import org.mule.api.annotations.MetaDataRetriever;
+
+@MetaDataCategory
+public class DefaultCategory {
+
+    @Inject
+    private MyConnector myconnector;
+
+    @MetaDataKeyRetriever
+    public List<MetaDataKey> getEntities() throws Exception {
+        //Here we generate the keys
+    }
+
+    @MetaDataRetriever
+    public MetaData describeEntity(MetaDataKey entityKey) throws Exception {
+        //Here we describe the entity depending on the entity key
+    }
+}
+----
++
+. Examine the imports: 
++
+* `org.mule.common.metadata.*` classes include the Mule classes for representing and managing metadata.
+* `org.mule.common.metadata.builder` classes construct metadata representations (sets of objects that can be quite complex).
+* the `org.mule.common.metadata.datatype.DataType` class represents different object field datatypes and their properties.
++
+. Bind this category to a `@Connector` or a `@Processor` using `@MetaDataScope`:
++
+[source, java, linenums]
+----
+/**
+ * DataSense-enabled Connector with multiple categories
+ *
+ * @author Mulesoft, inc.
+ */
+@MetaDataScope(DefaultCategory.class)
+@Connector(name = "my-connector", minMuleVersion = "3.6")
+public class MyConnector {
+...
+
+  @MetaDataScope(AdvancedCategory.class)
+    @Processor
+    public Map<String,Object> advancedOperation(@MetaDataKeyParam String entityType, @Default("#[payload]") Map<String,Object> entityData) {
+       //Here you can use the books field in authors//
+    }
+}
+----
+
+=== Implementing Dynamic Metadata Retrieval
+
+Since you don’t have direct access to a POJO with the type structure, you must obtain this structure from the web service itself. Use `Map<String,Object>` to represent the dynamic entities.
+
+[NOTE]
+If you obtain the metadata dynamically through an API call, the `@Connect` method executes before the `@MetaDataKeyRetriever` method. This implies that end-users must first resolve any connection issues before gaining access to the metadata.
+
+. Inside your connector class, add a new method annotated with `@MetaDataKeyRetriever`. (This method is no different from the one implemented with static metadata.)
++
+[source, java, linenums]
+----
+@MetaDataKeyRetriever
+    public List<MetaDataKey> getEntities() throws Exception {
+        List<MetaDataKey> entities = new ArrayList<MetaDataKey>();
+        entities.add(new DefaultMetaDataKey("Book_id","Book"));
+        entities.add(new DefaultMetaDataKey("Author_id","Author"));
+        entities.add(new DefaultMetaDataKey("BookList_id","BookList"));
+        return entities;
+    }
+----
++
+. Implement a `@MetaDataRetriever` method. This obtains a description of each of the entities returned by the previous method. As in the previous example, this method uses the interface `DefaultMetaDataBuilder`, but this time it is called to build dynamic objects instead of POJOs.
++
+[source, java, linenums]
+----
+@MetaDataRetriever
+public MetaData describeEntity(MetaDataKey entityKey) throws Exception {
+    //Here we describe the entity depending on the entity key
+    if ("Author_id".equals(entityKey.getId())) {
+        MetaDataModel authorModel =  new DefaultMetaDataBuilder().createDynamicObject("Author")
+                .addSimpleField("firstName", DataType.STRING)
+                .addSimpleField("lastName", DataType.STRING)
+                .build();
+        return new DefaultMetaData(authorModel);
+    }
+    if ("Book_id".equals(entityKey.getId())) {
+        MetaDataModel bookModel =  new   DefaultMetaDataBuilder().createDynamicObject("Book")
+                .addSimpleField("title",DataType.STRING)
+                .addSimpleField("synopsis",DataType.STRING)
+                .addDynamicObjectField("author")
+                .addSimpleField("firstName",DataType.STRING)
+                .addSimpleField("lastName",DataType.STRING)
+                .endDynamicObject()
+                .build();
+        return new DefaultMetaData(bookModel);
+    }
+    if ("BookList_id".equals(entityKey.getId())) {
+        MetaDataModel bookListModel =  new DefaultMetaDataBuilder().createList().ofDynamicObject("book").build();
+        return new DefaultMetaData(bookListModel);
+    }
+    throw new RuntimeException(String.format("This entity %s is not supported",entityKey.getId()));
+}
+----
+
+=== Implementing Dynamic Metadata Awareness
+
+Thus far, you have implemented the description mechanism for all of the entities in the service you aim to connect. Now you must make this information accessible to the message processors.
+
+The message processor must receive the operation’s type as a parameter annotated with `@MetaDataKeyParam`. (Studio displays the operations in a dropdown with all the entities returned by `@MetaDataRetriever`.) The message processor must also receive the entity data (returned by `@MetaDataRetriever`) as a `Map<String,Object>` parameter, annotated as `@Default("#[payload]")`. 
+
+[source, java, linenums]
+----
+@Processor
+public Map<String,Object> create(@MetaDataKeyParam String entityType, @Default("#[payload]") Map<String,Object> entityData) {
+    if ("Book_id".equals(entityType)) {
+        return createBook(entityData);
+    }
+    if ("Author_id".equals(entityType)) {
+        return createAuthor(entityData);
+    }
+    throw new RuntimeException("Entity not recognized");
+}
+private Map<String, Object> createAuthor(Map<String, Object> entityData) {
+    //CODE TO CREATE BOOK GOES HERE
+    return entityData;
+}
+private Map<String, Object> createBook(Map<String, Object> entityData) {
+    //CODE TO CREATE AUTHOR GOES HERE
+    return entityData;
+}
+----
+
+In this method, Studio displays all the entities returned by `@MetaDataRetriever` as items in a dropdown field.
+
+image:image3.png[image3]
+
+Also, the metadata about the entity can then be passed on to other Mule elements such as DataMapper or DataWeave (the Transform Message component).
+
+image:image4.png[image4]
+
+
+== Caching Metadata
+:keywords: metadata, cache, caching, datasense, key
+
+This feature allows the DevKit developer to enable a connector to retrieve metadata from a cache to decrease retrieval wait times overall, enhancing the connector user experience.
+
+=== Required Annotations @MetaDataCategory and @MetaDataCache
+
+To ensure an initialized cache is injected every time the metadata methods are invoked, the DevKit developer has to place `@MetaDataCategory` on the cache management/resolution class and declare the `@MetaDataCache` inside this class. After the `@MetaDataCache` cache is declared, it is persisted by DevKit.
+
+[source, java, linenums]
+----
+@MetaDataCategory
+public class CachedResolver {
+
+    @MetaDataCache
+    private MetaDataCache cache;
+
+    public void setCache(MetaDataCache cache) {
+        this.cache = cache;
+    }
+
+    //...
+}
+----
+
+The developer should make use of this cache internally when fetching metadata, and handle some level of consistency between the cache and the service.
+
+[IMPORTANT]
+The provided cache is evicted only when the developer of the Mule application executes *Clear DataSense MetaData* on the connector configuration. After clearing DataSense, a new cache is created.
+
+image:clear-datasense-metadata.png[clear datasense metadata]
+
+=== Example Implementation
+
+This is an example implementation of cache population and management with `@MetaDataKeyRetriever` (with helper method `populateKeysCache`) and `@MetaDataRetriever` (which invokes either of two helper methods `populateObjectsCache` and `buildMetaData`). With these the cache can be populated.
+
+[source,java,linenums]
+----
+@MetaDataCategory
+public class CachedResolver {
+
+    @MetaDataCache
+    private ConnectorMetaDataCache cache;
+
+    // An initialized Cache will be injected by DevKit automatically using this setter
+    public void setCache(ConnectorMetaDataCache cache) {
+        this.cache = cache;
+    }
+
+    @MetaDataKeyRetriever
+    public List<MetaDataKey> getMetaDataKeys() throws Exception {
+
+        // Cache will be initialized by this point.
+        // Usage will resemble that of a Map, storing and retrieving elements based on
+        // Serializable keys
+        if (!cache.get(STORED_KEYS_ID).isPresent()){
+            // If MetaDataKeys were not fetched before and persisted with the cache,
+            // then add all the keys to the cache
+            populateKeysCache();
+        }
+
+        Optional<Map<String, String>> stored_keys = cache.get(STORED_KEYS_ID);
+
+        // Based on the stored keys description, build the actual object
+        List<MetaDataKey> keys = new ArrayList<MetaDataKey>();
+        for (Map.Entry<String, String> entry : stored_keys.get().entrySet()) {
+            keys.add(new DefaultMetaDataKey(entry.getKey(), entry.getValue()));
+        }
+        return keys;
+    }
+
+    @MetaDataRetriever
+    public MetaData getMetaData(MetaDataKey key) throws Exception {
+        // Cache will be initialized by this point.
+        // If an object with this key was not stored previously in the cache
+        // then we'll do a best-effort load all the metadata information to the cache
+        // so it's present upon next invocation.
+        if (!cache.get(key.getId()).isPresent()){
+            populateObjectsCache();
+        }
+
+        Optional<Map<String, DataType>> dataFields = cache.get(key.getId());
+        // Based on the stored metadata description, build the actual object
+        return dataFields.isPresent() ? buildMetaData(dataFields.get(), key) : null;
+    }
+
+
+    private MetaData buildMetaData(Map<String, DataType> fields, MetaDataKey key) {
+        DefaultMetaDataBuilder builder = new DefaultMetaDataBuilder();
+        DynamicObjectBuilder<?> dynamicObject = builder.createDynamicObject(key.getId());
+
+        for (Map.Entry<String, DataType> simpleField : fields.entrySet()) {
+            dynamicObject.addSimpleField(simpleField.getKey(), simpleField.getValue());
+        }
+
+        return new DefaultMetaData(builder.build());
+    }
+
+    private void populateKeysCache() throws InterruptedException {
+        Map<String, String> keyStore = new HashMap<String, String>();
+        keyStore.put("ENTITY_TYPE_1", "Cached House Door");
+        keyStore.put("ENTITY_TYPE_2", "Cached House Window");
+
+        // All the keys are presisted in a Map under a general key in the cache
+        // allowing for a bulk retrieval later.
+        cache.put(STORED_KEYS_ID, (Serializable) keyStore);
+    }
+
+    private void populateObjectsCache() throws Exception {
+        Map<String, DataType> door = new HashMap<String, DataType>();
+        door.put("Color", DataType.STRING);
+        door.put("Altura", DataType.INTEGER);
+
+        Map<String, DataType> window = new HashMap<String, DataType>();
+        window.put("Rejas", DataType.BOOLEAN);
+        window.put("Marco", DataType.ENUM);
+
+        cache.put("ENTITY_TYPE_1", (Serializable) door);
+        cache.put("ENTITY_TYPE_2", (Serializable) window);
+    }
+
+}
+----
+
+
+== See Also
+
+* link:/anypoint-connector-devkit/v/3.8/adding-query-pagination-support[Adding Query Pagination Support]
+* link:/anypoint-connector-devkit/v/3.8/adding-datasense-query-language[Adding DataSense Query Language]

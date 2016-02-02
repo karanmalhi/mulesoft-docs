@@ -1,0 +1,235 @@
+= Sending API Analytics from ARM to External Data Bases
+keywords: analytics, monitoring, logs, mule events, logging, apy analytics, metrics, traceability, arm, anypoint runtime manager, db, sql, mysql, oracle, jdbc
+
+By simply configuring a few settings, the HTTP API Analytics produced by your applications running on the API Gateway runtime can be easily stored in a database.
+
+To see how to send this same information to Splunk, ELK or other third party software, see link:/cloudhub/sending-data-from-arm-to-external-monitoring-software[Sending data from ARM to External Monitoring Software].
+
+== Prerequisites
+
+Please make sure you have the following software installed:
+
+* API Gateway Standalone – Version 2.1.0 or above
+* The Mule Agent Plugin version 1.3.0 or above
+
+
+== Install the Mule Agent
+
+First you must install the Mule Agent, which is in charge of sending messages out of mule. In order to send event information to third party software, you need to have version *1.3.0* or newer of the Mule Agent.
+See link:/mule-agent/v/1.3.0/installing-mule-agent[Installing the Mule Agent] or link:/mule-agent/v/1.3.0/installing-mule-agent#running-the-updater[Updating the Mule Agent].
+
+
+== Install API Analytics Tracking Database Internal Handlers
+
+Download the API Analytics Tracking Database Internal Handlers from *link:http://mule-agent.s3.amazonaws.com/1.3.0/mule-agent-internal-handlers-db-1.3.0.zip[here]* and unzip them on `{MULE_HOME}/plugins/mule-agent-plugin/lib/modules` folder.
+
+== Agent Configurable Fields
+
+Once you have the latest Mule Agent and the API Analytics Tracking Database Internal Handlers installed on your API Gateway Standalone server you enable the internal handler by modifying your `{MULE_HOME}/conf/mule-agent.yml` configuration file.
+
+Below we provide example configurations for MySQL Server, ORACLE and Microsoft SQL Server.
+
+Although the required fields are `driver`, `jdbcUrl`, `user` and `pass`. You can also configure the `apiAnalyticsTable` where the analytics are stored.
+
+|===
+|Field|Data Type|Description|Type|Default Value
+
+|driver
+|String
+|Represents the JDBC driver to use to communicate with the database server.
+|Required
+|
+
+|jdbcUrl
+|String
+|Represents the JDBC url to the database server.
+|Required
+|
+
+|user
+|String
+|The username to connect to the database server.
+|Required
+|
+
+|pass
+|String
+|The password to connect to the database server.
+|Required
+|
+
+|apiAnalyticsTable
+|String
+|Represents the name of the table in which the agent will store the events.
+|Optional
+|MULE_API_ANALYTICS
+
+|===
+
+
+== Proposed Configurations
+
+Below are a few examples for setting up the agent for working with some of the most common databases.
+
+=== MySQL
+
+==== Schema
+
+[source, sql, linenums]
+----
+CREATE TABLE MULE_API_ANALYTICS (
+  id                           CHAR(36)     NOT NULL,
+  api_id                       INT          NOT NULL,
+  api_name                     VARCHAR(64)  NULL,
+  api_version                  VARCHAR(150) NULL,
+  api_version_id               INT          NOT NULL,
+  application_name             VARCHAR(42)  NULL,
+  client_id                    VARCHAR(255) NULL,
+  client_ip                    VARCHAR(45)  NOT NULL,
+  event_id                     VARCHAR(36)  NOT NULL,
+  host_id                      VARCHAR(255) NULL,
+  org_id                       VARCHAR(36)  NULL,
+  path                         VARCHAR(500) NOT NULL,
+  policy_violation_policy_id   INT          NULL,
+  policy_violation_policy_name VARCHAR(150) NULL,
+  policy_violation_outcome     VARCHAR(10)  NULL,
+  received_ts                  VARCHAR(30)  NOT NULL,
+  replied_ts                   VARCHAR(30)  NOT NULL,
+  request_bytes                INT          NOT NULL,
+  request_disposition          VARCHAR(10)  NOT NULL,
+  response_bytes               INT          NOT NULL,
+  status_code                  INT          NOT NULL,
+  transaction_id               VARCHAR(36)  NULL,
+  user_agent                   VARCHAR(500) NULL,
+  verb                         VARCHAR(8)   NOT NULL,
+  PRIMARY KEY (id)
+);
+
+----
+
+==== Internal Handler Configuration
+
+. Download the MySQL JDBC driver from http://dev.mysql.com/downloads/connector/j/.
+. Extract the .zip file to obtain the `mysql-connector-java-_VERSION_-bin.jar` file
+. Copy this .jar file to `{MULE_HOME}/plugins/mule-agent-plugin/lib/modules`.
+. Modify the file `{MULE_HOME}/conf/mule-agent.yml` to include the following:
++
+[source,yaml, linenums]
+....
+---
+  mule.agent.gw.http.handler.database:
+    enabled: true
+    driver: com.mysql.jdbc.Driver
+    jdbcUrl: jdbc:mysql://192.168.61.128/mule
+    user: root
+    pass: test
+....
+
+
+=== ORACLE
+
+==== Schema
+
+[source, sql, linenums]
+----
+CREATE TABLE MULE_API_ANALYTICS (
+  id                           CHAR(36)     NOT NULL,
+  api_id                       INT          NOT NULL,
+  api_name                     VARCHAR(64)  NULL,
+  api_version                  VARCHAR(150) NULL,
+  api_version_id               INT          NOT NULL,
+  application_name             VARCHAR(42)  NULL,
+  client_id                    VARCHAR(255) NULL,
+  client_ip                    VARCHAR(45)  NOT NULL,
+  event_id                     VARCHAR(36)  NOT NULL,
+  host_id                      VARCHAR(255) NULL,
+  org_id                       VARCHAR(36)  NULL,
+  path                         VARCHAR(500) NOT NULL,
+  policy_violation_policy_id   INT          NULL,
+  policy_violation_policy_name VARCHAR(150) NULL,
+  policy_violation_outcome     VARCHAR(10)  NULL,
+  received_ts                  VARCHAR(30)  NOT NULL,
+  replied_ts                   VARCHAR(30)  NOT NULL,
+  request_bytes                INT          NOT NULL,
+  request_disposition          VARCHAR(10)  NOT NULL,
+  response_bytes               INT          NOT NULL,
+  status_code                  INT          NOT NULL,
+  transaction_id               VARCHAR(36)  NULL,
+  user_agent                   VARCHAR(500) NULL,
+  verb                         VARCHAR(8)   NOT NULL,
+  PRIMARY KEY (id)
+);
+----
+
+==== Internal Handler Configuration
+
+. Download the Oracle JDBC driver from http://www.oracle.com/technetwork/database/features/jdbc/index-091264.html.
+. Extract the .zip file to obtain the .jar file
+. Copy this .jar file to `{MULE_HOME}/plugins/mule-agent-plugin/lib/modules`.
+. Modify the file `{MULE_HOME}/conf/mule-agent.yml` to include the following:
++
+[source,yaml, linenums]
+....
+---
+  mule.agent.gw.http.handler.database:
+    enabled: true
+    driver: oracle.jdbc.OracleDriver
+    jdbcUrl: jdbc:oracle:thin:@192.168.61.128/XE
+    user: root
+    pass: test
+....
+
+
+=== Microsoft SQL Server
+
+==== Schema
+
+[source, sql, linenums]
+----
+CREATE TABLE MULE_API_ANALYTICS (
+  id                           CHAR(36)     NOT NULL,
+  api_id                       INT          NOT NULL,
+  api_name                     VARCHAR(64)  NULL,
+  api_version                  VARCHAR(150) NULL,
+  api_version_id               INT          NOT NULL,
+  application_name             VARCHAR(42)  NULL,
+  client_id                    VARCHAR(255) NULL,
+  client_ip                    VARCHAR(45)  NOT NULL,
+  event_id                     VARCHAR(36)  NOT NULL,
+  host_id                      VARCHAR(255) NULL,
+  org_id                       VARCHAR(36)  NULL,
+  path                         VARCHAR(500) NOT NULL,
+  policy_violation_policy_id   INT          NULL,
+  policy_violation_policy_name VARCHAR(150) NULL,
+  policy_violation_outcome     VARCHAR(10)  NULL,
+  received_ts                  VARCHAR(30)  NOT NULL,
+  replied_ts                   VARCHAR(30)  NOT NULL,
+  request_bytes                INT          NOT NULL,
+  request_disposition          VARCHAR(10)  NOT NULL,
+  response_bytes               INT          NOT NULL,
+  status_code                  INT          NOT NULL,
+  transaction_id               VARCHAR(36)  NULL,
+  user_agent                   VARCHAR(500) NULL,
+  verb                         VARCHAR(8)   NOT NULL,
+  PRIMARY KEY (id)
+);
+----
+
+==== Internal Handler Configuration
+
+. Download the Microsoft JDBC driver from https://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=11774.
+. Extract the `sqljdbc_4_%version%.tar.gz` file to obtain the `sqljdbc4%version%_.jar` file
+. Copy this .jar file to `{MULE_HOME}/plugins/mule-agent-plugin/lib/modules`.
+. Modify the file `{MULE_HOME}/conf/mule-agent.yml` to include the following:
+
++
+[source,yaml, linenums]
+....
+---
+  mule.agent.gw.http.handler.database:
+    enabled: true
+    driver: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    jdbcUrl: jdbc:sqlserver://192.168.61.128:1433;databaseName=Mule;
+    user: root
+    pass: test
+....

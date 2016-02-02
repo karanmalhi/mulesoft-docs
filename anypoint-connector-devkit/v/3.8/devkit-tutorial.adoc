@@ -1,0 +1,1401 @@
+= DevKit Tutorial
+:keywords: devkit tutorial, features, cookbook
+:imagesdir: ./_images
+:resourcesDir: resources
+:tutorial: Cookbook
+:author: MuleSoft Inc.
+
+== Features in Tutorial
+
+In this tutorial you will learn how to create a connector, using the DevKit, that users can interact with in Mule and Anypoint Studio.
+
+As you move forward you will learn the features that DevKit provides to help you build Mule connectors, and how easy it can be to extend Mule.
+
+== What is DevKit?
+
+The link:/anypoint-connector-devkit/v/3.8/index[Anypoint Connector DevKit] is an important part of the Anypoint Platform. The DevKit is a Maven-based tool that lets you build reusable components that not only can be run as part of a Mule application, but also can be easily configured and consumed from link:http://www.mulesoft.com/platform/mule-studio[Anypoint Studio].
+
+== When to Use DevKit
+
+Here are several scenarios in which you may want to build your own connector:
+
+* You need to consume an API in one or more applications and you want to make sure everyone uses the same component.
+* You have an API and want to add strategic value to your business by providing a connector and telling the world "I am part of Mule Platform".
+* You want to facilitate integration with SaaS and on-premise Web services, applications, and data sources.
+* The API you consume supports Pagination, Batch, and/or has a SQL capability.
+* The API you consume has different entity types and/or its structure can change.
+* You want to extend Mule core.
+
+== What is a Connector?
+
+A MuleSoft connector is a reusable component that interacts with Mule ESB and  Anypoint Studio. A connector enables Mule flows to communicate with a target resource. The connector conveys data between a resource and a Mule flow, and transforms the data into a Mule Message.
+
+Using Anypoint Connector DevKit, a connector abstracts developers from the Mule interfaces that are required to run the connector in the Mule platform, and generates a user interface.
+
+A connector also abstracts users from the complexity of initializing required elements such as connecting to a sandbox. A well-developed connector makes Mule apps much simpler for users by handling internal tasks like pagination, session expirations, and input and output metadata. This tutorial shows you how to create a well-developed connector.
+
+== Prerequisites
+
+To develop a connector you should have a working knowledge of Mule, Anypoint Studio, and Java development in general, specifically the use of https://docs.oracle.com/javase/tutorial/java/annotations/basics.html[Java annotations].
+
+DevKit's functionality is to expose to connector developers  link:http://docs.oracle.com/javase/tutorial/java/annotations/[Java annotations] that generate code and files to interact with Mule, and Anypoint Studio. The generated code provides the interface between the connector and Mule that would otherwise require each connector developer to include extensive boilerplate code, as well as the code and files required to interact with your connector in Anypoint Studio.
+
+You can develop a connector using Windows, Mac, or Linux.
+
+For information on setup and DevKit, see link:/anypoint-connector-devkit/v/3.8/setting-up-your-dev-environment[Setting Up Your Development Environment] and link:/anypoint-connector-devkit/v/3.8/index[Anypoint Connector DevKit].
+
+== Import the Cookbook
+
+To import the cookbook tutorial from Git:
+
+. Clone https://github.com/mulesoft/mule-cookbook[tutorial] repository into your local machine. For example, to clone to a *dev* folder, run:
++
+[source,bash]
+----
+cd ~/dev
+git clone https://github.com/mulesoft/mule-cookbook.git
+----
++
+. In the cloned directory, run:
++
+[source,bash]
+----
+cd ~/dev/mule-cookbook
+mvn install eclipse:eclipse
+----
++
+. When done, in Anypoint Studio, import the root project as an existing project with the *File* > *Import* > *General* > *Existing Projects into Workspace* commands.
+
+== Cookbook Description
+
+The "Cookbook" was created as a web service to help users organize ingredients and recipes, so that they can easily find recipes for the foods they like to prepare.
+
+=== API Description
+
+This API allows users to use the create, read, update, and delete (CRUD) operations for single and multiple recipes and ingredients. The API also allows you to view recently added recipes.
+
+The API is exposed as a SOAP Service using a  link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/resources/wsdl/IMuleCookBookService.wsdl[WSDL] file, as a Rest API with a link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/api.raml[RAML] file, and through a Java link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/IMuleCookBookClient.java[SDK].
+
+
+=== Authentication
+
+This connector supports the following authentication types:
+
+* Custom authentication with a username and password that provides a token to send with each request as part of the request.
+
+* link:http://oauth.net/2/[OAuthV2]
+
+==== Credentials
+
+===== Custom Authentication:
+[cols="2*",options="header"]
+|===
+| Username
+| Password
+
+| admin
+| admin
+|===
+
+===== OAuth:
+[cols="2*",options="header"]
+|===
+| Client ID
+| Client Secret
+
+| ePU9CxyEVFIXF9nMoGH16s1lUGe5JYPPzClnnVBG
+| YeKAsQCdr264tNmDdvTdJUAh9TQraJqZpwbEoTuz
+|===
+
+=== Connecting to the Service
+
+The web service is available online.
+
+* To consume the SOAP version and the SDK just make the request to the address: *http://devkit-cookbook.cloudhub.io/soap*
+
+* The rest base url is *http://devkit-cookbook.cloudhub.io/rest*
+
+** The OAuth Authorize url is */oauth/authorize*
+
+** The Access Token url is */oauth/accessToken*
+
+[NOTE]
+====
+You can also run it locally since we provide the source code for the servers already ready to start.
+
+The local SOAP Server can be run from the soap-server project by simply executing the com.cookbook.tutorial.service.MuleStoreServer class.
+
+By default it starts the server on address *http://localhost:9090/cook-book*
+
+The local Rest Server can be run from the rest-server project by simple executing the com.cookbook.tutorial.Main class.
+
+By default it starts the server on address *http://localhost/9091*
+====
+
+== Getting started
+
+To build a basic connector for the {tutorial} service, we need to perform the following steps:
+
+. Create a Connector Project.
+. Add the dependency that contains the client we will use to connect to the service.
+. Add a configurable URL so that users can specify the URL where the service is hosted.
+. Add an operation that users can consume in Anypoint Studio.
+
+=== Create the {tutorial} Connector
+
+. In Anypoint Studio, click *File* > *New* > *Anypoint Connector Project* or right-click your project name in Package Explorer and click *New* > *Anypoint Connector Project*:
++
+image::new-connector-1.png[width="500"]
++
+. Select the Connector Type you want to create. In this case, select SDK Based:
++
+image::new0.png[width="500"]
++
+. Specify the name of your connector and don't forget to uncheck the default generation before clicking *Finish*:
++
+image:new1.png[width="550"]
++
+This generates a project containing the structure and all required elements including a skeleton connector, images, sample docs file, but no basic tests for your connector.
++
+image::new-connector-3.png[width="600",link="images/new-connector-3.png"]
++
+[NOTE]
+====
+You can customize the icons by replacing the generated ones. Just make sure that they have the same size so that they look good in Studio.
+====
++
+You can enable the DevKit view by clicking from the top bar *Window* > *Show view* > *Other*, and look for DevKit in the list.
++
+.DevKit View shows a compact view of the connector.
+image::enable-view.png[width="300"]
++
+[NOTE]
+====
+You can check a detailed explanation of the relation between <<connector-structure,connector>> structure and Studio.
+====
+
+When consuming a service, you may need to configure different values to establish a connection.
+
+To solve this, DevKit provides a pair of annotations that let you modularize in different classes:
+
+* The behavior you expose to users, using the @Connector annotation.
+* Code related to the connection/configuration is injected into your @Config annotated field. There are several types of configuration you can use as we will see in this tutorial.
+
+[TIP]
+====
+When you mark a field with @Config, DevKit ensures that you have an initialized object set when the Mule app runs and that requests are made to your connector.
+====
+
+==== Adding Dependencies
+
+Let's start coding by creating a connector that allows you to get the recently added elements.
+
+Since we don't need any kind of authentication to consume the recently added recipes, this is the best operation we can use to start learning how to build our connector.
+
+. Add our client dependency so that we can use it in our connector. This way we can use the Java API built to connect to the {tutorial}.
++
+In your pom.xml file add:
++
+[source,xml,indent=0]
+----
+<dependencies>
+  <dependency>
+    <groupId>com.cookbook.tutorial</groupId>
+    <artifactId>sdk-client</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </dependency>
+</dependencies>
+----
+
+=== Adding @Configurable Fields
+
+On the @Configuration ConnectorConfig add a <<configurable,configurable>> field for the address where the {tutorial} service is hosted:
+
+. Type *conf* at the editor of your connector config and use Ctrl+Space to display the templates.
++
+image::config-field.png[width="600"]
++
+. Add a configurable field in our @Configuration component with a default value for the endpoint our client connects to so that users can connect to different sandboxes.
++
+. Create the a setter and a getter, since all @Configurable items must have getters and setters.
++
+See full link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v1/ConnectorConfig.java[Config] source code.
+
+=== Initialize the Client
+
+. On your @Connector marked class use the @Start annotation on a method to initialize the client.
++
+[source,java]
+----
+include::{resourcesDir}/java/v1/CookbookConnector.java[lines=30..35]
+----
++
+[NOTE]
+====
+Anypoint connectors can be fully aware of Mule's lifecycle without implementing any Mule-specific interface.
+
+There is an annotation method for each of the four phases of the lifecycle.
+
+When a method is annotated with one of these annotations, DevKit invokes it during the lifecycle phase that the annotation represents.
+====
+
+[[processor]]
+=== Adding @Processor Methods
+
+. Remove the dummy operation the connector has.
++
+. To add a processor simply type *proc* at the editor and use Ctrl+Space to display the templates and pick the simple processor.
++
+image::processor1.png[width="600"]
++
+. Change it to reflect the +getRecentlyAdded+ method signature, and there we have our first connector, ready to be tested.
++
+image::processor2.png[width="600"]
++
+. Run the link:/anypoint-connector-devkit/v/3.8/creating-a-java-sdk-based-connector#generating-sources[Generate Sources] Action.
++
+See full link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v1/CookbookConnector.java[Connector] source code.
+
+At this point you can <<install-guide,install>> this Connector and try it in Studio if you want.
+
+[IMPORTANT]
+====
+As you modify your connector, you may start seeing error markers on the generated folder.
+
+Just ignore them.
+
+Once you regenerate the sources, the errors will go away as the generated code will be refreshed.
+====
+
+==== Adding Samples to Your Connector
+
+Let's now add the example for it.
+
+Create the file pointed by the *{@sample ...}* if it doesn't exists already
+
+*Note*: When you add an example, use the same name as the name that narrows the example in the file. Inside of it you have to put an example of the @Processor.
+
+If you have the Javadoc check enabled, DevKit plugin marks the missing example as an error and provide a quick fix for us to easily add the example.
+
+Otherwise, open the file and type *<* at the editor and use Ctrl+Space to display the templates and pick the one that best suite our operation.
+
+image::sample1.png[width="600"]
+
+Our example in this case looks like this:
+
+[source,xml,indent=0]
+----
+<!-- BEGIN_INCLUDE(cook-book:getRecentlyAdded) -->
+	<cook-book:get-recently-added/>
+<!-- END_INCLUDE(cook-book:getRecentlyAdded) -->
+----
+
+=== Using the Connector in Mule
+You will do a very simple app that listens to an HTTP endpoint and when we hit it, it will retrieve the list of recently added elements.
+
+. Create a mule app and add a simple http listener. If this is your first mule app, take a look at our link:/mule-fundamentals/v/3.7/build-a-hello-world-application[Hello World Application].
+. Drag and drop the Connector, and configure it.
++
+image::mule-app/first-mule-app-config.png[width="600"]
++
+. Drag and drop an *Object to JSON* transformer and run the app.
+
+++++
+<div class="panel panel-default no-padding">
+    <div class="panel-heading no-padding">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="active"><a href="#first-view" role="tab" data-toggle="tab">Mule App</a></li>
+            <li><a href="#first-xml" role="tab" data-toggle="tab">XML</a></li>
+        </ul>
+    </div>
+
+    <!-- Tab panes + Panel body -->
+    <div class="panel-body tab-content no-padding">
+        <div class="tab-pane in active fade no-padding" id="first-view">
+++++
+image::mule-app/first-mule-app.png[width="600"]
+++++
+        </div>
+        <div class="tab-pane fade no-padding" id="first-xml">
+++++
+
+[source,xml,linenums]
+----
+include::{resourcesDir}/mule-app/first-mule-app.xml[]
+----
+
+++++
+        </div>
+    </div>
+</div>
+++++
+
+If you hit the url `http://localhost:8081/get-recently` you will see a reply similar to:
+
+[source,json]
+----
+[
+   {
+      "created":1428678371866,
+      "id":2,
+      "lastModified":null,
+      "name":"Baked Apples",
+      "cookTime":20.0,
+      "directions":[
+         "Cut the Apples",
+         "Put them in the oven",
+         "Remove from the oven after 20.0 minutes"
+      ],
+      "ingredients":[
+         {
+            "created":1428678371866,
+            "id":1,
+            "lastModified":null,
+            "name":"Apple",
+            "quantity":0.0,
+            "unit":"UNIT"
+         }
+      ],
+      "prepTime":30.0
+   }
+]
+----
+
+
+If you want to know how to create tests for your connector check:
+
+* link:http://mulesoft.github.io/connector-certification-docs/advanced/index.html#_functional_tests_automation[Tests Automation] documentation.
+
+* The full link:/anypoint-connector-devkit/v/3.8/developing-devkit-connector-tests[testing documentation].
+
+=== Adding Connection Management
+
+Unlike the *getRecentlyAdded* call doesn't require authentication, all other operations require that you set a token on each request.
+
+The client you are using provides a login call that initializes the token and uses it in subsequent requests.
+
+[NOTE]
+====
+Take into account that the session can expire and cause the connector to make a login request again.
+====
+
+DevKit provides a different set of annotations to keep your code clean and handle the connection in a different class for delegating responsibilities.
+
+To implement @ConnectionManagement, you need to move the initialization to @ConnectionManagement, instead of using the @Start annotation as we did before.
+
+. In the ConnectorConfig change the @Configuration for a @ConnectionManagement annotation
++
+[source,java]
+----
+include::{resourcesDir}/java/v2/ConnectorConfig.java[lines=29]
+----
++
+. Add the MuleCookbookClient to the ConnectorConfig and add a getter and getter.
++
+[source,java]
+----
+include::{resourcesDir}/java/v2/ConnectorConfig.java[lines=91..100]
+----
++
+. Implement these four methods as shown in the code sample that follows:
++
+* *@Connect* - Initialize the client, and if you don't have a login, call the API to verify.
++
+[source,java]
+----
+include::{resourcesDir}/java/v2/ConnectorConfig.java[lines=41..50]
+----
++
+* *@Disconnect* - Release any connection if required.
++
+[source,java]
+----
+include::{resourcesDir}/java/v2/ConnectorConfig.java[lines=55..58]
+----
++
+* *@ValidateConnection* - Check that your connection is alive.
++
+[source,java]
+----
+include::{resourcesDir}/java/v2/ConnectorConfig.java[lines=63..66]
+----
++
+* *@ConnectionIdentifier* - Return a string value. This will only be used when debugging.
++
+[source,java]
+----
+include::{resourcesDir}/java/v2/ConnectorConfig.java[lines=71..74]
+----
++
+. Remove the MuleCookBookClient from the CookbookConnector and the @Start method
++
+. On our @Processor use the client provided by the ConnectorConfig
++
+[source,java]
+----
+include::{resourcesDir}/java/v2/CookbookConnector.java[lines=35..38]
+----
+
+See:
+
+* link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v2/CookbookConnector.java[Connector] source code.
+
+* link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v2/ConnectorConfig.java[Config] source code.
+
+If you install this version and try to run the mule app we created before, you will see that it fails with a SAXParseException because we need to add a username and password to our configuration.
+
+Just open the global configuration of your connector and check that there are 2 new fields, username and password. Configure them and you can run the app again.
+
+image::connection-management.png[width="600"]
+
+This is the mule updated xml:
+
+[source,xml,linenums]
+----
+include::{resourcesDir}/mule-app/mule-app-connection-management.xml[]
+----
+
+See:
+
+* Check the link:http://mulesoft.github.io/connector-certification-docs/advanced/index.html#_test_connectivity[Test Connectivity] section.
+
+* link:/anypoint-connector-devkit/v/3.8/authentication[Authentication][DevKit Authentication] documentation.
+
+== Improving Error Handling
+
+This section explains how to improve exception handling and reconnecting.
+
+=== Exception Handling with @Handler
+
+The @Handler feature, is very useful when you want to avoid duplicated code when handling exceptions, and also so that your connector code is cleaner.
+
+When handling messages retrieved from the API, if the message is poor and you know how to improve it, you can use this mechanism, to enrich the error provided to the user.
+
+To see how it works, let's create a handler for the InvalidEntityException thrown by the create() call of the Cookbook SDK.
+
+. Create a new Anypoint Connector Component by doing a right click and selecting the wizard.
++
+image::new-component.png[width="600"]
++
+. Select the package, component type and class name and click on Finish.
++
+image::new-component-2.png[width="600"]
++
+. Improve the error message when InvalidEntityException is thrown.
++
+[source,java]
+----
+include::{resourcesDir}/java/v3/CookbookHandler.java[lines=11..19]
+----
++
+Check the full link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v3/CookbookHandler.java[source code].
++
+. Add a new processor to create Ingredients
++
+[source,java,linenums]
+----
+include::{resourcesDir}/java/v3/CookbookConnector.java[lines=59..63]
+----
++
+Check the full link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v3/CookbookConnector.java[source code].
+
+=== Handling Session Expiration
+
+There is no need for users to add custom code in their Mule apps to handle session expiration. DevKit provides a mechanism to do this in a clean way.
+
+Just annotate your @Processor method with the @ReconnectOn exception.
+
+[source,java]
+----
+include::{resourcesDir}/java/v3/CookbookConnector2.java[lines=60..65]
+----
+
+Check the full link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v3/CookbookConnector2.java[source code].
+
+In our Mule app, you can configure a reconnection strategy so that our Mule app is ready to  handle session expirations.
+
+Global Config dialog configuration:
+
+image::reconnect.png[width="500"]
+
+The XML generated looks like:
+[source,xml]
+----
+<cookbook:config-type doc:name="config" name="config" password="admin" username="admin">
+    <reconnect/>
+</cookbook:config-type>
+----
+
+== Adding DataSense
+
+=== What is it?
+
+DataSense improves the user experience at design time when creating Mule applications by enabling your connector to determine the API of your target resource.
+
+Even though DataSense is optional, its use enables connector users to acquire metadata of the entities in a service.
+
+See:
+
+* link:/anypoint-connector-devkit/v/3.8/adding-datasense[Adding DataSense]
+
+
+In this tutorial, we use a static DataSense model, which means that the entities are fixed and known upfront, and do not change. The fields that this model supports are also fixed.
+
+=== Using DataSense
+
+To use DataSense in the cookbook:
+
+. Analyze the entities in {mule} service. We only have two simple entities, Recipe and Ingredient that both extend from CookBookEntity.
+. Look at how our createIngredient operation looks inside Anypoint Studio, and how it interacts with other components.
++
+[source,java,indent=0]
+----
+include::{resourcesDir}/java/v3/CookbookConnector2.java[lines=60..65]
+----
+
+==== Handling Ingredients
+
+We defined the operation so that it receives an Ingredient, and it returns an Ingredient with the extra fields populated from the server.
+
+Let's handle the ingredients:
+
+. Check the input metadata to see that the expected output is a POJO, with the expected fields our Ingredient has:
++
+image::datasense/datasense-expected-ingredients.png[width="800"]
++
+. Verify that the output metadata is expected:
++
+image::datasense/datasense-ingredients.png[width="800"]
++
+. Drag and drop a {dataWeave} either behind or after our connector. The {dataWeave} automatically picks the input or output:
++
+image::datasense/datasense-input.png[title="Transform Message Receiving Connector Output", width="800"]
++
+
+Because DevKit auto-generates static metadata, DevKit automatically ensures that your connector knows how to propagate metadata information.
+
+==== Handling Recipes
+
+We don't have just Ingredients, we also have Recipes, so we don't want one method for each entity we have in our model.
+
+Modify your connector to just work with the CookBookEntity class:
+
+. Create an operation:
++
+[source,java,indent=0]
+----
+include::{resourcesDir}/java/v4/CookbookConnector.java[lines=64..69]
+----
++
+. The *@RefOnly* annotation is used to tell DevKit that the input can only be specified as a reference (due to a DevKit limitations on handling Abstract classes).
++
+Let's see how this affects the UI and user experience.
++
+Studio, can no longer determine input or output type:
++
+image::datasense/ref-only-input.png[title="Connector Input with @RefOnly",width="900"]
++
+image::datasense/ref-only-output.png[title="Connector Output with Abstract Class",width="900"]
+
+In the next section we get back our DataSense-friendly user experience.
+
+The full source code of our connector with a create, update, get and delete operation is available link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v4/CookbookConnector.java[here].
+
+=== Implementing a MetaDataCategory
+
+To implement DataSense using a @MetaDataCategory, you need to separate your implementation in two steps, retrieving the keys and describing the keys.
+
+. Use the Anypoint DevKit Component wizard to create a new MetaDataCategory
++
+image::datasense/new-metadatacategory.png[width="600"]
++
+. Modify the method annotate with @MetaDataKeyRetriever to retrieve two keys, one for Recipe and another for Ingredient.
++
+[source,java,indent=0]
+----
+include::{resourcesDir}/java/v5/DataSenseResolver.java[lines=28..37]
+----
++
+. Modify the method annotate with @MetaDataRetriever, to retrieve the description. Because we use a static model, we can just create a POJO model:
++
+[source,java,indent=0]
+----
+include::{resourcesDir}/java/v5/DataSenseResolver.java[lines=48..65]
+----
++
+Check the full link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v5/DataSenseResolver.java[source code].
+
+To use this in our connector, modify our @Processors so that a user can pick the entities.
+
+. Annotate our @Connector class with the @MetaDataScope annotation. This sets the default MetaDataCategory that's used every time users choose a @Processor that has a @MetaDataKeyParam.
++
+[source,java,indent=0]
+----
+include::{resourcesDir}/java/v5/CookbookConnector.java[lines=35..37]
+----
++
+. To describe input and output, add a String annotated with *@MetaDataKeyParam*, and specify that it affects input and output by adding the *affects=MetaDataKeyParamAffectsType.BOTH* :
++
+[source,java,indent=0]
+----
+include::{resourcesDir}/java/v5/CookbookConnector.java[lines=69..75]
+----
++
+. In your get operation you need specify that the affect only applies to the output so we modify it just a little:
++
+[source,java,indent=0]
+----
+include::{resourcesDir}/java/v5/CookbookConnector.java[lines=115..121]
+----
++
+. Check our new connector looks in Studio. We have a combo after we select the entity type and save it. This automatically refreshes our metadata.
++
+image::datasense/datasense-static.png[width="800"]
++
+Now even the {dataWeave} knows how to interact with our @Connector:
++
+image::datasense/datasense-static2.png[width="800"]
+
+View connector full source code link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v5/CookbookConnector.java[here].
+
+==== Dynamic DataSense
+
+In the previous section we covered the scenario when your model is static. Let's take a look into a much more complex scenario.
+
+There are APIs that provide a way to get entity definitions dynamically. Salesforce, NetSuite are just some examples of these.
+
+In our case, our Cookbook provides an operation that describes our entities, so let's use that instead to get the entities and structure:
+
+. Get the supported entities, and generate a key that we can use later:
++
+[source,java,indent=0]
+----
+include::{resourcesDir}/java/v6/DataSenseResolver.java[lines=39..51]
+----
++
+. Use a structure that we can dynamically modify, and the way to do this in Mule is by using a +Map<String,Object>+ as parameters and/or return types of our connector.
++
+Mule provides a builder that helps us generate the MetaData for the entities.
++
+[source,java,indent=0]
+----
+include::{resourcesDir}/java/v6/DataSenseResolver.java[lines=60..87]
+----
++
+. Check the full link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v6/DataSenseResolver.java[source code].
++
+. In our @Connector now we need to add the code to generate the entities from the Map, and return Map in all our operations. Why is this important? To maintain consistency in our API.
++
+This is how our new Create looks:
++
+[source,java,indent=0]
+----
+include::{resourcesDir}/java/v6/CookbookConnector.java[lines=73..88]
+----
++
+Note that now the UI is a different form before, because the input is now a map.
++
+image::datasense/datasense-ui.png[width="900"]
++
+. In our Mule app, we cannot update the metadata and use our connector. And, as you can see, note that we have a map structure instead of a POJO:
++
+image::datasense/datasense-map.png[width="900"]
+
+To see how to test DataSense check our link:http://mulesoft.github.io/connector-certification-docs/advanced/index.html#_testing_metadata[Testing DataSense] guide.
+
+// TODO
+// === Adding @Query
+
+== Adding Pagination
+
+=== Implement Pagination
+In order to show this feature you are going to add a processor that will call the searchWithQuery operation of the SDK.
+
+You need to do 3 things in order to have a paginated operation:
+
+[source,java]
+----
+include::{resourcesDir}/java/v8/CookbookConnector.java[lines=209..216]
+----
+<1> Annotated your processor with @Paged.
+<2> Return a ProviderAwarePagingDelegate
+<3> Receive as one of your parameters a PagingConfiguration
+
+--
+When implementing your ProviderAwarePagingDelegate you need to specify two elements:
+
+. The type of the list you will return in each page. In your case a Map<String,Object>
+
+. The type of the Connector.
+
+To create it use the Anypoint DevKit Component wizard and:
+
+. Specify the package were you want to create it. In this example *org.mule.cookbook.pagination*
+
+. Specify you want to create a ProviderAwarePagingDelegate.
+
+. Set the class name as CookbookPagingDelegate
++
+image::pagination-component.png[width="600"]
+
+After that you just need to implement the methods required for you to handle the new page request.
+
+You can find the full source code of the link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v8/CookbookPagingDelegate.java[CookbookPagingDelegate].
+--
+NOTE: If you have a reconnection strategy, DevKit will automatically reconnect and retry to get a page. It is important that you handle the state of your PagingDelegate to make sure you retry the last page that was not retrieved.
+
+See:
+
+* link:/anypoint-connector-devkit/v/3.8/adding-query-pagination-support[Adding Query Pagination Support].
+
+=== Using Pagination In Your Mule App
+
+You can for example use a foreach in front of your paged processor:
+++++
+<div class="panel panel-default no-padding">
+    <div class="panel-heading no-padding">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="active"><a href="#page-view" role="tab" data-toggle="tab">Mule App</a></li>
+            <li><a href="#page-xml" role="tab" data-toggle="tab">XML</a></li>
+        </ul>
+    </div>
+
+    <!-- Tab panes + Panel body -->
+    <div class="panel-body tab-content no-padding">
+        <div class="tab-pane in active fade no-padding" id="page-view">
+++++
+image::pagination-example.png[width="600"]
+++++
+        </div>
+        <div class="tab-pane fade no-padding" id="page-xml">
+++++
+
+[source,xml,indent=0]
+----
+include::{resourcesDir}/mule-app/pagination-example.xml[]
+----
+
+++++
+        </div>
+    </div>
+</div>
+++++
+
+[[install-guide]]
+== Installing a Connector
+
+=== Using the Anypoint DevKit plugin
+
+Installing the connector is basically the same as installing any Eclipse plugin.
+
+[[steps-to-install]]
+To install your connector from the DevKit plugin:
+
+. Right-click your project name in Package Explorer, and click *Anypoint Connector* > *Install Or Update*.
++
+image::install/install1.png[width="500"]
++
+This triggers the DevKit Maven build tool, which generates an link:http://help.eclipse.org/luna/index.jsp?topic=%2Forg.eclipse.pde.doc.user%2Fconcepts%2Fupdate_site.htm[update site] folder.
++
+The files will be copied under the *dropins* folder located in the same directory as the AnypointStudio executable, and installed without the need of rebooting your AnypointStudio.
++
+. You can now use your connector in a Mule app.
++
+image::install/install2.png[width="600"]
+
+[TIP]
+====
+To uninstall the connectors you can either use the shortcut from the UI or remove the folder from the *dropins* directory and reboot your AnypointStudio
+
+image::install/uninstall.png[width="400"]
+====
+
+=== Installing from an UpdateSite
+
+Connectors can be installed manually by selecting the update site generated by DevKit:
+
+. Open a command prompt or terminal and change directory to where the pom.xml file is for your project (in the Eclipse workspace).
+. Run *mvn clean package*.
+. Click *Help* > *Install New Software...*.
++
+image::install/install-updatesite.png[width="600"]
++
+. Click *Add* and in the new dialog look for the folder.
+. Click the UpdateSite file, generated under your project's target folder.
++
+image::install/install-updatesite2.png[width="600"]
++
+You can either select the zip file named UpdateSite.zip or the folder update-site.
++
+image::install/install-updatesite3.png[width="600"]
++
+A popup will open showing the task that is performed.
+[[install-dialog]]
+image::install/install12.png[width="500"]
++
+. Review the installation and update items, and accept the license agreement.
++
+. Click *Finish* and restart Studio for the changes to be recognized.
++
+NOTE: JAR files are not signed during this run, so you will see a popup.
++
+image::security-warning.png[width="600"]
++
+. You can now use your connector in a Mule app.
++
+image::install/install2.png[width="600"]
+
+== Updating a Connector
+
+To update your connector you can repeat the steps made for <<steps-to-install,installing>> it.
+
+AnypointStudio will detect it is an update and perform the corresponding actions.
+
+== Debugging Your Connector
+
+After successfully installing your connector, you can start using your connector in a Mule application.
+You can add breakpoints in the source code of the connector to debug it.
+If your connector is a Community connector, the source code ships automatically in the installed connector.
+If your connector is an Enterprise, you need to manually attach the source code of your JAR.
+
+WARNING: To correctly debug your code, take into account that the Mule app you are running is using the latest installed version, so if you make changes, and you want to debug the Mule app, you need to re-install the connector.
+
+Debugging your connector when running your test is as simple as debugging any Java class.
+
+You just need to set a breakpoint in your connector code.
+
+== Sharing My Connector
+
+Connector, as a component that can be installed in Anypoint Studio, is an Update Site.
+
+Update Sites are used to organize and export features so they can be installed into Eclipse applications.
+
+When the site is built, the included features (along with all plug-ins part of those features) will be exported into an installable form. The exported plug-ins and features will be put into two folders "plug-ins" and "features". Two other files, "content.xml" and "artifacts.xml" will also be generated and contain metadata for the exported files that make installing easier. These files, along with "site.xml", collectively form an Eclipse update site. To make the update site available to others you must make all these files available in a shared directory or web site.
+
+When building a connector, DevKit generates this for you, so that you don't need to worry about generating it yourself.
+
+You can use the Anypoint DevKit plugin to either install the connector on your current Studio, or export it as an update-site for others to use.
+
+== Miscellaneous
+
+[[connector-structure]]
+=== Connector Structure
+
+In order to see how all the components are related, let's create a Hello World connector:
+
+. In Anypoint Studio, click *File* > *New* > *Anypoint Connector Project* or right-click your project name in Package Explorer and click *New* > *Anypoint Connector Project*:
++
+image::new-connector-1.png[width="500"]
++
+. Select the Connector Type you want to create. In this case, select SDK Based:
++
+image::new0.png[width="500"]
++
+. Specify the name of your connector and click *Finish*:
++
+image::new-connector-2.png[width="500"]
++
+This generates a project containing the structure and all required elements including a skeleton connector, images, sample docs, and basic tests for your connector.
++
+image::new-connector-3.png[width="600"]
++
+. Enable the DevKit view by clicking from the top bar *Window* > *Show view* > *Other*, and look for DevKit in the list.
++
+image::enable-view.png[width="300", height="400"]
+
+Your connector initially consists of message processors and user interface elements. Users can configure the UI elements in Anypoint Studio.
+
+The DevKit makes it easy to install a connector in Studio. After you install it in Studio, users can search for your connector and drag it into a Mule flow.
+
+Installing only requires right-clicking the name of the connector in Studio's Package Explorer, and clicking *Anypoint Connector* > *Install or Update*, completing the prompts, and restarting Studio, as you can see at the <<install-guide,install section>>. You can install at any time during coding. You can even install the starting skeleton connector.
+
+Let's check the structure of the skeleton connector.
+
+In this image you can see how most of the code maps into UI elements.
+
+// TODO: Use 2 images of screenshots with the default layout
+
+image::split-1-high.png[caption="Figure 1: ", title="View Structure and UI", alt="Image1", width="800", link="images/split-1-high.png"]
+
+In this example, you can check how the code matches to XML and other UI elements.
+
+// TODO: Use 2 images of screenshots with the default layout
+
+image::split-2-high.png[caption="Figure 2: ", title="View configuration and XML", alt="Image2", width="800", link="images/split-2-high.png"]
+
+[NOTE]
+====
+@Config annotation is deprecated. Users instead should use @Config. On this views, consider the Config as the ConnectorConfig
+====
+
+[[configurable]]
+=== Configurable and Parameter Modifiers
+
+==== @Optional Parameters
+
+Optional parameters or configurable ones are elements that are not required, and therefore, there is no need for users to specify a value.
+
+You can specify configurable fields inside you Connector Configuration classes, or as parameters of @Processor methods inside a @Connector.
+
+[source,java]
+----
+import org.mule.api.annotations.Configurable;
+import org.mule.api.annotations.Processor;
+import org.mule.api.annotations.param.Optional;
+
+//Inside the Configuration class
+
+/**
+ * Optional Field documentation
+ */
+@Configurable
+@Optional
+private String  optionalField;
+//Getter and Setter of the field are required
+
+//Inside your @Connector
+
+/**
+ * Optional parameter
+ */
+@Processor
+public String sayHi(String firstName,@Optional String lastName ) {
+    return "Hi "+firstName+" "+((lastName==null) ? "":lastName);
+}
+----
+
+==== @Default
+
+When you want an optional parameter or configurable you can avoid the use of @Optional and just use the @Default annotation.
+[source,java]
+----
+import org.mule.api.annotations.Configurable;
+import org.mule.api.annotations.Processor;
+import org.mule.api.annotations.param.Default;
+
+//Inside the Configuration class
+
+/**
+ *  Field with Default
+ */
+@Configurable
+@Default("Hi")
+private String  greeting;
+//Getter and Setter of the field are required
+
+//Inside your @Connector
+
+/**
+ * Default parameter
+ */
+@Processor
+public String sayHi(String firstName,@Default("Unknown") String lastName ) {
+    return greeting+" "+firstName+" "+lastName;
+}
+----
+
+Another very important use of the @Default annotation is when building a connector that has DataSense.
+
+=== Adding OAuthV2
+
+The Server can also provide the token using OAuth 2.0, instead of doing a login request.
+
+In order to use OAuth in you connector you just need to annotate your strategy with the @OAuth2 annotation.
+
+If you only had the OAuth2 Configuration your Config would look like:
+
+[source,java]
+----
+include::{resourcesDir}/java/v9/OAuth2StandAloneConfig.java[]
+----
+
+All our operations now need to be marked with the @OAuthProtected, even our @Source.
+
+In our Connector for example you will see:
+[source,java]
+----
+include::{resourcesDir}/java/v9/CookbookConnector.java[lines="113..129"]
+----
+
+Check link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v9/CookbookConnector.java[full source] code.
+
+See:
+
+* link:/anypoint-connector-devkit/v/3.8/authentication[Authentication] documentation.
+* link:/anypoint-connector-devkit/v/3.8/oauth-v2[OAuth V2].
+* <<mutiple-connection-strategies,Supporting Multiple Connection Strategies>>.
+
+[[mutiple-connection-strategies]]
+
+=== Multiple Configuration
+
+If you want to have multiple connection configurations there are two things to take into account:
+
+* All Configurations either need to implement the same interface or have a common parent class.
+* The connector Config field needs to be declared either as the interface or as the common parent class.
+
+If your configuration has common fields, they can be defined at a parent class.
+
+In our connector, after the refactor the classes would look like this:
+
+image::model.png[uml-model]
+////
+[plantuml,model,png]
+----
+title Multiple Configurations
+
+ConnectorConfig <|-- ConnectionManagementConfig
+ConnectorConfig <|-- OAuthConfig
+CookBookConnector *- ConnectorConfig : config
+
+
+abstract class ConnectorConfig {
+- MuleCookBookClient client
+- String endpoint
+}
+
+class CookBookConnector {
+
+}
+
+class ConnectionManagementConfig {
+}
+
+class OAuthConfig {
+-String consumerKey
+-String consumerSecret
+-String accessToken
+}
+----
+////
+
+See:
+
+* link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v9/CookbookConnector.java[Connector] source code.
+
+* link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v9/ConnectorConfig.java[Base Config] source code.
+
+* link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v9/ConnectionManagementConfig.java[Connection Management Config] source code.
+
+* link:https://github.com/mulesoft/mule-cookbook-tutorial/blob/master/src/main/asciidoc/resources/java/v9/OAuthConfig.java[OAuth2 Config] source code.
+
+=== Adding @Source
+
+==== What is a Source?
+In some cases it is necessary to create Message Sources instead of Message Processors.
+
+Basically, a Message Source receives or generates new messages to be processed by Mule.
+One of the use cases for a Message Source is implementing Streaming APIs. The @Source annotation marks a method inside a @Connector annotated class as callable from a Mule flow and capable of generating Mule events. Each marked method will have a Message Source generated. The method must receive a SourceCallback as one of its arguments that represents the next message processor in the chain. It does not matter the order in which this parameter appears as long it is present in the method signature.
+
+==== Implementing a Message Source
+
+As an example, we are going to use the GetRecentlyAdded method.
+
+. Inside your @Connector type source and use Ctrl + Space bar to display the templates.
++
+image::source/source-template.png[width="600"]
+
+. Create a @Source that consumes the Get Recently Updated on the Connector using a callback
++
+[source,java]
+----
+include::{resourcesDir}/java/v7/CookbookConnector.java[lines=73..90]
+----
+
+. Install this new version
+
+. On your flow now just drag and drop the Cookbook Connector, and you will see that is automatically while generate a flow.
++
+image::source/source-example.png[width="600"]
+
+. Add a logger and debug to see that the payload now has your recipes.
+++++
+<div class="panel panel-default no-padding">
+    <div class="panel-heading no-padding">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="active"><a href="#source-view" role="tab" data-toggle="tab">Mule App</a></li>
+            <li><a href="#source-xml" role="tab" data-toggle="tab">XML</a></li>
+        </ul>
+    </div>
+
+    <!-- Tab panes + Panel body -->
+    <div class="panel-body tab-content no-padding">
+        <div class="tab-pane in active fade no-padding" id="source-view">
+++++
+image::source/source-debug.png[width="600"]
+++++
+        </div>
+        <div class="tab-pane fade no-padding" id="source-xml">
+++++
+
+[source,xml,indent=0]
+----
+include::{resourcesDir}/mule-app/source-example.xml[]
+----
+
+++++
+        </div>
+    </div>
+</div>
+++++
+
+=== Adding a Transformer
+
+==== What is a Transformer?
+Transformers convert message payloads to formats expected by their destinations. Mule ESB provides many standard transformers, which users can configure using elements and attributes in a Mule XML configuration file.
+
+Sometimes it's useful to build your own custom transformers.
+
+Annotating a method with @Transformer signals the DevKit to export a method functionality as a transformer. You need to declare Transformers in classes annotated with @Module or @Connector and you can declare more than one transformer in a single class. It is possible to declare transformers, message processors, and message sources all in the same class.
+
+An @Transformer annotated method must:
+
+* Be static
+* Be public
+* Not return void
+* Not return java.lang.Object
+* Receive exactly one argument
+* Be inside a class annotated with @Connector
+
+==== Creating a Transformer
+
+In our case, we are creating a transformer that converts a +List<Recipe>+ into a +List<Map<String,Object>>+, that way we don't need to modify our existing operation, and yet we can use the output of it in operations that receive a +List<Map<String,Object>>+.
+
+[source,java,indent=0]
+----
+include::{resourcesDir}/java/v6/CookbookConnector.java[lines=163..169]
+----
+
+==== Using Your Transformer in a Mule App
+
+To use your transformer, just drag and drop it from the palette and build a flow.
+
+* Here we are using it explicitly to map transform the recipes into a Map.
+
+++++
+<div class="panel panel-default no-padding">
+    <div class="panel-heading no-padding">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="active"><a href="#transformer-view" role="tab" data-toggle="tab">Mule App</a></li>
+            <li><a href="#transformer-xml" role="tab" data-toggle="tab">XML</a></li>
+        </ul>
+    </div>
+
+    <!-- Tab panes + Panel body -->
+    <div class="panel-body tab-content no-padding">
+        <div class="tab-pane in active fade no-padding" id="transformer-view">
+++++
+image::transformer/transformer-explicit.png[width="600"]
+++++
+        </div>
+        <div class="tab-pane fade no-padding" id="transformer-xml">
+++++
+
+[source,xml,indent=0]
+----
+include::{resourcesDir}/mule-app/transformer-example.xml[]
+----
+
+++++
+        </div>
+    </div>
+</div>
+++++
+
+
+* Transformers can also be used implicitly as long as only one transformer is found to resolve the type.
+
+. Define another transformer that can transform Recipe object into Map<String,Object>
++
+[source,java]
+----
+include::{resourcesDir}/java/v8/CookbookConnector.java[lines=226..232]
+----
++
+. Install the connector.
++
+. In your mule app create a flow that takes the first item of the list and add an update operation after it. Don't use the transformer.
++
+++++
+<div class="panel panel-default no-padding">
+    <div class="panel-heading no-padding">
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="active"><a href="#transformer2-view" role="tab" data-toggle="tab">Mule App</a></li>
+            <li><a href="#transformer2-xml" role="tab" data-toggle="tab">XML</a></li>
+        </ul>
+    </div>
+
+    <!-- Tab panes + Panel body -->
+    <div class="panel-body tab-content no-padding">
+        <div class="tab-pane in active fade no-padding" id="transformer2-view">
+++++
++
+image::transformer/transformer-implicitly.png[width="600"]
++
+++++
+        </div>
+        <div class="tab-pane fade no-padding" id="transformer2-xml">
+++++
++
+[source,xml]
+----
+include::{resourcesDir}/mule-app/transformer2-example.xml[]
+----
++
+++++
+        </div>
+    </div>
+</div>
+++++
++
+. Run the example and see that the flow will execute successfully.
+
+=== Using @Password
+
+When using the @Password in a @Connect parameters, it generates a masked input field in the UI.
+
+[source,java]
+----
+include::{resourcesDir}/java/v2/ConnectorConfig.java[lines=41..43]
+----
+
+In Studio this translates into:
+
+image::password.png[width="500"]
+
+// ==== Using @Placement
+
+// Defines the placement of a configurable attribute in the Anypoint Studio configuration.
+
+//TODO
+
+== Using an API to Build a Connector
+
+APIs are exposed in several ways. To start using your API, you should set up a few things before you can use it inside your connector.
+
+=== SDK Client
+
+If you have an SDK all you need to do is to include the Maven dependency for your jar in the pom.xml
+
+For example in our case, to consume the SDK for the Cookbook we can add the dependency.
+
+[source,xml,indent=0]
+----
+<dependencies>
+  <dependency>
+    <groupId>foo.sdk.group.id</groupId>
+    <artifactId>foo.sdk.artifact.id</artifactId>
+    <version>${sdk.version}</version>
+  </dependency>
+</dependencies>
+----
+
+=== SOAP API
+
+If you have a wsdl, the easiest way to build a connector is to create a client using CXF link:http://cxf.apache.org/docs/wsdl-to-java.html[wsdl2java].
+
+You can configure the CXF goal in your pom.xml file very easily. The full documentation is at the Apache  link:http://cxf.apache.org/docs/maven-cxf-codegen-plugin-wsdl-to-java.html[CXF site].
+
+For example, in your pom.xml file, you can add the following plus all required dependencies:
+[source,xml,indent=0,linenums]
+----
+<build>
+  <plugins>
+    <!-- CXF Code generation -->
+    <plugin>
+      <groupId>org.apache.cxf</groupId>
+      <artifactId>cxf-codegen-plugin</artifactId>
+      <version>${cxf.version}</version>
+      <executions>
+        <execution>
+          <phase>clean</phase> <!-- This is required for it to work with DevKit -->
+          <goals>
+            <goal>wsdl2java</goal>
+          </goals>
+          <configuration>
+            <wsdlOptions>
+              <wsdlOption>
+                <wsdl>${basedir}/src/main/resources/wsdl/IMuleCookBookService.wsdl</wsdl>
+                <autoNameResolution>true</autoNameResolution>
+                <extendedSoapHeaders>false</extendedSoapHeaders>
+                <extraargs>
+                  <extraarg>-xjc-Xbg</extraarg>
+                   <extraarg>-xjc-Xcollection-setter-injector</extraarg>
+                  <extraarg>-p</extraarg>
+                  <extraarg>org.mule.modules.wsdl.api</extraarg>
+                </extraargs>
+              </wsdlOption>
+            </wsdlOptions>
+          </configuration>
+         </execution>
+      </executions>
+      <dependencies>
+        <!-- Boolean Getters -->
+        <dependency>
+          <groupId>org.apache.cxf.xjcplugins</groupId>
+          <artifactId>cxf-xjc-boolean</artifactId>
+          <version>${cxf.version.boolean}</version>
+        </dependency>
+        <!-- Collection Setters -->
+        <dependency>
+          <groupId>net.java.dev.vcc.thirdparty</groupId>
+          <artifactId>collection-setter-injector</artifactId>
+          <version>0.5.0-1</version>
+        </dependency>
+      </dependencies>
+    </plugin>
+  </plugins>
+</build>
+----
+
+If you use the DevKit plugin it generates everything for you to get started, you just need to specify the WSDL location on your computer.
+
+=== REST API
+Write the request using any library that helps you make HTTP Requests.
+
+We recommend using Jersey {muleJerseyVersion}, which is provided in Mule version 3.6.0 and later.
+
+To make sure you always use the right version, add the following dependency.
+[source,xml,indent=0]
+----
+<dependencies>
+    <dependency>
+        <groupId>org.mule.modules</groupId>
+        <artifactId>mule-module-jersey</artifactId>
+        <version>${mule.version}</version>
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
+----
+
+Example GET request:
+[source,java,indent=0,linenums]
+----
+ClientConfig clientConfig = new ClientConfig();
+Client client = ClientBuilder.newClient(clientConfig);
+WebTarget webTarget = client.target("http://example.com/rest"); // # <1>
+WebTarget resourceWebTarget = webTarget.path("resource");
+WebTarget helloworldWebTarget = resourceWebTarget.path("helloworld"); // # <2>
+WebTarget helloworldWebTargetWithQueryParam =
+        helloworldWebTarget.queryParam("greeting", "Hi World!"); // # <3>
+
+Invocation.Builder invocationBuilder =
+        helloworldWebTargetWithQueryParam.request(MediaType.APPLICATION_JSON_TYPE); // # <4>
+
+Response response = invocationBuilder.get(); // # <5>
+System.out.println(response.getStatus());
+System.out.println(response.readEntity(String.class));
+----
+<1> The client is ready to make a request to URL http://example.com/rest
+<2> Add paths for http://example.com/rest/resource/helloworld
+<3> Configure a query param. It looks like http://example.com/rest/resource/helloworld?greeting=Hi+World%21
+<4> Specify we want the reply in JSON format
+<5> Make a GET request
+
+
+For more information, see the https://jersey.java.net/documentation/latest/client.html[Jersey client] documentation.

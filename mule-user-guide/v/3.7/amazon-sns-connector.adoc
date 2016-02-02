@@ -1,17 +1,13 @@
 = Amazon SNS Connector
-:keywords: amazon sns, connector, esb, sns
+:keywords: anypoint studio, esb, connector, sns, amazon sns
 :imagesdir: ./_images
-:toc: macro
-:toc-title: Contents
-:toclevels: 3
+//:toc: macro
+//:toc-title: Contents
+//:toclevels: 3
 
-_Community_
+*_Select_*
 
-Amazon Simple Notification Service (SNS) provides hosted multi-protocol "push" messaging for applications. The Anypoint Connector for Amazon SNS allows Mule applications to interact with Amazon SNS.
-
-*Release Notes:* link:/release-notes/amazon-sns-connector-release-notes[Amazon SNS Connector Release Notes]
-
-toc::[]
+//toc::[]
 ////
 . link:#intro[Introduction]
     ..  link:#prerequisites[Prerequisites]
@@ -39,13 +35,15 @@ toc::[]
 == Introduction
 The Anypoint Amazon SNS Connector provides connectivity to the Amazon Simple Notification Service (Amazon SNS) API, enabling you to build distributed web-enabled applications. Mule applications can use the Amazon SNS Connector to easily push real-time notification messages to interested subscribers over multiple delivery protocols.
 
+*Release Notes:* link:/release-notes/amazon-sns-connector-release-notes[Amazon SNS Connector Release Notes]
+
 [[prerequisites]]
 == Prerequisites
 To be able to use the Amazon SNS Connector, you must have the following:
 
-* Access to Amazon Web Services - SNS
-* To access AWS with the connector, you will need the credentials in the form of link:http://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html[IAM]
-* Anypoint Studio - Community Edition
+* Access to Amazon Web Services - SNS.
+* To access AWS with the connector, you will need the credentials in the form of IAM.
+* Anypoint Studio - Enterprise Edition.
 
 [[requirements]]
 === Requirements
@@ -96,10 +94,10 @@ NOTE: Read more about https://developer.mulesoft.com/docs/display/current/Global
 [.center.text-center]
 image:sns_config_global_wizard.png["Global Element Configuration Wizard"]
 +
-. Configure the parameters according to the instructions below.
+. Configure the parameters according to instructions below.
 +
 [.center.text-center]
-image:sns_global_config.png["Global Element Configuration"]
+image:sns_config_global.png["Global Element Configuration"]
 +
 [width="80%",cols="30a,70a",options="header"]
 |===
@@ -124,9 +122,7 @@ link:/mule-user-guide/v/3.7/deploying-to-multiple-environments[Deploying to Mult
 ....
 [tab,title="XML Editor"]
 ....
-
-[NOTE]
-Ensure that the Amazon SNS namespaces have been included in your configuration file.
+First, ensure that you have included the Amazon SNS namespaces in your configuration file.
 
 [source,xml,linenums]
 ----
@@ -145,13 +141,14 @@ http://www.mulesoft.org/schema/mule/sns http://www.mulesoft.org/schema/mule/sns/
 </mule>
 ----
 
-The global Amazon SNS configuration should be defined outside and above your flow(s) with the following code:
-[source,xml]
+Follow these steps to configure an Amazon S3 connector in your application:
+Create a global Amazon S3 configuration outside and above your flows, using the following global configuration code.
+
+[source,xml,linenums]
 ----
 <sns:config name="Amazon_SNS__Configuration" accessKey="${amazon.accesskey}" secretKey="${amazon.secretkey}" topicArn="${amazon.sns.topic.arn}" doc:name="Amazon SNS: Configuration"/>
 ----
 ....
-
 ------
 
 [[upgrading]]
@@ -162,13 +159,15 @@ Every time an updated version of a connector is released, Anypoint Studio displa
 To upgrade to the newer version of the Amazon SNS connector:
 
 . Click the popup and check for the available updates.
-. Select the *Amazon SNS connector version 2.1.0* checkbox and click *Next*.
+. Select the *Amazon SNS connector version 2.1.0* check box and click *Next*.
 . Follow the instructions provided by the user interface.
 . Restart Studio when prompted. After restarting, if you have several versions of the connector installed, Mule asks you for the version of the connector to use.
 
 [NOTE]
 ====
-Since version 2.0 of the connector, the input and output attributes have been modified for most of the operations. For example, the *Add Permission* operation refers to POJO object `org.mule.modules.sns.model.AddPermission` instead of `com.amazonaws.services.sns.model.AddPermissionRequest`.
+We have made the following updates in version 2.x of the connector:
+
+* For most of the operations the input and output attributes have been modified. For example, Add Permission operation refers to POJO object org.mule.modules.sns.model.AddPermission instead of com.amazonaws.services.sns.model.AddPermissionRequest.
 ====
 
 [[using-the-connector]]
@@ -178,15 +177,25 @@ Amazon SNS connector is an operation-based connector, which means that when you 
 
 * Add Permission
 * Confirm Subscription
+* Create Platform Application
+* Create Platform Endpoint
 * Create Topic
+* Delete Endpoint
+* Delete Platform Application
 * Delete Topic
+* Get Endpoint Attributes
+* Get Platform Application Attributes
 * Get Subscription Attributes
 * Get Topic Attributes
+* List Endpoint By Platform Application
+* List Platform Application
 * List Subscriptions By Topic
 * List Subscriptions
 * List Topics
 * Publish
 * Remove Permission
+* Set Endpoint Attributes
+* Set Platform Application Attributes
 * Set Subscription Attributes
 * Set Topic Attributes
 * Subscribe
@@ -198,7 +207,7 @@ Listed below are the few common use cases for the connector:
 
 [options="autowidth"]
 |===
-|*Sending Amazon SNS Messages to Amazon SQS Queues*|Amazon SNS works closely with Amazon Simple Queue Service (Amazon SQS). By using Amazon SNS and Amazon SQS together, messages can be delivered to applications that require immediate notification of an event, and also persisted in an Amazon SQS queue for other applications to process at a later time.
+|*Sending Amazon SNS Messages to Amazon SQS Queues*|Amazon SNS works closely with Amazon Simple Queue Service (Amazon SQS).By using Amazon SNS and Amazon SQS together, messages can be delivered to applications that require immediate notification of an event, and also persisted in an Amazon SQS queue for other applications to process at a later time.
 |*Sending Amazon SNS Messages to HTTP/HTTPS Endpoints*|You can use Amazon SNS to send notification messages to one or more HTTP or HTTPS endpoints. When you subscribe an endpoint to a topic, you can publish a notification to the topic and Amazon SNS sends an HTTP POST request delivering the contents of the notification to the subscribed endpoint.
 |===
 
@@ -209,11 +218,11 @@ Listed below are the few common use cases for the connector:
 Use the *Test Connection* feature to validate the connection to the AWS SNS topic.
 
 . Open the *Amazon SNS Global Element Configuration*.
-. Click the *Test Connection* button. If *Topic Arn* or the *Region Endpoint* are invalid, you will get an eeror message.
+. Click the *Test Connection* button. If Topic Arn or the Region Endpoint are invalid, you will get an eeror message.
 +
 image:sns_wrong_region.png[Wrong Topic Region Endpoint]
 +
-. To resolve this issue, Select the correct region from the *Region Endpoint* dropdown in the Global Element Properties window.
+. To solve this issue, Select the right region from the Region Endpoint dropdown.
 
 [[adding-to-a-flow]]
 === Adding to a Flow
@@ -241,12 +250,13 @@ image:sns_usecase_settings.png[Flow Settings]
 +
 . Click the blank space on the canvas to save your configurations.
 
+
 [[example-use-case]]
 == Example Use Case
 
-Sending messages to Amazon SQS Queue.
+Send messages to Amazon SQS Queue.
 
-When you subscribe an Amazon SQS queue to an Amazon SNS topic, you can publish a message to the topic and Amazon SNS sends an Amazon SQS message to the subscribed queue.
+When you *subscribe an Amazon SQS queue to an Amazon SNS topic*, you can publish a message to the topic and Amazon SNS sends an Amazon SQS message to the subscribed queue.
 
 [.center.text-center]
 image:sns_usecase_flow.png[Sending messages to SQS Queue]
@@ -256,12 +266,8 @@ image:sns_usecase_flow.png[Sending messages to SQS Queue]
 You can now subscribe an Amazon SQS queue to an Amazon SNS topic using the AWS Management Console for Amazon SQS, which simplifies the process. Follow the steps mentioned in link:http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqssubscribe.html[Subscribe Queue to Amazon SNS Topic].
 ====
 
-[tabs]
------
-[tab,title="Studio Visual Editor"]
-....
 . Create a new **Mule Project** in Anypoint Studio.
-. Add the below properties to `mule-app.properties` file to hold your Amazon SNS & SQS credentials and place it in `src/main/app`.
+. Add the below properties to `mule-app.properties` file to hold your Amazon SNS and SQS credentials and place it in the project's `src/main/app` directory.
 +
 [source,code,linenums]
 ----
@@ -275,7 +281,9 @@ amazon.sqs.queue.region=<SQS Queue Region>
 amazon.sqs.queue.url=<SQS Queue URL>
 ----
 +
-. Drag a **HTTP endpoint** onto the canvas and configure the following parameters:
+. Drag a **HTTP endpoint** onto the canvas and configure the following parameters: +
+image:sns-http-props.png[sns http config props]
++
 [options="header,autowidth"]
 +
 |===
@@ -285,8 +293,8 @@ amazon.sqs.queue.url=<SQS Queue URL>
 |*Path*|/
 |===
 +
-. Drag the **Amazon SNS Connector** next to the HTTP endpoint component and configure it according to the steps below:
-. Add a new **Amazon SNS Global Element** by clicking the plus sign next to the *Connector Configuration* field.
+. Drag the **Amazon SNS Connector** next to the HTTP endpoint component.
+. Configure the SNS connector by adding a new **Amazon SNS Global Element**. Click the plus sign next to the *Connector Configuration* field.
 .. Configure the global element according to the table below:
 +
 [options="header,autowidth"]
@@ -298,8 +306,11 @@ amazon.sqs.queue.url=<SQS Queue URL>
 |*Region Endpoint*|Set the topic region endpoint.|`${amazon.sns.topic.region}`
 |*Topic Arn*|Topic ARN to test the connectivity.|`${amazon.sns.topic.arn}`
 |===
+.. Your configuration should look like this:
 +
-.. The connector's xml configuration should look like this:
+image:sns-use-case-config.png[sns use case config]
++
+.. The corresponding XML configuration should be as follows:
 +
 [source,xml]
 ----
@@ -315,15 +326,17 @@ amazon.sqs.queue.url=<SQS Queue URL>
 2+|*Basic Settings*
 |Display Name|Publish message to topic (or any other name you prefer).
 |Connector Configuration|Amazon_SNS__Configuration (the reference name to the global element you have created).
-|Operation| Publish
+|Operation| publish
 2+|*General*
-|Define attributes|Select to define the *Publish* attributes
-|Topic Arn|`${amazon.sns.topic.arn}` (or another Topic Arn).
+|Define attributes|Select to define the Publish attributes
+|Topic Arn|`${amazon.sns.topic.arn}` (or any other topic arn).
 |Message|Hello World!
 |Subject|Testing publish to queue.
 |===
+
 +
-. Check that your XML looks as follows:
+image:sns-publish-message-to-flow.png[publish message connector props]
+. Check that your XML looks like this:
 +
 [source,xml]
 ----
@@ -331,7 +344,7 @@ amazon.sqs.queue.url=<SQS Queue URL>
     <sns:publish topicArn="${amazon.sns.topic.arn}"  message="Hello world!" subject="Testing publish to queue"/>
 </sns:publish>
 ----
-. Add a **Logger** scope after the Amazon SNS connector to print the data to the Mule console that is being passed by the Publish operation. Configure the Logger according to the table below.
+. Add a **Logger** scope after the Amazon SNS connector to print the data that is being processed by the Publish operation in the Mule Console. Configure the Logger according to the table below.
 +
 [options="header,autowidth"]
 |===
@@ -340,10 +353,12 @@ amazon.sqs.queue.url=<SQS Queue URL>
 |*Message*|Message ID: `#[payload]`
 |*Level*|INFO
 |===
++
+image:sns-logger.png[sns logger]
 . Now let's add another flow to receive the message published by SNS.
-. Drag a *Flow* scope onto the canvas.
-. Drag the **Amazon SQS Connector** onto the canvas and into the newly created flow scope and configure it according to the steps below:
-. Add a new **Amazon SQS Global Element** by clicking the green plus sign next to the *Connector Configuration* field.
+. Drag a Flow scope onto the palette.
+. Drag the **Amazon SQS Connector** next to the HTTP endpoint component and configure it according to the steps below:
+. Click the plus sign next to the *Connector Configuration* field to add a new *Amazon SQS Global Element*.
 .. Configure the global element according to the table below:
 +
 [options="header,autowidth"]
@@ -357,7 +372,11 @@ amazon.sqs.queue.url=<SQS Queue URL>
 |*Region Endpoint*|Set the queue reqion|`${amazon.sqs.queue.region}`
 |===
 +
-.. The connector's xml configuration should look like this:
+.. Your configuration should look like this:
++
+image:sns-sqs-config.png[sns-sqs-config]
++
+.. The corresponding XML configuration should be as follows:
 +
 [source,xml]
 ----
@@ -382,7 +401,7 @@ amazon.sqs.queue.url=<SQS Queue URL>
 ----
 <sqs:receive-messages config-ref="Amazon_SQS__Configuration" doc:name="Amazon SQS (Streaming)"/>
 ----
-. Add a **Logger** scope after the Amazon SQS connector to print the data that is being passed by the Receive operation in the Mule console. Configure the Logger according to the table below.
+. Add a *Logger* scope after the Amazon SQS connector to print the data that is being passed by the Receive operation in the Mule Console. Configure the Logger according to the table below.
 +
 [options="header,autowidth"]
 |===
@@ -391,9 +410,6 @@ amazon.sqs.queue.url=<SQS Queue URL>
 |*Message*|Received Message : `#[payload]`
 |*Level*|INFO
 |===
-....
-[tab,title="XML Editor"]
-....
 
 [[example-code]]
 === Example Use Case Code
@@ -421,7 +437,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 	    </sns:publish>
         <logger message="Message ID: #[payload]" level="INFO" doc:name="Logger"/>
     </flow>
-    <flow name="receive_message_from_queue">
+    <flow name="recieve_message_from_queue">
         <sqs:receive-messages config-ref="Amazon_SQS__Configuration" doc:name="Amazon SQS (Streaming)"/>
         <logger message="Received Message : #[payload]" level="INFO"
 			doc:name="Display Message" />
@@ -429,14 +445,13 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
     </flow>
 </mule>
 ----
-....
------
+
 
 [[run]]
 === Run Time
 
-. Save and **run** the project as a Mule application.
-. Open a web browser and check the response after entering the URL `**http://localhost:8081/**`. The logger will display the published message ID in the browser and the received message on the Mule console.
+. Save and **run** the project as a Mule Application.
+. Open a web browser and check the response after entering the URL `http://localhost:8081/`. The logger will display the published message ID on the browser and the received message on the mule console.
 
 [[demo]]
 === Demo
@@ -446,4 +461,3 @@ You can download a fully functional example from http://mulesoft.github.io/sns-c
 [[see-also]]
 === See Also
 * Read more about link:/mule-user-guide/v/3.7/anypoint-connectors[Anypoint Connectors].
-* Access the Amazon SNS connector link:/release-notes/amazon-sns-connector-release-notes[release notes].

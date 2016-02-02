@@ -1,0 +1,70 @@
+= Authentication Methods
+:keywords: devkit, authentication, oauth, saml, kerberos, ntlm, ldap
+//todo: give note for each method and which devkit connector-building strategies are supported
+
+There are several common authentication protocols that APIs generally use. In most cases, you can implement at least one authentication method in your Anypoint Connector.  To help you understand the differences between these methods, this document offers a brief description of each of the most popular ones.
+
+== Basic Authentication
+
+This authentication method demands that a client prove authenticity by entering a username and password. For example, an application might be designed to accesses a user's Facebook account and checks if any of the user's friends "like" their own posts. For this to work, the application must be able to access private information from the user's account, and can do so by demanding that the end user provide his or her username and password.
+
+While this authentication method meets the need of the application, it also opens the door for the application to do much more than simply check for "self-liked" posts. With that in mind, this method may be unacceptable, as providing username and password credentials potentially enables nefarious activity.
+
+In DevKit, basic authentication is enabled using the link:/anypoint-connector-devkit/v/3.8/connection-management[Connection Management] framework.
+
+== OAuth 1.0 & 2.0
+
+A broadly-used alternative to username-password authentication is link:http://oauth.net/[OAuth] (Open standard for Authorization). The OAuth protocol allows third-party applications limited access to a resource through an alternative and restricted token. Using OAuth, an application can access a user's account, for example, without knowing the user's actual login credentials, thus limiting the application to perform selected operations. 
+
+Unlike other protocols, OAuth retains a state (for example, connected) in a cookie and, therefore, doesn't need to send token information with each request it submits. Commonly, APIs employ one of two versions of OAuth: link:http://oauth.net/core/1.0a/[OAuth 1.0a] and  link:http://tools.ietf.org/html/rfc6749[OAuth 2.0a]; connecting to each of these is subtly different.
+
+For more information, see link:/anypoint-connector-devkit/v/3.8/oauth-v1[OAuth V1] or link:/anypoint-connector-devkit/v/3.8/oauth-v2[OAuth V2].
+
+== HTTP Basic Authentication
+
+In the context of an HTTP transaction, basic access authentication is a method for an HTTP user agent to provide a username and password when making a request.
+
+For more information, see link:/anypoint-connector-devkit/v/3.8/http-basic-authentication[HTTP Basic Authentication].
+
+=== SAML
+
+http://saml.xml.org/[SAML] (Security Assertion Markup Language) is an XML, open standard that allows third parties to offer an identity-providing service. In this modality, the user's passwords reside in the Identity Provider's (IdP) server. Whenever the user requests to log in to a web service, the web service turns to the IdP for the appropriate credentials. The benefits of this solution include minimizing security risks (phishing opportunities are reduced) as well as simplifying the log-in process for the user.  
+
+=== Kerberos
+
+http://web.mit.edu/kerberos/[Kerberos] is an open, complex protocol, developed by MIT and used by Active Directory among many others. Relative to SAML, it is a bit more challenging to set up properly, but it's ideal for communication over non-secure networks as identity information travels encrypted in every stage. IdPs and Service Providers hardly interact with each other directly in this protocol; they send encrypted info to each other through the user.
+
+The client authenticates itself directly to the Id Provider. The client is then given the password, but encoded under a key that only the Web service can crack. The client sends this encoded password to the web service, which trusts that if it can crack it then the client is endorsed by the IdP.
+
+=== NTLM
+
+http://msdn.microsoft.com/en-us/library/cc236621.aspx[NTLM] (NT LAN Manager) is a suite of security protocols designed by Microsoft for Windows networks. It uses three messages in a challenge-response structure, in which an NTLM server provides authentication. The client sends a request for negotiation advertising its capabilities; the NTLM server responds with a challenge message and the client responds with the authentication message. Authentication is based on two hashed password values: the NT hash and the LM hash.
+
+NTLM is an old protocol which does not implement any of the more recent cryptographic methods; as such, it is no longer recommended by Microsoft. It is used for clients that cannot implement Kerberos, or for networks where a domain controller is not available. In Active Directory, NTLM has been replaced by Kerberos as the default authentication protocol.
+
+=== LDAP
+
+The Lightweight Directory Access Protocol (LDAP), is a public standard that facilitates distributed directory information, such as network user privilege information, over the Internet Protocol (IP). When using LDAP authentication, usernames and passwords are stored in a database on the LDAP server. The entity with which you wish to authenticate access (be it a server, application or Web service) queries the LDAP server, then grants or denies authentication based on the response. This makes it possible to avoid storing user names and passwords on the entity itself as they are stored in the LDAP server's database.
+
+Strictly speaking, authentication takes place between the entity to which you connected and the LDAP server. The exact authentication method varies according to the configuration of the entity and the LDAP server. There are several methods available, including using certificates and encryption with Transport Layer Security (TLS).
+
+Usernames and passwords are stored in a database on an LDAP server, not by the service provider. The exact authentication method varies. There are several methods available, including using certificates and encryption with Transport Layer Security (TLS).
+
+== DevKit Authentication Methods
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Method |More Information
+|Basic Authentication |link:/anypoint-connector-devkit/v/3.8/connection-management[Connection Management]
+|OAuth 1.0 |link:/anypoint-connector-devkit/v/3.8/oauth-v1[OAuth V1]
+|OAuth 2.0 |link:/anypoint-connector-devkit/v/3.8/oauth-v2[OAuth V2]
+|HTTP Basic Authentication |link:/anypoint-connector-devkit/v/3.8/http-basic-authentication[HTTP Basic Authentication]
+|SAML |link:/anypoint-connector-devkit/v/3.8/connection-management[Connection Management]
+|Kerberos |link:/anypoint-connector-devkit/v/3.8/connection-management[Connection Management]
+|NTLM |link:/anypoint-connector-devkit/v/3.8/connection-management[Connection Management]
+|LDAP |link:/anypoint-connector-devkit/v/3.8/connection-management[Connection Management]
+|===
+
+== See Also
+
+link:/anypoint-connector-devkit/v/3.8/connector-attributes-and-operations[Adding Connector Functionality]

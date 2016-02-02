@@ -21,7 +21,7 @@ To use this connector, you need a NetSuite account with Web Services Features en
 
 == Compatibility
 
-The NetSuite connector v6.0.0 is compatible with:
+The NetSuite connector v7.0.0 is compatible with:
 
 [width="100%",cols="50%,50%",options="header",]
 |===
@@ -32,7 +32,7 @@ Application/Service
 Version
 
 |*Mule Runtime* |3.5 and later
-|*API* |SuiteTalks 2015_1
+|*API* |SuiteTalks 2015_2
 |===
 
 == Installing and Configuring
@@ -67,7 +67,7 @@ image:netsuite_new_mule_project.png[netsuite_new_mule_project]
 
 To use the NetSuite connector in your Mule application, you must configure a global NetSuite element that can be used by all the NetSuite connectors in the application (read more about link:/mule-fundamentals/v/3.7/global-elements[global elements]).
 
-In this release, we have upgraded the NetSuite connector to DevKit 3.6.1 and have introduced Connection Strategies. You are now presented with a number of different Global Elements, each representing a different way of authenticating to NetSuite. The following connection strategies are supported now:
+In this release, we have upgraded the NetSuite connector to DevKit 3.7.2. As in the previous release we use Connection Strategies. Not much has changed on this front, and as before (v6.0.0) you are presented with a number of different Global Elements, each representing a different way of authenticating to NetSuite. The following connection strategies are supported now:
 
 [width="100%",cols="50%,50%",options="header",]
 |===
@@ -85,7 +85,7 @@ Follow these steps to configure NetSuite connector global element in a Mule appl
 ....
 . Click the *Global Elements* tab at the base of the canvas.
 . On the Global Mule Configuration Elements screen, click *Create*.
-. In the Choose Global Type wizard, expand  *Connector Configuration,* and then select  *NetSuite: Login Authentication,* or *NetSuite: Request Level Authentication, NetSuite: SSO Login Authentication,* depending on your NetSuite authentication.
+. In the Choose Global Type wizard, expand  *Connector Configuration,* and then select  *NetSuite: Login Authentication, NetSuite: Request Level Authentication,* or *NetSuite: SSO Login Authentication,* depending on your NetSuite authentication.
 +
 image:netsuite_global_configuration.jpg[netsuite_global_configuration]
 +
@@ -101,6 +101,7 @@ image:netsuite_global_configuration.jpg[netsuite_global_configuration]
 |*Password* |Enter the corresponding password to log into NetSuite UI.
 |*Account* |Enter the account ID of the SuiteTalk NetSuite web services. This is usually found within NetSuite sandbox UI under *Setup* > *Integration* > *Web Service Preferences.*
 |*Role Id* |Enter the role ID for the user in SuiteTalk, which determines the Processor privileges.
+|*Application Id* |Enter the application ID corresponding to the Integration record to be used (*New in NetSuite Connector version 7.0.0*).
 |*Connection Timeout* |Enter the amount of time, in milliseconds, that the client must attempt to establish a connection before timing out.
 |*Receive Timeout* |Enter the amount of time, in milliseconds, that the client must wait for a response before timing out.
 |*Enable DataSense* |If you select this option, DataSense extracts metadata for NetSuite standard objects to automatically determine the data type and format that your application must deliver to, or can expect from, NetSuite. By enabling this functionality, Mule does the heavy lifting of discovering the type of data you must send to, or be prepared to receive from NetSuite. For more information, see link:/mule-user-guide/v/3.7/datasense[DataSense].
@@ -146,6 +147,7 @@ For this mapping, start by generating a token using the SSO Kit provided by NetS
 |*Company ID* |Enter the company ID used in the mapping process for the connector to generate a token.
 |*User ID* |Enter the user ID used in the mapping process for the connector to generate a token.
 |*Key File* |Enter the *privateKey* file name to pick up from the project. This file should be the *.der* file generated as per NetSuite’s specifications. This is used to encrypt the company ID and user ID into a token for *ssoLogin*.
+|*Application Id* |Enter the application ID corresponding to the Integration record to be used (*New in NetSuite Connector version 7.0.0*).
 |*Connection Timeout* |Enter the amount of time, in milliseconds, that the client must attempt to establish a connection before timing out.
 |*Receive Timeout* |Enter the amount of time, in milliseconds, that the client must wait for a response before timing out.
 |*Enable DataSense* |If you select this option, DataSense extracts metadata for NetSuite standard objects to automatically determine the data type and format that your application must deliver to, or can expect from, NetSuite. By enabling this functionality, Mule does the heavy lifting of discovering the type of data you must send to, or be prepared to receive from NetSuite. For more information, see link:/mule-user-guide/v/3.7/datasense[DataSense].
@@ -176,7 +178,7 @@ For this mapping, start by generating a token using the SSO Kit provided by NetS
  
     <netsuite:config-sso-login-authentication name="Netsuite_SSO_Login_Auth" partnerId="Your NetSuite partnerId"
         partnerAccount="Your Netsuite account id" companyId="Your companyId" userId="Your userId"
-        keyFile="The name of the privateKey file" doc:name="Netsuite">
+        keyFile="The name of the privateKey file" doc:name="Netsuite" applicationId="Your integration record applicationId">
 </mule>
 ----
 +
@@ -184,24 +186,24 @@ For this mapping, start by generating a token using the SSO Kit provided by NetS
 +
 [source, xml, linenums]
 ----
-<netsuite:config-login-authentication name="NetSuite" email="${email}" password="${password}" account="${account}" roleId="${roleId}" />
+<netsuite:config-login-authentication name="NetSuite" email="${email}" password="${password}" account="${account}" roleId="${roleId}" applicationId="${applicationId}"/>
 ----
 +
 [source, xml, linenums]
 ----
-<netsuite:config-request-level-authentication name="NetSuite" email="${email}" password="${password}" account="${account}" roleId="${roleId}" />
+<netsuite:config-request-level-authentication name="NetSuite" email="${email}" password="${password}" account="${account}" roleId="${roleId}" applicationId="${applicationId}"/>
 ----
 +
 [source, xml, linenums]
 ----
-<netsuite:config-sso-login-authentication name="NetSuite" email="${email}" password="${password}" account="${account}" roleId="${roleId}" />
+<netsuite:config-sso-login-authentication name="NetSuite" email="${email}" password="${password}" account="${account}" roleId="${roleId}" applicationId="${applicationId}"/>
 ----
 ....
 ------
 
 == Using the Connector
 
-NetSuite connector is a operation based connector, which means that when you add the connector to your flow, you need to configure a specific web service for the connector to perform. The NetSuite connector v5.0 supports 56 operations.
+NetSuite connector is an operation-based connector, which means that when you add the connector to your flow, you need to configure a specific web service for the connector to perform. The NetSuite connector v7.0.0 supports 50 operations.
 
 === Adding to a Flow
 
@@ -216,6 +218,141 @@ NetSuite connector is a operation based connector, which means that when you add
 |*Display Name* |Enter a unique label for the connector in your application.
 |*Config Reference* |Connect to a global element linked to this connector. Global elements encapsulate reusable data about the connection to the target resource or service. Select the global NetSuite connector element you create.
 |*Operation* |Select the action this component must perform.
+|===
+
+== Custom Field DataSense
+
+In NetSuite one can add different types of custom fields and have these customizations apply to different record types. NetSuite Connector DataSense is able to retrieve and show these fields. Note however that we do not fully support all the customization types that NetSuite users are able to define.
+The following lists outline what fields we do and do not handle, and where they currently appear in relation to the record type's attributes. For the most part you can see that customizations are usually present within a list field called _customFieldList_, but in some cases these might reside elsewhere.
+
+*_Entity Fields_*
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Record Type |Custom Field Placement
+|*CONTACT* |Contact > customFieldList > customField
+|*CUSTOMER* |Customer > customFieldList > customField
+|*EMPLOYEE* |Employee > customFieldList > customField
+|*ENTITY_GROUP* |EntityGroup > customFieldList > customField
+|*PARTNER* |Partner > customFieldList > customField
+|*PROJECT_TASK* |ProjectTask > customFieldList > customField
+|*VENDOR* |Vendor > customFieldList > customField
+|===
+
+*_Item Fields_*
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Record Type |Custom Field Placement
+|*ASSEMBLY_ITEM* |AssemblyItem > customFieldList > customField
+|*ENTITY_GROUP* |EntityGroup > customFieldList > customField
+|*INVENTORY_ITEM* |InventoryItem > customFieldList > customField
+|*KIT_ITEM* |KitItem > customFieldList > customField
+|*NON_INVENTORY_PURCHASE_ITEM* |NonInventoryPurchaseItem > customFieldList > customField
+|*NON_INVENTORY_RESALE_ITEM* |NonInventoryResaleItem > customFieldList > customField
+|*NON_INVENTORY_SALE_ITEM* |NonInventorySaleItem > customFieldList > customField
+|*OTHER_CHARGE_PURCHASE_ITEM* |OtherChargePurchaseItem > customFieldList > customField
+|*OTHER_CHARGE_RESALE_ITEM* |OtherChargeResaleItem > customFieldList > customField
+|*OTHER_CHARGE_SALE_ITEM* |OtherChargeSaleItem > customFieldList > customField
+|*SERVICE_PURCHASE_ITEM* |ServicePurchaseItem > customFieldList > customField
+|*SERVICE_RESALE_ITEM* |ServiceResaleItem > customFieldList > customField
+|*SERVICE_SALE_ITEM* |ServiceSaleItem > customFieldList > customField
+|===
+
+*_CRM Fields_*
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Record Type |Custom Field Placement
+|*CALENDAR_EVENT* |CalendarEvent > customFieldList > customField
+|*CAMPAIGN* |Campaign > customFieldList > customField
+|*ISSUE* |Issue > customFieldList > customField
+|*MANUFACTURING_OPERATION_TASK* |ManufacturingOperationTask > customFieldList > customField
+|*PHONE_CALL* |PhoneCall > customFieldList > customField
+|*PROJECT_TASK* |ProjectTask > customFieldList > customField
+|*SOLUTION* |Solution > customFieldList > customField
+|*SUPPORT_CASE* |SupportCase > customFieldList > customField
+|*TASK* |Task > customFieldList > customField
+|===
+
+*_Transaction Body Fields_*
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Record Type |Custom Field Placement
+|*ASSEMBLY_BUILD* |AssemblyBuild > customFieldList > customField
+|*CASH_SALE* |CashSale > customFieldList > customField
+|*CUSTOMER_PAYMENT* |CustomerPayment > customFieldList > customField
+|*DEPOSIT* |Deposit > customFieldList > customField
+|*ESTIMATE* |Estimate > customFieldList > customField
+|*EXPENSE_REPORT* |ExpenseReport > customFieldList > customField
+|*INVENTORY_ADJUSTMENT* |InventoryAdjustment > customFieldList > customField
+|*INVOICE* |Invoice > customFieldList > customField
+|*ITEM_FULFILLMENT* |ItemFulfillment > customFieldList > customField
+|*ITEM_RECEIPT* |ItemReceipt > customFieldList > customField
+|*JOURNAL_ENTRY* |JournalEntry > customFieldList > customField
+|*OPPORTUNITY* |Opportunity > customFieldList > customField
+|*PURCHASE_ORDER* |PurchaseOrder > customFieldList > customField
+|*PURCHASE_REQUISITION* |PurchaseRequisition > customFieldList > customField
+|*SALES_ORDER* |SalesOrder > customFieldList > customField
+|*TRANSFER_ORDER* |TransferOrder > customFieldList > customField
+|*VENDOR_BILL* |VendorBill > customFieldList > customField
+|*VENDOR_CREDIT* |VendorCredit > customFieldList > customField
+|*VENDOR_PAYMENT* |VendorPayment > customFieldList > customField
+|*VENDOR_RETURN_AUTHORIZATION* |VendorReturnAuthorization > customFieldList > customField
+|*WORK_ORDER* |WorkOrder > customFieldList > customField
+|===
+
+*_Transaction Column Fields_*
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Record Type |Custom Field Placement
+|*CASH_SALE* |CashSale > itemList > item > customFieldList > customField
+|*ESTIMATE* |Estimate > itemList > item > customFieldList > customField
+|*EXPENSE_REPORT* |ExpenseReport > expenseList > expense > customFieldList > customField
+|*INVOICE* |Invoice > itemList > item > customFieldList > customField
+|*ITEM_FULFILLMENT* |ItemFulfillment > itemList > item > customFieldList > customField
+|*ITEM_RECEIPT* |ItemReceipt > itemList > item > customFieldList > customField
+|*JOURNAL_ENTRY* |JournalEntry > lineList > line > customFieldList > customField
+|*OPPORTUNITY* |Opportunity > itemList > item > customFieldList > customField
+|*PURCHASE_ORDER* |PurchaseOrder > itemList > item > customFieldList > customField
+|*PURCHASE_REQUISITION* |PurchaseRequisition > itemList > item > customFieldList > customField
+|*SALES_ORDER* |SalesOrder > itemList > item > customFieldList > customField
+|*TIME_BILL* |TimeBill > customFieldList > customField
+|*TRANSFER_ORDER* |TransferOrder > itemList > item > customFieldList > customField
+|*VENDOR_BILL* |VendorBill > itemList > item > customFieldList > customField
+|*VENDOR_CREDIT* |VendorCredit > itemList > item > customFieldList > customField
+|*VENDOR_PAYMENT* |VendorPayment > itemList > item > customFieldList > customField
+|*VENDOR_RETURN_AUTHORIZATION* |VendorReturnAuthorization > itemList > item > customFieldList > customField
+|*WORK_ORDER* |WorkOrder > itemList > item > customFieldList > customField
+|===
+
+*_Transaction Item Options_*
+
+Currently these are not handled by NetSuite Connector's DataSense.
+
+*_Item Number Fields_*
+
+Currently these are not handled by NetSuite Connector's DataSense.
+
+*_Other Custom Fields_*
+
+[width="100%",cols="50%,50%",options="header",]
+|===
+|Record Type |Custom Field Placement
+|*ACCOUNT* |Account > customFieldList > customField
+|*BIN* |Bin > customFieldList > customField
+|*CLASSIFICATION* |Classification > customFieldList > customField
+|*EXPENSE_CATEGORY* |ExpenseCategory > customFieldList > customField
+|*ITEM_DEMAND_PLAN* |ItemDemandPlan > customFieldList > customField
+|*ITEM_SUPPLY_PLAN* |ItemSupplyPlan > customFieldList > customField
+|*LOCATION* |Location > customFieldList > customField
+|*MANUFACTURING_COST_TEMPLATE* |ManufacturingCostTemplate > customFieldList > customField
+|*MANUFACTURING_ROUTING* |ManufacturingRouting > customFieldList > customField
+|*NOTE* |Note > customFieldList > customField
+|*PROMOTION_CODE* |PromotionCode > customFieldList > customField
+|*SUBSIDIARY* |Subsidiary > customFieldList > customField
 |===
 
 == Example Use Case
@@ -266,6 +403,7 @@ image:netsuite_demonetsuite1.jpg[netsuite_demonetsuite1]
 |*Password* |<Your NetSuite password>
 |*Account* |<Your NetSuite account>
 |*Role Id* |Enter the ID of the role you use to login in SuiteTalk, which determines the Processor privileges.
+|*Application Id* |Enter the application ID corresponding to the Integration record to be used (*New in NetSuite Connector version 7.0.0*).
 |===
 +
 . In the properties editor of the NetSuite connector, configure the remaining parameters:
@@ -304,7 +442,7 @@ Type
 .. Click *Create Mapping*, then drag each input data field to its corresponding output NetSuite field. Click the blank space on the canvas to save the changes.
 . Add a *Object to Json* transformer onto the flow to capture the response from the NetSuite connector and display it as a HTTP response. 
 . Run the project as a Mule Application (right-click project name, then select *Run As > Mule Application* ). 
-. From a browser, e nter the employee's e-mail address, externalId, lastname, and name in the form of the following query parameters:  `http://localhost:8081/accountWithCustomFields? email  =<employee's email address> &externalId=<employee's externalId> &lname= <employee's last name>&name=<employee's firstname>` 
+. From a browser, enter the employee's e-mail address, externalId, lastname, and name in the form of the following query parameters:  `http://localhost:8081/accountWithCustomFields? email  =<employee's email address> &externalId=<employee's externalId> &lname= <employee's last name>&name=<employee's firstname>` 
 . Mule conducts the query, and adds the Employee record to NetSuite.
 ....
 [tab,title="XML Editor"]
@@ -318,7 +456,7 @@ image:NetSuiteDemoFlow.png[NetSuiteDemoFlow]
 ----
 <netsuite:config-login-authentication name="NetSuite" email="email@youremail.com"
     password="netsuite_password" account="netsuite_account" roleId="netsuite_role"
-    doc:name="Netsuite"/>
+    applicationId="netsuite_applicationId" doc:name="Netsuite"/>
 ----
 +
 [cols=",",options="header",]
@@ -327,8 +465,9 @@ image:NetSuiteDemoFlow.png[NetSuiteDemoFlow]
 |*name* |NetSuite
 |*email* |<Your NetSuite Email>
 |*password* |<Your NetSuite password>
-|*account* |<Your NetSuite account> (It looks similiar to TSTDRVXXXXXX.)
+|*account* |<Your NetSuite account>
 |*roleId* |Enter the ID of the role you use to login in SuiteTalk, which determines the Processor privileges.
+|*Application Id* |Enter the application ID corresponding to the Integration record to be used (*New in NetSuite Connector version 7.0.0*).
 |*doc:name* |NetSuite
 |===
 +
@@ -402,7 +541,7 @@ Type
 ....
 ------
 
-Example Code
+== Example Code
 
 [NOTE]
 ====
@@ -412,6 +551,7 @@ Note that for this example code to work, you must manually configure the followi
 * Password
 * Account
 * Role ID
+* Application ID
 ====
 
 [source, xml, linenums]
@@ -429,7 +569,7 @@ http://www.mulesoft.org/schema/mule/ee/data-mapper http://www.mulesoft.org/schem
 http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
     <netsuite:config-login-authentication name="NetSuite" email="email@youremail.com"
     password="netsuite_password" account="netsuite_account" roleId="netsuite_role"
-    doc:name="Netsuite"/>
+    applicationId="netsuite_applicationId" doc:name="Netsuite"/>
     <data-mapper:config name="JSON_To___customRecordType__21____customrecord21" transformationGraphPath="json_to___customrecordtype__21____customrecord21.grf" doc:name="JSON_To___customRecordType__21____customrecord21"/>
     <data-mapper:config name="Map_To_EMPLOYEE" transformationGraphPath="map_to_employee.grf" doc:name="Map_To_EMPLOYEE"/>
     <http:listener-config name="HTTP_Listener_Configuration" host="localhost" port="8081" doc:name="HTTP Listener Configuration"/>
@@ -465,6 +605,7 @@ Note that for this example code to work, you must use a custom record type of yo
 * password
 * account
 * roleId
+* applicationId
 ====
 
 image:netsuite_async1.jpg[netsuite_async1]
@@ -473,12 +614,12 @@ image:netsuite_async1.jpg[netsuite_async1]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
  
-<netsuite:config-login-authentication name="NetSuite__Login_Authentication" email="${netsuite.email}" password="${netsuite.password}" account="${netsuite.account}" roleId="${netsuite.roleId}" doc:name="NetSuite: Login Authentication"/> (1)
+<netsuite:config-login-authentication name="NetSuite__Login_Authentication" email="${netsuite.email}" password="${netsuite.password}" account="${netsuite.account}" roleId="${netsuite.roleId}" applicationId="${netsuite.applicationId}" doc:name="NetSuite: Login Authentication"/> (1)
  
 <flow name="asyncAddList" doc:name="async_add_list">
     <http:listener config-ref="HTTP_Listener_Configuration" path="/asyncAddList" doc:name="HTTP"/> (2)
     <logger message="Process Started ..." level="INFO" doc:name="Logger"/>
-    <netsuite:async-add-list config-ref="Netsuite" recordType="__customRecordType__customrecordcustomaccount__22" doc:name="Async Add List"> (3)
+    <netsuite:async-add-list config-ref="NetSuite__Login_Authentication" recordType="__customRecordType__customrecordcustomaccount__22" doc:name="Async Add List"> (3)
         <netsuite:records-attributes>
             <netsuite:records-attribute>
                 <netsuite:inner-records-attribute key="externalId">addListExt1</netsuite:inner-records-attribute>
@@ -498,7 +639,7 @@ image:netsuite_async1.jpg[netsuite_async1]
     <logger message="===== Checking status for jobId: #[flowVars.jobId] =====" level="INFO" doc:name="Logger"/>
     <until-successful maxRetries="180" failureExpression="#[payload.getStatus() == com.netsuite.webservices.platform.core.types.AsyncStatusType.PENDING || payload.getStatus() == com.netsuite.webservices.platform.core.types.AsyncStatusType.PROCESSING]" synchronous="true" doc:name="Until Successful" millisBetweenRetries="10000"> (6)
         <processor-chain doc:name="Processor Chain">
-            <netsuite:check-async-status config-ref="Netsuite" jobId="#[flowVars.jobId]" doc:name="Check Async Status"/>
+            <netsuite:check-async-status config-ref="NetSuite__Login_Authentication" jobId="#[flowVars.jobId]" doc:name="Check Async Status"/>
             <logger message="Status is: #[payload.getStatus()]" level="INFO" doc:name="Status"/>
         </processor-chain>
     </until-successful>
@@ -516,7 +657,7 @@ image:netsuite_async1.jpg[netsuite_async1]
     <http:listener config-ref="HTTP_Listener_Configuration" path="/getAsyncResult" doc:name="HTTP"/> (10)
     <set-variable variableName="jobId" value="#[message.inboundProperties.'http.query.params'.jobId]" doc:name="Set Variable: jobId"/>
     <logger message="===== Results for jobId: #[flowVars.jobId] =====" level="INFO" doc:name="Logger"/>
-    <netsuite:get-async-result config-ref="Netsuite" jobId="#[flowVars.jobId]" doc:name="Get Async Result"/> (11)
+    <netsuite:get-async-result config-ref="NetSuite__Login_Authentication" jobId="#[flowVars.jobId]" doc:name="Get Async Result"/> (11)
     <set-payload value="#[payload.getWriteResponseList().getWriteResponse()]" doc:name="Get Response List"/> (12)
     <foreach doc:name="For Each"> (13)
         <logger message="Custom record with externalId: #[payload.getBaseRef().getExternalId()] and typeId: #[payload.getBaseRef().getTypeId()] ... Deleting it!" level="INFO" doc:name="Result Info"/>
@@ -567,11 +708,26 @@ In NetSuite, the  `Search`  operation can be used to execute a Basic Search, J
 
 This also applies for the asynchronous equivalent of search, the `asyncSearch` operation.
 
+==== Search Pagination Support
+
+In NetSuite Connector version 7.0.0 we added pagination support to `search`.
+
+We agreed to unify searching under just one operation and remove all the other search-related processors. Thus, `search` will always retrieve the whole set of results. Therefore users will not need to work with `searchNext` or `searchMore` in order to get the rest of the records from subsequent pages. The return type is also different; the processor will output a List of Maps representing each and every record obtained by your search criteria.
+
+An important aspect to note is that pagination could not be applied to the asynchronous equivalent of `search` (`asyncSearch`). This is due to the fact that the actual pagination would have to be applied to the `getAsyncResult` operation. This would mean that only the first page would end up being retrieved asynchronously. Furthermore, `getAsyncResult` is common to all async operations. Hence we cannot even apply pagination here since the return type of this operation depends on what async operation was invoked.
+
+Regarding the new *search* configuration, the connector is the same apart from a new attribute called `fetchSize`:
+
+[source, xml, linenums]
+----
+<netsuite:paged-search config-ref="NetSuite__Login_Authentication" searchRecord="CUSTOMER_BASIC" fetchSize="5" doc:name="Customer Basic Search"/>
+----
+
 ==== Example of Basic Search
 
-For this example, we set up a basic search for Customers (CustomerSearchBasic) with the criteria below:
+For this example, we set up a basic search operation for Customers (`CustomerSearchBasic`) with the criteria below:
 
-* The companyName starts with "A".
+* `companyName` starts with "A".
 * The customer is not an individual.
 * The customer has a priority of 50, which is handled by a customField.
 
@@ -583,12 +739,12 @@ image:netsuite_basic_search.jpg[netsuite_basic_search]
 ----
 <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
  
-<netsuite:config-login-authentication name="NetSuite__Login_Authentication" email="${netsuite.email}" password="${netsuite.password}" account="${netsuite.account}" roleId="${netsuite.roleId}" doc:name="NetSuite: Login Authentication"/>
+<netsuite:config-login-authentication name="NetSuite__Login_Authentication" email="${netsuite.email}" password="${netsuite.password}" account="${netsuite.account}" roleId="${netsuite.roleId}" applicationId="${netsuite.applicationId}" doc:name="NetSuite: Login Authentication"/>
  
 <flow name="customer-basic-search">
     <http:listener config-ref="HTTP_Listener_Configuration" path="/basicSearch" doc:name="HTTP"/>
     <component class="CustomerBasicSearchComponent" doc:name="Create Customer Search Basic criteria"/>
-    <netsuite:search config-ref="NetSuite__Login_Authentication" searchRecord="CUSTOMER_BASIC" doc:name="Customer Basic Search"/>
+    <netsuite:search config-ref="NetSuite__Login_Authentication" searchRecord="CUSTOMER_BASIC" fetchSize="5" doc:name="Customer Basic Search"/>
     <json:object-to-json-transformer doc:name="Object to JSON"/>
 </flow>
 ----

@@ -9,7 +9,7 @@ The File transport allows files on the local file system to be read from and wri
 
 == Transport Info
 
-[cols=",",options="header"]
+[cols=",,,",options="header"]
 |===
 |Feature|Value|Description
 |Transport |File |The name/protocol of the transport
@@ -111,11 +111,11 @@ Or:
 file://?address=./temp
 ----
 
-To connect to a Windows network drive:
+To connect to a Windows network drive (only from a Windows Environment):
 
 [source,code]
 ----
-file:192.168.0.1/temp/
+file://?address=192.168.0.1/temp/
 ----
 
 ==== Inbound Endpoint
@@ -141,7 +141,7 @@ Mule ESB provides lots of functionality ready to use that can just be modified b
 * Be careful not to permanently delete or overwrite input/output files. Be careful when using, for example, _autoDelete_ and _moveToDirectory_ attributes.
 * Check the examples below and find out how to copy files from one directory to another, process input files while saving a backup of the input file and creating a new file with a specific name.
 * Though most configuration parameters can be defined globally at in the connector, they can be overridden in the endpoint configuration.
-* If streaming is enabled a `ReceiverFileInputStream` will be used as the payload for each file that is processed. This input stream's `close()` method takes care of moving the file or deleting it. Streams are closed by transformers reading the input stream. If you process the stream in your own component implementation make sure to properly close the stream after reading.
+* If streaming is enabled a `ReceiverFileInputStream` is used as the payload for each file that is processed. This input stream's `close()` method takes care of moving the file or deleting it. Streams are closed by transformers reading the input stream. If you process the stream in your own component implementation make sure to properly close the stream after reading.
 * When configured to use a working directory, Mule add two properties to the message to indicate the source from which the file was read: +
 ** `sourceFileName`: contains the same value as the originalFilename property which Mule uses when no workDirectory is configured
 ** `sourceDirectory`: contains the same value as the originalDirectory property which Mule uses when no workDirectory is configured.
@@ -268,12 +268,12 @@ The following example shows different connector configurations. The third exampl
 
 File Transport *inbound endpoint* attributes:
 
-[cols=",",options="header"]
+[cols=",,,",options="header"]
 |===
 |Name |Description |Default
 |*autoDelete* |Set this attribute to `false` if you don't want Mule to delete the file after processing the file |`true`
 |*fileAge* |Setting this value (minimum age in milliseconds for a file to be processed) is useful when consuming large files, as Mule waits before reading this file until the file last modification timestamp indicates that the file is older than this value |`true`
-|*moveToDirectory* |Use this parameter to have Mule save a backup copy of the file it reads | 
+|*moveToDirectory* |Use this parameter to have Mule save a backup copy of the file it reads. *Note*: If a file already exists in the directory, moveToDirectory moves the file to the directory only one time. Subsequent attempts to move the same file to the directory result in Mule throwing an exception. | 
 |*moveToPattern* |Use this parameter together with `moveToPattern` to rename a copy of the backed up file | 
 |*pollingFrequency* |Set the frequency in milliseconds for checking the read directory |`0`
 |*recursive* |Use this parameter so Mule recurses when a directory is read |`false`
@@ -289,7 +289,7 @@ File Transport *inbound endpoint* attributes:
 
 File Transport *outbound endpoint* attributes
 
-[cols=",",options="header"]
+[cols=",,,",options="header"]
 |===
 |Name |Description |Default
 |*outputAppend* |If the file to be written already exists, set this parameter to true to append new contents instead of overwriting the file. |`false`
@@ -304,7 +304,7 @@ The File connector configures the default behavior for File endpoints that refer
 
 === Attributes of connector
 
-[cols=",",options="header"]
+[cols=",,",options="header"]
 |======
 |Name |Description
 |writeToDirectory |The directory path where the file should be written on dispatch. This path is usually set as the endpoint of the dispatch event, however this allows you to explicitly force a single directory for the connector. +
@@ -355,7 +355,8 @@ The File connector configures the default behavior for File endpoints that refer
 *Type*: `string` +
 *Required*: no +
 *Default*: none
-|moveToDirectory |The directory path where the file should be written after it has been read. If this is not set, the file is deleted after it has been read. +
+|moveToDirectory |The directory path where the file should be written after it has been read. If this is not set, the file is deleted after it has been read. *Note*: moveToDirectory moves a file only one time if the file already exists with the same name.
+Be careful not to permanently delete or overwrite input/output files. +
 *Type*: `string` +
 *Required*: no +
 *Default*: none
@@ -367,10 +368,10 @@ The File connector configures the default behavior for File endpoints that refer
 
 === Child Elements of connector
 
-[cols=",",options="header"]
+[cols=",,,",options="header"]
 |=======
 |Name |Cardinality |Description
-|abstract-filenameParser |0..1 |The abstract-filenameParser element is a placeholder for filename parser elements. The filename parser is set on the connector used when writing files to a directory. The parser converts the outputPattern attribute to a string using the parser and the current message. The default implmentation used is expression-filename-parser, but you can also specify a custom-filename-parser.
+|abstract-filenameParser |0..1 |The abstract-filenameParser element is a placeholder for filename parser elements. The filename parser is set on the connector used when writing files to a directory. The parser converts the outputPattern attribute to a string using the parser and the current message. The default implementation used is expression-filename-parser, but you can also specify a custom-filename-parser.
 |=======
 
 == Associated Elements
@@ -379,7 +380,7 @@ The File connector configures the default behavior for File endpoints that refer
 
 === Attributes of endpoint
 
-[cols=",",options="header"]
+[cols=",,",options="header"]
 |===
 |Name |Description
 |path |A file directory location. +
@@ -398,7 +399,7 @@ The File connector configures the default behavior for File endpoints that refer
 *Type*: `string` +
 *Required*: no +
 *Default*: none
-|moveToDirectory |The directory path where the file should be written after it has been read. If this is not set, the file is deleted after it has been read. +
+|moveToDirectory |The directory path where the file should be written after it has been read. If this is not set, the file is deleted after it has been read. *Note*: If a file already exists in the directory, moveToDirectory moves the file to the directory only one time. Subsequent attempts to move the same file to the directory result in Mule throwing an exception. +
 *Type*: `string` +
 *Required*: no +
 *Default*: none
@@ -423,7 +424,7 @@ No child elements for `endpoint`.
 
 === Attributes of inbound-endpoint
 
-[cols=",",options="header"]
+[cols=",,",options="header"]
 |===
 |Name |Description
 |path |A file directory location.  +
@@ -442,7 +443,7 @@ No child elements for `endpoint`.
 *Type*: `string` +
 *Required*: no +
 *Default*: none
-|moveToDirectory |The directory path where the file should be written after it has been read. If this is not set, the file is deleted after it has been read. +
+|moveToDirectory |The directory path where the file should be written after it has been read. If this is not set, the file is deleted after it has been read. *Note*: If a file already exists in the directory, moveToDirectory moves the file to the directory only one time. Subsequent attempts to move the same file to the directory result in Mule throwing an exception. +
 *Type*: `string` +
 *Required*: no +
 *Default*: none
@@ -462,7 +463,7 @@ No child elements for `inbound-endpoint`.
 
 === Attributes of outbound-endpoint
 
-[cols=",",options="header"]
+[cols=",,",options="header"]
 |=====
 |Name |Description
 |`path` |A file directory location. +
@@ -556,7 +557,7 @@ No child elements for `custom-filename-parser`.
 
 == Abstract File Name Parser
 
-The `abstract-filenameParser` element is a placeholder for filename parser elements. The filename parser is set on the connector used when writing files to a directory. The parser  converts the outputPattern attribute to a string using the parser and the current message. The default implmentation used is expression-filename-parser, but you can also specify a custom-filename-parser.
+The `abstract-filenameParser` element is a placeholder for filename parser elements. The filename parser is set on the connector used when writing files to a directory. The parser  converts the outputPattern attribute to a string using the parser and the current message. The default implementation used is expression-filename-parser, but you can also specify a custom-filename-parser.
 
 No attributes or child elements for `abstract-filenameParser`.
 
@@ -583,3 +584,9 @@ The File Transport can be included with the following dependency:
 == Extending This Module or Transport Best Practices
 
 If reading input files which are generated directly in the input path, configure the _fileAge_ attribute in the connector or endpoint. In this way, Mule processes these files after they are completely written to disk.
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]

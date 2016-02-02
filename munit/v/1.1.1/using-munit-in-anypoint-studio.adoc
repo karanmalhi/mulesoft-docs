@@ -1,0 +1,225 @@
+= Using MUnit in Anypoint Studio
+:keywords: mule, esb, tests, qa, quality assurance, verify, functional testing, unit testing, stress testing
+:imagesdir: _images
+
+MUnit is fully integrated with Anypoint Studio. You can use Studio's graphical interface to:
+
+* <<Creating a New MUnit Test in Studio,Create>> and design MUnit tests
+* <<Running Your Test,Run>> your tests
+* <<Viewing Test Results,View>> test results and coverage
+* <<Debugging Tests,Debug>> your tests
+
+== Installing MUnit in Studio
+
+To use MUnit in Studio, you have to install it from the update site.
+
+To install MUnit, follow these steps:
+
+. Verify that your version of Studio is 5.2.0 (July 2015 release) or newer.
+. Add the MUnit update site:
+.. Go to *Help* > *Install New Software*.
+.. Studio displays the *Available Software* window. In the *Work with:* field, paste the MUnit update site:
++
+[source, code]
+----
+http://studio.mulesoft.org/r4/munit
+----
++
+.. Check *Munit* and *Munit Tools for Mule*, as shown below.
++
+image:install-site.png[install-site]
++
+.. Click *Next*, then complete the installation wizard.
+
+== The MUnit Folder
+
+Using MUnit automatically adds a new folder, `src/test/munit`, to your project.
+
+image:munit-folder.png[munit-folder]
+
+== Creating a New MUnit Test in Studio
+
+MUnit Studio integration is mainly built around XML-based tests. Most of the MUnit-Studio integration tools guide you in the creation of these tests.
+
+There are two basic ways to create a new MUnit test in Studio:
+
+* Right-click a specific flow by right clicking the flow and selecting *MUnit*.
+* Use the wizard, which allows you to create a test for any flow or application in the workspace.
+
+The most basic ones are by right-clicking the flow you want to test, or by using the wizard.
+
+=== Creating a Test for a Specific Flow
+
+To create a test for a specific flow, right-click the flow, then select *MUnit* > *Create a new <flow_name> suite.*
+
+image:right-click-flow.png[right-click-flow]
+
+This action:
+
+* Creates a new test suite named after the XML file where the flow resides, in this case `munit2.xml`. Studio displays the test suite on a new tab, next to the tab for the original application:
+
+image:tabs.png[tabs]
+
+* Imports the XML file to the test suite
+* Creates a new MUnit test like the one shown below:
+
+image:test1-flow-specific.png[test1-flow-specific]
+
+To add an MUnit message processor to the test shown above, drag it from the Palette to the *Test* area after the flow-ref.
+
+image:test1-flow-specific2.png[test1-flow-specific2]
+
+Below is the XML file automatically generated for the new test suite.
+
+[source, xml, linenums]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" version="EE-3.7.3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+    <munit:config name="munit" doc:name="MUnit configuration"/>
+    <spring:beans>
+        <spring:import resource="classpath:munit2.xml"/>
+    </spring:beans>
+    <munit:test name="munit2-test-suite-munit2FlowTest" description="Test">
+        <flow-ref name="munit2Flow" doc:name="Flow-ref to munit2Flow"/>
+    </munit:test>
+</mule>
+----
+
+=== Creating a Test Via the Wizard
+
+The wizard allows you to create a test for any flow or application in your Studio workspace.
+
+To create a test via the wizard, go to *File* > *New* > *MUnit Test*. Studio displays the MUnit test creation wizard, shown below.
+
+image:wizard.png[wizard]
+
+As you can see, the wizard allows you to select any of the flows and applications in the workspace.
+
+If you want to create a test that does not reference a specific flow, click the *Create empty test* checkbox.
+
+[TIP]
+You can also create a new test via the wizard by right-clicking the desired application in the Package Explorer pane, then selecting *MUnit* > *Create new suite*.
+
+== Configuring Your Test
+
+Studio displays the newly-created test suite in its own canvas. Here you can tailor your test suite using the Studio interface, just like a regular application. The Studio Palette displays two new sections: *MUnit* and *MUnit Integration Test Tools*. To quickly see all MUnit message processors, type `munit` in the Palette search filter.
+
+image:canvas.png[canvas]
+
+You can edit run configurations for your suites/tests in Studio, just like any other run configuration. A run configuration must contain at least the project and the suite; additionally, you can specify a test if you want to run only that test.
+
+To edit the configuration for your suit or test in Studio, follow these steps:
+
+. In the Package Explorer, right click the .xml file for your suite or test, then select *Properties*.
+. In the Properties window, click *Run/Debug Settings*, then click *New*.
+. In the *Select Configuration Type* window, click *MUnit*, then click *OK*.
+
+The configuration window displays the three tabs for editing configuration properties: *Test*, *Arguments* and *Environment*, shown below:
+
+image:run-config.png[run-config]
+
+If the test name is blank, all tests in the given suite are run.
+
+=== Adding JVM Arguments
+
+To add JVM arguments, click the *Arguments* tab, then enter your arguments in the *VM arguments* input field. In the image below, `java.library.path` is being added as an argument.
+
+image:run-config-args.png[run-config-args]
+
+WARNING: If your path contains a space followed by a dash, anything after the dash is parsed as a new JVM argument. For example, if the path is `-Djava.library.path=/path/to/my -library`, the `-library` is parsed as a new JVM argument and the run configuration does not work as expected. To include spaces in the path, use an escape character, such as `%20`: `/path/to/my%20-library`.
+
+=== Environment Variables
+
+Finally, you can also define environment variables. You can create your own variables and also use existing variables, such as `HOME`.
+
+image:run-config-env.png[run-config-env]
+
+Environment variables override any property that is set in the `mule­-app.properties` file, or by using a property placeholder.
+
+In MUnit, you can load properties from the `mule­-app.properties` file as well as using the `context:property-placeholder` to load properties from an additional file. 
+
+== Running Your Test
+
+=== Running a Test Suite
+
+To run a test suite, right-click the empty canvas where the suite resides, then select *Run MUnit suite*.
+
+image:run-suite.png[run-suite]
+
+Studio displays the output from the running suite in the console.
+
+=== Running a Test
+
+To run a test, right-click the name of the test, then select *Run MUnit Test*.
+
+image:run-test.png[run-test]
+
+To check that the test is actually running, view the output in the console. In order not to overwhelm the user, the default output provides little information, but enough to verify that the test has run.
+
+image:output.png[image]
+
+An alternative way to run a test is to use the MUnit tab (see below).
+
+. Select the desired test in the MUnit tab.
+. Right-click the test, then select *Run*.
+
+image:run2.png[run2]
+
+TIP: In the event you have failed tests, you can select the button *run failed*. This only runs tests that fail.
+
+== Viewing Test Results
+
+Studio displays MUnit test results in the *MUnit* tab of the left-hand explorer pane, outlined below:
+
+image:whole-canvas.png[whole-canvas]
+
+The MUnit tab displays successful tests in green, failed tests in red.
+
+image:successful-test.png[successful-test]
+
+The *Coverage* button in the image above allows you to see what flow the test covered, and the percentage of message processors in the flow that was covered by the test:
+
+image:coverage.png[coverage]
+
+If you run more than one test, the MUnit tab displays a history of run tests. For failed tests, the *Errors* button displays the stack trace, which you can copy to your clipboard. To copy the stack trace, right-click the name of the failed test, then select *Copy Stack Trace*.
+
+image:copy-stac.png[copy-stac]
+
+As you can see in the image above, you can also use the MUnit tab to <<Running Your Test>> or debug your test, by selecting the appropriate menu option.
+
+Clicking the debug button image:debug-icon.png[debug-icon] or the play button image:play-icon.png[play-icon] on the top right causes the last run or debug to be rerun. This rerun includes all tests that were run on the previous run. You can also select a single test from the previous run to rerun on its own.
+
+== Debugging Tests
+
+You can debug MUnit tests just like Studio applications, using Studio's debugging perspective (for details on the debugging UI, see link:/mule-user-guide/v/3.7/studio-visual-debugger[Studio Visual Debugger]).
+
+To access the debugging perspective, click *Mule Debug* on the top right of the Studio toolbar. This takes you away from the default Mule Design perspective to the debugging perspective, which displays debugging controls.
+
+As with Mule applications, you can mark an MUnit message processor as a breakpoint, where a debug run should stop to enable you to see the information that reaches the message processor.
+
+image:breakp.png[breakp]
+
+To debug a test, you can:
+
+* Right-click the test in the canvas, then select *Debug MUnit test*:
+
+image:run-debug1.png[run-debug1]
+
+* If you are working in the MUnit tab, you can select a test that previously ran, click the debug icon on the top right:
+
+image:debug2.png[debug2]
+
+TIP: In the event you have failed test you can select the button debug failed. This only debugs tests that fail.
+
+* Or right-click the desired test, then select *Debug*:
+
+image:debug3.png[debug3]
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]

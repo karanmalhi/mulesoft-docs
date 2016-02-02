@@ -1,0 +1,228 @@
+= MUnit Matchers
+:version-info: 3.7.0 and later
+:keywords: munit, testing, unit testing
+
+== Overview
+
+MUnit matchers are a set of MEL functions that help in the creation of mocks and validations (verifications/assertions). They enable you to define mocks, verifications and assertions in terms of general values rather than specific hardcoded values.
+
+A matcher is a boolean function. In most of the MUnit matchers, this function is a class type comparison. Its purpose is to validate if an argument belongs to a certain class type.
+
+A matcher does not receive parameters; rather, it's a parameter itself.
+
+The table bellow lists the available MUnit matchers.
+
+[cols=",,"]
+.MUnit Matcher Functions
+|===
+| Matcher Name | Description
+
+|`isNull()`
+|Matches if the evaluated object is `Null`.
+
+|`isNotNull()`
+|Matches if the evaluated object is not `Null`.
+
+|`anyObject()`
+|Matches if the evaluated object is an `Object`.
+
+|`anyBoolean()`
+|Matches if the evaluated object is a `Boolean`.
+
+|`anyByte()`
+|Matches if the evaluated object is a `Byte`.
+
+|`anyByteArray()`.
+|Matches if the evaluated object is a `ByteArray`.
+
+|`anyInt()`
+|Matches if the evaluated object is an `Integer`.
+
+|`anyDouble()`
+|Matches if the evaluated object is a `Double`.
+
+|`anyFloat()`
+|Matches if the evaluated object is a `Float`.
+
+|`anyShort()`
+|Matches if the evaluated object is a `Short`.
+
+|`anyString()`
+|Matches if the evaluated object is a `String`.
+
+|`anyCollection()`
+|Matches if the evaluated object is a `Collection`.
+
+|`anyList()`
+|Matches if the evaluated object is a `List`.
+
+|`anySet()`
+|Matches if the evaluated object is a `Set`.
+
+|`anyMap()`
+|Matches if the evaluated object is a `Map`.
+
+|===
+
+MUnit also offers some additional, rather specific, type of matchers. These matchers evaluate the _content_ of the parameter, not its type; even so, they do not evaluate by specific values.
+
+[cols=",,"]
+.MUnit Matcher Functions
+|===
+| Matchers Name | Description
+
+|`matchRegex(<regex>)`
+|Matches if the value of the attribute during the test run verifies the user-provided regular expression.
+
+|`matchContains(<string_to_look_for>)`
+|Matches if the value of the attribute during the test run _contains_ the specified user-provided string.
+
+|===
+
+== Applying MUnit Matchers
+
+For the purposes of this document, we assume we are testing the following Mule code:
+
+[source, xml, linenums]
+.Code to be tested
+----
+<flow name="exampleFlow">
+  <set-variable variableName="#['my_variable']" value="#['some_string]" doc:name="Variable"/>
+</flow>
+----
+
+NOTE: MUnit matchers are _always_ used in combination with the Mocks, Throws, Spy, Verify and
+Assert message processors, but never on their own.
+
+=== Using MUnit Matchers in a Mock Definition
+
+Used in combination with MUnit Matchers, the Mock message processor allows you to create mocks that match by information other than values, such as content type of a specific attribute. In the example below, the mock matches if and only if the content of the attribute `value` is of type `String`.
+
+[source, xml, linenums]
+.MUnit matchers - Mock example
+----
+<mock:when messageProcessor="mule:set-variable">
+  <mock:with-attributes>
+    <mock:with-attribute whereValue="#['my_variable']" name="variableName"/>
+    <mock:with-attribute whereValue="#[anyString()]" name="value"/> //<1>
+  </mock:with-attributes>
+</mock:when>
+----
+<1> The match is produced by the `anyString()` matcher.
+
+In the above example, the mock definition is triggered when the code being tested reaches the `set-payload` message processor, if and only if the content of attribute `value` is of type `String`, disregarding the actual string value.
+
+If not using a matcher, the only way to produce a match is to evaluate for the literal value. If the test code evolves and changes, chances are the contents of attribute `value` would also change, and your test would fail.
+
+=== Using MUnit Matchers in a Verification Definition
+
+Used in combination with MUnit Matchers, the Verify message processor allows you to verify when a message processor is called by matching information other than values, such as the content type of a specific attribute. In the example below, the verification is successful if and only if the `set-variable` message processor has set variable `my_variable`, of content type `String`.
+solve use cases like:
+
+[source, xml, linenums]
+.MUnit matchers - Mock example
+----
+<mock:verify-call messageProcessor="mule:set-variable" times="1" doc:name="Verify Call">
+  <mock:attributes>
+    <mock:with-attribute whereValue="#['my_variable']" name="variableName"/>
+    <mock:attribute whereValue="#[anyString()]" name="value"/> //<1>
+  </mock:attributes>
+</mock:verify-call>
+----
+<1> The match is produced by the `anyString()` matcher.
+
+=== Using MUnit Matchers in Spy Definition
+
+Used in combination with MUnit Matchers, the Spy message processor allows you to spy message processors matched by information other than values, such as the content type of a specific attribute. In the example below, the message processor in the test code can be spied if and only if the `set-variable` message processor has set the variable `my_variable`, of content type `String`.
+
+[source, xml, linenums]
+.MUnit Matchers - Mock example
+----
+<mock:spy messageProcessor="mule:set-payload" doc:name="Spy">
+  <mock:with-attributes>
+    <mock:with-attribute whereValue="#['my_variable']" name="variableName"/>
+    <mock:attribute whereValue="#[anyString()]" name="value"/> //<1>
+  </mock:with-attributes>
+  <mock:assertions-before-call>
+    <!-- Define actions -->
+  </mock:assertions-before-call>
+  <mock:assertions-after-call>
+    <!-- Define actions -->
+  </mock:assertions-after-call>
+</mock:spy>
+----
+<1> The match is produced by the `anyString()` matcher.
+
+=== Using MUnit Matchers in an Assertion Definition
+
+You can greatly enhance the power of the Assert message processors when using them in conjunction with MUnit matchers, for example by validating that the content of a Mule message is of a specific type.
+
+The example below validates that the content of a Mule message is a boolean.
+
+[source, xml]
+.MUnit Matchers - Assert payload example
+----
+<munit:assert-true message="oops!" condition="#[valueOf(payload).is(anyBoolean())]" />
+----
+
+Notice the content of the attribute `condition`:
+
+[source, xml, linenums]
+----
+#[
+valueOf(payload)    //<1>
+.is(anyBoolean())   //<2>
+]
+----
+<1> Create `ElementMatcher` for payload.
+<2> Run `anyBoolean()` MUnit matcher over the payload of the Mule message.
+
+In this example we first need to create an _ElementMatcher_ for the payload. Then, we can ask the `ElementMatcher` to run the `anyBoolean()` matcher over itself, by calling the method `is()`.
+
+==== MUnit Matchers over Mule Message Properties
+
+If you wish to run assertions over Mule message properties and use MUnit matchers, you can use the `valueOf()` function. For instance:
+
+[source, xml]
+.MUnit Matchers - Assert invocation property example
+----
+<munit:assert-true message="oops!" condition="#[valueOf(flowVars['my_variable']).is(anyBoolean())]" />
+----
+
+To make it easier to write this type of assertions, MUnit offers a another set of MEL functions that provide direct access for Mule message's properties `ElementMatcher`.
+
+[cols=",,"]
+.MUnit matchers - Message Property ElementMatcher builders
+|===
+|Function  |Description
+
+|`messageInboundProperty(propertyName)`
+|Returns an ElementMatcher for the `inbound` property with the name provided.
+
+|`messageOutboundProperty(propertyName)`
+|Returns an ElementMatcher for the `outbound` property with the name provided.
+
+|`messageInvocationProperty(propertyName)`
+|Returns an ElementMatcher for the `invocation` property with the name provided.
+
+|`messageInboundAttachment(propertyName)`
+|Returns an ElementMatcher for the `inbound` attachment with the name provided.
+
+|`messageOutboundAttachment(propertyName)`
+|Returns an ElementMatcher for the `outbound` attachment with the name provided.
+
+|===
+
+With these functions you could change the example above to:
+
+[source, xml, linenums]
+.MUnit matchers - Assert invocation property example
+----
+<munit:assert-true condition="#[messageInvocationProperty('my_variable').is(anyBoolean())]"/>
+----
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]

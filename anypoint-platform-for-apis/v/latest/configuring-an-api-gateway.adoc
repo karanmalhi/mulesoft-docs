@@ -2,17 +2,18 @@
 :keywords: api, cloudhub, gateway, auto-discovery
 
 [NOTE]
-Looking for a basic introduction to the API Gateway? See the link:/anypoint-platform-for-apis/api-gateway-101[API Gateway 101] for answers to some frequently asked questions.
+Looking for a basic introduction to the API Gateway? See the link:/anypoint-platform-for-apis/api-gateway-101[API Gateway 101] for answers to some frequently asked questions. See also link:/anypoint-platform-for-apis/api-gateway-domain[API Gateway Domain].
 
 The *API Gateway* points to the backend APIs and services that you define and abstracts them into a layer that the Anypoint Platform for APIs manages. Consumer applications that invoke your services and APIs route to the endpoints that the gateway exposes to enforce runtime policies and collect and track analytics data. The API Gateway is available for on premises (your site) that you can download from link:http://www.mulesoft.com/ty/dl/api-gateway[here], or a cloud version. For more information, see "Setting Up Your Gateway" below.
 
-*Licensing Note* : API Gateway only supports MuleSoft HTTP, Jetty, File, JDBC, and WS-Consumer connectors. The API Gateway does not support MuleSoft batch components. To utilize other connectors or batch components you must license Mule ESB Enterprise.  
+*Licensing Note*: API Gateway only supports MuleSoft HTTP, Jetty, File, JDBC, and WS-Consumer connectors. The API Gateway does not support MuleSoft batch components. To utilize other connectors or batch components you must license Mule ESB Enterprise.  
 
 The API Gateway provides two benefits:
 
 . The gateway acts as a dedicated orchestration layer for all your backend APIs to separate orchestration from implementation concerns.
-. The gateway lets you take advantage of the governance capabilities of the Anypoint Platform for APIs so that you can apply throttling, security, and other policies. +
- image:APIgateway.png[APIgateway]
+. The gateway lets you take advantage of the governance capabilities of the Anypoint Platform for APIs so that you can apply throttling, security, and other policies.
++
+image:APIgateway.png[APIgateway]
 
 == Choosing a Gateway Option
 
@@ -36,9 +37,9 @@ Configure the client ID and client secret in the gateway before the gateway can 
 
 [NOTE]
 ====
-If you set up the Gateway with a client ID and client secret that belong to the master organization, these credentials will work for all of the APIs in the organization, regardless if they're under a sub-organization.
+If you set up the Gateway with a client ID and client secret that belong to the master organization, these credentials work for all of the APIs in the organization, regardless if they're under a sub-organization.
 
-If you instead use the client ID and client secret of one of your sub-organizations, then the credentials will only work for APIs within that sub-organization.
+If you instead use the client ID and client secret of one of your sub-organizations, then the credentials only work for APIs within that sub-organization.
 ====
 
 == Configuring Anypoint Studio for Integration with Your Anypoint Platform Organization
@@ -46,7 +47,7 @@ If you instead use the client ID and client secret of one of your sub-organizati
 Before you configure your production gateway, you may want to configure Anypoint Studio to work with your Anypoint Platform organization for testing. First, download the API Gateway runtime from the Studio Update Site.
 
 . Under the `Help` menu in *Anypoint Studio*, select `Install New Software`. 
-. In the **Work with:** field in the Install wizard, enter http://studio.mulesoft.org/r4/api-gateway/
+. In the *Work with:* field in the Install wizard, enter http://studio.mulesoft.org/r4/api-gateway/
 .  Check the box next to *API Gateway runtime*, then click *Next*.
 .  Follow the remaining steps to accept the installation. +
 
@@ -54,7 +55,7 @@ If you use this runtime when working with APIkit projects and API proxies, you c
 
 Next, configure your client ID and client secret in Anypoint Studio:
 
-. Obtain your Organization's client ID and client secret. To do this, in Anypoint Management Center click the gear icon, go to the *Organization* tab, and click the name of your organization or corresponding Business Group.
+. Obtain your Organization's client ID and client secret. To do this, in the Anypoint Platform click the gear icon, go to the *Organization* tab, and click the name of your organization or corresponding Business Group.
 . Open Anypoint Studio.
 . Click *Anypoint Studio* > *Preferences*, and click the arrow next to *Anypoint Studio* to expand the node.
 . Click *Anypoint Platform for APIs*.
@@ -99,26 +100,28 @@ wrapper.java.additional.<n>=-Danypoint.platform.client_id=<PasteYourUniqueValueH
 wrapper.java.additional.<n>=-Danypoint.platform.client_secret=<PasteYourUniqueValueHere>
 ----
 
-Replace the value of  `<` `n>`  with the next incremental values over the previous entries in the list, then replace < `PasteYourUniqueValueHere>`  with the client ID and client secrets for your organization/Business Group.  
+Replace the value of  `<n>`  with the next incremental values over the previous entries in the list, then replace `<PasteYourUniqueValueHere>`  with the client ID and client secrets for your organization/Business Group.  
 
 [NOTE]
 ====
 If you prefer, you can pass the token via the command line when starting the gateway instead of adding it to your `wrapper.conf` file.
 
-Start your gateway from the command line by running the following command:
+Start your gateway from the command line by running the following command (wrapped for readability--combine into one line before using):
 
-**Mac/Linux/Unix**:
+*Mac/Linux/Unix*:
 
 [source,code,linenums]
 ----
-<MULE_HOME>/bin/gateway -M-Danypoint.platform.client_id=<PasteYourUniqueValueHere> -M-Danypoint.platform.client_secret=<PasteYourUniqueValueHere>
+MULE_HOME/bin/gateway -M-Danypoint.platform.client_id=PASTE_YOUR_VALUE_HERE
+ -M-Danypoint.platform.client_secret=PASTE_YOUR_VALUE_HERE
 ----
 
 *Windows*:
 
 [source,code,linenums]
 ----
-<MULE_HOME>\bin\gateway.bat -M-Danypoint.platform.client_id=<PasteYourUniqueValueHere> -M-Danypoint.platform.client_secret=<PasteYourUniqueValueHere>
+MULE_HOME\bin\gateway.bat -M-Danypoint.platform.client_id=PASTE_YOUR_VALUE_HERE
+ -M-Danypoint.platform.client_secret=PASTE_YOUR_VALUE_HERE
 ----
 
 The above commands start your gateway in the terminal foreground. To run the gateway in the terminal background, include the `start` parameter as the first parameter to the `mule` command. In this case, to stop the gateway, run `gateway stop` or `gateway.bat stop`.
@@ -133,52 +136,60 @@ Follow these steps to replace your trial license file with an Enterprise license
 . If you haven't already done so, contact MuleSoft to acquire an *Enterprise license* in the form of a `license.lic` file.
 . If you are installing your license on multiple platforms, back up your new `license.lic` file in another location before proceeding.
 . Open the terminal or command line on your system.
-. For Mac/Unix/Linux, from the `<MULE_HOME>/bin `directory. Run the following command:    
+. For Mac/Unix/Linux, from the `<MULE_HOME>/bin` directory. Run the following command:    
 +
-`./gateway -installLicense <path>/license.lic` +
+[source,code]
+----
+./gateway -installLicense <path>/license.lic
+----
++
 (Replace `<path>` with the full or relative path to your license file.)
 +
-For Windows, first copy the  `license.lic`  file into the  `<MULE_HOME>\bin` folder. Then  `cd` to that directory and run the following command: +
- +
- `gateway -installLicense license.lic`
+For Windows, first copy the  `license.lic`  file into the  `<MULE_HOME>\bin` folder. Then  `cd` to that directory and run the following command:
++
+[source,code]
+----
+gateway -installLicense license.lic
+----
++
 . The gateway removes the temporary trial license and replaces it with the Enterprise license. In the `<MULE_HOME>/conf` directory, the gateway saves a new file called `muleLicenseKey.lic`
 . The gateway starts running automatically after you install the license.
+
 ....
 [tab,title="Cloud Gateway"]
 ....
 === Cloud Gateway
 
-First, unless you have already done so, download the latest version of  *http://www.mulesoft.com/mule-studio[Anypoint Studio]* . Anypoint Studio gives you access to link:/anypoint-platform-for-apis/building-your-api[APIkit], which you can use to build new APIs. You can also use it to modify or create proxy applications for your existing APIs.
+First, unless you have already done so, download the latest version of  *link:http://www.mulesoft.com/mule-studio[Anypoint Studio]* . Anypoint Studio gives you access to link:/anypoint-platform-for-apis/building-your-api[APIkit], which you can use to build new APIs. You can also use it to modify or create proxy applications for your existing APIs.
 
 [WARNING]
 If you want to automatically deploy to CloudHub, you must do it on the same Anypoint Platform account where you have your API Gateway, and your user must have the appropriate permissions both on CloudHub and on the API Platform.
 
 . In your API Administration page, click *Configure Endpoint* under the API Status section
-. Tick the box labeled *Configure proxy for CloudHub*. +
- +
-image:conf+for+cloud.png[conf+for+cloud] +
+. Tick the box labeled *Configure proxy for CloudHub*.
 +
-
+image:conf+for+cloud.png[conf+for+cloud]
++
 Notice that, when ticking the box, the *Port* field changes.
 +
-. Under *Advanced settings*, you can change the *API Gateway Version*if you wish. Otherwise, by default you will use the latest.
-.. You can tick the box labeled *Deploy after saving*  to go straight to the deploy menu. Otherwise, click Save and deploy when you're ready. +
-Notice that after configuring the proxy for CloudHub, a new link labeled *Deploy proxy* appears in the *API Status* section. Use it to open the deploy menu. +
- image:deploy+button.png[deploy+button]
-
-.. In the deploy menu, submit an app name and choose an environment. The Gateway version is selected from what you configured on the Configure Endpoint section. +
- +
+. Under *Advanced settings*, you can change the *API Gateway Version* if you wish. Otherwise, by default you use the latest.
+.. You can tick the box labeled *Deploy after saving*  to go straight to the deploy menu. Otherwise, click Save and deploy when you're ready.
++
+Notice that after configuring the proxy for CloudHub, a new link labeled *Deploy proxy* appears in the *API Status* section. Use it to open the deploy menu.
++
+image:deploy+button.png[deploy+button]
++
+.. In the deploy menu, submit an app name and choose an environment. The Gateway version is selected from what you configured on the Configure Endpoint section.
++
 image:set+up+deployment.png[set+up+deployment]
 +
-
 [TIP]
-A link will then be provided to the actual CloudHub application for further management, from there you can then change the worker type, the environment, set advanced settings, etc. Under the API Status section, a new link will appear labeled *Manage CloudHub proxy* that takes you there.
-
-.. The status of the API deployment is indicated by the marker in the API Status section of the API version page. While the app is starting, you will see a spinner. Once it starts successfully, the light will turn green.
+A link is then provided to the actual CloudHub application for further management, from there you can then change the worker type, the environment, set advanced settings, etc. Under the API Status section, a new link appears labeled *Manage CloudHub proxy* that takes you there.
 +
-
+.. The status of the API deployment is indicated by the marker in the API Status section of the API version page. While the app is starting, you see a spinner. Once it starts successfully, the light turns green.
++
 [TIP]
-Notice there should now be a new link under the API Status labeled **Re-deploy proxy**, click it in case you make changes to the proxy configuration. You don't need to redeploy in case you add or apply policies, SLA tiers or permissions, as those changes will take effect automatically.
+Notice there should now be a new link under the API Status labeled *Re-deploy proxy*, click it in case you make changes to the proxy configuration. You don't need to redeploy in case you add or apply policies, SLA tiers or permissions, as those changes takes effect automatically.
 
 === Manual Deployment to CloudHub
 
@@ -199,7 +210,7 @@ To obtain these, log in to the Anypoint Platform as an administrator or sub-orga
 
 [WARNING]
 ====
-*Summary* +
+*Summary*
 
 For all endpoints that you register in Anypoint Platform for APIs that point to proxies running on CloudHub, specify your host and port names according to the CloudHub standards. For the HTTP or HTTPS connector, specify the host as *localhost* and the port `${http.port}` in your application. Need more detail? See the link:/cloudhub/developing-a-cloudhub-application[directions]. In Anypoint Platform for APIs, replace `localhost` and `${http.port}` with the domain that you select for deployment.
 
@@ -226,3 +237,7 @@ Refer to the link:/mule-user-guide/v/3.6[Mule User Guide] or the link:/cloudh
 
 * Once you have your API Gateway set up, learn how to link:/anypoint-platform-for-apis/proxying-your-api[create proxy applications] for your APIs and link:/anypoint-platform-for-apis/deploying-your-api-or-proxy[deploy them to your API Gateway].
 * Need to configure an on-premises proxy? See link:/anypoint-platform-for-apis/configuring-proxy-access-to-the-anypoint-platform-for-apis[Configuring Proxy Access to the Anypoint Platform for APIs].
+* See also link:/anypoint-platform-for-apis/api-gateway-domain[API Gateway Domain].
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]

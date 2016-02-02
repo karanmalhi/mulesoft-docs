@@ -1,0 +1,108 @@
+= Message Processor
+:version-info: 3.7.0 and newer
+:keywords: munit, testing, unit testing
+
+== Overview
+
+The Set Message Processor provided by MUnit allows you to define Mule messages.
+
+This message processor is normally used at the beginning of an MUnit test, to define the first message to send to the flow being tested.
+
+== Defining Messages
+
+The example below shows how to define a simple Mule message.
+
+[source, xml, linenums]
+.Setting Simple Mule message
+----
+<munit:set payload="#[]">
+</munit:set>
+----
+
+[cols=",,"]
+|===
+|Attribute Name |Description
+
+|`payload`
+|Defines the value of the payload's message. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|`encoding`
+|Defines the encoding of the message. This attributes is optional.
+
+|`mimeType`
+|Defines the mime type of the message. This attributes is optional.
+
+|===
+
+TIP: If you wish to set the payload to be a Spring bean, you can make use of the MUnit MEL function `getBeanFromMuleContext('bean_name')`. See link:/munit/v/1.2.0/assertion-message-processor[Assertion] for details.
+
+== Defining Message Attributes
+
+Using the MUnit `Set` message processor, you can easily specify the message properties of any scope.
+
+The example below shows how to define one of each property scopes:
+
+[source, xml, linenums]
+.Setting Mule Message's properties
+----
+<munit:set payload="#[]">
+  <munit:invocation-properties>
+    <munit:invocation-property key="key" value="#['value']"/>
+  </munit:invocation-properties>
+
+  <munit:inbound-properties>
+    <munit:inbound-property key="key" value="#['value']"/>
+  </munit:inbound-properties>
+
+  <munit:session-properties>
+    <munit:session-property key="key" value="#['value']"/>
+  </munit:session-properties>
+
+  <munit:outbound-properties>
+    <munit:outbound-property key="key" value="#['value']"/>
+  </munit:outbound-properties>
+</munit:set>
+----
+
+All the properties have the same set of attributes:
+
+[cols=",,"]
+.Property Message Processor's Attributes
+|===
+|Attribute Name |Description
+
+|`key`
+|The key of the property being set.
+
+|`value`
+|The content of the property. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|`encoding`
+|Defines the encoding of the message. This attributes is optional.
+
+|`mimeType`
+|Defines the mime type of the message. This attributes is optional.
+
+|===
+
+You can define as many properties per each scope as you need for your test.
+
+WARNING: If you define two properties in the same scope with the _same_ key, be aware that one would end up overwriting the other.
+
+== Defining Null Payloads
+
+In Mule a message payload never contains Null. Instead, Mule has a representation called `NullPayload`.
+
+In some scenarios, your test requires you to send such a payload. For these cases, MUnit provides the `null-payload` message processor.
+
+[source, xml]
+.Sending NullPayload
+----
+<munit:set-null-payload/>
+----
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]

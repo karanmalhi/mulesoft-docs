@@ -1,0 +1,175 @@
+= Creating and Managing a Cluster Manually
+:keywords: cluster, deploy
+
+*_Enterprise Edition_*
+
+There are 3 ways to create and manage clusters:
+
+* Using the Mule Management Console's graphical interface
+* Using CloudHub - for more information, see link:/cloudhub/creating-and-managing-clusters[Creating and Managing Clusters]
+* Manually, using a configuration file
+
+This page describes manual creation and configuration of a cluster. If you want to create and manage a cluster using the Management Console's graphical interface, see link:/mule-management-console/v/3.7/creating-or-disbanding-a-cluster[Creating or Disbanding a Cluster].
+
+[CAUTION]
+====
+*Do not attempt mixed management of clusters*
+
+If you create a cluster manually, do not attempt to manage it via the Management Console. The Management Console cannot recognize your manually-created cluster, and overwrites your cluster configuration.
+====
+
+[NOTE]
+====
+All nodes in a cluster must have the same agent version.
+====
+
+== Creating a Cluster Manually
+
+Follow this procedure to create a cluster manually, using a configuration file.
+
+. Ensure that the node is not running, that is that the Mule Runtime Server is stopped.
+. Create a file named `mule-cluster.properties` inside the node's `$MULE_HOME/.mule` directory.
+. Edit the file with parameter = value pairs, one per line. See the example below.
++
+*Note*: `mule.clusterId` and `mule.clusterNodeId` must be in the properties file.
++
+[source, code, linenums]
+----
+...
+mule.cluster.nodes=192.168.10.21,192.168.10.22,192.168.10.23
+mule.cluster.multicastenabled=false
+mule.clusterId=<Cluster_ID>
+mule.clusterNodeId=<Cluster_Node_ID>
+...
+----
++
+. Repeat this procedure for all Mule servers that you want to be in the cluster.
+. Start the Mule servers in the nodes.
+
+For the full list of available parameters, see <<Cluster Configuration Parameters>>.
+
+== Managing a Cluster Manually
+
+Manual management of a cluster is only possible for clusters that have been manually created, which are not managed by the Mule Management Console.
+
+To manually change the configuration of a cluster node, follow these steps:
+
+. Stop the node's Mule ESB server.
+
+. Edit the node's `mule-cluster.properties` as desired, then save the file.
+
+. Restart the node's Mule ESB server.
+
+[CAUTION]
+====
+*Ensure consistency across nodes*
+
+Ensure that the options you apply in the configuration file are valid for all cluster nodes. Failure to do so can cause you to  break the cluster configuration and inadvertently disable the cluster.
+====
+
+=== Quorum management.
+
+When managing a manually configured cluster you can now set a minimum quorum of machines required for the cluster to be operational. +
+When partitioning a network, clusters are available by default. However, by setting a minimum quorum size you can achieve better consistency by rejecting updates that do not pass a minimum threshold.
+
+To enable quorum, the +mule.cluster.quorumsize+ property has to be placed on the cluster configurations file +{MULE_HOME}/.mule/mule-cluster.properties+ defining the minimum number of nodes of the cluster to remain in an operational state.
+
+A +QuorumException+ will be thrown whenever the number of active nodes in the cluster is below the configured value in +mule.cluster.quorumsize+.
+
+[CAUTION]
+====
+*QuorumExceptions must be catched*
+
+When configuring a Quorum Size for your cluster, you need to catch the thrown exception to make some sort of decision (e.g. send an email, stop process, logging, retry strategies, etc)
+====
+
+=== Object Store Persistence
+You can persistently store JDBC data in a centralized system, accessible from all cluster nodes.
+
+To enable Object store persistency, you need to add new properties to the +{MULE_HOME}/.mule/mule-cluster.properties+  file defining the database configuration values:
+
+. *mule.cluster.jdbcstoreurl*: The JDBC URL for connection to the database
+. *mule.cluster.jdbcstoreusername*: Database username
+. *mule.cluster.jdbcstorepassword*: Database user password
+. *mule.cluster.jdbcstoredriver*: JDBC Driver class name
+. *mule.cluster.jdbcstorequerystrategy*:  SQL dialect
+
+[IMPORTANT]
+====
+In mule-3.8-M1, only MySQL query dialect is supported. Other dialects such as PostgreSQL are going to be supported on mule-3.8-M2.
+====
+
+Always keep in mind that the data storage needs to be hosted in a centralized DB reachable from all nodes. +
+Don't use more than one database per cluster.
+
+
+=== Monitoring
+You can monitor the events thrown by the cluster members through the link:http://www.oracle.com/technetwork/java/javase/tech/javamanagement-140525.html[JMX technology].
+
+The JMX monitoring option is disabled by default. In order to enable it, you will need to add the +mule.cluster.jmxenabled+ property to the +{MULE_HOME}/.mule/mule-cluster.properties+ configuration file.
+
+Please note that enabling JMX might cause some performance overheads given that the underlying structure adds listeners to get the statistics for each individual node.
+
+
+== Cluster Configuration Parameters
+
+The following table lists the parameters of the `mule-cluster.properties` file.
+
+[width="100%",cols=",",options="header",]
+|===
+|Property name |Description
+|`mule.clusterId` |*Mandatory.* Unique identifier for the cluster. It can be any alphanumeric string.
+|`mule.clusterNodeId` |*Mandatory.* Unique ID of the node within the cluster. It can be any integer between 1 and the number of nodes in the cluster.
+|`mule.cluster.networkinterfaces` a|
+Comma-separated list of interfaces to use by Hazelcast. Wildcards are supported, as shown below.
+
+[source, code]
+----
+192.168.1.*,192.168.100.25
+----
+
+|`mule.cluster.nodes` a|
+The nodes that belong to the cluster, in the form `<host:port>`, for example, `172.16.9.24:9000`. Specifying just one IP address enables the server to join the cluster.
+
+The port number is optional; if not set, the default is 5701. To include more than one host, create a comma-separated list.
+
+This option configures the cluster with the specified fixed IP addresses. Use this option if you are not relying on multicast for cluster node discovery. If using this option, set `mule.cluster.multicastenabled` to `false` (see next item in this table).
+
+Examples:
+
+Two nodes listening on port 9000:
+
+[source,code]
+----
+172.16.9.24:9000,172.16.9.51:9000
+----
+
+Two nodes listening on port 5701:
+
+[source,code]
+----
+192.168.1.19,192.168.1.20
+----
+
+|`mule.cluster.quorumsize` | Enables you to define the minimum number of machines required in a cluster to remain in an operational state.
+|`mule.cluster.multicastenabled` |*(Boolean)* Enable/disable multicast. Set to `false` if using fixed IP addresses for cluster node discovery (see option `mule.cluster.nodes` above).
+|`mule.cluster.multicastgroup` |Multicast group IP address to use.
+|`mule.cluster.multicastport` |Multicast port number to use.
+|`mule.cluster.jdbcstoreurl` | Required only when storing persistent data. +
+The JDBC URL for connection to the database
+|`mule.cluster.jdbcstoreusername` |*Required only when storing persistent data*. +
+Database username
+|`mule.cluster.jdbcstorepassword` |*Required only when storing persistent data*. +
+Database user password
+|`mule.cluster.jdbcstoredriver` |*Required only when storing persistent data*. +
+JDBC Driver class name
+|`mule.cluster.jdbcstorequerystrategy` |*Required only when storing persistent data*. +
+SQL dialect for accessing the stored object data
+|`mule.cluster.jmxenabled`|*(Boolean)* Enable/disable monitoring 
+
+|===
+
+== See Also
+
+* Learn about
+link:/mule-management-console/v/3.7/deploying-redeploying-or-undeploying-an-application-to-or-from-a-cluster[deploying] and link:/mule-management-console/v/3.7/monitoring-a-cluster[monitoring] clusters.

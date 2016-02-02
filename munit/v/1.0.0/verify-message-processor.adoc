@@ -1,0 +1,136 @@
+= Verify Message Processor
+:version-info: 3.7.0 and newer
+:keywords: munit, testing, unit testing
+
+== Overview
+
+The Verify feature provided by MUnit allows you to define _verifications_ in order to validate a message processor's calls.
+
+For example, you can validate if a specific message processor has been called with a particular set of attributes a specific number of times.
+
+== Defining Verifications
+
+When defining a verification, we are telling MUnit to fail a test if the verification is not successful.
+
+TIP: You can define verifications over any message processor, even if you haven't created a mock for it.
+
+For the purposes of this document, we assume we are testing the following Mule code:
+
+[source, xml, linenums]
+.Test code
+----
+<flow name="exampleFlow">
+  <set-payload value="#['real_payload']" doc:name="Real Set Payload"/>
+</flow>
+----
+
+=== Defining Message Processor To Verify
+
+When defining a verify, we make use of the `verify-call` message processor.
+
+[source, xml]
+----
+<mock:verify-call messageProcessor="mule:set-payload" times="1"/>
+----
+
+[cols=",,"]
+|===
+|Attribute Name |Description
+
+|`messageProcessor`
+|Describes which message processor we want to mock. The description takes the form `{name-space}:{message-processor-name}`. It supports regular expressions.
+
+|`times`
+|*(Default = 1.)* Defines the verification as successful if the message processor was called _N_ and only _N_ number of times.
+
+|`atLeast`
+|Defines the verification as successful if the message processor was called a minimum of _N_ number of times.
+
+|`atMost`
+|Defines the verification as successful if the message processor was called maximum of _N_ number of times.
+
+|===
+
+NOTE: By default, the `verify-call` message processor assumes _times=1_ if no value is specified.
+
+NOTE: The attributes `times`, `atLeast`, `atMost`, are mutually exclusive. Only one should be used.
+
+The `messageProcessor` attribute accepts regular expressions. You could create the same verification as follows:
+
+[source, xml]
+.Verify using regular expressions
+----
+<mock:verify-call messageProcessor=".*:set-payload" times="1"/>
+----
+
+In the example above, we define a verification for a message processor named `set-payload`, disregarding which namespace the message processor belongs to.
+
+TIP: The regular expression language is the same as Java.
+
+=== Defining Verifications with Message Processor Attributes
+
+The definition of a verification is based on matchers, that is, parameters that match features of the desired message processor. Defining a verification solely on the name of the message processor largely limits your scope and actions. For this reason, MUnit allows you to define a verify by defining matchers over the value of a message processor's attributes.
+
+[source, xml, linenums]
+----
+<mock:verify-call messageProcessor="mule:set-payload">
+  <mock:with-attributes>
+    <mock:with-attribute whereValue="#['Real Set Payload']" name="doc:name"/>
+  </mock:with-attributes>
+</mock:verify-call>
+----
+
+You can define as many attributes as you deem necessary to make the verification as representative as possible. When defining an attribute, you do so by defining:
+
+[cols=",,"]
+|===
+|Attribute Name |Description
+
+|`name`
+|The name of the attribute. This value is literal, it doesn't support regular expressions.
+
+|`whereValue`
+|The value that the attribute of the real message processor should contain. It accepts MEL expressions. If left as a literal, it assumes a string value.
+
+|===
+
+TIP: If the attribute you wish the Verify message processor to match is similar to `config-ref` and resolves to an actual bean, you can use the MUnit MEL function `getBeanFromMuleContext('bean_name')`. This function inspects the Mule registry and returns the bean with the matching name if present. See link:/mule-user-guide/v/3.7/the-assertion-message-processor[Assertion] for details.
+
+== Defining Verifications with Java Code
+
+The example below shows how to reproduce the same behavior described above, using the MUnit Java API.
+
+[source,java,linenums]
+----
+import org.junit.Test;
+import org.mule.munit.common.mocking.Attribute;
+import org.mule.munit.runner.functional.FunctionalMunitSuite;
+
+public class TheTest extends FunctionalMunitSuite {
+
+  @Test
+  public void test() {
+    Attribute attribute = Attribute.attribute("name").
+      ofNamespace("doc").withValue("Real Set Payload"); //<1>
+
+    verifyCallOfMessageProcessor("set-payload") //<2>
+    .ofNamespace("mule")                        //<3>
+    .withAttributes(attribute)                  //<4>
+    .times(1);                                  //<5>
+
+  }
+}
+----
+<1> Define the real message processor attribute to match.
+<2> Define the message processor's name to verify (accepts regular expressions).
+<3> Define the message processor's namespace to verify (accepts regular expressions).
+<4> Set the message processor's attribute defined in Note #1.
+<5> Define the amount of times (could also be `atLeast(1)` or `atMost(1)`).
+
+INFO: Java does not provide default values for parameters `times`, `atLeast` or `atMost`, so you need to provide the value of the parameter that you use.
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]
