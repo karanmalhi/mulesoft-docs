@@ -3,7 +3,7 @@
 
 *Select*
 
-*Latest version: 2.1.9*
+*Latest version: 2.1.10*
 
 Microsoft SharePoint is a web application platform for content and document management, intranet portals, collaboration, extranets, websites, and enterprise search.
 
@@ -251,8 +251,38 @@ Example *Query Text*:
 
 image:SPExampleQText.png[SPExampleQText]
 
-Checking this option may cause large item lists with many reference fields to take a long +
-time to retrieve.
+> Warning: Checking this option may cause large item lists with many reference fields to take a long time to retrieve.
+
+Since version 2.1.10 you can use the _internal_ or _title_ field names in DSQL queries (as well as in other list's operations as detailed below).
+
+For example for the previous query:
+
+[source, code, linenums]
+----
+SELECT AuthorId, Created, List3MultiId FROM 8e306633-c600-40ab-80db-80f57968c0a1
+----
+
+If their _titles_ are the following _Author_, _Date created_ and _Details_ respectively, then you can write the query the using field names:
+
+[source, code, linenums]
+----
+SELECT Author, 'Date created', Details FROM Inventory
+----
+
+As well as you can mix _internal_ and _title_ too:
+
+[source, code, linenums]
+----
+SELECT AuthorId, 'Date created', List3MultiId FROM Inventory
+----
+
+Using _internal_ and/or _title_ field names is supported within the following list's operations ONLY:
+
+- Adding a new item to the list
+- Updating an existent item in the list
+- Querying items in the list
+
+> Note: In order to filter by a datetime field type you need to write the value using ISO8601 format when specified in a DSQL clause (eg. Created > 2000-01-01T00:00:00-03:00).
 
 == Operations: File and Folder API
 
@@ -270,9 +300,11 @@ The resulting flow looks:
 
 [source, xml, linenums]
 ----
-<sharepoint-2013:folder-create config-ref="Sharepoint_2013" url="/path/to/folder" doc:name="Sharepoint 2013"/>
- 
-<sharepoint-2013:folder-delete config-ref="Sharepoint_2013" url="/path/to/folder" doc:name="Sharepoint 2013"/>
+<sharepoint-2013:folder-create config-ref="Sharepoint_2013" 
+url="/path/to/folder" doc:name="Sharepoint 2013"/>
+
+<sharepoint-2013:folder-delete config-ref="Sharepoint_2013" 
+url="/path/to/folder" doc:name="Sharepoint 2013"/>
 ----
 
 === Adding a File
@@ -288,6 +320,14 @@ fileServerRelativeUrl="/path/to/folder/filename" 
 fileContentStream-ref="#[payload]" overwrite="true" 
 doc:name="Sharepoint 2013"/>
 ----
+
+In order to upload large files you need to configure your Sharepoint and IIS servers:
+
+- Set 'Maximum Upload Size' to 2047MB (max) at SP management console for site.
+- Set connection timeout for IIS site to high value.
+- Set the 'Maximum Allowed Content Length' to 2147483647 for IIS app (at request filtering).
+
+> Note: The Sharepoint REST API (which the connector uses) supports uploading files up to 2GB. When working with large files it's recommended to provide the system local path to the file (_localFilePath_ parameter's value) as it's the most efficient way to upload it through the connector.
 
 === Getting File Contents
 
