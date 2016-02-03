@@ -126,15 +126,15 @@ image:WindowsGateway.png[WindowsGateway]
 
 ===== Configuration settings
 
-In the next table you can find the configuration settings that are related only to the MSMQ connector:
+In the following table you can find the configuration settings that are only related to the MSMQ connector:
 
 [cols=",",]
 |===
 |*Property* |*Usage*
-|*invalid-queue-name* |
-|*transaction-timeout* |
-|*invalid-message-timeout* |
-|*cleanup-delay* |
+|*invalid-queue-name* |The queue name where unreadable messages are moved to.
+|*transaction-timeout* |The timeout for processing messages since they got retrieved by the connector. When the cleanup task finds a message which timeout expired it moves the message to the main queue to be processed back again (for details check two phase commit section at the connector's guide).
+|*invalid-message-timeout* |The timeout for invalid messages for when a payload of a message is parsed with an incorrect formatter.
+|*cleanup-delay* |The delay of the cleanup task to start looking for expired messages after they got retrieved for processing (for details check two phase commit section at the connector's guide).
 |===
 
 ===== Impersonating a Windows User
@@ -147,6 +147,7 @@ Windows Gateway Services supports running in a load-balanced configuration to al
 
 MSMQ background job processing is by default performed every 10 minutes starting at zero minutes past the hour. To prevent multiple gateway instances simultaneously attempting to perform cleanup on the queues when running in load-balanced configuration, a setting called cleanup-delay should be specified on each gateway instance. The recommended value to use for this on each machine is (10 / instanceCount) * (instanceNumber - 1) where instanceNumber is an integer value 1..n.
 For example, a cluster of 2 machines would use cleanup-delay of 0 on machine 1, 5 on machine 2. A cluster of 3 machines would use cleanup-delay of 0 on machine 1, 3 on machine 2, and 6 on machine 3. Machine clocks should be synchronized by NTP or equivalent mechanism to ensure this offset is applied correctly.
+
 The cleanup-delay setting is found in the Mule.SelfHost.config file:
 
 [source, xml, linenums]
