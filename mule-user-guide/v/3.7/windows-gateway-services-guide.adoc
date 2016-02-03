@@ -47,15 +47,23 @@ The install location for the Windows Service is `c:\Program Files(x86)\Anypoint
 
 *Note*: If the configuration file doesn't appear in the folder, in Windows 7, when the Control Panel *View by* option is set to *Small icons*, click *Control Panel* > *Folder Options* > *View* > *Show hidden files, folders, and drives.*
 
-The executable starts a new web server at port 9333, which only accepts secure connections using HTTPS. You can change the port number and the authentication token for the gateway in the `Mule.SelfHost.exe.config` configuration file:
+The executable starts a new web server at port 9333, which only accepts secure connections using HTTPS. You can change the port number where the gateway listens in the following places within the `Mule.SelfHost.exe.config` configuration file:
 
 [source, xml, linenums]
 ----
 <appSettings>
     <!-- Configure the service to listen on the following address. -->
     <add key="OwinHostAddress" value="https://+:9333/"/>
-    <!-- Token that must be sent by the Mule connector's client in the Authorization header when accessing the Rest API. -->
-    <add key="mule-auth-token" value="3nGdw7W+G1fSO2YBEHDmpo4N1Tg="/>
+    .
+    .
+    .
+    <services>
+      <service behaviorConfiguration="routing"
+          name="System.ServiceModel.Routing.RoutingService">
+        <host>
+          <baseAddresses>
+            <add baseAddress="https://*:9333/router"/>
+          </baseAddresses>
 </appSettings>
 ----
 
@@ -63,19 +71,46 @@ This web server uses a self-signed SSL certificate auto-generated during install
 
 image:MMC_Personal_Certs.png[MMC_Personal_Certs]
 
-Because the Windows service relies on `http.sys` for self-hosting the web server, any change in the port number or SSL certificate requires reconfiguring Windows. The `Register-SslCert.ps1` PowerShell script in the installation directory handles this task. If the port or certificate changes, run the following command from a link:http://en.wikipedia.org/wiki/Windows_PowerShell[PowerShell] console:
+Because the Windows service relies on `http.sys` for self-hosting the web server, changes in the port number or SSL certificate requires reconfiguring Windows. The `Register-SslCert.ps1` PowerShell script in the installation directory handles this task. If the port or certificate changes, run the following command from a link:http://en.wikipedia.org/wiki/Windows_PowerShell[PowerShell] console:
 
 `Register-SslCert.ps1 <certificate-thumbprint> <windows-account> <port>`
 
 * `<certificate-thumbprint>`: The thumbprint of the SSL certificate. It must be stored in the Personal Folder of the Local Store Account.
 * `<windows-account>`: Windows User or Group that receives permissions to register the port. The account impersonating the Windows service or console application must be part of this group.
-* `<port>`: HTTP port – Must be *9333*.
+* `<port>`: HTTP port – Must be *9333* (default) - Or the port you set at the configuration file.
 
 Example:
 
 `Register-SslCert.ps1 a495cbf8c4af496f1ef81efb224c8097d039f922 everyone 9333`
 
-=== MSMQ connector
+=== MSMQ & PowerShell connectors
+
+==== Security Considerations
+
+For these connectors, the service first authenticates the direct caller, which is the connector running in the Mule ESB.
+
+The authentication of the connector is done through a security token included in the HTTP Authorization header. This token is included on every HTTP request to the Gateway using the Mule scheme. The following example shows how MSMQ leverages the Gateway to connect to a specific queue (the same _Authorization_ header applies for PowerShell):
+
+[source, code, linenums]
+----
+GET: https://localhost:9333/msmq?count=50
+Authorization: mule test-token
+Mule-Msmq-Queue-Name: .\private$\out
+Mule-Api-Version: 1
+----
+
+The same authorization token should be configured on the connector and also in the Gateway configuration file. The following configuration sections show the token configuration within the Gateway configuration file  `Mule.SelfHost.exe.config` :
+
+[source, xml, linenums]
+----
+<appSettings>
+    <add key="mule-auth-token" value="3nGdw7W+G1fSO2YBEHDmpo4N1Tg="/>
+</appSettings>
+----
+
+*Note*: The installer for the Windows Gateway service automatically generates a cryptographically secure token for use by callers upon first install. This token is displayed and placed upon the clipboard during installation for easy copying into a Mule application.
+
+==== MSMQ specific
 
 See link:/release-notes/msmq-connector-release-notes[MSMQ Connector Release Notes] for version information.
 
@@ -83,7 +118,7 @@ image:WindowsGateway.png[WindowsGateway]
 
 For more information on the MSMQ connector, see the link:/mule-user-guide/v/3.7/msmq-connector-user-guide[MSMQ Connector User Guide].
 
-=== PowerShell connector
+==== PowerShell specific
 
 For more information on the PowerShell connector, see the link:/mule-user-guide/v/3.7/windows-powershell-connector-guide[Windows PowerShell Connector Guide.]
 
@@ -105,50 +140,6 @@ The cleanup-delay setting is found in the Mule.SelfHost.config file:
 ----
 
 *Note*: When running in LB configuration the gateway services should be configured to run as 'Administrator' when the nodes involved (MSMQ, gateways) are under a WORKGROUP but not joined to a DOMAIN. When joined to the same DOMAIN the permissions for each of the nodes and objects involved (queues) should be correctly set by the domain's administrator.
-
-== Security Considerations
-
-For all connectors leveraging the Windows Gateway Services, the service first authenticates the direct caller, which is the connector running in the Mule ESB.
-
-=== Service Authentication
-
-The authentication of the connector is done through a security token included in the HTTP Authorization header. This token is included on every HTTP request to the Gateway using the Mule scheme. The following example shows how MSMQ leverages the Gateway to connect to a specific queue:
-
-[source, code, linenums]
-----
-GET: https://localhost:9333/msmq?count=50
-Authorization: mule test-token
-Mule-Msmq-Queue-Name: .\private$\out
-Mule-Api-Version: 1
-<appSettings>
-    <!-- Configure the service to listen on the following address. -->
-    <add key="OwinHostAddress" value="https://+:9333/"/>
-    <!-- Token that must be sent by the Mule connector's client in the Authorization header when accessing the Rest API. -->
-    <add key="mule-auth-token" value="3nGdw7W+G1fSO2YBEHDmpo4N1Tg="/>
-</appSettings>
-----
-
-Configure the token on the connector and also in the Gateway configuration file. The following configuration sections show how the token is configured in both sides.
-
-==== Connector Configuration
-
-[source, xml, linenums]
-----
-<msmq:config name="MSMQ" doc:name="MSMQ" accessToken="test-token" rootQueueName=".\private$\qout" serviceAddress="localhost:9333">
-  <msmq:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
-</msmq:config>
-----
-
-==== Gateway Configuration
-
-[source, xml, linenums]
-----
-<appSettings>
-    <add key="mule-auth-token" value="test-token"/>
-</appSettings>
-----
-
-*Note*: The installer for the Windows Gateway service automatically generates a cryptographically secure token for use by callers upon first install. This token is displayed and placed upon the clipboard during installation for easy copying into a Mule application.
 
 == User Authentication
 
