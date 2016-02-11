@@ -90,6 +90,131 @@ You can edit the log4j2 configuration file to make the logging of the HTTP conne
 
 == Debugging
 
-When placing a link:/mule-user-guide/v/3.8-m1/logging-in-mule[logger] after an HTTP Connector – both if you're using a Listener HTTP Connector or a Request HTTP Connector – and setting it to DEBUG level, every message produced by it will be logged.
+Gaining visibility into HTTP inbound and outbound behavior can be achieved by enabling underlying library loggers with log4j2. This section assumes you're comfortable adjusting log levels with log4j2. If you have not adjusted logging levels in the past, read link:/mule-user-guide/v/3.7/logging-in-mule#configuring-custom-logging-settings[configuring custom logging settings] before continuing.
 
-To configure this, set the class `org.mule.module.http.internal.HttpMessageLogger` to DEBUG level, read link:/mule-user-guide/v/3.8-m1/logging-in-mule#configuring-custom-logging-settings[configuring custom logging settings] to see how.
+=== Logging Listener and Request Activity
+
+By enabling the `DEBUG` level on `org.mule.module.http.internal.HttpMessageLogger`, activity coming from all HTTP Listener and Request components will be logged. This includes the HTTP Listener Connector's inbound request, HTTP Request Connector's outbound request, and each connector's response body. An example of each can be found below.
+
+
+[tabs]
+------
+[tab,title="Listener Log Output"]
+....
+
+The log output of the Listener will display metadata of the inbound request.
+
+[source,bash]
+----
+DEBUG 2016-02-10 10:55:03,234 [[hello].HTTP_Listener_Configuration.worker.01] org.mule.module.http.internal.HttpMessageLogger: LISTENER
+GET / HTTP/1.1
+Host: localhost:8081
+User-Agent: curl/7.43.0
+Accept: */*
+----
+
+It will also display information about the response being sent back.
+
+[source,bash]
+----
+LISTENER
+HTTP/1.1 200 
+Transfer-Encoding: chunked
+Content-Type: application/json; charset=UTF-8
+Date: Wed, 10 Feb 2016 18:55:03 GMT
+
+2000
+{
+  "message" : "hello, world"
+}
+----
+
+[TIP]
+Chunked encoding will produce a separate log record for each chunk.
+
+....
+[tab,title="Request Log Output"]
+....
+
+The log output of the Request will display metadata of the outbound request.
+
+[source,bash]
+----
+DEBUG 2016-02-10 11:29:18,647 [[hello].http.requester.HTTP_Request_Configuration(1) SelectorRunner] org.mule.module.http.internal.HttpMessageLogger: REQUESTER
+GET /v3/hello HTTP/1.1
+Host: mocker-server.cloudhub.io:80
+User-Agent: AHC/1.0
+Connection: keep-alive
+Accept: */*
+----
+
+It will also display information about the response sent back from the target.
+
+[source,bash]
+----
+DEBUG 2016-02-10 11:29:18,729 [[hello].http.requester.HTTP_Request_Configuration.worker(1)] org.mule.module.http.internal.HttpMessageLogger: REQUESTER
+HTTP/1.1 200 
+Content-Type: application/json
+Date: Wed, 10 Feb 2016 19:29:18 GMT
+Server: nginx
+Content-Length: 10940
+Connection: keep-alive
+
+{
+  "message" : "Hello, world"
+}
+----
+
+------
+
+=== Logging Packet Metadata
+
+At a lower level, it can be desirable to log the actual request and response packets transmitted over HTTP. This is achieved by enabling the `DEBUG` level on `com.ning.http.client.providers.grizzly`. This will log the metadata of the request packets from `AsyncHTTPClientFilter` and the response packets from `AhcEventFilter`. Unlike the `HttpMessageLogger`, this will not log request or response bodies.
+
+[tabs]
+------
+[tab,title="Request Log Output"]
+....
+
+The log output of the request packet's metadata is as follows. 
+
+[source,bash]
+----
+DEBUG 2016-02-10 11:16:29,421 [[hello].http.requester.HTTP_Request_Configuration(1) SelectorRunner] com.ning.http.client.providers.grizzly.AsyncHttpClientFilter: REQUEST: HttpRequestPacket (
+   method=GET
+   url=/v3/hello
+   query=null
+   protocol=HTTP/1.1
+   content-length=-1
+   headers=[
+      Host=mocker-server.cloudhub.io:80
+      User-Agent=AHC/1.0
+      Connection=keep-alive
+      Accept=*/*]
+)
+----
+
+....
+[tab,title="Response Log Output"]
+....
+
+The log output of the response packet's metadata is as follows. 
+
+[source,bash]
+----
+DEBUG 2016-02-10 11:16:29,508 [[hello].http.requester.HTTP_Request_Configuration.worker(1)] com.ning.http.client.providers.grizzly.AhcEventFilter: RESPONSE: HttpResponsePacket (
+  status=200
+  reason=
+  protocol=HTTP/1.1
+  content-length=10940
+  committed=false
+  headers=[
+      content-type=application/json
+      date=Wed, 10 Feb 2016 19:16:29 GMT
+      server=nginx
+      content-length=10940
+      connection=keep-alive]
+)
+----
+
+------
