@@ -1,16 +1,12 @@
 = Windows Gateway Services Guide
 :keywords: anypoint studio, esb, connector, endpoint, windows gateway
 
-Windows Gateway Services provides connectivity to proprietary functionality on the Windows platform, and is used by the MSMQ connector, PowerShell Connector, Dynamics CRM Connector, and Dynamics AX Connector.
+Windows Gateway Services provides connectivity to proprietary functionality on the Windows platform, and is used by the following connectors:
 
-link:https://repository.mulesoft.org/nexus/content/repositories/releases/org/mule/modules/anypoint-windows-gateway-service/1.8.5/anypoint-windows-gateway-service-1.8.5.zip[Install Windows Gateway Services]
-
-Release Notes:
-
-* link:/release-notes/windows-gateway-services-release-notes[Windows Gateway Services Release Notes]
-* link:/release-notes/msmq-connector-release-notes[MSMQ Connector Release Notes]
-
-image:WindowsGateway.png[WindowsGateway]
+* MSMQ connector
+* PowerShell Connector
+* Dynamics CRM Connector
+* Dynamics AX Connector
 
 The Windows Gateway leverages the following technologies and frameworks:
 
@@ -18,14 +14,23 @@ The Windows Gateway leverages the following technologies and frameworks:
 * link:http://owin.org/[OWIN] provides the HTTP layer. Open Web Interface for .NET (OWIN) is an open specification for decoupling applications from web server functionality, which provides a layer for making all the HTTP concerns independent of the hosting platform.
 * link:http://www.asp.net/vnext/overview/owin-and-katana[Katana] provides the OWIN Microsoft implementation, which handles self and IIS hosting for OWIN applications.
 
-For information on MSMQ, see the link:/mule-user-guide/v/3.7/msmq-connector-user-guide[MSMQ Connector User Guide].
+Release Notes:
 
-=== Installing the Windows Gateway Services
+* link:/release-notes/windows-gateway-services-release-notes[Windows Gateway Services Release Notes]
 
-. Download the Windows Gateway Services installer from link:https://repository-master.mulesoft.org/nexus/content/repositories/releases/org/mule/modules/anypoint-windows-gateway-service/1.8.5/anypoint-windows-gateway-service-1.8.5.zip[here]. Unzip the software distribution.
+== Installing the Windows Gateway Services
+
+Prerequisites:
+
+* Windows 2008 Server, Windows 2008 R2 Server, Windows 2012 Server
+* .NET Framework 4.5 and newer
+
+Installation steps:
+
+. Download the Windows Gateway Services installer from link:https://repository-master.mulesoft.org/nexus/content/repositories/releases/org/mule/modules/anypoint-windows-gateway-service/1.9.0/anypoint-windows-gateway-service-1.9.0.zip[here]. Unzip the software distribution.
 . Double-click the `AnyPoint-Windows-Gateway-Service.exe` file.  
 . Click *Options* to change the installation location, or click *Install* to start the installation. 
-. Copy the Authentication Token that displays for use when you configure the connection to the Gateway Service from Anypoint Studio.. For more information, see the link:/mule-user-guide/v/3.7/windows-powershell-connector-guide[Windows PowerShell Connector Guide.] After you copy the token, click *Install*.
+. If you plan to use the MSMQ and/or PowerShell connectors along with the Gateway, then copy the Authentication Token that is displayed for later use when you configure the connection at Anypoint Studio, otherwise skip this step. After you copy the token, click *Install*.
 . After the installation completes, the installer gives you the option to view the `readme.txt` file with additional instructions. 
 . Click *Finish* to exit.
 . The installation creates the new *Anypoint Gateway* Windows service, which the installer starts.
@@ -36,45 +41,119 @@ To view the running service in Windows 7, when the Control Panel *View by* opt
 
 image:ServicesTool.png[ServicesTool]
 
-=== Configuring the Anypoint Gateway for Windows Service
+== Configuring the Anypoint Gateway for Windows Service
 
-The install location for the Windows Service is `c:\Program Files(x86)\Anypoint Gateway for Windows`. This folder contains the `Mule.SelfHost.exe` executable, the `Mule.SelfHost.exe.config` configuration file and PowerShell scripts to automate configuration tasks.
+The default install location for the Windows Service is `c:\Program Files(x86)\Anypoint Gateway for Windows` unless you have choosen another folder when installed it. This folder contains the `Mule.SelfHost.exe` executable, the `Mule.SelfHost.exe.config` configuration file and PowerShell scripts to automate configuration tasks.
 
 *Note*: If the configuration file doesn't appear in the folder, in Windows 7, when the Control Panel *View by* option is set to *Small icons*, click *Control Panel* > *Folder Options* > *View* > *Show hidden files, folders, and drives.*
 
-The executable starts a new web server at port 9333, which only accepts secure connections using HTTPS. You can change the port number and the authentication token for the gateway in the `Mule.SelfHost.exe.config` configuration file:
+The executable starts a new web server at port 9333 (default), which only accepts secure connections using HTTPS. You can change the port number where the gateway listens in the following places within the `Mule.SelfHost.exe.config` configuration file:
 
 [source, xml, linenums]
 ----
 <appSettings>
     <!-- Configure the service to listen on the following address. -->
     <add key="OwinHostAddress" value="https://+:9333/"/>
-    <!-- Token that must be sent by the Mule connector's client in the Authorization header when accessing the Rest API. -->
-    <add key="mule-auth-token" value="3nGdw7W+G1fSO2YBEHDmpo4N1Tg="/>
+    .
+    .
 </appSettings>
+.
+.
+<system.serviceModel>
+    <services>
+      <service behaviorConfiguration="routing"
+          name="System.ServiceModel.Routing.RoutingService">
+        <host>
+          <baseAddresses>
+            <add baseAddress="https://*:9333/router"/>
+          </baseAddresses>
+    .
+    .
+</system.serviceModel>
 ----
 
 This web server uses a self-signed SSL certificate auto-generated during installation. The certificate is in the *Personal* folder of the *Local Computer* certificate store:
 
 image:MMC_Personal_Certs.png[MMC_Personal_Certs]
 
-Because the Windows service relies on `http.sys` for self-hosting the web server, any change in the port number or SSL certificate requires reconfiguring Windows. The `Register-SslCert.ps1` PowerShell script in the installation directory handles this task. If the port or certificate changes, run the following command from a link:http://en.wikipedia.org/wiki/Windows_PowerShell[PowerShell] console:
+Because the Windows service relies on `http.sys` for self-hosting the web server, changes in the port number or SSL certificate requires reconfiguring Windows. The `Register-SslCert.ps1` PowerShell script in the installation directory handles this task. If the port or certificate changes, run the following command from a link:http://en.wikipedia.org/wiki/Windows_PowerShell[PowerShell] console:
 
 `Register-SslCert.ps1 <certificate-thumbprint> <windows-account> <port>`
 
 * `<certificate-thumbprint>`: The thumbprint of the SSL certificate. It must be stored in the Personal Folder of the Local Store Account.
 * `<windows-account>`: Windows User or Group that receives permissions to register the port. The account impersonating the Windows service or console application must be part of this group.
-* `<port>`: HTTP port – Must be *9333*.
+* `<port>`: HTTP port – Must be *9333* (default) - Or the port you have set at the configuration file.
 
 Example:
 
 `Register-SslCert.ps1 a495cbf8c4af496f1ef81efb224c8097d039f922 everyone 9333`
 
-=== Load Balanced Configuration
+=== MSMQ & PowerShell connectors
+
+==== Security Considerations
+
+For these connectors, running in the Mule ESB, the service first authenticates the call by inspecting the HTTP Authorization header as specified in the link:https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.8[RFC 2616].
+
+As said, the authentication is done through this unique security token used by both connectors. This token is included on every HTTP request to the Gateway using the Mule scheme. The following example shows how MSMQ leverages the Gateway to connect to a specific queue sending the security token as specified in this section (the same authorization header applies for PowerShell):
+
+[source, code, linenums]
+----
+GET: https://localhost:9333/msmq?count=50
+Authorization: mule 3nGdw7W+G1fSO2YBEHDmpo4N1Tg=
+Mule-Msmq-Queue-Name: .\private$\out
+Mule-Api-Version: 1
+----
+
+The authorization token should match on the connector and the Gateway configuration file. The following configuration setting shows how the token is set within the Gateway configuration file  `Mule.SelfHost.exe.config` :
+
+[source, xml, linenums]
+----
+<appSettings>
+    <!-- Token that must be sent by the Mule connector's client in the Authorization header when accessing the Rest Api. -->
+    <add key="mule-auth-token" value="3nGdw7W+G1fSO2YBEHDmpo4N1Tg="/>
+</appSettings>
+----
+
+When you configure the connectors running in the Mule ESB, the authorization token value should be set at the `'Gateway Access Token'` configuration setting (`accessToken` attribute at the connector's XML configuration).
+
+*Note*: The installer for the Windows Gateway service automatically generates a cryptographically secure token for use by callers upon first install. This token is displayed and placed upon the clipboard during installation for easy copying into a Mule application.
+
+==== Impersonating a Windows User
+
+Users executing the call on behalf of a Gateway-served connector authenticate through two custom HTTP headers, `mule-impersonate-username` and `mule-impersonate-password`. 
+
+These two headers represent the Windows credentials of an existing user in the Active Directory forest where the Windows Gateway service is running, or a local account on the machine hosting the service. When these HTTP headers are included in an HTTP Request, the Windows Gateway service authenticates and impersonates this user before executing the operation required by the connector. This provides the ability to configure the correct access control list permissions using Windows credentials.
+
+==== MSMQ specific
+
+The following diagram shows the interaction of the MSMQ connector with the Gateway, along with the main components used:
+
+image:WindowsGateway.png[WindowsGateway]
+
+===== Configuration settings
+
+In the following table you can find the configuration settings that are only related to the MSMQ connector:
+
+[cols=",",]
+|===
+|*Property* |*Usage*
+|*invalid-queue-name* |The queue name where unreadable messages are moved to.
+|*transaction-timeout* |The timeout for processing messages since they got retrieved by the connector. When the cleanup task finds a message which timeout expired it moves the message to the main queue to be available back again (for details check two phase commit section at the connector's guide).
+|*invalid-message-timeout* |The timeout for invalid messages for when a payload of a message is parsed with an incorrect formatter.
+|*cleanup-delay* |The delay of the cleanup task to start looking for expired messages after they got retrieved for processing (for details check two phase commit section at the connector's guide).
+|===
+
+===== Impersonating a Windows User
+
+When your queue is marked to require authentication then you can impersonate the caller user as specified above (in the same general section). In addition to this, if you work with a remote queue the connector has a particular header to override this behavior (for details check the connector's guide).
+
+===== Load Balanced Configuration
 
 Windows Gateway Services supports running in a load-balanced configuration to allow for fault tolerance. When running multiple gateway services instances, each member should be configured to perform MSMQ background jobs at a non-overlapping interval.
+
 MSMQ background job processing is by default performed every 10 minutes starting at zero minutes past the hour. To prevent multiple gateway instances simultaneously attempting to perform cleanup on the queues when running in load-balanced configuration, a setting called cleanup-delay should be specified on each gateway instance. The recommended value to use for this on each machine is (10 / instanceCount) * (instanceNumber - 1) where instanceNumber is an integer value 1..n.
 For example, a cluster of 2 machines would use cleanup-delay of 0 on machine 1, 5 on machine 2. A cluster of 3 machines would use cleanup-delay of 0 on machine 1, 3 on machine 2, and 6 on machine 3. Machine clocks should be synchronized by NTP or equivalent mechanism to ensure this offset is applied correctly.
+
 The cleanup-delay setting is found in the Mule.SelfHost.config file:
 
 [source, xml, linenums]
@@ -87,55 +166,54 @@ The cleanup-delay setting is found in the Mule.SelfHost.config file:
 
 *Note*: When running in LB configuration the gateway services should be configured to run as 'Administrator' when the nodes involved (MSMQ, gateways) are under a WORKGROUP but not joined to a DOMAIN. When joined to the same DOMAIN the permissions for each of the nodes and objects involved (queues) should be correctly set by the domain's administrator.
 
-== Security Considerations
+See link:/release-notes/msmq-connector-release-notes[MSMQ Connector Release Notes] for version information.
 
-For all connectors leveraging the Windows Gateway Services, the service first authenticates the direct caller, which is the connector running in the Mule ESB.
+For more information on the MSMQ connector, see the link:/mule-user-guide/v/3.7/msmq-connector-user-guide[MSMQ Connector User Guide].
 
-=== Service Authentication
+==== PowerShell specific
 
-The authentication of the connector is done through a security token included in the HTTP Authorization header. This token is included on every HTTP request to the Gateway using the Mule scheme. The following example shows how MSMQ leverages the Gateway to connect to a specific queue:
+This connector has no specific configuration other than the general configuration regarding the <<Security Considerations>> that are described above.
 
-[source, code, linenums]
-----
-GET: https://localhost:9333/msmq?count=50
-Authorization: mule test-token
-Mule-Msmq-Queue-Name: .\private$\out
-Mule-Api-Version: 1
-<appSettings>
-    <!-- Configure the service to listen on the following address. -->
-    <add key="OwinHostAddress" value="https://+:9333/"/>
-    <!-- Token that must be sent by the Mule connector's client in the Authorization header when accessing the Rest API. -->
-    <add key="mule-auth-token" value="3nGdw7W+G1fSO2YBEHDmpo4N1Tg="/>
-</appSettings>
-----
+For more information on the PowerShell connector, see the link:/mule-user-guide/v/3.7/windows-powershell-connector-guide[Windows PowerShell Connector Guide.]
 
-Configure the token on the connector and also in the Gateway configuration file. The following configuration sections show how the token is configured in both sides.
+=== Dynamics CRM & AX connectors
 
-==== Connector Configuration
+These connectors have specific service configuration within the `<system.serviceModel>` section of the `Mule.SelfHost.exe.config` configuration file. It is recommended not to modify this section at any circumstance as it contains necessary settings to provide the routing service to the related connectors.
+
+In case you want to change the port where the service is provided you can do it by updating the `baseAddress` port number within the URL set there, and proceeding to register the certificate for SSL as described in the <<Configuring the Anypoint Gateway for Windows Service>> section to complete the change.
+
+Below you can see the configuration section affecting these connectors:
 
 [source, xml, linenums]
 ----
-<msmq:config name="MSMQ" doc:name="MSMQ" accessToken="test-token" rootQueueName=".\private$\qout" serviceAddress="localhost:9333">
-  <msmq:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
-</msmq:config>
+<system.serviceModel>
+    <services>
+      <service behaviorConfiguration="routing"
+          name="System.ServiceModel.Routing.RoutingService">
+        <host>
+          <baseAddresses>
+            <add baseAddress="https://*:9333/router"/>
+          </baseAddresses>
+    .
+    .
+</system.serviceModel>
 ----
 
-==== Gateway Configuration
+==== CRM specific
 
-[source, xml, linenums]
-----
-<appSettings>
-    <add key="mule-auth-token" value="test-token"/>
-</appSettings>
-----
+This connector has no specific configuration other than the routing service configuration described above at the <<Dynamics CRM & AX connectors>> section.
 
-*Note*: The installer for the Windows Gateway service automatically generates a cryptographically secure token for use by callers upon first install. This token is displayed and placed upon the clipboard during installation for easy copying into a Mule application.
+See link:/release-notes/microsoft-dynamics-crm-connector-release-notes[Microsoft Dynamics CRM Release Notes] for version information.
 
-== User Authentication
+For more information on the PowerShell connector, see the link:/mule-user-guide/v/3.7/microsoft-dynamics-crm-connector[Microsoft Dynamics CRM Connector Guide.]
 
-Users executing the call on behalf of a Gateway-served connector authenticate through two custom HTTP headers, `mule-impersonate-username` and `mule-impersonate-password`. 
+==== AX specific
 
-When using user authentication, the queue in any connector type is marked to require authentication. These two headers represent the Windows credentials of an existing user in the Active Directory forest where the Windows Gateway service is running, or a local account on the machine hosting the service. When these HTTP headers are included in an HTTP Request, the Windows Gateway service authenticates and impersonates this user before queuing or dequeuing a message from a connector. This provides the ability to configure the correct access control list permissions on the queue using Windows credentials.
+This connector has no specific configuration other than the routing service configuration described above at the <<Dynamics CRM & AX connectors>> section.
+
+See link:/release-notes/microsoft-dynamics-ax-2012-connector-release-notes[Microsoft Dynamics AX Release Notes] for version information.
+
+For more information on the PowerShell connector, see the link:/mule-user-guide/v/3.7/microsoft-dynamics-ax-2012-connector[Microsoft Dynamics AX Connector Guide.]
 
 == Windows Gateway Service Troubleshooting
 

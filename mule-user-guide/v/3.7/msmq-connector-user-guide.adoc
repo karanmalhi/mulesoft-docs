@@ -169,7 +169,7 @@ Mule-Msmq-Queue-Name: .\private$\out
 Mule-Api-Version: 1
 ----
 
-Configure the token on the connector and also in the Gateway configuration file. The following shows how the token is configured on both sides:
+Configure the token on the connector and also in the Gateway configuration file. The following shows how the token is configured on connector side through the _accessToken_ parameter value:
 
 [source, xml, linenums]
 ----
@@ -249,7 +249,7 @@ This following table shows the properties in this element:
 |===
 |*Property* |*Usage*
 |*queueName* |Queue name in UNC path or FormatName notation. See the link:https://docs.google.com/a/mulesoft.com/document/d/1mUBv_Cdz1DDzdYgVHBy4cpXkvtdh1kwa3s4dLkjBEiM/edit#heading=h.4rg6xwxl7scj[Queue Names] section for more information. Overrides the queue name set in the Global element. Optional.
-|*pollingPeriod* |Interval in milliseconds used by the connector for polling the configured queue in MSMQ. Optional.
+|*pollingPeriod* |Interval in milliseconds used by the connector for polling the configured queue in MSMQ (waiting only occurs when there are no messages at the target queue to be retrieved). Optional.
 |*messageCount* |Maximum number of messages to retrieve in a single batch. Optional.
 |*userName* |The name of the user that is used to impersonate the call when accessing MSMQ from the Gateway. Overrides the user name set in the Global element. Optional.
 |*password* |The password of the user that will be used to impersonate the call when accessing MSMQ from the Gateway. Overrides the password set in the Global element. Optional.
@@ -349,13 +349,22 @@ For example: `66785f20-a2f3-42a3-bdcd-9ac5a937ac52\1`
 |msmq.use.tracing |mule-msmq-use-tracing |Sets a value that indicates whether to trace a message as it moves toward its destination queue.
 |msmq.extension |mule-msmq-extension |Sets additional, application-defined information associated with the message. Encode as base64.
 |msmq.app.specific |mule-msmq-app-specific |Sets additional, application-specific information.
+|msmq.queue.override.transactional |mule-msmq-queue-override-transactional |When working with remote transactional queues the MSMQ API might not access these settings due to lack of permissions. This value is used to indicate to the Gateway that the target queue is transactional and the message should be sent within a transaction scope (otherwise it will end at the dead-letter queue).
+|msmq.queue.override.authenticate |mule-msmq-queue-override-authenticate |When working with remote authenticated queues the MSMQ API might not access these settings due to lack of permissions. This value is used to indicate to the Gateway that the target queue requires an authenticated message to be sent.
 |========
 
 The following example shows how the “set-payload” component sets the label for an MSMQ message.
 
 [source, xml, linenums]
 ----
-<set-property propertyName="msmq-label" value="message_from_mule" doc:name="Label"/>
+<set-property propertyName="msmq.label" value="message_from_mule" doc:name="Label"/>
+----
+ 
+And the following sample indicates the Gateway that the target queue is transactional (ie. message will be send within a transaction scope).
+
+[source, xml, linenums]
+----
+<set-property propertyName="msmq.queue.override.transactional" value="true" doc:name="TxQueue"/>
 ----
 
 == MSMQ Connector Troubleshooting

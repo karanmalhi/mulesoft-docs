@@ -9,17 +9,17 @@ When creating a new transport, you must implement a set of Mule interfaces in th
 
 Mule transports can be one of the following types:
 
-. inbound-only: Components can only subscribe to events. They cannot dispatch events.
+. Inbound-only: Components can only subscribe to events. They cannot dispatch events.
 
-. outbound-only: Components can only dispatch events. They cannot subscribe to events.
+. Outbound-only: Components can only dispatch events. They cannot subscribe to events.
 
-. inbound-outbound: Components can subscribe and dispatch events
+. Inbound-outbound: Components can subscribe and dispatch events
 
 == Transport Interfaces
 
 A transport consists of a set of interface implementations that expose the features for the underlying transport.
 
-image:http://images.mulesoft.org/providers.gif[image]
+image:creating-transports-providers.png[creating-transports-providers]
 
 [width="100%",cols=",",options="header"]
 |===
@@ -30,32 +30,32 @@ image:http://images.mulesoft.org/providers.gif[image]
 |Message Requester |Is also used to receive incoming messages like the MessageReceiver but rather than subscribing to inbound events or polling a resource or message channel messages are only received on "request". Inbound endpoints on services always use a MessageReceiver rather than a MessageRequester but they can be used elsewhere programatically to request a single message from a message channel or resource.
 |Message Factory |Creates a MuleMessage instance from the incoming transport message. For example, the HTTP message factory creates a new MuleMessage by using the HTTP request's input stream as payload and puts all request headers as properties to the MuleMessage.
 |Transformers |Transformers are used to convert data between the transport-specific data format and another format, such as from an HTTP response to a string. The dispatcher must call `MuleEvent.transformMessage()` to transform the message.
-|Endpoints |The means of configuring the use of message channels or resource as part of service configuration. The endpoint defines which transport to use and includes settings like the host or queue name, the filter to use, and transaction info. Defining an endpoint on a service will cause Mule to create the necessary transport connector for the protocol being used.
+|Endpoints |The means of configuring the use of message channels or resource as part of service configuration. The endpoint defines which transport to use and includes settings like the host or queue name, the filter to use, and transaction info. Defining an endpoint on a service  causes Mule to create the necessary transport connector for the protocol being used.
 |===
 
 When writing a transport, you must implement the following interfaces that define the contract between Mule and the underlying technology.
 
-==== org.mule.api.transport.Connector
+=== org.mule.api.transport.Connector
 
 The connector is used by Mule to register listeners and create message dispatchers for the transport. Configuration parameters that should be shared by all Message Receivers, Dispatchers and Requesters are stored on the connector. Usually, only one connector instance is needed for multiple inbound and outbound endpoints as multiple Message Receivers, Dispatchers and Requesters can be associated with a connector. However, where the underlying transport API has the notion of a connection such as the JMS or JDBC API, there should be a one-to-one mapping between the Mule connector and the underlying connection.
 
-==== org.mule.api.transport.MessageReceiver
+=== org.mule.api.transport.MessageReceiver
 
 The Message Receiver is used to receive incoming data from the underlying transport and package it as an event. The Message Receiver is essentially the server implementation of the transport (where the Message Dispatcher is a client implementation). For example, the HTTP Message Receiver is an HTTP server implementation that accepts HTTP requests. An implementation of this class is needed if the transport supports inbound communication.
 
-==== org.mule.api.transport.MessageDispatcher
+=== org.mule.api.transport.MessageDispatcher
 
-The Message Dispatcher is used to send messages, which is akin to making client calls with the underlying technology. For example, the CXF Message Dispatcher will make a web service call. An implementation of this class is needed if the transport supports outbound communication. The Message Dispatcher must call `MuleEvent.transformMessage()` to invoke any necessary transformers before dispatching it.
+The Message Dispatcher is used to send messages, which is akin to making client calls with the underlying technology. For example, the CXF Message Dispatcher makes a web service call. An implementation of this class is needed if the transport supports outbound communication. The Message Dispatcher must call `MuleEvent.transformMessage()` to invoke any necessary transformers before dispatching it.
 
-==== org.mule.api.transport.MessageRequester
+=== org.mule.api.transport.MessageRequester
 
 The Message Requester is used to request messages from a message channel or resource rather than subscribing to inbound events or polling a resource for messages. This is often used programatically but is not used for inbound endpoints configured on services. An implementation of this class is needed if the transport supports the requesting of messages from a message channel.
 
-==== org.mule.api.transport.MessageDispatcherFactory
+=== org.mule.api.transport.MessageDispatcherFactory
 
 This is a factory class used to create MessageDispatcher instances. An implementation of this class is needed if the transport supports outbound communication.
 
-==== org.mule.api.transport.MuleMessageFactory
+=== org.mule.api.transport.MuleMessageFactory
 
 The message factory is used to provide a consistent way of creating MuleMessage instances from the transport's message format.
 
@@ -71,9 +71,9 @@ The link:http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/Ab
 
 You can set further properties on the connector that act as defaults. For example, you can set endpoint properties that are used by default unless you override them when configuring a specific endpoint.
 
-Sometimes the connector is responsible for managing a connection resource of the transport where the underlying technology has the notion of a connection, such as in JMS or JDBC. These types of connectors will have a one-to-one mapping between a Mule connector and the underlying connection. Therefore, if you want to have two or more physical JMS connections in a single Mule instance, a new connector should be created for each connection.
+Sometimes the connector is responsible for managing a connection resource of the transport where the underlying technology has the notion of a connection, such as in JMS or JDBC. These types of connectors have a one-to-one mapping between a Mule connector and the underlying connection. Therefore, if you want to have two or more physical JMS connections in a single Mule instance, a new connector should be created for each connection.
 
-For other transports, there will be only one connector of a particular protocol in a Mule instance that manages all endpoint connections. One such example would be socket-based transports such as TCP where each receiver manages its own ServerSocket and the connector manages multiple receivers.
+For other transports, there is only one connector of a particular protocol in a Mule instance that manages all endpoint connections. One such example would be socket-based transports such as TCP where each receiver manages its own ServerSocket and the connector manages multiple receivers.
 
 === Methods to Implement
 
@@ -90,7 +90,7 @@ For other transports, there will be only one connector of a particular protocol 
 
 == Message Receivers
 
-Message Receivers will behave a bit differently for each transport, but Mule provides some standard implementations that can be used for polling resources and managing transactions for the resource. Usually there are two types of Message Receivers: Polling and Listener-based.
+Message Receivers behave differently for each transport, but Mule provides some standard implementations that can be used for polling resources and managing transactions for the resource. Usually there are two types of Message Receivers: Polling and Listener-based.
 
 * A Polling Receiver polls a resource such as the file system, database, and streams.
 * A Listener-based receiver registers itself as a listener to a transport. Examples would be JMS (javax.message.MessageListener) and Pop3 (javax.mail.MessageCountListener). These base types may be transacted.
@@ -99,18 +99,18 @@ The abstract implementations provided by Mule are described below.
 
 === Abstract Message Receiver
 
-The link:http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/AbstractMessageReceiver.html[AbstractMessageReceiver] provides methods for routing events. When extending this class, you should set up the necessary code to register the object as a listener to the transport. This will usually be a case of implementing a listener interface and registering itself.
+The link:http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/AbstractMessageReceiver.html[AbstractMessageReceiver] provides methods for routing events. When extending this class, you should set up the necessary code to register the object as a listener to the transport. This is usually a case of implementing a listener interface and registering itself.
 
 ==== Methods to Implement
 
 [width="100%",cols=",",options="header"]
 |===
 |Method name |Description |Required
-|doConnect() |Should make a connection to the underlying transport, such as to connect to a socket or register a SOAP service. When there is no connection to be made, this method should be used to check that resources are available. For example, the FileMessageReceiver checks that the directories it will be using are available and readable. The MessageReceiver should remain in a 'stopped' state even after the doConnect() method is called. This means that a connection has been made but no events will be received until the start() method is called. Calling start() on the MessageReceiver will call doConnect() if the receiver hasn't connected. |Yes
+|doConnect() |Should make a connection to the underlying transport, such as to connect to a socket or register a SOAP service. When there is no connection to be made, this method should be used to check that resources are available. For example, the FileMessageReceiver checks that the directories it uses are available and readable. The MessageReceiver should remain in a 'stopped' state even after the doConnect() method is called. This means that a connection has been made but no events are received until the start() method is called. Calling start() on the MessageReceiver  calls doConnect() if the receiver hasn't connected. |Yes
 |doDisconnect() |Disconnects and tidies up any resources allocated using the doConnect() method. This method should return the MessageReceiver in a disconnected state so that it can be connected again using the doConnect() method. |Yes
 |doStart() |Should perform any actions necessary to enable the receiver to start receiving events. This is different from the doConnect() method, which actually makes a connection to the transport but leaves the MessageReceiver in a stopped state. For polling-based MessageReceivers, the doStart() method simply starts the polling thread. For the Axis message receiver, the start method on the SOAPService is called. The action performed depends on the transport being used. Typically, a custom transport doesn't need to override this method. |No
 |doStop() |Should perform any actions necessary to stop the receiver from receiving events. |No
-|doDispose() |Is called when the connector is being disposed and should clean up any resources. The doStop() and doDisconnect() methods will be called implicitly when this method is called. |No
+|doDispose() |Is called when the connector is being disposed and should clean up any resources. The doStop() and doDisconnect() methods are called implicitly when this method is called. |No
 |===
 
 === Polling Message Receiver
@@ -122,7 +122,7 @@ Some transports poll a resource periodically waiting for new data to arrive. The
 [width="100%",cols=",",options="header"]
 |==========
 |Method name |Description |Required
-|poll() |Is executed repeatedly at a configured frequency. This method should execute the logic necessary to read the data and return it. The data returned will be the payload of the new message. Returning null will cause no event to be fired. |Yes
+|poll() |Is executed repeatedly at a configured frequency. This method should execute the logic necessary to read the data and return it. The data returned is the payload of the new message. Returning null causes no event to be fired. |Yes
 |==========
 
 === Transacted Polling Message Receiver
@@ -136,15 +136,15 @@ You implement the following methods for the transacted polling message receiver 
 [width="100%",cols=",",options="header"]
 |===
 |Method name |Description |Required
-|getMessages() |Returns a list of objects that represent individual message payloads. The payload can be any type of object and will by sent to Mule services wrapped in a MuleEvent object. |Yes
+|getMessages() |Returns a list of objects that represent individual message payloads. The payload can be any type of object and is sent to Mule services wrapped in a MuleEvent object. |Yes
 |processMessage(Object) |is called for each object in the list returned from `getMessages()`. Each object processed is managed in its own transaction. |Yes
 |===
 
 === Thread Management
 
-It's common for receivers to spawn a thread per request. All receiver threads are allocated using the WorkManager on the receiver. The WorkManager is responsible for executing units of work in a thread. It has a thread pool that allows threads to be reused and ensures that only a prescribed number of threads will be spawned.
+It's common for receivers to spawn a thread per request. All receiver threads are allocated using the WorkManager on the receiver. The WorkManager is responsible for executing units of work in a thread. It has a thread pool that allows threads to be reused and ensures that only a prescribed number of threads are spawned.
 
-The WorkManager is an implementation of link:http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/context/WorkManager.html[org.mule.api.context.WorkManager], which is really just a wrapper of link:http://java.sun.com/j2ee/sdk_1.3/techdocs/api/javax/resource/spi/work.WorkManager.html[`javax.resource.spi.work.WorkManager`] with some extra lifecycle methods. There is a `getWorkManager()` method on the link:http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/AbstractMessageReceiver.html[AbstractMessageReceiver] that you can use to get a reference to the WorkManager for the receiver. Work items (such as the code to execute in a separate thread) must implement `javax.resource.spi.work.Work`. This interface extends `java.lang.Runnable` and thus has a `run()` method that will be invoked by the WorkManager.
+The WorkManager is an implementation of link:http://www.mulesoft.org/docs/site/current/apidocs/org/mule/api/context/WorkManager.html[org.mule.api.context.WorkManager], which is really just a wrapper of link:http://java.sun.com/j2ee/sdk_1.3/techdocs/api/javax/resource/spi/work.WorkManager.html[`javax.resource.spi.work.WorkManager`] with some extra lifecycle methods. There is a `getWorkManager()` method on the link:http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/AbstractMessageReceiver.html[AbstractMessageReceiver] that you can use to get a reference to the WorkManager for the receiver. Work items (such as the code to execute in a separate thread) must implement `javax.resource.spi.work.Work`. This interface extends `java.lang.Runnable` and thus has a `run()` method that is invoked by the WorkManager.
 
 When scheduling work with the WorkManager, you should call `scheduleWork(...)` on the WorkManager rather than `startWork(...)`.
 
@@ -152,21 +152,21 @@ When scheduling work with the WorkManager, you should call `scheduleWork(...)` o
 
 Whereas a message receiver is equivalent to a server for the transport in that it serves client requests, a message dispatcher is the client implementation of the transport. Message dispatchers are responsible for making client requests over the transport, such as writing to a socket or invoking a web service. The link:http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/AbstractMessageDispatcher.html[AbstractMessageDispatcher] provides a good base implementation, leaving three methods for the custom MessageDispatcher to implement.
 
-==== Methods to Implement
+=== Methods to Implement
 
 [width="100%",cols=",",options="header"]
 |===
 |Method Name |Description |Required
-|doSend(MuleEvent) |Sends the message payload over the transport. If there is a response from the transport, it should be returned from this method. The `sendEvent` method is called when the endpoint is running synchronously, and any response returned will ultimately be passed back to the caller. This method is executed in the same thread as the request thread. |Yes
+|doSend(MuleEvent) |Sends the message payload over the transport. If there is a response from the transport, it should be returned from this method. The `sendEvent` method is called when the endpoint is running synchronously, and any response returned ultimately is passed back to the caller. This method is executed in the same thread as the request thread. |Yes
 |doDispatch(MuleEvent) |Invoked when the endpoint is asynchronous and should invoke the transport but not return any result. If a result is returned, it should be ignored, and if they underlying transport does have a notion of asynchronous processing, that should be invoked. This method is executed in a different thread from the request thread. |Yes
-|doConnect() |Makes a connection to the underlying transport, such as connecting to a socket or registering a SOAP service. When there is no connection to be made, this method should be used to check that resources are available. For example, the `FileMessageDispatcher` checks that the directories it will be using are available and readable. The `MessageDispatcher` should remain in a 'stopped' state even after the `doConnect()` method is called. |Yes
+|doConnect() |Makes a connection to the underlying transport, such as connecting to a socket or registering a SOAP service. When there is no connection to be made, this method should be used to check that resources are available. For example, the `FileMessageDispatcher` checks that the directories it uses are available and readable. The `MessageDispatcher` should remain in a 'stopped' state even after the `doConnect()` method is called. |Yes
 |doDisconnect() |Disconnects and tidies up any resources that were allocated by the `doConnect()` method. This method should return the `MessageDispatcher` into a disconnected state so that it can be connected again using the `doConnect()` method |Yes
 |doDispose() |Called when the Dispatcher is being disposed and should clean up any open resources. |No
 |===
 
 == Message Requesters
 
-As with message receivers and dispatchers the implementation of a message requester for a transport, if it even applies, will vary greatly. The abstract link:http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/AbstractMessageRequester.html[AbstractMessageRequester] provides a base from which to extend and implement your own Message Requester and implemented methods for routing events. Although requesters can implement `doConnect` and `doDisconnect` methods given the nature of a requester this can also be done as part of the `doRequest` implementation, it really depending on the underlying transport and if you need to maintain a connection open all the time or not to be able to make arbitrary requests.
+As with message receivers and dispatchers the implementation of a message requester for a transport, if it even applies, varies greatly. The abstract link:http://www.mulesoft.org/docs/site/current/apidocs/org/mule/transport/AbstractMessageRequester.html[AbstractMessageRequester] provides a base from which to extend and implement your own Message Requester and implemented methods for routing events. Although requesters can implement `doConnect` and `doDisconnect` methods given the nature of a requester this can also be done as part of the `doRequest` implementation, it really depending on the underlying transport and if you need to maintain a connection open all the time or not to be able to make arbitrary requests.
 
 [width="100%",cols=",",options="header"]
 |===
@@ -182,7 +182,7 @@ As with message receivers and dispatchers the implementation of a message reques
 
 === Threads and Dispatcher Caching
 
-Custom transports do not need to worry about dispatcher threading. Unless threading is turned off, the Dispatcher methods listed above will be executed in their own thread. This is managed by the `AbstractMessageDispatcher`.
+Custom transports do not need to worry about dispatcher threading. Unless threading is turned off, the Dispatcher methods listed above execute in their own thread. This is managed by the `AbstractMessageDispatcher`.
 
 When a request is made for a dispatcher, it is looked up from a dispatcher cache on the `AbstractConnector`. The cache is keyed by the endpoint being dispatched to. If a Dispatcher is not found, one is created using the `MessageDispatcherFactory` and then stored in the cache for later.
 
@@ -217,7 +217,7 @@ A message factory should extend link:http://www.mulesoft.org/docs/site/current/a
 
 Each transport has a service descriptor that describes what classes are used to construct the transport. For complete information, see link:/mule-user-guide/v/3.7/transport-service-descriptors[Transport Service Descriptors].
 
-= Coding Standards
+== Coding Standards
 
 Following are coding standards to use when creating transports.
 
@@ -225,7 +225,7 @@ Following are coding standards to use when creating transports.
 
 All Mule transports have a similar package structure. They follow the convention of:
 
-[source, code, linenums]
+[source, code]
 ----
 org.mule.transport.<protocol>
 ----
@@ -236,7 +236,13 @@ Where protocol is the protocol identifier of the transport such as 'tcp' or 'soa
 
 Any exceptions messages used in your transport implementation should be stored in a resource bundle so that they can be link:/mule-user-guide/v/3.7/internationalizing-strings[internationalized] . The message bundle is a standard Java properties file and must be located at:
 
-[source, code, linenums]
+[source, code]
 ----
 META-INF/services/org/mule/i18n/<protocol>-messages.properties
 ----
+
+== See Also
+
+* link:http://forums.mulesoft.com[MuleSoft's Forums]
+* link:https://www.mulesoft.com/support-and-services/mule-esb-support-license-subscription[MuleSoft Support]
+* mailto:support@mulesoft.com[Contact MuleSoft]
