@@ -1,7 +1,7 @@
-= Sending Data from ARM to External Monitoring Software
+= Sending Data from Runtime Manager to External Monitoring Software
 keywords: analytics, monitoring, splunk, elk, elastisearch, logstash, kibana, logs, mule events, logging, apy analytics, metrics, traceability, arm, anypoint runtime manager
 
-By simply configuring a few settings on the Anypoint Runtime Manager (ARM), the event notifications produced by your running Mule Applications can be easily sent out to your existing monitoring and analytics third party software.
+By simply configuring a few settings on the Runtime Manager, the event notifications produced by your running Mule Applications can be easily sent out to your existing monitoring and analytics third party software.
 
 You can currently send data out to any of the following:
 
@@ -11,21 +11,21 @@ You can currently send data out to any of the following:
 [INFO]
 Future releases will also feature integrating with other third party systems.
 
-The goal of this document to enable you to integrate ARM with a third party tool such as Splunk or ELK.
+The goal of this document to enable you to integrate Runtime Manager with a third party tool such as Splunk or ELK.
 
 == Basic Architecture
 
-The Anypoint Runtime Manager (ARM) exists both as a component of the link:/mule-fundamentals/v/3.7/anypoint-platform-primer[Anypoint Platform] and as an link:/anypoint-platform-on-premises/v/1.0/installing-anypoint-runtime-manager-on-premises-edition[application that can be installed on premise]. ARM On-Premises Edition manages applications that are deployed on premise, the Cloud version of ARM allows you manage applications deployed to link:/cloudhub/index[CloudHub] as well as applications that are deployed on premises. Users of ARM, using the Cloud and On-Prem editions, are able to monitor their applications. Applications deployed on Cloud can either use Insights (MuleSoft’s Analytics & Monitoring feature) or be integrated into third party monitoring applications for a unified view of monitoring and analytics. Apps deployed on on-prem must be integrated into third party monitoring applications.
+The Runtime Manager exists both as a component of the link:/mule-fundamentals/v/3.7/anypoint-platform-primer[Anypoint Platform] and as an link:/anypoint-platform-on-premises/v/1.0/installing-anypoint-runtime-manager-on-premises-edition[application that can be installed on premise]. Runtime Manager On-Premises Edition manages applications that are deployed on premise, the Cloud version of Runtime Manager allows you manage applications deployed to link:/cloudhub/index[CloudHub] as well as applications that are deployed on premises. Users of Runtime Manager, using the Cloud and On-Prem editions, are able to monitor their applications. Applications deployed on Cloud can either use Insights (MuleSoft’s Analytics & Monitoring feature) or be integrated into third party monitoring applications for a unified view of monitoring and analytics. Apps deployed on on-prem must be integrated into third party monitoring applications.
 
 You have the ability to leverage both options to monitor business events, custom business events, logs, and – in the case of apps deployed to an link:/anypoint-platform-for-apis/api-gateway-101[API Gateway] Runtime – API Analytics and governance.
 
 image:arm_big_picture.png[image]
 
-At a closer level of detail, the integration between ARM and third party monitoring and analytics software looks like the diagram below:
+At a closer level of detail, the integration between Runtime Manager and third party monitoring and analytics software looks like the diagram below:
 
 image:amc_onprem_diagram_detail.jpg[image]
 
-In between ARM and the external services is the link:/mule-agent/v/1.3.0/[Mule Agent], a module of Mule ESB that enables easy integration and sends event notifications to third party monitoring tools.
+In between Runtime Manager and the external services is the link:/mule-agent/v/1.3.0/[Mule Agent], a module of Mule ESB that enables easy integration and sends event notifications to third party monitoring tools.
 
 == Prerequisites
 
@@ -37,9 +37,9 @@ Please make sure you have the following software installed:
 [NOTE]
 Mule Agent 1.2.0 or above is required, the steps to install and configure it are provided below.
 
-== Installation and Setup of ARM with a third party monitoring tool
+== Installation and Setup of Runtime Manager with a third party monitoring tool
 
-In order to have ARM send data to an external monitoring tool, you must follow these steps, which are explained in detail further down.
+In order to have Runtime Manager send data to an external monitoring tool, you must follow these steps, which are explained in detail further down.
 
 image:steps-for-external-logs.png[steps]
 
@@ -61,14 +61,14 @@ Although the Mule Agent exists by default bundled with the Mule ESB download as 
 [TIP]
 Before you can register the agent, you must first undeploy all of your running apps and remove them from your `{MULE HOME}/apps` folder.
 
-Place the agent file in your `MULE HOME}/bin` folder, and then you must register it to ARM by running a command in the terminal. Depending on wether you wish to use ARM on-prem or through the cloud platform, you must pass this command a different set of arguments to register it. To obtain the basic command that you must run (complete with your ARM instance ID) you must do the following:
+Place the agent file in your `MULE HOME}/bin` folder, and then you must register it to the Runtime Manager by running a command in the terminal. Depending on wether you wish to use Runtime Manager on-prem or through the cloud platform, you must pass this command a different set of arguments to register it. To obtain the basic command that you must run (complete with your Runtime Manager instance ID) you must do the following:
 
 To obtain this code, you must do the following:
 
-. Log in to your ARM account
+. Log in to your Runtime Manager account
 +
 [TIP]
-To open ARM On-Premises Edition, make sure you've already initiated ARM. If you haven't then you must boot it by running docker. Once initiated, you can access it by navigating to https://localhost in a browser.
+To open Runtime Manager On-Premise Edition, make sure you've already initiated Runtime Manager. If you haven't then you must boot it by running docker. Once initiated, you can access it by navigating to https://localhost in a browser.
 . Navigate to `CloudHub - > Servers`
 . Click `Add Server`. Without needing to actually add a new server, a sample command will be displayed in a popup window that includes the code for your particular organization. Copy this command, depending on where you wish to deploy, you may need to add extra arguments to it.
 
@@ -78,10 +78,10 @@ image:org_code.png[image]
 
 [tabs]
 ------
-[tab,title="ARM Cloud"]
+[tab,title="Runtime Manager Cloud"]
 ....
 
-When using ARM as part of the Anypoint Platform, launch the agent with exactly the same command that you found on the ARM UI:
+When using Runtime Manager as part of the Anypoint Platform, launch the agent with exactly the same command that you found on the Runtime Manager UI:
 
 [source, linenums]
 ----
@@ -95,15 +95,15 @@ or on Windows:
 amc_setup.bat -H 1c3eded9-7917-4a5e-bbe0-f73f9d4f33c1---2 myServer
 ----
 
-The argument `-H` is an id that references your organization in the Anypoint platform and ARM On-Premises Edition installation.
+The argument `-H` is an id that references your organization in the Anypoint platform and Runtime Manager On-Premises Edition installation.
 
-The final argument of this command is the name that you assign for your Mule Agent instance, in the above example, `myServer`. This name will then be visible when interacting with the agent from your ARM console.
+The final argument of this command is the name that you assign for your Mule Agent instance, in the above example, `myServer`. This name will then be visible when interacting with the agent from your Runtime Manager console.
 
 ....
-[tab,title="ARM On-Premises Edition"]
+[tab,title="Runtime Manager On-Premise Edition"]
 ....
 
-When using ARM as an on premises application, launch the agent with the following arguments:
+When using Runtime Manager as an application running on premises, launch the agent with the following arguments:
 
 [source, linenums]
 ----
@@ -117,11 +117,11 @@ or on Windows:
 amc_setup.bat -A http://localhost:8080/hybrid/api/v1 -W wss://localhost:8443/mule -C https://dev.anypoint.mulesoft.com/accounts -H 361755d7-c619-42ce-9187-19db7a6d94a0---2 myServer
 ----
 
-The argument `-H` is an id that references your organization in the Anypoint platform and ARM On-Premises Edition installation.
+The argument `-H` is an id that references your organization in the Anypoint platform and Runtime Manager On-Premise Edition installation.
 
-The final argument of this command is the name that you assign for your Mule Agent instance, in the above example, `myServer`. This name will then be visible when interacting with the agent from your ARM console.
+The final argument of this command is the name that you assign for your Mule Agent instance, in the above example, `myServer`. This name will then be visible when interacting with the agent from your Runtime Manager console.
 
-Note that three extra arguments must be added to what you copied from the ARM UI: -A, -W and -C.
+Note that three extra arguments must be added to what you copied from the Runtime Manager UI: -A, -W and -C.
 * *A* sets the Runtime Manager host address
 * *C* sets the Core Services host address
 * *W* sets the Mule Communicatiosn Manager (MCM) host address
@@ -139,9 +139,9 @@ Creating multiple agents within a single server is not supported.
 
 ==== Verifying Agent Registration
 
-After running the above command, open ARM to verify that the agent has been registered successfully:
+After running the above command, open Runtime Manager to verify that the agent has been registered successfully:
 
-. Log in to ARM with your credentials
+. Log in to Runtime Manager with your credentials
 . Go to `CloudHub - > Servers`. You should now see that one of those servers is your Agent instance, named with the name you provided when installing it:
 
 image:verify_agent.jpg[image]
@@ -378,7 +378,7 @@ image:elk_config_advanced.jpg[ELK advanced]
 
 === Configure API Analytics
 
-Before you can set up the connection to external software through the ARM UI, you must first make some changes to the API Gateway to prepare it for this.
+Before you can set up the connection to external software through the Runtime Manager UI, you must first make some changes to the API Gateway to prepare it for this.
 
 . In your API Gateway Standalone directory, look for the `conf/wrapper.conf` file
 . In it find the following line and make sure that the property is set to "true"
@@ -400,7 +400,7 @@ wrapper.java.additional.<n>=-Danypoint.platform.analytics_base_uri=https://analy
 ----
 wrapper.java.additional.<n>=-Danypoint.platform.analytics_base_uri=
 ----
-. When using ARM On-Premises Edition, there's one more parameter you need to change:
+. When using Runtime Manager On-Premises Edition, there's one more parameter you need to change:
 +
 [source,java,linenums]
 ----
@@ -417,11 +417,11 @@ Once you have set up your Stand Alone API Gateway, the steps for connecting to S
 image:arm_api_analytics_settings.png[arm_analytics]
 
 [WARNING]
-If you modify your `wrapper.conf` file as described above but don't assign an external destination for your data (as you can do via the ARM UI), then this analytics data will be stored in a queue in the server where the API Gateway is being run and could pile up to the point of crashing the system.
+If you modify your `wrapper.conf` file as described above but don't assign an external destination for your data (as you can do via the Runtime Manager UI), then this analytics data will be stored in a queue in the server where the API Gateway is being run and could pile up to the point of crashing the system.
 
 == Integrating API Analytics to Splunk and ELK
 
-Once you've configured your API Gateway, you can now return to ARM and see that your servers that run on API Gateway runtime have some additional options in their menu.
+Once you've configured your API Gateway, you can now return to Runtime Manager and see that your servers that run on API Gateway runtime have some additional options in their menu.
 
 image:arm_api_analytics_settings.png[api analytics]
 
@@ -429,7 +429,7 @@ You can now set up the sending of API analytics to both Splunk and ELK, you conf
 
 == Encrypting Passwords
 
-It's recommended that you assign a master password to your Mule ESB instance or your API Gateway Standalone instance when launching these. If you don't, then when setting up your credentials for external applications via the ARM UI, these will be stored as plain text in the `conf/mule-agent.yml` file. This is not recommendable for security reasons.
+It's recommended that you assign a master password to your Mule ESB instance or your API Gateway Standalone instance when launching these. If you don't, then when setting up your credentials for external applications via the Runtime Manager UI, these will be stored as plain text in the `conf/mule-agent.yml` file. This is not recommendable for security reasons.
 
 Instead, what you should do is launch Mule ESB or API Gateway with an extra argument that is then used to encrypt these passwords when storing them in this .yaml file.
 
@@ -472,4 +472,4 @@ or on windows:
 ------
 
 Note that, in order to have access to these encrypted passwords when you start Mule ESB and API Gateway again, you must assign the same master password you used when generating them.
-In the case that you decide to change the master password or you omitted it when you launched the runtime, you have to reassign your passwords through the ARM UI to keep the third party integrations working.
+In the case that you decide to change the master password or you omitted it when you launched the runtime, you have to reassign your passwords through the Runtime Manager UI to keep the third party integrations working.
